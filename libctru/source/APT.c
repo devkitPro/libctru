@@ -34,6 +34,15 @@ Result APT_Enable(Handle handle, u32 a)
 	return svcData[1];
 }
 
+u8 APT_InquireNotification(Handle handle, u32 appID)
+{
+	u32* svcData=svc_getData();
+	svcData[0]=0xB0040; //request header code
+	svcData[1]=appID;
+	svc_sendSyncRequest(handle); //check return value...
+	return svcData[2];
+}
+
 Result APT_PrepareToJumpToHomeMenu(Handle handle)
 {
 	u32* svcData=svc_getData();

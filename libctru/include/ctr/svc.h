@@ -8,6 +8,7 @@
 	Result svc_createEvent(Handle* event, u8 resettype);
 	Result svc_mapMemoryBlock(Handle memblock, u32 addr, u32 mypermissions, u32 otherpermission);
 	Result svc_waitSynchronization1(Handle handle, s64 nanoseconds);
+	Result svc_waitSynchronizationN(s32* out, Handle* handles, s32 handlecount, bool waitAll, s64 nanoseconds);
 	Result svc_closeHandle(Handle handle);
 	Result svc_connectToPort(volatile Handle* out, const char* portName);
 	Result svc_sendSyncRequest(Handle session);

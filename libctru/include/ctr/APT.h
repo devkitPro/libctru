@@ -6,5 +6,6 @@ void APT_Initialize(Handle handle, u32 a, Handle* eventHandle1, Handle* eventHan
 Result APT_Enable(Handle handle, u32 a);
 Result APT_PrepareToJumpToHomeMenu(Handle handle);
 Result APT_JumpToHomeMenu(Handle handle, u32 a, u32 b, u32 c);
+u8 APT_InquireNotification(Handle handle, u32 appID);
 
 #endif

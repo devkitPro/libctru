@@ -5,13 +5,16 @@
 #include <ctr/srv.h>
 #include <ctr/APT.h>
 #include <ctr/GSP.h>
+#include <ctr/HID.h>
 #include <ctr/svc.h>
+#include "costable.h"
 
-int main()
+Handle srvHandle;
+Handle APTevents[2];
+
+void aptInit()
 {
-	Handle srvHandle, aptuHandle;
-	
-	getSrvHandle(&srvHandle);
+	Handle aptuHandle;
 	
 	//initialize APT stuff, escape load screen
 	srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
@@ -19,9 +22,8 @@ int main()
 	svc_closeHandle(aptuHandle);
 	svc_sleepThread(0x50000);
 	
-	Handle hmEvent;
 	srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
-	APT_Initialize(aptuHandle, 0x300, &hmEvent, NULL);
+	APT_Initialize(aptuHandle, 0x300, &APTevents[0], &APTevents[1]);
 	svc_closeHandle(aptuHandle);
 	svc_sleepThread(0x50000);
 	
@@ -29,9 +31,18 @@ int main()
 	APT_Enable(aptuHandle, 0x0);
 	svc_closeHandle(aptuHandle);
 	svc_sleepThread(0x50000);
+}
 
+u8* gspHeap;
+u32* gxCmdBuf;
+Handle gspGpuHandle;
+
+u8 currentBuffer;
+u8* topLeftFramebuffers[2];
+
+void gspGpuInit()
+{
 	//do stuff with GPU...
-	Handle gspGpuHandle;
 	srv_getServiceHandle(srvHandle, &gspGpuHandle, "gsp::Gpu");
 
 	GSPGPU_AcquireRight(gspGpuHandle, 0x0);
@@ -42,7 +53,6 @@ int main()
 	GSPGPU_WriteHWRegs(gspGpuHandle, 0x202A04, (u8*)&regData, 4);
 
 	//grab main left screen framebuffer addresses
-	u8* topLeftFramebuffers[2];
 	GSPGPU_ReadHWRegs(gspGpuHandle, 0x400468, (u8*)&topLeftFramebuffers, 8);
 
 	//convert PA to VA (assuming FB in VRAM)
@@ -57,45 +67,92 @@ int main()
 	svc_mapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
 
 	//map GSP heap
-	u8* gspHeap;
 	svc_controlMemory((u32*)&gspHeap, 0x0, 0x0, 0x2000000, 0x10003, 0x3);
-
-	int i;
-	for(i=1;i<0x600000;i++)
-	{
-		gspHeap[i]=0xFF^gspHeap[i-1];
-	}
 
 	//wait until we can write stuff to it
 	svc_waitSynchronization1(gspEvent, 0x55bcb0);
 
-	// //GSP shared mem : 0x2779F000
-	// //write GX command ! (to GSP shared mem, at 0x10002000)
-	u32* gxCmdBuf=(u32*)(0x10002000+0x800+threadID*0x200);
-	u32 gxCommand[0x8];
+	//GSP shared mem : 0x2779F000
+	gxCmdBuf=(u32*)(0x10002000+0x800+threadID*0x200);
 
+	currentBuffer=0;
+}
+
+void swapBuffers()
+{
+	u32 regData;
+	GSPGPU_ReadHWRegs(gspGpuHandle, 0x400478, (u8*)&regData, 4);
+	regData^=1;
+	currentBuffer=regData&1;
+	GSPGPU_WriteHWRegs(gspGpuHandle, 0x400478, (u8*)&regData, 4);
+}
+
+void copyBuffer()
+{
+	//copy topleft FB
+	u8 copiedBuffer=currentBuffer^1;
+	u8* bufAdr=&gspHeap[0x46500*copiedBuffer];
+	GSPGPU_FlushDataCache(gspGpuHandle, bufAdr, 0x46500);
 	//GX RequestDma
+	u32 gxCommand[0x8];
 	gxCommand[0]=0x00; //CommandID
-	gxCommand[1]=(u32)gspHeap; //source address
-	// gxCommand[2]=(u32)topLeftFramebuffers[0]; //destination address
-	gxCommand[2]=0x1F000000; //destination address
-	// gxCommand[3]=0x5DC00*2; //size
-	gxCommand[3]=0x600000; //size
+	gxCommand[1]=(u32)bufAdr; //source address
+	gxCommand[2]=(u32)topLeftFramebuffers[copiedBuffer]; //destination address
+	gxCommand[3]=0x46500; //size
 	gxCommand[4]=gxCommand[5]=gxCommand[6]=gxCommand[7]=0x0;
 
 	GSPGPU_submitGxCommand(gxCmdBuf, gxCommand, gspGpuHandle);
+}
 
-	// debug
-	regData=0x010000FF;
-	GSPGPU_WriteHWRegs(gspGpuHandle, 0x202A04, (u8*)&regData, 4);
+s32 pcCos(u16 v)
+{
+	return costable[v&0x1FF];
+}
 
-	svc_waitSynchronization1(hmEvent, 0xffffffffffffffff);
+void renderEffect()
+{
+	u8* bufAdr=&gspHeap[0x46500*currentBuffer];
 
-	// debug
-	regData=0x0100FFFF;
-	GSPGPU_WriteHWRegs(gspGpuHandle, 0x202A04, (u8*)&regData, 4);
+	int i, j;
+	for(i=1;i<400;i++)
+	{
+		for(j=1;j<240;j++)
+		{
+			u32 v=(j+i*240)*3;
+			bufAdr[v]=(pcCos(i)+4096)/32;
+			bufAdr[v+1]=0x00;
+			bufAdr[v+2]=0xFF*currentBuffer;
+		}
+	}
+}
 
-	while(1);
+int main()
+{
+	getSrvHandle(&srvHandle);
+	
+	aptInit();
 
+	gspGpuInit();
+
+	Handle hidHandle;
+	Handle hidMemHandle;
+	srv_getServiceHandle(srvHandle, &hidHandle, "hid:USER");
+	HIDUSER_GetInfo(hidHandle, &hidMemHandle);
+	svc_mapMemoryBlock(hidMemHandle, 0x10000000, 0x1, 0x10000000);
+
+	HIDUSER_Init(hidHandle);
+
+	while(1)
+	{
+		u32 PAD=((u32*)0x10000000)[7];
+		renderEffect();
+		swapBuffers();
+		copyBuffer();
+		u32 regData=PAD|0x01000000;
+		GSPGPU_WriteHWRegs(gspGpuHandle, 0x202A04, (u8*)&regData, 4);
+		svc_sleepThread(1000000000);
+	}
+
+	svc_exitProcess();
 	return 0;
 }
