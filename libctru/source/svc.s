@@ -23,6 +23,12 @@ svc_controlMemory:
 	add sp, sp, #4
 	bx lr
 
+.global svc_exitProcess
+.type svc_exitProcess, %function
+svc_exitProcess:
+	svc 0x03
+	bx lr
+
 .global svc_sleepThread
 .type svc_sleepThread, %function
 svc_sleepThread:

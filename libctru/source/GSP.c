@@ -24,6 +24,17 @@ void GSPGPU_SetLcdForceBlack(Handle handle, u8 flags)
 	svc_sendSyncRequest(handle); //check return value...
 }
 
+void GSPGPU_FlushDataCache(Handle handle, u8* adr, u32 size)
+{
+	u32* svcData=svc_getData();
+	svcData[0]=0x80082; //request header code
+	svcData[1]=(u32)adr;
+	svcData[2]=size;
+	svcData[3]=0x0;
+	svcData[4]=0xffff8001;
+	svc_sendSyncRequest(handle); //check return value...
+}
+
 void GSPGPU_WriteHWRegs(Handle handle, u32 regAddr, u8* data, u8 size)
 {
 	if(size>0x80 || !data)return;
