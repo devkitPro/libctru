@@ -24,7 +24,7 @@ void aptInit()
 
 	svc_waitSynchronization1(aptLockHandle, U64_MAX); //APT lock handle is used because we need to wait for NS to be ready for us
 		srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
-			APT_Initialize(aptuHandle, 0x300, &APTevents[0], &APTevents[1]);
+			APT_Initialize(aptuHandle, APPID_APPLICATION, &APTevents[0], &APTevents[1]);
 		svc_closeHandle(aptuHandle);
 	svc_releaseMutex(aptLockHandle); //release the lock
 	

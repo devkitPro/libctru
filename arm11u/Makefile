@@ -17,7 +17,7 @@ PROJECTNAME = ${shell basename "$(CURDIR)"}
 all: dir $(PROJECTNAME).bin
 
 dir:
-	mkdir -p build
+	@mkdir -p build
 
 $(PROJECTNAME).bin: $(PROJECTNAME).elf
 	$(OBJCOPY) -O binary $< $@
