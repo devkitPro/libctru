@@ -12,9 +12,12 @@ SFILES = $(wildcard source/*.s)
 OFILES += $(SFILES:source/%.s=build/%.o)
 PROJECTNAME = ${shell basename "$(CURDIR)"}
 
-.PHONY:=all
+.PHONY:=all dir
 
-all: $(PROJECTNAME).bin
+all: dir $(PROJECTNAME).bin
+
+dir:
+	mkdir -p build
 
 $(PROJECTNAME).bin: $(PROJECTNAME).elf
 	$(OBJCOPY) -O binary $< $@
