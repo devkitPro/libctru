@@ -4,6 +4,8 @@
 	#include <stdint.h>
 	#include <stdbool.h>
 
+	#define U64_MAX (0xFFFFFFFFFFFFFFFF)
+
 	typedef unsigned char u8;
 	typedef unsigned short u16;
 	typedef unsigned int u32;

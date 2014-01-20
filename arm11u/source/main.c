@@ -11,6 +11,7 @@
 
 Handle srvHandle;
 Handle APTevents[2];
+Handle aptLockHandle;
 
 void aptInit()
 {
@@ -18,19 +19,20 @@ void aptInit()
 	
 	//initialize APT stuff, escape load screen
 	srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
-	APT_GetLockHandle(aptuHandle, 0x0, NULL);
+	APT_GetLockHandle(aptuHandle, 0x0, &aptLockHandle);
 	svc_closeHandle(aptuHandle);
-	svc_sleepThread(0x50000);
+
+	svc_waitSynchronization1(aptLockHandle, U64_MAX); //APT lock handle is used because we need to wait for NS to be ready for us
+		srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
+			APT_Initialize(aptuHandle, 0x300, &APTevents[0], &APTevents[1]);
+		svc_closeHandle(aptuHandle);
+	svc_releaseMutex(aptLockHandle); //release the lock
 	
-	srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
-	APT_Initialize(aptuHandle, 0x300, &APTevents[0], &APTevents[1]);
-	svc_closeHandle(aptuHandle);
-	svc_sleepThread(0x50000);
-	
-	srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
-	APT_Enable(aptuHandle, 0x0);
-	svc_closeHandle(aptuHandle);
-	svc_sleepThread(0x50000);
+	svc_waitSynchronization1(aptLockHandle, U64_MAX);
+		srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
+			APT_Enable(aptuHandle, 0x0);
+		svc_closeHandle(aptuHandle);
+	svc_releaseMutex(aptLockHandle);
 }
 
 u8* gspHeap;

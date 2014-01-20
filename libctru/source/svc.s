@@ -35,6 +35,12 @@ svc_sleepThread:
 	svc 0x0A
 	bx lr
 
+.global svc_releaseMutex
+.type svc_releaseMutex, %function
+svc_releaseMutex:
+	svc 0x14
+	bx lr
+
 .global svc_createEvent
 .type svc_createEvent, %function
 svc_createEvent:
@@ -42,6 +48,12 @@ svc_createEvent:
 	svc 0x17
 	ldr r2, [sp], #4
 	str r1, [r2]
+	bx lr
+
+.global svc_clearEvent
+.type svc_clearEvent, %function
+svc_clearEvent:
+	svc 0x19
 	bx lr
 
 .global svc_mapMemoryBlock

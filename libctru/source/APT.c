@@ -11,7 +11,7 @@ void APT_GetLockHandle(Handle handle, u16 flags, Handle* lockHandle)
 	svcData[0]=0x10040; //request header code
 	svcData[1]=flags;
 	svc_sendSyncRequest(handle); //check return value...
-	if(lockHandle)*lockHandle=svcData[1];
+	if(lockHandle)*lockHandle=svcData[5];
 }
 
 void APT_Initialize(Handle handle, u32 a, Handle* eventHandle1, Handle* eventHandle2)
@@ -59,6 +59,15 @@ Result APT_JumpToHomeMenu(Handle handle, u32 a, u32 b, u32 c)
 	svcData[2]=b;
 	svcData[3]=c;
 	svcData[4]=(b<<14)|2;
+	svc_sendSyncRequest(handle); //check return value...
+	return svcData[1];
+}
+
+Result APT_NotifyToWait(Handle handle, u32 a)
+{
+	u32* svcData=svc_getData();
+	svcData[0]=0x430040; //request header code
+	svcData[1]=a;
 	svc_sendSyncRequest(handle); //check return value...
 	return svcData[1];
 }
