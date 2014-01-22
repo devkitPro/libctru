@@ -1,7 +1,8 @@
 #ifndef SVC_H
 #define SVC_H
 
-	u32* svc_getData(void);
+	u32* getThreadCommandBuffer(void);
+	
 	void svc_exitProcess(void);
 	void svc_sleepThread(s64 ns);
 	Result svc_releaseMutex(Handle handle);

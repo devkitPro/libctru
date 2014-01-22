@@ -5,13 +5,13 @@
 #include <ctr/srv.h>
 #include <ctr/svc.h>
 
-Result srv_10002(Handle handle)
+Result srv_Initialize(Handle handle)
 {
-	u32* svcData=svc_getData();
-	svcData[0]=0x10002; //request header code
-	svcData[1]=0x20;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x10002; //request header code
+	cmdbuf[1]=0x20;
 	svc_sendSyncRequest(handle); //check return value...
-	return svcData[1];
+	return cmdbuf[1];
 }
 
 void getSrvHandle(Handle* out)
@@ -26,11 +26,11 @@ void srv_getServiceHandle(Handle handle, Handle* out, char* server)
 {
 	u8 l=strlen(server);
 	if(!out || !server || l>8)return;
-	u32* svcData=svc_getData();
-	svcData[0]=0x50100; //request header code
-	strcpy((char*)&svcData[1], server);
-	svcData[3]=l;
-	svcData[4]=0x0;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x50100; //request header code
+	strcpy((char*)&cmdbuf[1], server);
+	cmdbuf[3]=l;
+	cmdbuf[4]=0x0;
 	svc_sendSyncRequest(handle); //check return value...
-	*out=svcData[3];
+	*out=cmdbuf[3];
 }

@@ -7,7 +7,7 @@
 
 void HIDUSER_GetInfo(Handle handle, Handle* outMemHandle)
 {
-	u32* svcData=svc_getData();
+	u32* svcData=getThreadCommandBuffer();
 	svcData[0]=0xa0000; //request header code
 	svc_sendSyncRequest(handle); //check return value...
 	if(outMemHandle)*outMemHandle=svcData[3];
@@ -15,7 +15,7 @@ void HIDUSER_GetInfo(Handle handle, Handle* outMemHandle)
 
 void HIDUSER_Init(Handle handle)
 {
-	u32* svcData=svc_getData();
+	u32* svcData=getThreadCommandBuffer();
 	svcData[0]=0x110000; //request header code
 	svc_sendSyncRequest(handle); //check return value...
 }

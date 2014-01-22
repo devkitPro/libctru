@@ -2,9 +2,9 @@
 
 .align 4
 
-.global svc_getData
-.type svc_getData, %function
-svc_getData:
+.global getThreadCommandBuffer
+.type getThreadCommandBuffer, %function
+getThreadCommandBuffer:
 	mrc p15, 0, r0, c13, c0, 3
 	add r0, #0x80
 	bx lr

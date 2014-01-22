@@ -8,30 +8,30 @@
 
 void GSPGPU_AcquireRight(Handle handle, u8 flags)
 {
-	u32* svcData=svc_getData();
-	svcData[0]=0x160042; //request header code
-	svcData[1]=flags;
-	svcData[2]=0x0;
-	svcData[3]=0xffff8001;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x160042; //request header code
+	cmdbuf[1]=flags;
+	cmdbuf[2]=0x0;
+	cmdbuf[3]=0xffff8001;
 	svc_sendSyncRequest(handle); //check return value...
 }
 
 void GSPGPU_SetLcdForceBlack(Handle handle, u8 flags)
 {
-	u32* svcData=svc_getData();
-	svcData[0]=0xB0040; //request header code
-	svcData[1]=flags;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0xB0040; //request header code
+	cmdbuf[1]=flags;
 	svc_sendSyncRequest(handle); //check return value...
 }
 
 void GSPGPU_FlushDataCache(Handle handle, u8* adr, u32 size)
 {
-	u32* svcData=svc_getData();
-	svcData[0]=0x80082; //request header code
-	svcData[1]=(u32)adr;
-	svcData[2]=size;
-	svcData[3]=0x0;
-	svcData[4]=0xffff8001;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x80082; //request header code
+	cmdbuf[1]=(u32)adr;
+	cmdbuf[2]=size;
+	cmdbuf[3]=0x0;
+	cmdbuf[4]=0xffff8001;
 	svc_sendSyncRequest(handle); //check return value...
 }
 
@@ -39,12 +39,12 @@ void GSPGPU_WriteHWRegs(Handle handle, u32 regAddr, u8* data, u8 size)
 {
 	if(size>0x80 || !data)return;
 
-	u32* svcData=svc_getData();
-	svcData[0]=0x10082; //request header code
-	svcData[1]=regAddr;
-	svcData[2]=size;
-	svcData[3]=(size<<14)|2;
-	svcData[4]=(u32)data;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x10082; //request header code
+	cmdbuf[1]=regAddr;
+	cmdbuf[2]=size;
+	cmdbuf[3]=(size<<14)|2;
+	cmdbuf[4]=(u32)data;
 	svc_sendSyncRequest(handle); //check return value...
 }
 
@@ -52,33 +52,33 @@ void GSPGPU_ReadHWRegs(Handle handle, u32 regAddr, u8* data, u8 size)
 {
 	if(size>0x80 || !data)return;
 
-	u32* svcData=svc_getData();
-	svcData[0]=0x40080; //request header code
-	svcData[1]=regAddr;
-	svcData[2]=size;
-	svcData[0x40]=(size<<14)|2;
-	svcData[0x40+1]=(u32)data;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x40080; //request header code
+	cmdbuf[1]=regAddr;
+	cmdbuf[2]=size;
+	cmdbuf[0x40]=(size<<14)|2;
+	cmdbuf[0x40+1]=(u32)data;
 	svc_sendSyncRequest(handle); //check return value...
 }
 
 void GSPGPU_RegisterInterruptRelayQueue(Handle handle, Handle eventHandle, u32 flags, Handle* outMemHandle, u8* threadID)
 {
-	u32* svcData=svc_getData();
-	svcData[0]=0x130042; //request header code
-	svcData[1]=flags;
-	svcData[2]=0x0;
-	svcData[3]=eventHandle;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x130042; //request header code
+	cmdbuf[1]=flags;
+	cmdbuf[2]=0x0;
+	cmdbuf[3]=eventHandle;
 	svc_sendSyncRequest(handle); //check return value...
-	if(threadID)*threadID=svcData[2];
-	if(outMemHandle)*outMemHandle=svcData[4];
+	if(threadID)*threadID=cmdbuf[2];
+	if(outMemHandle)*outMemHandle=cmdbuf[4];
 }
 
 Result GSPGPU_TriggerCmdReqQueue(Handle handle)
 {
-	u32* svcData=svc_getData();
-	svcData[0]=0xC0000; //request header code
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0xC0000; //request header code
 	svc_sendSyncRequest(handle); //check return value...
-	return svcData[0];
+	return cmdbuf[0];
 }
 
 //essentially : get commandIndex and totalCommands, calculate offset of new command, copy command and update totalCommands
