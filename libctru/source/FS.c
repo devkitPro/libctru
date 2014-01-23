@@ -74,8 +74,9 @@ Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 s
 	return cmdbuf[1];
 }
 
-//WARNING : using wrong flushFlags CAN corrupt the archive you're writing to
-Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *buffer, u32 size, u32 flushFlags)
+//WARNING : using wrong flushFlags CAN corrupt the archive you're writing to.
+//another warning : data should *not* be in RO memory
+Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *data, u32 size, u32 flushFlags)
 {
 	u32 *cmdbuf=getThreadCommandBuffer();
 
@@ -84,8 +85,8 @@ Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *buffer, u
 	cmdbuf[2]=(u32)(offset>>32);
 	cmdbuf[3]=size;
 	cmdbuf[4]=flushFlags;
-	cmdbuf[5]=(size<<4)|12;
-	cmdbuf[6]=(u32)buffer;
+	cmdbuf[5]=(size<<4)|10;
+	cmdbuf[6]=(u32)data;
 
 	Result ret=0;
 	if((ret=svc_sendSyncRequest(handle)))return ret;
