@@ -66,11 +66,31 @@ Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 s
 	cmdbuf[4]=(size<<4)|12;
 	cmdbuf[5]=(u32)buffer;
  
- 
 	Result ret=0;
 	if((ret=svc_sendSyncRequest(handle)))return ret;
 
 	if(bytesRead)*bytesRead=cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+//WARNING : using wrong flushFlags CAN corrupt the archive you're writing to
+Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *buffer, u32 size, u32 flushFlags)
+{
+	u32 *cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=0x08030102;
+	cmdbuf[1]=(u32)offset;
+	cmdbuf[2]=(u32)(offset>>32);
+	cmdbuf[3]=size;
+	cmdbuf[4]=flushFlags;
+	cmdbuf[5]=(size<<4)|12;
+	cmdbuf[6]=(u32)buffer;
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+
+	if(bytesWritten)*bytesWritten=cmdbuf[2];
 
 	return cmdbuf[1];
 }

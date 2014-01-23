@@ -16,6 +16,8 @@
 	typedef signed int s32;
 	typedef signed long long s64;
 
+	typedef u16 wchar;
+
 	typedef u32 Handle;
 	typedef u32 Result;
 

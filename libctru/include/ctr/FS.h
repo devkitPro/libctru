@@ -35,6 +35,7 @@ Result FSUSER_OpenFile(Handle handle, Handle* out, u32 archiveid, FS_archive arc
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 size);
+Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *buffer, u32 size, u32 flushFlags);
 Result FSFILE_GetSize(Handle handle, u64 *size);
 
 #endif

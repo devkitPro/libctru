@@ -19,7 +19,7 @@ void getSrvHandle(Handle* out)
 	if(!out)return;
 
 	svc_connectToPort(out, "srv:");
-	srv_10002(*out);
+	srv_Initialize(*out);
 }
 
 void srv_getServiceHandle(Handle handle, Handle* out, char* server)
