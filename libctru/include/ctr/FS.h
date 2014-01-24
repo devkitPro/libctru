@@ -5,6 +5,7 @@
 #define FS_OPEN_WRITE (1<<1)
 #define FS_OPEN_CREATE (1<<2)
 
+#define FS_ATTRIBUTE_NONE (0x00000000)
 #define FS_ATTRIBUTE_READONLY (0x00000001)
 #define FS_ATTRIBUTE_ARCHIVE (0x00000100)
 #define FS_ATTRIBUTE_HIDDEN (0x00010000)
@@ -27,11 +28,13 @@ typedef struct{
 typedef struct{
 	u32 id;
 	FS_path lowPath;
+	Handle handleLow, handleHigh;
 }FS_archive;
 
 
 Result FSUSER_Initialize(Handle handle);
-Result FSUSER_OpenFile(Handle handle, Handle* out, u32 archiveid, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
+Result FSUSER_OpenArchive(Handle handle, FS_archive* archive);
+Result FSUSER_OpenFileDirectly(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 size);

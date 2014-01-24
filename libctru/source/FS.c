@@ -17,7 +17,7 @@ Result FSUSER_Initialize(Handle handle)
 	return cmdbuf[1];
 }
 
-Result FSUSER_OpenFile(Handle handle, Handle* out, u32 archiveid, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes)
+Result FSUSER_OpenFileDirectly(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -39,6 +39,27 @@ Result FSUSER_OpenFile(Handle handle, Handle* out, u32 archiveid, FS_archive arc
 	if((ret=svc_sendSyncRequest(handle)))return ret;
  
 	if(out)*out=cmdbuf[3];
+ 
+	return cmdbuf[1];
+}
+
+Result FSUSER_OpenArchive(Handle handle, FS_archive* archive)
+{
+	if(!archive)return -2;
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=0x080C00C2;
+	cmdbuf[1]=archive->id;
+	cmdbuf[2]=archive->lowPath.type;
+	cmdbuf[3]=archive->lowPath.size;
+	cmdbuf[4]=(archive->lowPath.size<<14)|0x2;
+	cmdbuf[5]=(u32)archive->lowPath.data;
+ 
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+ 
+	archive->handleLow=cmdbuf[2];
+	archive->handleHigh=cmdbuf[3];
  
 	return cmdbuf[1];
 }
