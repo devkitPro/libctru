@@ -56,6 +56,16 @@ svc_clearEvent:
 	svc 0x19
 	bx lr
 
+.global svc_createMemoryBlock
+.type svc_createMemoryBlock, %function
+svc_createMemoryBlock:
+	str r0, [sp, #-4]!
+	ldr r0, [sp, #4]
+	svc 0x1E
+	ldr r2, [sp], #4
+	str r1, [r2]
+	bx lr
+
 .global svc_mapMemoryBlock
 .type svc_mapMemoryBlock, %function
 svc_mapMemoryBlock:
