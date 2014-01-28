@@ -19,6 +19,6 @@
 	typedef u16 wchar;
 
 	typedef u32 Handle;
-	typedef u32 Result;
+	typedef s32 Result;
 
 #endif

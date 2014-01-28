@@ -31,7 +31,7 @@ Result srv_getServiceHandle(Handle* handleptr, Handle* out, char* server)
 {
 	if(!handleptr)handleptr=&srvHandle;
 	u8 l=strlen(server);
-	if(!out || !server || l>8)return;
+	if(!out || !server || l>8)return -1;
 
 	u32* cmdbuf=getThreadCommandBuffer();
 
