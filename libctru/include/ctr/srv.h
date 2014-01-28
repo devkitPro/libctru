@@ -1,9 +1,8 @@
 #ifndef SRV_H
 #define SRV_H
 
-
-Result srv_10002(Handle handle);
-void getSrvHandle(Handle* out);
-void srv_getServiceHandle(Handle handle, Handle* out, char* server);
+Result initSrv();
+Result srv_Initialize(Handle* handleptr);
+Result srv_getServiceHandle(Handle* handleptr, Handle* out, char* server);
 
 #endif

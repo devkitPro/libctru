@@ -10,7 +10,6 @@
 #include <ctr/svc.h>
 #include "costable.h"
 
-Handle srvHandle;
 Handle APTevents[2];
 Handle aptLockHandle;
 
@@ -19,18 +18,18 @@ void aptInit()
 	Handle aptuHandle;
 	
 	//initialize APT stuff, escape load screen
-	srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
+	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
 	APT_GetLockHandle(aptuHandle, 0x0, &aptLockHandle);
 	svc_closeHandle(aptuHandle);
 
 	svc_waitSynchronization1(aptLockHandle, U64_MAX);
-		srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
+		srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
 			APT_Initialize(aptuHandle, APPID_APPLICATION, &APTevents[0], &APTevents[1]);
 		svc_closeHandle(aptuHandle);
 	svc_releaseMutex(aptLockHandle);
 	
 	svc_waitSynchronization1(aptLockHandle, U64_MAX);
-		srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");
+		srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
 			APT_Enable(aptuHandle, 0x0);
 		svc_closeHandle(aptuHandle);
 	svc_releaseMutex(aptLockHandle);
@@ -46,7 +45,7 @@ u8* topLeftFramebuffers[2];
 void gspGpuInit()
 {
 	//do stuff with GPU...
-	srv_getServiceHandle(srvHandle, &gspGpuHandle, "gsp::Gpu");
+	srv_getServiceHandle(NULL, &gspGpuHandle, "gsp::Gpu");
 
 	GSPGPU_AcquireRight(gspGpuHandle, 0x0);
 	GSPGPU_SetLcdForceBlack(gspGpuHandle, 0x0);
@@ -132,22 +131,22 @@ void renderEffect()
 
 int main()
 {
-	getSrvHandle(&srvHandle);
-	
+	initSrv();
+		
 	aptInit();
 
 	gspGpuInit();
 
 	Handle hidHandle;
 	Handle hidMemHandle;
-	srv_getServiceHandle(srvHandle, &hidHandle, "hid:USER");
+	srv_getServiceHandle(NULL, &hidHandle, "hid:USER");
 	HIDUSER_GetInfo(hidHandle, &hidMemHandle);
 	svc_mapMemoryBlock(hidMemHandle, 0x10000000, 0x1, 0x10000000);
 
 	HIDUSER_Init(hidHandle);
 
 	Handle fsuHandle;
-	srv_getServiceHandle(srvHandle, &fsuHandle, "fs:USER");
+	srv_getServiceHandle(NULL, &fsuHandle, "fs:USER");
 	FSUSER_Initialize(fsuHandle);
 
 	Handle fileHandle;

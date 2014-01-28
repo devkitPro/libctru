@@ -23,7 +23,7 @@ typedef enum
 	PAD_Y = (1<<11)
 }PAD_KEY;
 
-void HIDUSER_GetInfo(Handle handle, Handle* outMemHandle);
-void HIDUSER_Init(Handle handle);
+Result HIDUSER_GetInfo(Handle handle, Handle* outMemHandle);
+Result HIDUSER_Init(Handle handle);
 
 #endif

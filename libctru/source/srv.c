@@ -5,32 +5,45 @@
 #include <ctr/srv.h>
 #include <ctr/svc.h>
 
-Result srv_Initialize(Handle handle)
+Handle srvHandle;
+
+Result initSrv()
 {
+	Result ret=0;
+	if(svc_connectToPort(&srvHandle, "srv:"))return ret;
+	return srv_Initialize(&srvHandle);
+}
+
+Result srv_Initialize(Handle* handleptr)
+{
+	if(!handleptr)handleptr=&srvHandle;
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x10002; //request header code
 	cmdbuf[1]=0x20;
-	svc_sendSyncRequest(handle); //check return value...
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handleptr)))return ret;
+
 	return cmdbuf[1];
 }
 
-void getSrvHandle(Handle* out)
+Result srv_getServiceHandle(Handle* handleptr, Handle* out, char* server)
 {
-	if(!out)return;
-
-	svc_connectToPort(out, "srv:");
-	srv_Initialize(*out);
-}
-
-void srv_getServiceHandle(Handle handle, Handle* out, char* server)
-{
+	if(!handleptr)handleptr=&srvHandle;
 	u8 l=strlen(server);
 	if(!out || !server || l>8)return;
+
 	u32* cmdbuf=getThreadCommandBuffer();
+
 	cmdbuf[0]=0x50100; //request header code
 	strcpy((char*)&cmdbuf[1], server);
 	cmdbuf[3]=l;
 	cmdbuf[4]=0x0;
-	svc_sendSyncRequest(handle); //check return value...
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handleptr)))return ret;
+
 	*out=cmdbuf[3];
+
+	return cmdbuf[1];
 }
