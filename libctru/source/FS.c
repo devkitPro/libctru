@@ -17,7 +17,30 @@ Result FSUSER_Initialize(Handle handle)
 	return cmdbuf[1];
 }
 
-Result FSUSER_OpenFileDirectly(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes)
+Result FSUSER_OpenFile(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes) //archive needs to have been opened
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=0x080201C2;
+	cmdbuf[1]=0;
+	cmdbuf[2]=archive.handleLow;
+	cmdbuf[3]=archive.handleHigh;
+	cmdbuf[4]=fileLowPath.type;
+	cmdbuf[5]=fileLowPath.size;
+	cmdbuf[6]=openflags;
+	cmdbuf[7]=attributes;
+	cmdbuf[8]=(fileLowPath.size<<14)|2;
+	cmdbuf[9]=(u32)fileLowPath.data;
+ 
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+ 
+	if(out)*out=cmdbuf[3];
+ 
+	return cmdbuf[1];
+}
+
+Result FSUSER_OpenFileDirectly(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes) //no need to have archive opened
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -60,6 +83,26 @@ Result FSUSER_OpenArchive(Handle handle, FS_archive* archive)
  
 	archive->handleLow=cmdbuf[2];
 	archive->handleHigh=cmdbuf[3];
+ 
+	return cmdbuf[1];
+}
+
+Result FSUSER_OpenDirectory(Handle handle, Handle* out, FS_archive archive, FS_path dirLowPath)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=0x080B0102;
+	cmdbuf[1]=archive.handleLow;
+	cmdbuf[2]=archive.handleHigh;
+	cmdbuf[3]=dirLowPath.type;
+	cmdbuf[4]=dirLowPath.size;
+	cmdbuf[5]=(dirLowPath.size<<14)|0x2;
+	cmdbuf[6]=(u32)dirLowPath.data;
+ 
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+ 
+	if(out)*out=cmdbuf[3];
  
 	return cmdbuf[1];
 }
@@ -128,5 +171,22 @@ Result FSFILE_GetSize(Handle handle, u64 *size)
  
 	if(size)*size = *((u64*)&cmdbuf[2]);
  
+	return cmdbuf[1];
+}
+
+Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, u16 *buffer)
+{
+	u32 *cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=0x08010042;
+	cmdbuf[1]=entrycount;
+	cmdbuf[2]=((entrycount*0x228)<<4)|0xC;
+	cmdbuf[3]=(u32)buffer;
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+
+	if(entriesRead)*entriesRead=cmdbuf[2];
+
 	return cmdbuf[1];
 }
