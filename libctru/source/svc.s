@@ -87,13 +87,13 @@ svc_waitSynchronization1:
 .global svc_waitSynchronizationN
 .type svc_waitSynchronizationN, %function
 svc_waitSynchronizationN:
-	stmfd sp!, {r5}
+	str r5, [sp, #-4]!
 	mov r5, r0
 	ldr r0, [sp, #0x4]
 	ldr r4, [sp, #0x4+0x4]
 	svc 0x25
 	str r1, [r5]
-	ldmfd sp!, {r5}
+	ldr r5, [sp], #4
 	bx lr
 
 .global svc_connectToPort

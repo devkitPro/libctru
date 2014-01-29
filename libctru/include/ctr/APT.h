@@ -14,6 +14,8 @@ Result APT_Enable(Handle handle, u32 a);
 Result APT_PrepareToJumpToHomeMenu(Handle handle);
 Result APT_JumpToHomeMenu(Handle handle, u32 a, u32 b, u32 c);
 Result APT_InquireNotification(Handle handle, u32 appID, u8* signalType);
-Result APT_NotifyToWait(Handle handle, u32 a);
+Result APT_NotifyToWait(Handle handle, NS_APPID appID);
+Result APT_GlanceParameter(Handle handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
+Result APT_ReceiveParameter(Handle handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
 
 #endif

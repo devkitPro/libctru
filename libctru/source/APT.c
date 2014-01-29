@@ -87,14 +87,50 @@ Result APT_JumpToHomeMenu(Handle handle, u32 a, u32 b, u32 c)
 	return cmdbuf[1];
 }
 
-Result APT_NotifyToWait(Handle handle, u32 a)
+Result APT_NotifyToWait(Handle handle, NS_APPID appID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x430040; //request header code
-	cmdbuf[1]=a;
+	cmdbuf[1]=appID;
 	
 	Result ret=0;
 	if((ret=svc_sendSyncRequest(handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_GlanceParameter(Handle handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0xE0080; //request header code
+	cmdbuf[1]=appID;
+	cmdbuf[2]=bufferSize;
+	
+	cmdbuf[0+0x100/4]=(bufferSize<<14)|2;
+	cmdbuf[1+0x100/4]=(u32)buffer;
+	
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+
+	if(actualSize)*actualSize=cmdbuf[4];
+
+	return cmdbuf[1];
+}
+
+Result APT_ReceiveParameter(Handle handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0xD0080; //request header code
+	cmdbuf[1]=appID;
+	cmdbuf[2]=bufferSize;
+	
+	cmdbuf[0+0x100/4]=(bufferSize<<14)|2;
+	cmdbuf[1+0x100/4]=(u32)buffer;
+	
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+
+	if(actualSize)*actualSize=cmdbuf[4];
 
 	return cmdbuf[1];
 }
