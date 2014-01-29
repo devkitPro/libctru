@@ -288,7 +288,7 @@ int socuipc_cmd8(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 
 	memset(tmpaddr, 0, 8);
 
-	cmdbuf[0] = 0x00070104;
+	cmdbuf[0] = 0x00080102;
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)len;
 	cmdbuf[3] = (u32)flags;
@@ -359,7 +359,7 @@ int socuipc_cmda(int sockfd, const void *buf, int len, int flags, struct sockadd
 
 	memset(tmpaddr, 0, 8);
 
-	cmdbuf[0] = 0x00090106;
+	cmdbuf[0] = 0x000A0106;
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)len;
 	cmdbuf[3] = (u32)flags;
@@ -382,13 +382,13 @@ int socuipc_cmda(int sockfd, const void *buf, int len, int flags, struct sockadd
 
 int recvfrom(int sockfd, void *buf, int len, int flags, struct sockaddr *src_addr, int *addrlen)//UDP is not supported for these since the input/output sockaddr is not used.
 {
-	//if(len<0x20000)return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
+	//if(len<0x2000)return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
 	return socuipc_cmd7(sockfd, buf, len, flags, src_addr, addrlen);
 }
 
 int sendto(int sockfd, const void *buf, int len, int flags, const struct sockaddr *dest_addr, int addrlen)
 {
-	//if(len<0x20000)return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
+	//if(len<0x2000)return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
 	return socuipc_cmd9(sockfd, buf, len, flags, (struct sockaddr*)dest_addr, addrlen);
 }
 
