@@ -14,19 +14,36 @@ getThreadCommandBuffer:
 .type svc_controlMemory, %function
 svc_controlMemory:
 	stmfd sp!, {r0, r4}
-	ldr R0, [sp, #0x8]
+	ldr r0, [sp, #0x8]
 	ldr r4, [sp, #0x8+0x4]
 	svc 0x01
-	ldr r2, [sp]
+	ldr r2, [sp], #4
 	str r1, [r2]
-	ldr r4, [sp, #4]!
-	add sp, sp, #4
+	ldr r4, [sp], #4
 	bx lr
 
 .global svc_exitProcess
 .type svc_exitProcess, %function
 svc_exitProcess:
 	svc 0x03
+	bx lr
+
+.global svc_createThread
+.type svc_createThread, %function
+svc_createThread:
+	stmfd sp!, {r0, r4}
+	ldr r0, [sp, #0x8]
+	ldr r4, [sp, #0x8+0x4]
+	svc 0x08
+	ldr r2, [sp], #4
+	str r1, [r2]
+	ldr r4, [sp], #4
+	bx lr
+
+.global svc_exitThread
+.type svc_exitThread, %function
+svc_exitThread:
+	svc 0x09
 	bx lr
 
 .global svc_sleepThread

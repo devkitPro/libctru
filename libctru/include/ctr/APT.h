@@ -8,14 +8,22 @@ typedef enum{
 	APPID_APPLICATION = 0x300, // Application
 }NS_APPID; // cf http://3dbrew.org/wiki/NS#AppIDs
 
-Result APT_GetLockHandle(Handle handle, u16 flags, Handle* lockHandle);
-Result APT_Initialize(Handle handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
-Result APT_Enable(Handle handle, u32 a);
-Result APT_PrepareToJumpToHomeMenu(Handle handle);
-Result APT_JumpToHomeMenu(Handle handle, u32 a, u32 b, u32 c);
-Result APT_InquireNotification(Handle handle, u32 appID, u8* signalType);
-Result APT_NotifyToWait(Handle handle, NS_APPID appID);
-Result APT_GlanceParameter(Handle handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
-Result APT_ReceiveParameter(Handle handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
+extern Handle aptEvents[3];
+
+void aptInit();
+void aptOpenSession();
+void aptCloseSession();
+void aptSetupEventHandler();
+
+Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
+Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
+Result APT_Enable(Handle* handle, u32 a);
+Result APT_PrepareToJumpToHomeMenu(Handle* handle);
+Result APT_JumpToHomeMenu(Handle* handle, u32 a, u32 b, u32 c);
+Result APT_InquireNotification(Handle* handle, u32 appID, u8* signalType);
+Result APT_NotifyToWait(Handle* handle, NS_APPID appID);
+Result APT_AppletUtility(Handle* handle, u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2);
+Result APT_GlanceParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
+Result APT_ReceiveParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
 
 #endif

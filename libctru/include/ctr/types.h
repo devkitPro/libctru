@@ -30,5 +30,6 @@
 
 	typedef u32 Handle;
 	typedef s32 Result;
+	typedef void (*ThreadFunc)(u32);
 
 #endif

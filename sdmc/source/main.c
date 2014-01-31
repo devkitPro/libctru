@@ -10,52 +10,25 @@
 #include <ctr/svc.h>
 #include "costable.h"
 
-Handle APTevents[2];
-Handle aptLockHandle;
-
-void aptInit()
-{
-	Handle aptuHandle;
-	
-	//initialize APT stuff, escape load screen
-	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
-	APT_GetLockHandle(aptuHandle, 0x0, &aptLockHandle);
-	svc_closeHandle(aptuHandle);
-
-	svc_waitSynchronization1(aptLockHandle, U64_MAX);
-		srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
-			APT_Initialize(aptuHandle, APPID_APPLICATION, &APTevents[0], &APTevents[1]);
-		svc_closeHandle(aptuHandle);
-	svc_releaseMutex(aptLockHandle);
-	
-	svc_waitSynchronization1(aptLockHandle, U64_MAX);
-		srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
-			APT_Enable(aptuHandle, 0x0);
-		svc_closeHandle(aptuHandle);
-	svc_releaseMutex(aptLockHandle);
-}
-
 u8* gspHeap;
 u32* gxCmdBuf;
-Handle gspGpuHandle;
 
 u8 currentBuffer;
 u8* topLeftFramebuffers[2];
 
 void gspGpuInit()
 {
-	//do stuff with GPU...
-	srv_getServiceHandle(NULL, &gspGpuHandle, "gsp::Gpu");
+	gspInit();
 
-	GSPGPU_AcquireRight(gspGpuHandle, 0x0);
-	GSPGPU_SetLcdForceBlack(gspGpuHandle, 0x0);
+	GSPGPU_AcquireRight(NULL, 0x0);
+	GSPGPU_SetLcdForceBlack(NULL, 0x0);
 
 	//set subscreen to blue
 	u32 regData=0x01FF0000;
-	GSPGPU_WriteHWRegs(gspGpuHandle, 0x202A04, (u8*)&regData, 4);
+	GSPGPU_WriteHWRegs(NULL, 0x202A04, (u8*)&regData, 4);
 
 	//grab main left screen framebuffer addresses
-	GSPGPU_ReadHWRegs(gspGpuHandle, 0x400468, (u8*)&topLeftFramebuffers, 8);
+	GSPGPU_ReadHWRegs(NULL, 0x400468, (u8*)&topLeftFramebuffers, 8);
 
 	//convert PA to VA (assuming FB in VRAM)
 	topLeftFramebuffers[0]+=0x7000000;
@@ -65,7 +38,7 @@ void gspGpuInit()
 	u8 threadID;
 	Handle gspEvent, gspSharedMemHandle;
 	svc_createEvent(&gspEvent, 0x0);
-	GSPGPU_RegisterInterruptRelayQueue(gspGpuHandle, gspEvent, 0x1, &gspSharedMemHandle, &threadID);
+	GSPGPU_RegisterInterruptRelayQueue(NULL, gspEvent, 0x1, &gspSharedMemHandle, &threadID);
 	svc_mapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
 
 	//map GSP heap
@@ -83,10 +56,10 @@ void gspGpuInit()
 void swapBuffers()
 {
 	u32 regData;
-	GSPGPU_ReadHWRegs(gspGpuHandle, 0x400478, (u8*)&regData, 4);
+	GSPGPU_ReadHWRegs(NULL, 0x400478, (u8*)&regData, 4);
 	regData^=1;
 	currentBuffer=regData&1;
-	GSPGPU_WriteHWRegs(gspGpuHandle, 0x400478, (u8*)&regData, 4);
+	GSPGPU_WriteHWRegs(NULL, 0x400478, (u8*)&regData, 4);
 }
 
 void copyBuffer()
@@ -94,7 +67,7 @@ void copyBuffer()
 	//copy topleft FB
 	u8 copiedBuffer=currentBuffer^1;
 	u8* bufAdr=&gspHeap[0x46500*copiedBuffer];
-	GSPGPU_FlushDataCache(gspGpuHandle, bufAdr, 0x46500);
+	GSPGPU_FlushDataCache(NULL, bufAdr, 0x46500);
 	//GX RequestDma
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x00; //CommandID
@@ -103,7 +76,7 @@ void copyBuffer()
 	gxCommand[3]=0x46500; //size
 	gxCommand[4]=gxCommand[5]=gxCommand[6]=gxCommand[7]=0x0;
 
-	GSPGPU_submitGxCommand(gxCmdBuf, gxCommand, gspGpuHandle);
+	GSPGPU_submitGxCommand(gxCmdBuf, gxCommand, NULL);
 }
 
 s32 pcCos(u16 v)
@@ -156,6 +129,8 @@ int main()
 	FSUSER_OpenFileDirectly(fsuHandle, &fileHandle, sdmcArchive, filePath, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
 	FSFILE_Read(fileHandle, &bytesRead, 0x0, (u32*)gspHeap, 0x46500);
 
+	aptSetupEventHandler();
+	
 	while(1)
 	{
 		u32 PAD=((u32*)0x10000000)[7];
@@ -163,7 +138,7 @@ int main()
 		swapBuffers();
 		copyBuffer();
 		u32 regData=PAD|0x01000000;
-		GSPGPU_WriteHWRegs(gspGpuHandle, 0x202A04, (u8*)&regData, 4);
+		GSPGPU_WriteHWRegs(NULL, 0x202A04, (u8*)&regData, 4);
 		svc_sleepThread(1000000000);
 	}
 

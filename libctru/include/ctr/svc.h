@@ -4,6 +4,8 @@
 	u32* getThreadCommandBuffer(void);
 	
 	void svc_exitProcess(void);
+	Result svc_createThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stacktop, s32 threadpriority, s32 processorid);
+	void svc_exitThread();
 	void svc_sleepThread(s64 ns);
 	Result svc_releaseMutex(Handle handle);
 	Result svc_controlMemory(u32* outaddr, u32 addr0, u32 addr1, u32 size, u32 operation, u32 permissions); //(outaddr is usually the same as the input addr0)
