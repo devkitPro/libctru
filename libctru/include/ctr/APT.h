@@ -11,9 +11,12 @@ typedef enum{
 extern Handle aptEvents[3];
 
 void aptInit();
+void aptExit();
 void aptOpenSession();
 void aptCloseSession();
 void aptSetupEventHandler();
+u32 aptGetStatus();
+void aptSetStatus(u32 status);
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
 Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
@@ -23,7 +26,10 @@ Result APT_JumpToHomeMenu(Handle* handle, u32 a, u32 b, u32 c);
 Result APT_InquireNotification(Handle* handle, u32 appID, u8* signalType);
 Result APT_NotifyToWait(Handle* handle, NS_APPID appID);
 Result APT_AppletUtility(Handle* handle, u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2);
-Result APT_GlanceParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
-Result APT_ReceiveParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize);
+Result APT_GlanceParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType);
+Result APT_ReceiveParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType);
+Result APT_ReplySleepQuery(Handle* handle, NS_APPID appID, u32 a);
+Result APT_PrepareToCloseApplication(Handle* handle, u8 a);
+Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c);
 
 #endif

@@ -16,6 +16,9 @@ Handle aptEvents[3];
 Handle aptEventHandlerThread;
 u64 aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]; //u64 so that it's 8-byte aligned
 
+Handle aptStatusMutex;
+u32 aptStatus;
+
 u32 aptParameters[0x1000/4]; //TEMP
 
 void aptEventHandler(u32 arg)
@@ -55,11 +58,27 @@ void aptEventHandler(u32 arg)
 				break;
 			case 0x1: //event 1 means app just started or we're returning to app
 				{
+					u8 signalType;
 					aptOpenSession();
-					APT_ReceiveParameter(NULL, APPID_APPLICATION, 0x1000, aptParameters, NULL);
+					APT_ReceiveParameter(NULL, APPID_APPLICATION, 0x1000, aptParameters, NULL, &signalType);
 					aptCloseSession();
 	
-					// if(!draw)GSPGPU_AcquireRight(NULL, 0x0);
+					switch(signalType)
+					{
+						case 0x1: //application just started
+							break;
+						case 0xB: //just returned from menu
+							GSPGPU_AcquireRight(NULL, 0x0);
+							break;
+						case 0xC: //exiting application
+							aptOpenSession();
+							APT_ReplySleepQuery(NULL, APPID_APPLICATION, 0x0);
+							aptCloseSession();
+
+							runThread=false;
+							aptSetStatus(1); //app exit signal
+							break;
+					}
 				}
 				break;
 			case 0x2: //event 2 means we should exit the thread
@@ -90,10 +109,21 @@ void aptInit()
 	aptCloseSession();
 }
 
+void aptExit()
+{
+	aptOpenSession();
+	APT_PrepareToCloseApplication(NULL, 0x1);
+	aptCloseSession();
+	
+	aptOpenSession();
+	APT_CloseApplication(NULL, 0x0, 0x0, 0x0);
+	aptCloseSession();
+}
+
 void aptSetupEventHandler()
 {
 	u8 buf1[4], buf2[4];
-	
+
 	buf1[0]=0x02; buf1[1]=0x00; buf1[2]=0x00; buf1[3]=0x04;
 	aptOpenSession();
 	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
@@ -116,8 +146,28 @@ void aptSetupEventHandler()
 	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();
 
+	svc_createMutex(&aptStatusMutex, true);
+	aptStatus=0;
+	svc_releaseMutex(aptStatusMutex);
+
 	//create thread for stuff handling APT events
 	svc_createThread(&aptEventHandlerThread, aptEventHandler, 0x0, (u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
+}
+
+u32 aptGetStatus()
+{
+	u32 ret;
+	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
+	ret=aptStatus;
+	svc_releaseMutex(aptStatusMutex);
+	return ret;
+}
+
+void aptSetStatus(u32 status)
+{
+	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
+	aptStatus=status;
+	svc_releaseMutex(aptStatusMutex);
 }
 
 void aptOpenSession()
@@ -255,7 +305,7 @@ Result APT_AppletUtility(Handle* handle, u32* out, u32 a, u32 size1, u8* buf1, u
 	return cmdbuf[1];
 }
 
-Result APT_GlanceParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize)
+Result APT_GlanceParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType)
 {
 	if(!handle)handle=&aptuHandle;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -269,12 +319,13 @@ Result APT_GlanceParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* 
 	Result ret=0;
 	if((ret=svc_sendSyncRequest(*handle)))return ret;
 
+	if(signalType)*signalType=cmdbuf[3];
 	if(actualSize)*actualSize=cmdbuf[4];
 
 	return cmdbuf[1];
 }
 
-Result APT_ReceiveParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize)
+Result APT_ReceiveParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType)
 {
 	if(!handle)handle=&aptuHandle;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -288,7 +339,55 @@ Result APT_ReceiveParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32*
 	Result ret=0;
 	if((ret=svc_sendSyncRequest(*handle)))return ret;
 
+	if(signalType)*signalType=cmdbuf[3];
 	if(actualSize)*actualSize=cmdbuf[4];
+
+	return cmdbuf[1];
+}
+
+Result APT_ReplySleepQuery(Handle* handle, NS_APPID appID, u32 a)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x3E0080; //request header code
+	cmdbuf[1]=appID;
+	cmdbuf[2]=a;
+	
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_PrepareToCloseApplication(Handle* handle, u8 a)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x220040; //request header code
+	cmdbuf[1]=a;
+	
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x270044; //request header code
+	cmdbuf[1]=a;
+	cmdbuf[2]=0x0;
+	cmdbuf[3]=b;
+	cmdbuf[4]=(a<<14)|2;
+	cmdbuf[5]=c;
+	
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }

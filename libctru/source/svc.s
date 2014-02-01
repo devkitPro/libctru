@@ -52,6 +52,15 @@ svc_sleepThread:
 	svc 0x0A
 	bx lr
 
+.global svc_createMutex
+.type svc_createMutex, %function
+svc_createMutex:
+	str r0, [sp, #-4]!
+	svc 0x13
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx lr
+
 .global svc_releaseMutex
 .type svc_releaseMutex, %function
 svc_releaseMutex:

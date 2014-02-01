@@ -118,7 +118,7 @@ int main()
 
 	aptSetupEventHandler();
 
-	while(1)
+	while(!aptGetStatus())
 	{
 		u32 PAD=((u32*)0x10000000)[7];
 		renderEffect();
@@ -129,6 +129,7 @@ int main()
 		svc_sleepThread(1000000000);
 	}
 
+	aptExit();
 	svc_exitProcess();
 	return 0;
 }
