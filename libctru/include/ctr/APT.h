@@ -8,15 +8,21 @@ typedef enum{
 	APPID_APPLICATION = 0x300, // Application
 }NS_APPID; // cf http://3dbrew.org/wiki/NS#AppIDs
 
+typedef enum{
+	APP_RUNNING,
+	APP_SUSPENDED,
+	APP_EXITING
+}APP_STATUS;
+
 extern Handle aptEvents[3];
 
-void aptInit();
+void aptInit(NS_APPID appID);
 void aptExit();
 void aptOpenSession();
 void aptCloseSession();
 void aptSetupEventHandler();
-u32 aptGetStatus();
-void aptSetStatus(u32 status);
+void aptSetStatus(APP_STATUS status);
+APP_STATUS aptGetStatus();
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
 Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);

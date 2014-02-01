@@ -9,6 +9,8 @@
 
 #define APT_HANDLER_STACKSIZE (0x10000)
 
+NS_APPID currentAppId;
+
 Handle aptLockHandle;
 Handle aptuHandle;
 Handle aptEvents[3];
@@ -37,7 +39,7 @@ void aptEventHandler(u32 arg)
 					u8 signalType;
 
 					aptOpenSession();
-					APT_InquireNotification(NULL, APPID_APPLICATION, &signalType); //check signal type
+					APT_InquireNotification(NULL, currentAppId, &signalType); //check signal type
 					aptCloseSession();
 	
 					switch(signalType)
@@ -46,6 +48,8 @@ void aptEventHandler(u32 arg)
 							aptOpenSession();
 							APT_PrepareToJumpToHomeMenu(NULL); //prepare for return to menu
 							aptCloseSession();
+
+							aptSetStatus(APP_SUSPENDED);
 			
 							GSPGPU_ReleaseRight(NULL); //disable GSP module access
 			
@@ -56,11 +60,11 @@ void aptEventHandler(u32 arg)
 					}
 				}
 				break;
-			case 0x1: //event 1 means app just started or we're returning to app
+			case 0x1: //event 1 means app just started, we're returning to app, exiting app etc.
 				{
 					u8 signalType;
 					aptOpenSession();
-					APT_ReceiveParameter(NULL, APPID_APPLICATION, 0x1000, aptParameters, NULL, &signalType);
+					APT_ReceiveParameter(NULL, currentAppId, 0x1000, aptParameters, NULL, &signalType);
 					aptCloseSession();
 	
 					switch(signalType)
@@ -69,14 +73,15 @@ void aptEventHandler(u32 arg)
 							break;
 						case 0xB: //just returned from menu
 							GSPGPU_AcquireRight(NULL, 0x0);
+							aptSetStatus(APP_RUNNING);
 							break;
 						case 0xC: //exiting application
 							aptOpenSession();
-							APT_ReplySleepQuery(NULL, APPID_APPLICATION, 0x0);
+							APT_ReplySleepQuery(NULL, currentAppId, 0x0);
 							aptCloseSession();
 
 							runThread=false;
-							aptSetStatus(1); //app exit signal
+							aptSetStatus(APP_EXITING); //app exit signal
 							break;
 					}
 				}
@@ -89,15 +94,17 @@ void aptEventHandler(u32 arg)
 	svc_exitThread();
 }
 
-void aptInit()
+void aptInit(NS_APPID appID)
 {
 	//initialize APT stuff, escape load screen
 	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
 	APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle);
 	svc_closeHandle(aptuHandle);
 
+	currentAppId=appID;
+
 	aptOpenSession();
-	APT_Initialize(NULL, APPID_APPLICATION, &aptEvents[0], &aptEvents[1]);
+	APT_Initialize(NULL, currentAppId, &aptEvents[0], &aptEvents[1]);
 	aptCloseSession();
 	
 	aptOpenSession();
@@ -105,7 +112,7 @@ void aptInit()
 	aptCloseSession();
 	
 	aptOpenSession();
-	APT_NotifyToWait(NULL, APPID_APPLICATION);
+	APT_NotifyToWait(NULL, currentAppId);
 	aptCloseSession();
 }
 
@@ -154,16 +161,16 @@ void aptSetupEventHandler()
 	svc_createThread(&aptEventHandlerThread, aptEventHandler, 0x0, (u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
 }
 
-u32 aptGetStatus()
+APP_STATUS aptGetStatus()
 {
-	u32 ret;
+	APP_STATUS ret;
 	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
 	ret=aptStatus;
 	svc_releaseMutex(aptStatusMutex);
 	return ret;
 }
 
-void aptSetStatus(u32 status)
+void aptSetStatus(APP_STATUS status)
 {
 	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
 	aptStatus=status;

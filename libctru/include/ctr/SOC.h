@@ -6,4 +6,3 @@ Result SOC_Shutdown();
 int SOC_GetErrno();
 
 #endif
-

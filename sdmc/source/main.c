@@ -106,7 +106,7 @@ int main()
 {
 	initSrv();
 		
-	aptInit();
+	aptInit(APPID_APPLICATION);
 
 	gspGpuInit();
 
