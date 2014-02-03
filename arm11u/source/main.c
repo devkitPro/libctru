@@ -15,6 +15,8 @@ u32* gxCmdBuf;
 u8 currentBuffer;
 u8* topLeftFramebuffers[2];
 
+Handle gspEvent, gspSharedMemHandle;
+
 void gspGpuInit()
 {
 	gspInit();
@@ -35,7 +37,6 @@ void gspGpuInit()
 
 	//setup our gsp shared mem section
 	u8 threadID;
-	Handle gspEvent, gspSharedMemHandle;
 	svc_createEvent(&gspEvent, 0x0);
 	GSPGPU_RegisterInterruptRelayQueue(NULL, gspEvent, 0x1, &gspSharedMemHandle, &threadID);
 	svc_mapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
@@ -50,6 +51,21 @@ void gspGpuInit()
 	gxCmdBuf=(u32*)(0x10002000+0x800+threadID*0x200);
 
 	currentBuffer=0;
+}
+
+void gspGpuExit()
+{
+	GSPGPU_UnregisterInterruptRelayQueue(NULL);
+
+	//unmap GSP shared mem
+	svc_unmapMemoryBlock(gspSharedMemHandle, 0x10002000);
+	svc_closeHandle(gspSharedMemHandle);
+	svc_closeHandle(gspEvent);
+	
+	gspExit();
+
+	//free GSP heap
+	svc_controlMemory((u32*)&gspHeap, (u32)gspHeap, 0x0, 0x2000000, MEMOP_FREE, 0x0);
 }
 
 void swapBuffers()
@@ -83,6 +99,8 @@ s32 pcCos(u16 v)
 	return costable[v&0x1FF];
 }
 
+u32 cnt;
+
 void renderEffect()
 {
 	u8* bufAdr=&gspHeap[0x46500*currentBuffer];
@@ -93,11 +111,31 @@ void renderEffect()
 		for(j=1;j<240;j++)
 		{
 			u32 v=(j+i*240)*3;
-			bufAdr[v]=(pcCos(i)+4096)/32;
-			bufAdr[v+1]=0x00;
-			bufAdr[v+2]=0xFF*currentBuffer;
+			bufAdr[v]=(pcCos(i+cnt)+4096)/32;
+			bufAdr[v+1]=(pcCos(j-256+cnt)+4096)/64;
+			bufAdr[v+2]=(pcCos(i+128-cnt)+4096)/32;
 		}
 	}
+	cnt++;
+}
+
+Handle hidHandle;
+Handle hidMemHandle;
+
+void hidInit()
+{
+	srv_getServiceHandle(NULL, &hidHandle, "hid:USER");
+	HIDUSER_GetInfo(hidHandle, &hidMemHandle);
+	svc_mapMemoryBlock(hidMemHandle, 0x10000000, 0x1, 0x10000000);
+
+	HIDUSER_Init(hidHandle);
+}
+
+void hidExit()
+{
+	svc_unmapMemoryBlock(hidMemHandle, 0x10000000);
+	svc_closeHandle(hidMemHandle);
+	svc_closeHandle(hidHandle);
 }
 
 int main()
@@ -108,27 +146,29 @@ int main()
 
 	gspGpuInit();
 
-	Handle hidHandle;
-	Handle hidMemHandle;
-	srv_getServiceHandle(NULL, &hidHandle, "hid:USER");
-	HIDUSER_GetInfo(hidHandle, &hidMemHandle);
-	svc_mapMemoryBlock(hidMemHandle, 0x10000000, 0x1, 0x10000000);
-
-	HIDUSER_Init(hidHandle);
+	hidInit();
 
 	aptSetupEventHandler();
 
-	while(!aptGetStatus())
+	APP_STATUS status;
+	while((status=aptGetStatus())!=APP_EXITING)
 	{
-		u32 PAD=((u32*)0x10000000)[7];
-		renderEffect();
-		swapBuffers();
-		copyBuffer();
-		u32 regData=PAD|0x01000000;
-		GSPGPU_WriteHWRegs(NULL, 0x202A04, (u8*)&regData, 4);
-		svc_sleepThread(1000000000);
+		if(status==APP_RUNNING)
+		{
+			u32 PAD=((u32*)0x10000000)[7];
+			
+			u32 regData=PAD|0x01000000;
+			GSPGPU_WriteHWRegs(NULL, 0x202A04, (u8*)&regData, 4);
+
+			renderEffect();
+			swapBuffers();
+			copyBuffer();
+		}
+		svc_sleepThread(16666666);
 	}
 
+	hidExit();
+	gspGpuExit();
 	aptExit();
 	svc_exitProcess();
 	return 0;

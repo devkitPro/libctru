@@ -98,6 +98,12 @@ svc_mapMemoryBlock:
 	svc 0x1F
 	bx lr
 
+.global svc_unmapMemoryBlock
+.type svc_unmapMemoryBlock, %function
+svc_unmapMemoryBlock:
+	svc 0x20
+	bx lr
+
 .global svc_closeHandle
 .type svc_closeHandle, %function
 svc_closeHandle:
@@ -120,6 +126,18 @@ svc_waitSynchronizationN:
 	svc 0x25
 	str r1, [r5]
 	ldr r5, [sp], #4
+	bx lr
+
+.global svc_getSystemInfo
+.type svc_getSystemInfo, %function
+svc_getSystemInfo:
+	stmfd sp!, {r0, r4}
+	svc 0x2A
+	ldr r4, [sp], #4
+	str r1, [r4]
+	str r2, [r4, #4]
+	# str r3, [r4, #8] # ?
+	ldr r4, [sp], #4
 	bx lr
 
 .global svc_connectToPort

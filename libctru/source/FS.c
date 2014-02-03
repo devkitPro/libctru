@@ -107,6 +107,21 @@ Result FSUSER_OpenDirectory(Handle handle, Handle* out, FS_archive archive, FS_p
 	return cmdbuf[1];
 }
 
+Result FSUSER_CloseArchive(Handle handle, FS_archive* archive)
+{
+	if(!archive)return -2;
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=0x080E0080;
+	cmdbuf[1]=archive->handleLow;
+	cmdbuf[2]=archive->handleLow;
+ 
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
+ 
+	return cmdbuf[1];
+}
+
 Result FSFILE_Close(Handle handle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -187,6 +202,18 @@ Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, u16 *buffer)
 	if((ret=svc_sendSyncRequest(handle)))return ret;
 
 	if(entriesRead)*entriesRead=cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+Result FSDIR_Close(Handle handle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=0x08020000;
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }

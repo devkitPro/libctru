@@ -41,6 +41,7 @@ Result FSUSER_OpenArchive(Handle handle, FS_archive* archive);
 Result FSUSER_OpenDirectory(Handle handle, Handle* out, FS_archive archive, FS_path dirLowPath);
 Result FSUSER_OpenFile(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
 Result FSUSER_OpenFileDirectly(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
+Result FSUSER_CloseArchive(Handle handle, FS_archive* archive);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 size);
@@ -48,5 +49,6 @@ Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *buffer, u
 Result FSFILE_GetSize(Handle handle, u64 *size);
 
 Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, u16 *buffer);
+Result FSDIR_Close(Handle handle);
 
 #endif

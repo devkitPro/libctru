@@ -5,12 +5,17 @@
 #include <ctr/GSP.h>
 #include <ctr/svc.h>
 
-Handle gspGpuHandle;
+Handle gspGpuHandle=0;
 
 void gspInit()
 {
 	//do stuff with GPU...
 	srv_getServiceHandle(NULL, &gspGpuHandle, "gsp::Gpu");
+}
+
+void gspExit()
+{
+	if(gspGpuHandle)svc_closeHandle(gspGpuHandle);
 }
 
 Result GSPGPU_AcquireRight(Handle* handle, u8 flags)
@@ -126,6 +131,19 @@ Result GSPGPU_RegisterInterruptRelayQueue(Handle* handle, Handle eventHandle, u3
 
 	if(threadID)*threadID=cmdbuf[2];
 	if(outMemHandle)*outMemHandle=cmdbuf[4];
+	
+	return cmdbuf[1];
+}
+
+Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00140000; //request header code
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
 	
 	return cmdbuf[1];
 }

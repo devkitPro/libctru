@@ -5,13 +5,18 @@
 #include <ctr/srv.h>
 #include <ctr/svc.h>
 
-Handle srvHandle;
+Handle srvHandle=0;
 
 Result initSrv()
 {
 	Result ret=0;
 	if(svc_connectToPort(&srvHandle, "srv:"))return ret;
 	return srv_Initialize(&srvHandle);
+}
+
+Result exitSrv()
+{
+	if(srvHandle)svc_closeHandle(srvHandle);
 }
 
 Result srv_Initialize(Handle* handleptr)

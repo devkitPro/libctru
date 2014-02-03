@@ -86,7 +86,7 @@ void aptEventHandler(u32 arg)
 					}
 				}
 				break;
-			case 0x2: //event 2 means we should exit the thread
+			case 0x2: //event 2 means we should exit the thread (event will be added later)
 				runThread=false;
 				break;
 		}
@@ -118,6 +118,27 @@ void aptInit(NS_APPID appID)
 
 void aptExit()
 {
+	u8 buf1[4], buf2[4];
+
+	buf1[0]=0x02; buf1[1]=0x00; buf1[2]=0x00; buf1[3]=0x00;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+	aptCloseSession();
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+	aptCloseSession();
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+
 	aptOpenSession();
 	APT_PrepareToCloseApplication(NULL, 0x1);
 	aptCloseSession();
@@ -125,6 +146,9 @@ void aptExit()
 	aptOpenSession();
 	APT_CloseApplication(NULL, 0x0, 0x0, 0x0);
 	aptCloseSession();
+
+	svc_closeHandle(aptStatusMutex);
+	// svc_closeHandle(aptLockHandle);
 }
 
 void aptSetupEventHandler()

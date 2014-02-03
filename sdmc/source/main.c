@@ -16,6 +16,8 @@ u32* gxCmdBuf;
 u8 currentBuffer;
 u8* topLeftFramebuffers[2];
 
+Handle gspEvent, gspSharedMemHandle;
+
 void gspGpuInit()
 {
 	gspInit();
@@ -36,7 +38,6 @@ void gspGpuInit()
 
 	//setup our gsp shared mem section
 	u8 threadID;
-	Handle gspEvent, gspSharedMemHandle;
 	svc_createEvent(&gspEvent, 0x0);
 	GSPGPU_RegisterInterruptRelayQueue(NULL, gspEvent, 0x1, &gspSharedMemHandle, &threadID);
 	svc_mapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
@@ -52,6 +53,22 @@ void gspGpuInit()
 
 	currentBuffer=0;
 }
+
+void gspGpuExit()
+{
+	GSPGPU_UnregisterInterruptRelayQueue(NULL);
+
+	//unmap GSP shared mem
+	svc_unmapMemoryBlock(gspSharedMemHandle, 0x10002000);
+	svc_closeHandle(gspSharedMemHandle);
+	svc_closeHandle(gspEvent);
+	
+	gspExit();
+
+	//free GSP heap
+	svc_controlMemory((u32*)&gspHeap, (u32)gspHeap, 0x0, 0x2000000, MEMOP_FREE, 0x0);
+}
+
 
 void swapBuffers()
 {
@@ -102,6 +119,25 @@ void renderEffect()
 	}
 }
 
+Handle hidHandle;
+Handle hidMemHandle;
+
+void hidInit()
+{
+	srv_getServiceHandle(NULL, &hidHandle, "hid:USER");
+	HIDUSER_GetInfo(hidHandle, &hidMemHandle);
+	svc_mapMemoryBlock(hidMemHandle, 0x10000000, 0x1, 0x10000000);
+
+	HIDUSER_Init(hidHandle);
+}
+
+void hidExit()
+{
+	svc_unmapMemoryBlock(hidMemHandle, 0x10000000);
+	svc_closeHandle(hidMemHandle);
+	svc_closeHandle(hidHandle);
+}
+
 int main()
 {
 	initSrv();
@@ -110,13 +146,7 @@ int main()
 
 	gspGpuInit();
 
-	Handle hidHandle;
-	Handle hidMemHandle;
-	srv_getServiceHandle(NULL, &hidHandle, "hid:USER");
-	HIDUSER_GetInfo(hidHandle, &hidMemHandle);
-	svc_mapMemoryBlock(hidMemHandle, 0x10000000, 0x1, 0x10000000);
-
-	HIDUSER_Init(hidHandle);
+	hidInit();
 
 	Handle fsuHandle;
 	srv_getServiceHandle(NULL, &fsuHandle, "fs:USER");
@@ -128,6 +158,7 @@ int main()
 	FS_path filePath=(FS_path){PATH_CHAR, 10, (u8*)"/test.bin"};
 	FSUSER_OpenFileDirectly(fsuHandle, &fileHandle, sdmcArchive, filePath, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
 	FSFILE_Read(fileHandle, &bytesRead, 0x0, (u32*)gspHeap, 0x46500);
+	FSFILE_Close(fileHandle);
 
 	aptSetupEventHandler();
 	
@@ -142,6 +173,9 @@ int main()
 		svc_sleepThread(1000000000);
 	}
 
+	svc_closeHandle(fsuHandle);
+	hidExit();
+	gspGpuInit();
 	aptExit();
 	svc_exitProcess();
 	return 0;
