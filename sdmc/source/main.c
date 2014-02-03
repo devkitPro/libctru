@@ -119,25 +119,6 @@ void renderEffect()
 	}
 }
 
-Handle hidHandle;
-Handle hidMemHandle;
-
-void hidInit()
-{
-	srv_getServiceHandle(NULL, &hidHandle, "hid:USER");
-	HIDUSER_GetInfo(hidHandle, &hidMemHandle);
-	svc_mapMemoryBlock(hidMemHandle, 0x10000000, 0x1, 0x10000000);
-
-	HIDUSER_Init(hidHandle);
-}
-
-void hidExit()
-{
-	svc_unmapMemoryBlock(hidMemHandle, 0x10000000);
-	svc_closeHandle(hidMemHandle);
-	svc_closeHandle(hidHandle);
-}
-
 int main()
 {
 	initSrv();
@@ -146,7 +127,7 @@ int main()
 
 	gspGpuInit();
 
-	hidInit();
+	hidInit(NULL);
 
 	Handle fsuHandle;
 	srv_getServiceHandle(NULL, &fsuHandle, "fs:USER");
@@ -164,7 +145,7 @@ int main()
 	
 	while(!aptGetStatus())
 	{
-		u32 PAD=((u32*)0x10000000)[7];
+		u32 PAD=hidSharedMem[7];
 		renderEffect();
 		swapBuffers();
 		copyBuffer();

@@ -1,6 +1,8 @@
 #ifndef HID_H
 #define HID_H
 
+#define HID_SHAREDMEM_DEFAULT (0x10000000)
+
 #define CPAD_X(v) ((s16)((v)&0xFFFF))
 #define CPAD_Y(v) ((s16)(((v>>16))&0xFFFF))
 
@@ -23,7 +25,13 @@ typedef enum
 	PAD_Y = (1<<11)
 }PAD_KEY;
 
-Result HIDUSER_GetInfo(Handle handle, Handle* outMemHandle);
-Result HIDUSER_Init(Handle handle);
+extern Handle hidMemHandle;
+extern vu32* hidSharedMem;
+
+void hidInit(u32* sharedMem);
+void hidExit();
+
+Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle);
+Result HIDUSER_Init(Handle* handle);
 
 #endif
