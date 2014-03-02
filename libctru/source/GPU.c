@@ -43,6 +43,10 @@ const u32 gpuRegTopScreenInitTable[]={0x1EF00400, 0x000001C2,
 								0x1EF00498, 0x18300000,
 								0x1EF00478, 0x18300000};
 
+u32* gpuCmdBuf;
+u32 gpuCmdBufSize;
+u32 gpuCmdBufOffset;
+
 Result writeRegisterValues(Handle* handle, u32* table, u32 num)
 {
 	if(!table || !num)return -1;
@@ -87,4 +91,28 @@ void GPU_Init(Handle *gsphandle)
 	
 	data=0x10501;
 	GSPGPU_WriteHWRegs(gsphandle, GSP_REBASE_REG(0x1EF00474), &data, 4);
+
+	gpuCmdBuf=NULL;
+	gpuCmdBufSize=0;
+	gpuCmdBufOffset=0;
+}
+
+void GPU_SetCommandBuffer(u32* adr, u32 size, u32 offset)
+{
+	gpuCmdBuf=adr;
+	gpuCmdBufSize=size;
+	gpuCmdBufOffset=offset;
+}
+
+void GPU_RunCommandBuffer(u32* gxbuf)
+{
+	GX_SetCommandList_Last(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, 0x3);
+}
+
+void GPU_AddCommand(u32* cmd, u32 length)
+{
+	if(!cmd || !gpuCmdBuf || gpuCmdBufOffset+length>gpuCmdBufSize)return;
+
+	memcpy(&gpuCmdBuf[gpuCmdBufOffset], cmd, length*4);
+	gpuCmdBufOffset+=length;
 }

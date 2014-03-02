@@ -79,40 +79,8 @@ void swapBuffers()
 	GSPGPU_WriteHWRegs(NULL, 0x400478, &regData, 4);
 }
 
-void copyBuffer()
-{
-	//copy topleft FB
-	u8 copiedBuffer=currentBuffer^1;
-	u8* bufAdr=&gspHeap[0x46500*copiedBuffer];
-	GSPGPU_FlushDataCache(NULL, bufAdr, 0x46500);
-
-	GX_RequestDma(gxCmdBuf, (u32*)bufAdr, (u32*)topLeftFramebuffers[copiedBuffer], 0x46500);
-}
-
-s32 pcCos(u16 v)
-{
-	return costable[v&0x1FF];
-}
-
-u32 cnt;
-
-void renderEffect()
-{
-	u8* bufAdr=&gspHeap[0x46500*currentBuffer];
-
-	int i, j;
-	for(i=1;i<400;i++)
-	{
-		for(j=1;j<240;j++)
-		{
-			u32 v=(j+i*240)*3;
-			bufAdr[v]=(pcCos(i+cnt)+4096)/32;
-			bufAdr[v+1]=(pcCos(j-256+cnt)+4096)/64;
-			bufAdr[v+2]=(pcCos(i+128-cnt)+4096)/32;
-		}
-	}
-	cnt++;
-}
+u32 gpuCmd[0x100];
+u32 gpuCmdSize=0x100;
 
 int main()
 {
@@ -134,13 +102,14 @@ int main()
 		if(status==APP_RUNNING)
 		{
 			u32 PAD=hidSharedMem[7];
+			GPU_SetCommandBuffer(gpuCmd, gpuCmdSize, 0);
 			
 			u32 regData=PAD|0x01000000;
 			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
 
-			renderEffect();
+			GPU_RunCommandBuffer(gxCmdBuf);
+
 			swapBuffers();
-			copyBuffer();
 		}
 		svc_sleepThread(16666666);
 	}

@@ -24,9 +24,9 @@ Result GX_SetCommandList_Last(u32* gxbuf, u32* buf0a, u32 buf0s, u8 flags)
 	gxCommand[0]=0x01; //CommandID
 	gxCommand[1]=(u32)buf0a; //buf0 address
 	gxCommand[2]=(u32)buf0s; //buf0 size
-	gxCommand[3]=flags&1;
+	gxCommand[3]=flags&1; //written to GSP module state
 	gxCommand[4]=gxCommand[5]=gxCommand[6]=0x0;
-	gxCommand[7]=(flags>>1)&1;
+	gxCommand[7]=(flags>>1)&1; //when non-zero, call svcFlushProcessDataCache() with the specified buffer
 
 	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
 }

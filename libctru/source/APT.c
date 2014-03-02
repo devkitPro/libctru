@@ -7,7 +7,7 @@
 #include <ctr/GSP.h>
 #include <ctr/svc.h>
 
-#define APT_HANDLER_STACKSIZE (0x10000)
+#define APT_HANDLER_STACKSIZE (0x1000)
 
 NS_APPID currentAppId;
 
