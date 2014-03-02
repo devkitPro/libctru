@@ -4,6 +4,7 @@
 #include <ctr/types.h>
 #include <ctr/GSP.h>
 #include <ctr/svc.h>
+#include <ctr/srv.h>
 
 Handle gspGpuHandle=0;
 
@@ -78,7 +79,7 @@ Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
 	return cmdbuf[1];
 }
 
-Result GSPGPU_WriteHWRegs(Handle* handle, u32 regAddr, u8* data, u8 size)
+Result GSPGPU_WriteHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
 {
 	if(!handle)handle=&gspGpuHandle;
 	
@@ -97,7 +98,28 @@ Result GSPGPU_WriteHWRegs(Handle* handle, u32 regAddr, u8* data, u8 size)
 	return cmdbuf[1];
 }
 
-Result GSPGPU_ReadHWRegs(Handle* handle, u32 regAddr, u8* data, u8 size)
+Result GSPGPU_WriteHWRegsWithMask(Handle* handle, u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	if(datasize>0x80 || !data)return -1;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x20084; //request header code
+	cmdbuf[1]=regAddr;
+	cmdbuf[2]=datasize;
+	cmdbuf[3]=(datasize<<14)|2;
+	cmdbuf[4]=(u32)data;
+	cmdbuf[5]=(masksize<<14)|0x402;
+	cmdbuf[6]=(u32)maskdata;
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_ReadHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
 {
 	if(!handle)handle=&gspGpuHandle;
 	
