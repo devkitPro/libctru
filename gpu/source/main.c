@@ -6,6 +6,7 @@
 #include <ctr/APT.h>
 #include <ctr/GSP.h>
 #include <ctr/GX.h>
+#include <ctr/GPU.h>
 #include <ctr/HID.h>
 #include <ctr/svc.h>
 #include "costable.h"
@@ -72,10 +73,10 @@ void gspGpuExit()
 void swapBuffers()
 {
 	u32 regData;
-	GSPGPU_ReadHWRegs(NULL, 0x400478, (u32*)&regData, 4);
+	GSPGPU_ReadHWRegs(NULL, 0x400478, &regData, 4);
 	regData^=1;
 	currentBuffer=regData&1;
-	GSPGPU_WriteHWRegs(NULL, 0x400478, (u32*)&regData, 4);
+	GSPGPU_WriteHWRegs(NULL, 0x400478, &regData, 4);
 }
 
 void copyBuffer()
@@ -125,6 +126,8 @@ int main()
 
 	aptSetupEventHandler();
 
+	GPU_Init(NULL);
+
 	APP_STATUS status;
 	while((status=aptGetStatus())!=APP_EXITING)
 	{
@@ -133,7 +136,7 @@ int main()
 			u32 PAD=hidSharedMem[7];
 			
 			u32 regData=PAD|0x01000000;
-			GSPGPU_WriteHWRegs(NULL, 0x202A04, (u32*)&regData, 4);
+			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
 
 			renderEffect();
 			swapBuffers();
