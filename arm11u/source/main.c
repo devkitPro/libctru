@@ -26,10 +26,10 @@ void gspGpuInit()
 
 	//set subscreen to blue
 	u32 regData=0x01FF0000;
-	GSPGPU_WriteHWRegs(NULL, 0x202A04, (u8*)&regData, 4);
+	GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
 
 	//grab main left screen framebuffer addresses
-	GSPGPU_ReadHWRegs(NULL, 0x400468, (u8*)&topLeftFramebuffers, 8);
+	GSPGPU_ReadHWRegs(NULL, 0x400468, (u32*)&topLeftFramebuffers, 8);
 
 	//convert PA to VA (assuming FB in VRAM)
 	topLeftFramebuffers[0]+=0x7000000;
@@ -71,10 +71,10 @@ void gspGpuExit()
 void swapBuffers()
 {
 	u32 regData;
-	GSPGPU_ReadHWRegs(NULL, 0x400478, (u8*)&regData, 4);
+	GSPGPU_ReadHWRegs(NULL, 0x400478, (u32*)&regData, 4);
 	regData^=1;
 	currentBuffer=regData&1;
-	GSPGPU_WriteHWRegs(NULL, 0x400478, (u8*)&regData, 4);
+	GSPGPU_WriteHWRegs(NULL, 0x400478, (u32*)&regData, 4);
 }
 
 void copyBuffer()
@@ -132,7 +132,7 @@ int main()
 			u32 PAD=hidSharedMem[7];
 			
 			u32 regData=PAD|0x01000000;
-			GSPGPU_WriteHWRegs(NULL, 0x202A04, (u8*)&regData, 4);
+			GSPGPU_WriteHWRegs(NULL, 0x202A04, (u32*)&regData, 4);
 
 			renderEffect();
 			swapBuffers();
