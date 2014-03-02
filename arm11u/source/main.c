@@ -83,15 +83,8 @@ void copyBuffer()
 	u8 copiedBuffer=currentBuffer^1;
 	u8* bufAdr=&gspHeap[0x46500*copiedBuffer];
 	GSPGPU_FlushDataCache(NULL, bufAdr, 0x46500);
-	//GX RequestDma
-	u32 gxCommand[0x8];
-	gxCommand[0]=0x00; //CommandID
-	gxCommand[1]=(u32)bufAdr; //source address
-	gxCommand[2]=(u32)topLeftFramebuffers[copiedBuffer]; //destination address
-	gxCommand[3]=0x46500; //size
-	gxCommand[4]=gxCommand[5]=gxCommand[6]=gxCommand[7]=0x0;
 
-	GSPGPU_submitGxCommand(gxCmdBuf, gxCommand, NULL);
+	GX_RequestDma(gxCmdBuf, bufAdr, topLeftFramebuffers[copiedBuffer], 0x46500);
 }
 
 s32 pcCos(u16 v)
