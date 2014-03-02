@@ -102,12 +102,16 @@ int main()
 		if(status==APP_RUNNING)
 		{
 			u32 PAD=hidSharedMem[7];
-			GPU_SetCommandBuffer(gpuCmd, gpuCmdSize, 0);
 			
 			u32 regData=PAD|0x01000000;
 			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
 
-			GPU_RunCommandBuffer(gxCmdBuf);
+			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
+			
+			GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
+
+			GPUCMD_Finalize();
+			GPUCMD_Run(gxCmdBuf);
 
 			swapBuffers();
 		}
