@@ -15,7 +15,6 @@ u8* gspHeap;
 u32* gxCmdBuf;
 
 u8 currentBuffer;
-u8* topLeftFramebuffers[2];
 
 Handle gspEvent, gspSharedMemHandle;
 
@@ -29,13 +28,6 @@ void gspGpuInit()
 	//set subscreen to blue
 	u32 regData=0x01FF0000;
 	GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
-
-	//grab main left screen framebuffer addresses
-	GSPGPU_ReadHWRegs(NULL, 0x400468, (u32*)&topLeftFramebuffers, 8);
-
-	//convert PA to VA (assuming FB in VRAM)
-	topLeftFramebuffers[0]+=0x7000000;
-	topLeftFramebuffers[1]+=0x7000000;
 
 	//setup our gsp shared mem section
 	u8 threadID;
@@ -79,9 +71,6 @@ void swapBuffers()
 	GSPGPU_WriteHWRegs(NULL, 0x400478, &regData, 4);
 }
 
-u32 gpuCmd[0x100];
-u32 gpuCmdSize=0x100;
-
 int main()
 {
 	initSrv();
@@ -96,6 +85,9 @@ int main()
 
 	GPU_Init(NULL);
 
+	u32* gpuCmd=(u32*)gspHeap;
+	u32 gpuCmdSize=0x10000;
+
 	APP_STATUS status;
 	while((status=aptGetStatus())!=APP_EXITING)
 	{
@@ -107,7 +99,7 @@ int main()
 			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
 
 			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
-			
+
 			GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
 
 			GPUCMD_Finalize();
