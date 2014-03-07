@@ -99,11 +99,11 @@ int main()
 			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
 
 			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
-
 			GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
-
 			GPUCMD_Finalize();
 			GPUCMD_Run(gxCmdBuf);
+
+			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gspHeap, 0x019001E0, (u32*)topLeftFramebuffers[currentBuffer], 0x019001E0, 0x01001000);
 
 			swapBuffers();
 		}
