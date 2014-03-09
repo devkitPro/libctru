@@ -15,35 +15,35 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 	DVLB_s* ret=malloc(sizeof(DVLB_s));
 	if(!ret)goto exit;
 
-	//parse DVLB
-	ret->numDVLE=shbinData[1];
-	ret->DVLE=malloc(sizeof(DVLE_s)*ret->numDVLE);
-	if(!ret->DVLE)goto clean1;
+	// //parse DVLB
+	// ret->numDVLE=shbinData[1];
+	// ret->DVLE=malloc(sizeof(DVLE_s)*ret->numDVLE);
+	// if(!ret->DVLE)goto clean1;
 
-	//parse DVLP
-	u32* dvlpData=&shbinData[2+ret->numDVLE];
-	ret->DVLP.codeSize=dvlpData[3];
-	ret->DVLP.codeData=&dvlpData[dvlpData[2]/4];
-	ret->DVLP.opdescSize=dvlpData[5];
-	ret->DVLP.opcdescData=&dvlpData[dvlpData[4]/4];
+	// //parse DVLP
+	// u32* dvlpData=&shbinData[2+ret->numDVLE];
+	// ret->DVLP.codeSize=dvlpData[3];
+	// ret->DVLP.codeData=&dvlpData[dvlpData[2]/4];
+	// ret->DVLP.opdescSize=dvlpData[5];
+	// ret->DVLP.opcdescData=&dvlpData[dvlpData[4]/4];
 
-	//parse DVLE
-	int i;
-	for(i=0;i<ret->numDVLE;i++)
-	{
-		DVLE_s* dvle=&ret->DVLE[i];
-		u32* dvleData=&shbinData[shbinData[2+i]/4];
+	// //parse DVLE
+	// int i;
+	// for(i=0;i<ret->numDVLE;i++)
+	// {
+	// 	DVLE_s* dvle=&ret->DVLE[i];
+	// 	u32* dvleData=&shbinData[shbinData[2+i]/4];
 
-		dvle->type=(dvleData[1]>>16)&0xFF;
-		dvle->mainOffset=dvleData[2];
-		dvle->endmainOffset=dvleData[3];
+	// 	dvle->type=(dvleData[1]>>16)&0xFF;
+	// 	dvle->mainOffset=dvleData[2];
+	// 	dvle->endmainOffset=dvleData[3];
 
-		dvle->constTableSize=dvleData[7];
-		dvle->constTableData=(DVLE_constEntry_s*)&dvleData[dvleData[6]/4];
+	// 	dvle->constTableSize=dvleData[7];
+	// 	dvle->constTableData=(DVLE_constEntry_s*)&dvleData[dvleData[6]/4];
 
-		dvle->outTableSize=dvleData[11];
-		dvle->outTableData=(DVLE_outEntry_s*)&dvleData[dvleData[10]/4];
-	}
+	// 	dvle->outTableSize=dvleData[11];
+	// 	dvle->outTableData=(DVLE_outEntry_s*)&dvleData[dvleData[10]/4];
+	// }
 
 	clean1:
 		free(ret);

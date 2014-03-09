@@ -47,4 +47,13 @@ typedef struct{
 	DVLE_s* DVLE;
 }DVLB_s;
 
+
+DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize);
+void SHDR_FreeDVLB(DVLB_s* dvlb);
+
+void DVLP_SendCode(DVLP_s* dvlp);
+void DVLP_SendOpDesc(DVLP_s* dvlp);
+
+void DVLE_SendOutmap(DVLE_s* dvle);
+
 #endif

@@ -69,3 +69,11 @@ void GPUCMD_Finalize()
 	GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
 	GPUCMD_AddSingleParam(0x000F0010, 0x12345678);
 }
+
+void GPU_SetUniform(u32 startreg, u32* data, u32 numreg)
+{
+	if(!data)return;
+
+	GPUCMD_AddSingleParam(0x000F02C0, 0x80000000|startreg);
+	GPUCMD_Add(0x000F02C1, data, numreg*4);
+}
