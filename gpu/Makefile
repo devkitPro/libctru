@@ -11,10 +11,10 @@ LDFLAGS += -nostartfiles --specs=ccd00.specs -L"$(DEVKITARM)/arm-none-eabi/lib" 
 
 CFILES = $(wildcard source/*.c)
 VSHFILES = $(wildcard source/*.vsh)
-VSHBINFILES = $(VSHFILES:source/%.vsh=data/%.vsh.bin)
+SHBINFILES = $(VSHFILES:source/%.vsh=data/%.shbin)
 BINFILES = $(wildcard data/*.bin)
-BINFILES += $(VSHBINFILES)
 OFILES = $(BINFILES:data/%.bin=build/%.bin.o)
+OFILES += $(SHBINFILES:data/%.shbin=build/%.shbin.o)
 OFILES += $(CFILES:source/%.c=build/%.o)
 DFILES = $(CFILES:source/%.c=build/%.d)
 SFILES = $(wildcard source/*.s)
@@ -42,7 +42,7 @@ dir:
 $(PROJECTNAME).bin: $(PROJECTNAME).elf
 	$(OBJCOPY) -O binary $< $@
 
-$(PROJECTNAME).elf: $(VSHBINFILES) $(OFILES)
+$(PROJECTNAME).elf: $(SHBINFILES) $(OFILES)
 	# $(LINK) $(LDFLAGS) -o $(PROJECTNAME).elf $(filter-out build/crt0.o, $(OFILES)) -lctru -lc -lgcc
 	$(LINK) $(LDFLAGS) -o $(PROJECTNAME).elf $(filter-out build/crt0.o, $(OFILES)) -g -lctru -lm -lc -lg
 
@@ -53,7 +53,7 @@ clean:
 
 -include $(DFILES)
 
-data/%.vsh.bin: source/%.vsh
+data/%.shbin: source/%.vsh
 	@python $(AEMSTROPATH)/aemstro_as.py $< $@
 
 build/%.o: source/%.c
@@ -63,6 +63,10 @@ build/%.o: source/%.c
 build/%.o: source/%.s
 	$(CC) $(CFLAGS) -c $< -o $@
 	@$(CC) -MM $< > build/$*.d
+
+build/%.shbin.o: data/%.shbin
+	@echo $(notdir $<)
+	@$(bin2o)
 
 build/%.bin.o: data/%.bin
 	@echo $(notdir $<)
