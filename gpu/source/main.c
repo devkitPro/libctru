@@ -8,13 +8,17 @@
 #include <ctr/GX.h>
 #include <ctr/GPU.h>
 #include <ctr/HID.h>
+#include <ctr/SHDR.h>
 #include <ctr/svc.h>
 #include "costable.h"
+#include "test_vsh_bin.h"
 
 u8* gspHeap;
 u32* gxCmdBuf;
 
 u8 currentBuffer;
+u8* topLeftFramebuffers[2];
+u8* topLeftFramebuffersPA[2];
 
 Handle gspEvent, gspSharedMemHandle;
 
@@ -28,6 +32,13 @@ void gspGpuInit()
 	//set subscreen to blue
 	u32 regData=0x01FF0000;
 	GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
+
+	//grab main left screen framebuffer addresses
+	GSPGPU_ReadHWRegs(NULL, 0x400468, (u32*)&topLeftFramebuffersPA, 8);
+
+	//convert PA to VA (assuming FB in VRAM)
+	topLeftFramebuffers[0]=topLeftFramebuffersPA[0]+0x7000000;
+	topLeftFramebuffers[1]=topLeftFramebuffersPA[1]+0x7000000;
 
 	//setup our gsp shared mem section
 	u8 threadID;
@@ -87,6 +98,8 @@ int main()
 
 	u32* gpuCmd=(u32*)gspHeap;
 	u32 gpuCmdSize=0x10000;
+
+	DVLB_s* shader=SHDR_ParseSHBIN((u32*)test_vsh_bin,test_vsh_bin_size);
 
 	APP_STATUS status;
 	while((status=aptGetStatus())!=APP_EXITING)
