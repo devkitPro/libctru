@@ -61,6 +61,21 @@ Result GX_SetDisplayTransfer(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32
 	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
 }
 
+Result GX_SetTextureCopy(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 size, u32 flags)
+{
+	u32 gxCommand[0x8];
+	gxCommand[0]=0x04; //CommandID
+	gxCommand[1]=(u32)inadr;
+	gxCommand[2]=(u32)outadr;
+	gxCommand[3]=size;
+	gxCommand[4]=indim;
+	gxCommand[5]=outdim;
+	gxCommand[6]=flags;
+	gxCommand[7]=0x0;
+
+	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
+}
+
 Result GX_SetCommandList_First(u32* gxbuf, u32* buf0a, u32 buf0s, u32* buf1a, u32 buf1s, u32* buf2a, u32 buf2s)
 {
 	u32 gxCommand[0x8];

@@ -53,12 +53,12 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 }
 
 //hm
-static inline minu8(u8 a, u8 b)
+static inline u8 minu8(u8 a, u8 b)
 {
 	if(a<b)return a;
 	return b;
 }
-static inline maxu8(u8 a, u8 b)
+static inline u8 maxu8(u8 a, u8 b)
 {
 	if(a<b)return b;
 	return a;
