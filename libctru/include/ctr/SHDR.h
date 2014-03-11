@@ -27,9 +27,9 @@ typedef struct{
 }DVLE_constEntry_s;
 
 typedef struct{
-	u32 header;
 	u16 type;
 	u16 regID;
+	u32 header;
 }DVLE_outEntry_s;
 
 typedef struct{
