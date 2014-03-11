@@ -49,11 +49,13 @@ typedef struct{
 
 
 DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize);
+void SHDR_UseProgram(DVLB_s* dvlb, u8 id);
 void SHDR_FreeDVLB(DVLB_s* dvlb);
 
 void DVLP_SendCode(DVLP_s* dvlp);
 void DVLP_SendOpDesc(DVLP_s* dvlp);
 
 void DVLE_SendOutmap(DVLE_s* dvle);
+void DVLE_SendConstants(DVLE_s* dvle);
 
 #endif

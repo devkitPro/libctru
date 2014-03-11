@@ -117,6 +117,43 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 	GPUCMD_Add(0x800F0050, param, 0x00000007);
 }
 
+void DVLE_SendConstants(DVLE_s* dvle)
+{
+	if(!dvle)return;
+
+	u32 param[4];
+	u32 rev[3];
+	u8* rev8=(u8*)rev;
+
+	int i;
+	DVLE_constEntry_s* cnst=dvle->constTableData;
+	for(i=0;i<dvle->constTableSize;i++,cnst++)
+	{
+		memcpy(&rev8[0], &cnst->data[0], 3);
+		memcpy(&rev8[3], &cnst->data[1], 3);
+		memcpy(&rev8[6], &cnst->data[2], 3);
+		memcpy(&rev8[9], &cnst->data[3], 3);
+
+		param[0x0]=(cnst->header>>16)&0xFF;
+		param[0x1]=rev[2];
+		param[0x2]=rev[1];
+		param[0x3]=rev[0];
+
+		GPUCMD_Add(0x800F02C0, param, 0x00000004);
+	}
+}
+
+void SHDR_UseProgram(DVLB_s* dvlb, u8 id)
+{
+	if(!dvlb || id>dvlb->numDVLE)return;
+	DVLE_s* dvle=&dvlb->DVLE[id];
+
+	DVLP_SendCode(&dvlb->DVLP);
+	DVLP_SendOpDesc(&dvlb->DVLP);
+	DVLE_SendOutmap(dvle);
+	DVLE_SendConstants(dvle);
+}
+
 //TODO
 void SHDR_FreeDVLB(DVLB_s* dvlb)
 {
