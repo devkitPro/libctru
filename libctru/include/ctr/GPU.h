@@ -11,5 +11,6 @@ void GPUCMD_AddSingleParam(u32 cmd, u32 param);
 void GPUCMD_Finalize();
 
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
+void GPU_SetViewport(u32 x, u32 y, float w, float h);
 
 #endif

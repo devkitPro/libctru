@@ -198,3 +198,50 @@ void GPU_SetUniform(u32 startreg, u32* data, u32 numreg)
 	GPUCMD_AddSingleParam(0x000F02C0, 0x80000000|startreg);
 	GPUCMD_Add(0x000F02C1, data, numreg*4);
 }
+
+u32 f32tof24(float f)
+{
+	u32 v=*((u32*)&f);
+	u8 s=v>>31;
+	u32 exp=((v>>23)&0xFF)-0x40;
+	u32 man=(v>>7)&0xFFFF;
+
+	if(exp>=0)return man|(exp<<16)|(s<<23);
+	else return s<<23;
+}
+
+u32 computeInvValue(u32 val)
+{
+	//usual values
+	if(val==240)return 0x38111111;
+	if(val==480)return 0x37111111;
+	if(val==400)return 0x3747ae14;
+	//but let's not limit ourselves to the usual
+	float fval=2.0/val;
+	u32 tmp1,tmp2;
+	u32 tmp3=*((u32*)&fval);
+	tmp1=(tmp3<<9)>>9;
+	tmp2=tmp3&(~0x80000000);
+	if(tmp3&(~0x80000000))
+	{
+		tmp1=(tmp3<<9)>>9;
+		int tmp=((tmp3<<1)>>24)-0x40;
+		if(tmp<0)return ((tmp3>>31)<<30)<<1;
+		else tmp2=tmp;
+	}
+	tmp3>>=31;
+	return (tmp1|(tmp2<<23)|(tmp3<<30))<<1;
+}
+
+void GPU_SetViewport(u32 x, u32 y, float w, float h)
+{
+	u32 param[0x4];
+
+	param[0x0]=f32tof24(w/2);
+	param[0x1]=computeInvValue(w);
+	param[0x2]=f32tof24(h/2);
+	param[0x3]=computeInvValue(h);
+	GPUCMD_Add(0x800F0041, param, 0x00000004);
+
+	GPUCMD_AddSingleParam(0x000F0068, (y<<16)|(x&0xFFFF));
+}
