@@ -222,7 +222,7 @@ u32 computeInvValue(u32 val)
 	u32 tmp3=*((u32*)&fval);
 	tmp1=(tmp3<<9)>>9;
 	tmp2=tmp3&(~0x80000000);
-	if(tmp3&(~0x80000000))
+	if(tmp2)
 	{
 		tmp1=(tmp3<<9)>>9;
 		int tmp=((tmp3<<1)>>24)-0x40;
@@ -233,15 +233,38 @@ u32 computeInvValue(u32 val)
 	return (tmp1|(tmp2<<23)|(tmp3<<30))<<1;
 }
 
-void GPU_SetViewport(u32 x, u32 y, float w, float h)
+//takes PAs as arguments
+void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h)
 {
 	u32 param[0x4];
+	float fw=(float)w;
+	float fh=(float)h;
 
-	param[0x0]=f32tof24(w/2);
-	param[0x1]=computeInvValue(w);
-	param[0x2]=f32tof24(h/2);
-	param[0x3]=computeInvValue(h);
+	GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
+	GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
+
+	u32 f116e=0x01000000|(((h-1)&0xFFF)<<12)|(w&0xFFF);
+
+	param[0x0]=((u32)depthBuffer)>>3;
+	param[0x1]=((u32)colorBuffer)>>3;
+	param[0x2]=f116e;
+	GPUCMD_Add(0x800F011C, param, 0x00000003);
+
+	GPUCMD_AddSingleParam(0x000F006E, f116e);
+	GPUCMD_AddSingleParam(0x000F0116, 0x00000003); //?
+	GPUCMD_AddSingleParam(0x000F0117, 0x00000002); //?
+	GPUCMD_AddSingleParam(0x000F011B, 0x00000000); //?
+
+	param[0x0]=f32tof24(fw/2);
+	param[0x1]=computeInvValue(fw);
+	param[0x2]=f32tof24(fh/2);
+	param[0x3]=computeInvValue(fh);
 	GPUCMD_Add(0x800F0041, param, 0x00000004);
 
 	GPUCMD_AddSingleParam(0x000F0068, (y<<16)|(x&0xFFFF));
+
+	param[0x0]=0x00000000;
+	param[0x1]=0x00000000;
+	param[0x2]=((h-1)<<16)|((w-1)&0xFFFF);
+	GPUCMD_Add(0x800F0065, param, 0x00000003);
 }

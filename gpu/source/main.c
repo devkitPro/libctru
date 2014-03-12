@@ -114,7 +114,13 @@ int main()
 			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
 
 			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
-			GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
+
+				//depth buffer in VRAM, color buffer in FCRAM (gspHeap)
+				//(no real reasoning behind this configuration)
+				GPU_SetViewport((u32*)0x18000000,(u32*)0x20000000,0,0,240*2,400);
+				SHDR_UseProgram(shader, 0);
+				GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
+
 			GPUCMD_Finalize();
 			GPUCMD_Run(gxCmdBuf);
 
