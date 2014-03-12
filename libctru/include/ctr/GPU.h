@@ -2,6 +2,7 @@
 #define GPU_H
 
 void GPU_Init(Handle *gsphandle);
+void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize);
 
 void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset);
 void GPUCMD_Run(u32* gxbuf);
