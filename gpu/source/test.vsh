@@ -24,12 +24,12 @@
 		dp4 d00, d45, d40 (0x1)
 		dp4 d00, d46, d40 (0x2)
 		dp4 d00, d47, d40 (0x3)
-		; result.color = in.pos
-		mov d04, d25 (0x5)
 		; result.texcoord = const
 		mov d08, d25 (0x5)
 		mov d0C, d25 (0x5)
 		mov d10, d25 (0x5)
+		; result.color = in.pos
+		mov d04, d00 (0x5)
 		flush
 		end
 	endmain:
@@ -39,5 +39,8 @@
 	.opdesc _y__, xyzw, xyzw ; 0x1
 	.opdesc __z_, xyzw, xyzw ; 0x2
 	.opdesc ___w, xyzw, xyzw ; 0x3
-	.opdesc ___w, yyyy, xyzw ; 0x4
+	.opdesc ___w, wwww, wwww ; 0x4
 	.opdesc xyzw, xyzw, xyzw ; 0x5
+	.opdesc __z_, xyzw, xyzw ; 0x6
+	.opdesc ___w, xyzw, xyzw ; 0x7
+	.opdesc xyzw, xyzw, xyzw ; 0x8

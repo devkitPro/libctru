@@ -96,9 +96,11 @@ int main()
 
 	GPU_Init(NULL);
 
-	u32* gpuCmd=(u32*)gspHeap;
+	u32* gpuCmd=(u32*)(&gspHeap[0x100000]);
 	u32 gpuCmdSize=0x10000;
 
+	GPU_Reset(gxCmdBuf, gpuCmd, gpuCmdSize);
+	
 	DVLB_s* shader=SHDR_ParseSHBIN((u32*)test_vsh_bin,test_vsh_bin_size);
 
 	APP_STATUS status;
