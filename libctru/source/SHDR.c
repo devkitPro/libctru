@@ -57,6 +57,21 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 		return ret;
 }
 
+s8 SHDR_GetUniformRegister(DVLB_s* dvlb, char* name, u8 programID)
+{
+	if(!dvlb || !name)return -1;
+
+	DVLE_s* dvle=&dvlb->DVLE[programID];
+
+	int i;	DVLE_uniformEntry_s* u=dvle->uniformTableData;
+	for(i=0;i<dvle->uniformTableSize;i++)
+	{
+		if(!strcmp(dvle->symbolTableData[u->symbolOffset],name))return (s8)u->startReg;
+		u++;
+	}
+	return -1;
+}
+
 //hm
 static inline u8 minu8(u8 a, u8 b)
 {
