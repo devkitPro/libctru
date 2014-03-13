@@ -124,7 +124,7 @@ int main()
 			GPUCMD_Finalize();
 			GPUCMD_Run(gxCmdBuf);
 
-			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gspHeap, 0x019001E0, (u32*)topLeftFramebuffers[currentBuffer], 0x019001E0, 0x01001000);
+			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gspHeap, GX_BUFFER_DIM(480,400), (u32*)topLeftFramebuffers[currentBuffer], GX_BUFFER_DIM(480,400), 0x01001000);
 
 			swapBuffers();
 		}

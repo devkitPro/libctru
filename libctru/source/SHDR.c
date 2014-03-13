@@ -66,7 +66,7 @@ s8 SHDR_GetUniformRegister(DVLB_s* dvlb, char* name, u8 programID)
 	int i;	DVLE_uniformEntry_s* u=dvle->uniformTableData;
 	for(i=0;i<dvle->uniformTableSize;i++)
 	{
-		if(!strcmp(dvle->symbolTableData[u->symbolOffset],name))return (s8)u->startReg;
+		if(!strcmp(&dvle->symbolTableData[u->symbolOffset],name))return (s8)u->startReg;
 		u++;
 	}
 	return -1;
