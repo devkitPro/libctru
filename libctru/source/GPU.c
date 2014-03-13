@@ -268,3 +268,18 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	param[0x2]=((h-1)<<16)|((w-1)&0xFFFF);
 	GPUCMD_Add(0x800F0065, param, 0x00000003);
 }
+
+void GPU_DepthRange(float nearVal, float farVal)
+{
+	GPUCMD_AddSingleParam(0x000F006D, 0x00000001); //?
+	GPUCMD_AddSingleParam(0x000F004D, f32tof24(nearVal));
+	GPUCMD_AddSingleParam(0x000F004E, f32tof24(farVal));
+}
+
+void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType)
+{
+	GPUCMD_AddSingleParam(0x000F008E, colorType);
+	GPUCMD_AddSingleParam(0x000F0085, ((u32)data)>>3);
+	GPUCMD_AddSingleParam(0x000F0082, (width)|(height<<16));
+	GPUCMD_AddSingleParam(0x000F0083, param);
+}
