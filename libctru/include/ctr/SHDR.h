@@ -33,12 +33,21 @@ typedef struct{
 }DVLE_outEntry_s;
 
 typedef struct{
+	u32 symbolOffset;
+	u16 startReg;
+	u16 endReg;
+}DVLE_uniformEntry_s;
+
+typedef struct{
 	SHDR_type type;
 	u32 mainOffset, endmainOffset;
 	u32 constTableSize;
 	DVLE_constEntry_s* constTableData;
 	u32 outTableSize;
 	DVLE_outEntry_s* outTableData;
+	u32 uniformTableSize;
+	DVLE_uniformEntry_s* uniformTableData;
+	char* symbolTableData;
 }DVLE_s;
 
 typedef struct{

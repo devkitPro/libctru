@@ -43,6 +43,11 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 
 		dvle->outTableSize=dvleData[11];
 		dvle->outTableData=(DVLE_outEntry_s*)&dvleData[dvleData[10]/4];
+
+		dvle->uniformTableSize=dvleData[13];
+		dvle->uniformTableData=(DVLE_uniformEntry_s*)&dvleData[dvleData[12]/4];
+
+		dvle->symbolTableData=(char*)&dvleData[dvleData[14]/4];
 	}
 
 	goto exit;
