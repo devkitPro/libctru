@@ -26,9 +26,22 @@ typedef enum{
 	GPU_ETC1A4=0xC
 }GPU_TEXCOLOR;
 
+typedef enum
+{
+	GL_NEVER = 0,
+	GL_ALWAYS = 1,
+	GL_EQUAL = 2,
+	GL_NOTEQUAL = 3,
+	GL_LESS = 4,
+	GL_LEQUAL = 5,
+	GL_GREATER = 6,
+	GL_GEQUAL = 7
+}GPU_TestFunction;
+
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 void GPU_DepthRange(float nearVal, float farVal);
+void GPU_SetDepthTest(bool enable, GPU_TestFunction function, u8 ref);
 void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
 
 #endif

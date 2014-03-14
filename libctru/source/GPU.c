@@ -276,6 +276,11 @@ void GPU_DepthRange(float nearVal, float farVal)
 	GPUCMD_AddSingleParam(0x000F004E, f32tof24(farVal));
 }
 
+void GPU_SetDepthTest(bool enable, GPU_TestFunction function, u8 ref)
+{
+	GPUCMD_AddSingleParam(0x000F0107, (enable&1)|((function&7)<<4)|(ref<<8));
+}
+
 void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType)
 {
 	GPUCMD_AddSingleParam(0x000F008E, colorType);
