@@ -131,6 +131,9 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 		{
 			case RESULT_POSITION: *out=0x03020100; break;
 			case RESULT_COLOR: *out=0x0B0A0908; break;
+			case RESULT_TEXCOORD0: *out=0x1F1F0D0C; break;
+			case RESULT_TEXCOORD1: *out=0x1F1F0F0E; break;
+			case RESULT_TEXCOORD2: *out=0x1F1F1716; break;
 		}
 	}
 

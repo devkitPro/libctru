@@ -28,20 +28,20 @@ typedef enum{
 
 typedef enum
 {
-	GL_NEVER = 0,
-	GL_ALWAYS = 1,
-	GL_EQUAL = 2,
-	GL_NOTEQUAL = 3,
-	GL_LESS = 4,
-	GL_LEQUAL = 5,
-	GL_GREATER = 6,
-	GL_GEQUAL = 7
-}GPU_TestFunction;
+	GPU_NEVER = 0,
+	GPU_ALWAYS = 1,
+	GPU_EQUAL = 2,
+	GPU_NOTEQUAL = 3,
+	GPU_LESS = 4,
+	GPU_LEQUAL = 5,
+	GPU_GREATER = 6,
+	GPU_GEQUAL = 7
+}GPU_TESTFUNC;
 
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 void GPU_DepthRange(float nearVal, float farVal);
-void GPU_SetDepthTest(bool enable, GPU_TestFunction function, u8 ref);
+void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
 
 #endif
