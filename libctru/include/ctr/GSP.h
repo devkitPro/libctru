@@ -3,7 +3,7 @@
 
 #define GSP_REBASE_REG(r) ((r)-0x1EB00000)
 
-void gspInit();
+Result gspInit();
 void gspExit();
 
 Result GSPGPU_AcquireRight(Handle *handle, u8 flags);

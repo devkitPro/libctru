@@ -16,7 +16,7 @@ typedef enum{
 
 extern Handle aptEvents[3];
 
-void aptInit(NS_APPID appID);
+Result aptInit(NS_APPID appID);
 void aptExit();
 void aptOpenSession();
 void aptCloseSession();

@@ -94,26 +94,30 @@ void aptEventHandler(u32 arg)
 	svc_exitThread();
 }
 
-void aptInit(NS_APPID appID)
+Result aptInit(NS_APPID appID)
 {
+	Result ret=0;
+
 	//initialize APT stuff, escape load screen
 	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
-	APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle);
+	if((ret=APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle)))return ret;
 	svc_closeHandle(aptuHandle);
 
 	currentAppId=appID;
 
 	aptOpenSession();
-	APT_Initialize(NULL, currentAppId, &aptEvents[0], &aptEvents[1]);
+	if((ret=APT_Initialize(NULL, currentAppId, &aptEvents[0], &aptEvents[1])))return ret;
 	aptCloseSession();
 	
 	aptOpenSession();
-	APT_Enable(NULL, 0x0);
+	if((ret=APT_Enable(NULL, 0x0)))return ret;
 	aptCloseSession();
 	
 	aptOpenSession();
-	APT_NotifyToWait(NULL, currentAppId);
+	if((ret=APT_NotifyToWait(NULL, currentAppId)))return ret;
 	aptCloseSession();
+	
+	return 0;
 }
 
 void aptExit()

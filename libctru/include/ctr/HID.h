@@ -28,10 +28,10 @@ typedef enum
 extern Handle hidMemHandle;
 extern vu32* hidSharedMem;
 
-void hidInit(u32* sharedMem);
+Result hidInit(u32* sharedMem);
 void hidExit();
 
 Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle);
-Result HIDUSER_Init(Handle* handle);
+Result HIDUSER_EnableAccelerometer(Handle* handle);
 
 #endif

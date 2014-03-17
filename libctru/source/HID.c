@@ -11,17 +11,20 @@ Handle hidMemHandle;
 
 vu32* hidSharedMem;
 
-void hidInit(u32* sharedMem)
+Result hidInit(u32* sharedMem)
 {
 	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
+	Result ret=0;
 
-	srv_getServiceHandle(NULL, &hidHandle, "hid:USER");
+	if((ret=srv_getServiceHandle(NULL, &hidHandle, "hid:USER")))return ret;
 	
-	HIDUSER_GetInfo(NULL, &hidMemHandle);
+	if((ret=HIDUSER_GetInfo(NULL, &hidMemHandle)))return ret;
 	hidSharedMem=sharedMem;
 	svc_mapMemoryBlock(hidMemHandle, (u32)hidSharedMem, 0x1, 0x10000000);
 
-	HIDUSER_Init(NULL);
+	if((ret=HIDUSER_EnableAccelerometer(NULL)))return ret;
+
+	return 0;
 }
 
 void hidExit()
@@ -45,7 +48,7 @@ Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle)
 	return cmdbuf[1];
 }
 
-Result HIDUSER_Init(Handle* handle)
+Result HIDUSER_EnableAccelerometer(Handle* handle)
 {
 	if(!handle)handle=&hidHandle;
 	u32* cmdbuf=getThreadCommandBuffer();
