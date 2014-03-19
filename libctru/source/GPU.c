@@ -150,6 +150,7 @@ void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize)
 	GPUCMD_AddSingleParam(0x000F0112, 0x0000000F);
 	GPUCMD_AddSingleParam(0x000F0114, 0x00000003);
 	GPUCMD_AddSingleParam(0x000F0115, 0x00000003);
+
 	GPUCMD_AddSingleParam(0x000F01C5, 0x00000000);
 
 	for(i=0;i<32;i++)GPUCMD_Add(0x800F01C8, zero, 0x00000008);
@@ -201,6 +202,7 @@ void GPU_SetUniform(u32 startreg, u32* data, u32 numreg)
 
 u32 f32tof24(float f)
 {
+	if(!f)return 0;
 	u32 v=*((u32*)&f);
 	u8 s=v>>31;
 	u32 exp=((v>>23)&0xFF)-0x40;
@@ -251,8 +253,8 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_Add(0x800F011C, param, 0x00000003);
 
 	GPUCMD_AddSingleParam(0x000F006E, f116e);
-	GPUCMD_AddSingleParam(0x000F0116, 0x00000003); //?
-	GPUCMD_AddSingleParam(0x000F0117, 0x00000002); //?
+	GPUCMD_AddSingleParam(0x000F0116, 0x00000003); //depth format
+	GPUCMD_AddSingleParam(0x000F0117, 0x00000002); //color format
 	GPUCMD_AddSingleParam(0x000F011B, 0x00000000); //?
 
 	param[0x0]=f32tof24(fw/2);

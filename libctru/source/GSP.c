@@ -214,7 +214,7 @@ Result GSPGPU_submitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* 
 
 		__asm__ ("ldrex %[result], [%[adr]]" : [result] "=r" (cmdBufHeader) : [adr] "r" (sharedGspCmdBuf));
 		totalCommands=((cmdBufHeader&0xFF00)>>8)+1;
-		cmdBufHeader=((cmdBufHeader)&0xFFFF00FF)|((totalCommands<<8)|0xFF00);
+		cmdBufHeader=((cmdBufHeader)&0xFFFF00FF)|((totalCommands<<8)&0xFF00);
 	}
 
 	if(totalCommands==1)return GSPGPU_TriggerCmdReqQueue(handle);
