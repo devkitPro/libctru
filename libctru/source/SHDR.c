@@ -120,6 +120,7 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 					0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F};
 
 	int i;
+	u8 numAttr=0;
 	//TODO : should probably preprocess this
 	for(i=0;i<dvle->outTableSize;i++)
 	{
@@ -135,8 +136,11 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 			case RESULT_TEXCOORD1: *out=0x1F1F0F0E; break;
 			case RESULT_TEXCOORD2: *out=0x1F1F1716; break;
 		}
+
+		if(dvle->outTableData[i].regID+1>numAttr)numAttr=dvle->outTableData[i].regID+1;
 	}
 
+	GPUCMD_AddSingleParam(0x000F004F, numAttr);
 	GPUCMD_Add(0x800F0050, param, 0x00000007);
 }
 
