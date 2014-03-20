@@ -33,7 +33,7 @@ void GPUCMD_Run(u32* gxbuf)
 
 void GPUCMD_Add(u32 cmd, u32* param, u32 paramlength)
 {
-	u32 zero=0x0;
+	u32 zero=0;
 
 	if(!param || !paramlength)
 	{
@@ -76,7 +76,7 @@ void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize)
 	int i;
 	static u32 param[0x80];
 	static u32 zero[0x80];
-	memset(zero,  0x00, 0x80*4);
+	memset(zero,  0x00, 0x80 * sizeof(*zero));
 
 	GPUCMD_SetBuffer(gpuBuf, gpuBufSize, 0);
 
