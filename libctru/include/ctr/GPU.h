@@ -38,10 +38,29 @@ typedef enum
 	GPU_GEQUAL = 7
 }GPU_TESTFUNC;
 
+typedef enum{
+	GPU_BYTE = 0,
+	GPU_UNSIGNED_BYTE = 1,
+	GPU_SHORT = 2,
+	GPU_FLOAT = 3
+}GPU_FORMATS;
+
+//defines for CW ?
+typedef enum{
+	GPU_CULL_NONE = 0,
+	GPU_CULL_FRONT_CCW = 1,
+	GPU_CULL_BACK_CCW = 2
+}GPU_CULLMODE;
+
+#define GPU_ATTRIBFMT(i, n, f) (((((n)-1)<<2)|((f)&3))<<((i)*4))
+
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 void GPU_DepthRange(float nearVal, float farVal);
 void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref);
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref);
+void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[]);
+void GPU_SetFaceCulling(GPU_CULLMODE mode);
 void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
 
 #endif

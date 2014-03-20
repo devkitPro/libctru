@@ -200,6 +200,7 @@ void GPU_SetUniform(u32 startreg, u32* data, u32 numreg)
 	GPUCMD_Add(0x000F02C1, data, numreg*4);
 }
 
+//TODO : fix
 u32 f32tof24(float f)
 {
 	if(!f)return 0;
@@ -253,8 +254,8 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_Add(0x800F011C, param, 0x00000003);
 
 	GPUCMD_AddSingleParam(0x000F006E, f116e);
-	GPUCMD_AddSingleParam(0x000F0116, 0x00000003); //depth format
-	GPUCMD_AddSingleParam(0x000F0117, 0x00000002); //color format
+	GPUCMD_AddSingleParam(0x000F0116, 0x00000003); //depth buffer format
+	GPUCMD_AddSingleParam(0x000F0117, 0x00000002); //color buffer format
 	GPUCMD_AddSingleParam(0x000F011B, 0x00000000); //?
 
 	param[0x0]=f32tof24(fw/2);
@@ -269,6 +270,13 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	param[0x1]=0x00000000;
 	param[0x2]=((h-1)<<16)|((w-1)&0xFFFF);
 	GPUCMD_Add(0x800F0065, param, 0x00000003);
+
+	//enable depth buffer
+	param[0x0]=0x00000000;
+	param[0x1]=0x0000000F;
+	param[0x2]=0x00000002;
+	param[0x3]=0x00000002;
+	GPUCMD_Add(0x800F0112, param, 0x00000004);
 }
 
 void GPU_DepthRange(float nearVal, float farVal)
@@ -276,6 +284,11 @@ void GPU_DepthRange(float nearVal, float farVal)
 	GPUCMD_AddSingleParam(0x000F006D, 0x00000001); //?
 	GPUCMD_AddSingleParam(0x000F004D, f32tof24(nearVal));
 	GPUCMD_AddSingleParam(0x000F004E, f32tof24(farVal));
+}
+
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref)
+{
+	GPUCMD_AddSingleParam(0x000F0105, (enable&1)|((function&7)<<4)|(ref<<8));
 }
 
 void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref)
@@ -289,4 +302,48 @@ void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR co
 	GPUCMD_AddSingleParam(0x000F0085, ((u32)data)>>3);
 	GPUCMD_AddSingleParam(0x000F0082, (width)|(height<<16));
 	GPUCMD_AddSingleParam(0x000F0083, param);
+}
+
+const u8 GPU_FORMATSIZE[4]={1,1,2,4};
+
+void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[])
+{
+	u32 param[0x28];
+
+	memset(param, 0x00, 0x28*4);
+
+	param[0x0]=((u32)baseAddress)>>3;
+	param[0x1]=attributeFormats&0xFFFFFFFF;
+	param[0x2]=((totalAttributes-1)<<28)|((attributeMask&0xFFF)<<16)|((attributeFormats>>32)&0xFFFF);
+
+	int i, j;
+	u8 sizeTable[0xC];
+	for(i=0;i<totalAttributes;i++)
+	{
+		u8 v=attributeFormats&0xF;
+		sizeTable[i]=GPU_FORMATSIZE[v&3]*((v>>2)+1);
+		attributeFormats>>=4;
+	}
+
+	for(i=0;i<numBuffers;i++)
+	{
+		u16 stride=0;
+		param[3*(i+1)+0]=bufferOffsets[i];
+		param[3*(i+1)+1]=bufferPermutations[i]&0xFFFFFFFF;
+		for(j=0;j<bufferNumAttributes[i];j++)stride+=sizeTable[(bufferPermutations[i]>>(4*j))&0xF];
+		param[3*(i+1)+2]=(bufferNumAttributes[i]<<28)|((stride&0xFFF)<<16)|((bufferPermutations[i]>>32)&0xFFFF);
+	}
+
+	GPUCMD_Add(0x800F0200, param, 0x00000027);
+
+	GPUCMD_AddSingleParam(0x000B02B9, 0xA0000000|(totalAttributes-1));
+	GPUCMD_AddSingleParam(0x000F0242, (totalAttributes-1));
+
+	GPUCMD_AddSingleParam(0x000F02BB, attributePermutation&0xFFFFFFFF);
+	GPUCMD_AddSingleParam(0x000F02BC, (attributePermutation>>32)&0xFFFF);
+}
+
+void GPU_SetFaceCulling(GPU_CULLMODE mode)
+{
+	GPUCMD_AddSingleParam(0x000F0040, mode&0x3); 
 }
