@@ -54,13 +54,37 @@ typedef enum{
 
 #define GPU_ATTRIBFMT(i, n, f) (((((n)-1)<<2)|((f)&3))<<((i)*4))
 
+typedef enum{
+	GPU_PRIMARY_COLOR = 0x00,
+	GPU_TEXTURE0 = 0x03,
+	GPU_TEXTURE1 = 0x04,
+	GPU_TEXTURE2 = 0x05,
+	GPU_TEXTURE3 = 0x06,
+	GPU_CONSTANT = 0x0E,
+	GPU_PREVIOUS = 0x0F,
+}GPU_TEVSRC;
+
+typedef enum{
+	GPU_REPLACE = 0x00,
+	GPU_MODULATE = 0x01,
+	GPU_ADD = 0x02,
+	GPU_ADD_SIGNED = 0x03,
+	GPU_INTERPOLATE = 0x04,
+	GPU_SUBTRACT = 0x05,
+	GPU_DOT3_RGB = 0x06 //RGB only
+}GPU_COMBINEFUNC;
+
+#define GPU_TEVSOURCES(a,b,c) (((a))|((b)<<4)|((c)<<8))
+#define GPU_TEVOPERANDS(a,b,c) (((a))|((b)<<4)|((c)<<8))
+
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 void GPU_DepthRange(float nearVal, float farVal);
 void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref);
-void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[]);
 void GPU_SetFaceCulling(GPU_CULLMODE mode);
+void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[]);
 void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
+void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor);
 
 #endif

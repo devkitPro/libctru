@@ -347,3 +347,20 @@ void GPU_SetFaceCulling(GPU_CULLMODE mode)
 {
 	GPUCMD_AddSingleParam(0x000F0040, mode&0x3); 
 }
+
+const u8 GPU_TEVID[]={0xC0,0xC8,0xD0,0xD8,0xF0,0xF8};
+
+void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor)
+{
+	if(id>6)return;
+	u32 param[0x5];
+	memset(param, 0x00, 5*4);
+
+	param[0x0]=(alphaSources<<16)|(rgbSources);
+	param[0x1]=(alphaOperands<<16)|(rgbOperands);
+	param[0x2]=(alphaCombine<<16)|(rgbCombine);
+	param[0x3]=constantColor;
+	param[0x4]=0x00000000; // ?
+
+	GPUCMD_Add(0x800F0000|GPU_TEVID[id], param, 0x00000005);
+}
