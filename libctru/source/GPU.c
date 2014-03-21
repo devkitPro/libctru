@@ -357,7 +357,7 @@ void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16
 	memset(param, 0x00, 5*4);
 
 	param[0x0]=(alphaSources<<16)|(rgbSources);
-	param[0x1]=(alphaOperands<<16)|(rgbOperands);
+	param[0x1]=(alphaOperands<<12)|(rgbOperands);
 	param[0x2]=(alphaCombine<<16)|(rgbCombine);
 	param[0x3]=constantColor;
 	param[0x4]=0x00000000; // ?
