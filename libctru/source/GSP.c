@@ -61,6 +61,22 @@ Result GSPGPU_SetLcdForceBlack(Handle* handle, u8 flags)
 	return cmdbuf[1];
 }
 
+Result GSPGPU_SetBufferSwap(Handle* handle, u32 screenid, GSP_FramebufferInfo *framebufinfo)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	if(!handle)handle=&gspGpuHandle;
+
+	cmdbuf[0] = 0x00050200;
+	cmdbuf[1] = screenid;
+	memcpy(&cmdbuf[2], framebufinfo, sizeof(GSP_FramebufferInfo));
+	
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
 {
 	if(!handle)handle=&gspGpuHandle;
@@ -73,6 +89,24 @@ Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
 	cmdbuf[4]=0xffff8001;
 
 	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_InvalidateDataCache(Handle* handle, u8 *adr, u32 size)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	if(!handle)handle=&gspGpuHandle;
+
+	cmdbuf[0] = 0x00090082;
+	cmdbuf[1] = (u32)adr;
+	cmdbuf[2] = size;
+	cmdbuf[3] = 0;
+	cmdbuf[4] = 0xFFFF8001;
+
 	if((ret=svc_sendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
