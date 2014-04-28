@@ -10,8 +10,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-static Handle socu_handle = 0;
-static int soc_errno = 0;
+Handle SOCU_handle = 0;
+static int SOCU_errno = 0;
 
 Result socu_cmd1(Handle memhandle, u32 memsize)
 {
@@ -24,7 +24,7 @@ Result socu_cmd1(Handle memhandle, u32 memsize)
 	cmdbuf[4] = 0;
 	cmdbuf[5] = memhandle;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	return cmdbuf[1];
 }
@@ -36,14 +36,14 @@ Result SOC_Shutdown()
 
 	cmdbuf[0] = 0x00190000;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
-	svc_closeHandle(socu_handle);
+	svc_closeHandle(SOCU_handle);
 
 	return cmdbuf[1];
 }
 
-Result SOC_Initialize(u32 *context_addr, u32 context_size)//Example context_size: 0x48000. The specified context buffer can no longer be accessed by the process which called this function, since the userland permissions for this block are set to no-access.
+Result SOC_Initialize(u32 *context_addr, u32 context_size)
 {
 	Result ret=0;
 	Handle memhandle = 0;
@@ -51,14 +51,14 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)//Example context_size
 	ret = svc_createMemoryBlock(&memhandle, (u32)context_addr, context_size, 0, 3);
 	if(ret!=0)return ret;
 
-	if((ret = srv_getServiceHandle(NULL, &socu_handle, "soc:U"))!=0)return ret;
+	if((ret = srv_getServiceHandle(NULL, &SOCU_handle, "soc:U"))!=0)return ret;
 
 	return socu_cmd1(memhandle, context_size);
 }
 
 int SOC_GetErrno()
 {
-	return soc_errno;
+	return SOCU_errno;
 }
 
 int socket(int domain, int type, int protocol)
@@ -72,10 +72,10 @@ int socket(int domain, int type, int protocol)
 	cmdbuf[3] = protocol;
 	cmdbuf[4] = 0x20;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
-	soc_errno = ret;
+	SOCU_errno = ret;
 
 	if(ret!=0)return -1;
 	return (int)cmdbuf[2];
@@ -90,11 +90,11 @@ int closesocket(int sockfd)
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = 0x20;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	soc_errno = ret;
+	SOCU_errno = ret;
 
 	if(ret!=0)return -1;
 	return 0;
@@ -110,11 +110,11 @@ int shutdown(int sockfd, int shutdown_type)
 	cmdbuf[2] = (u32)shutdown_type;
 	cmdbuf[3] = 0x20;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	soc_errno = ret;
+	SOCU_errno = ret;
 
 	if(ret!=0)return -1;
 	return 0;
@@ -130,11 +130,11 @@ int listen(int sockfd, int max_connections)
 	cmdbuf[2] = (u32)max_connections;
 	cmdbuf[3] = 0x20;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	soc_errno = ret;
+	SOCU_errno = ret;
 
 	if(ret!=0)return -1;
 	return 0;
@@ -161,14 +161,14 @@ int accept(int sockfd, struct sockaddr *addr, int *addrlen)
 	cmdbuf[0x100>>2] = (tmp_addrlen<<14) | 2;
 	cmdbuf[0x104>>2] = (u32)tmpaddr;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	cmdbuf[0x100>>2] = saved_threadstorage[0];
 	cmdbuf[0x104>>2] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	if(ret<0)soc_errno = ret;
+	if(ret<0)SOCU_errno = ret;
 
 	if(ret>=0 && addr!=NULL)
 	{
@@ -186,8 +186,8 @@ int bind(int sockfd, const struct sockaddr *addr, int addrlen)
 {
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
+	//struct sockaddr_in *inaddr = (struct sockaddr_in*)addr;
 	u8 tmpaddr[8];
-	struct sockaddr_in *inaddr = (struct sockaddr_in*)addr;
 
 	addrlen = 8;
 	tmpaddr[0] = 8;
@@ -201,11 +201,11 @@ int bind(int sockfd, const struct sockaddr *addr, int addrlen)
 	cmdbuf[5] = (((u32)addrlen)<<14) | 2;
 	cmdbuf[6] = (u32)tmpaddr;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	soc_errno = ret;
+	SOCU_errno = ret;
 
 	if(ret<0)return -1;
 	return 0;
@@ -215,8 +215,8 @@ int connect(int sockfd, const struct sockaddr *addr, int addrlen)
 {
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
+	//struct sockaddr_in *inaddr = (struct sockaddr_in*)addr;
 	u8 tmpaddr[8];
-	struct sockaddr_in *inaddr = (struct sockaddr_in*)addr;
 
 	addrlen = 8;
 	tmpaddr[0] = 8;
@@ -230,11 +230,11 @@ int connect(int sockfd, const struct sockaddr *addr, int addrlen)
 	cmdbuf[5] = (((u32)addrlen)<<14) | 2;
 	cmdbuf[6] = (u32)tmpaddr;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	soc_errno = ret;
+	SOCU_errno = ret;
 
 	if(ret<0)return -1;
 	return 0;
@@ -265,14 +265,14 @@ int socuipc_cmd7(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 	cmdbuf[0x100>>2] = (tmp_addrlen<<14) | 2;
 	cmdbuf[0x104>>2] = (u32)tmpaddr;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	cmdbuf[0x100>>2] = saved_threadstorage[0];
 	cmdbuf[0x104>>2] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	if(ret<0)soc_errno = ret;
+	if(ret<0)SOCU_errno = ret;
 
 	if(ret<0)return -1;
 	return ret;
@@ -305,7 +305,7 @@ int socuipc_cmd8(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 	cmdbuf[0x108>>2] = (tmp_addrlen<<14) | 2;
 	cmdbuf[0x10c>>2] = (u32)tmpaddr;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	cmdbuf[0x100>>2] = saved_threadstorage[0];
 	cmdbuf[0x104>>2] = saved_threadstorage[1];
@@ -314,13 +314,13 @@ int socuipc_cmd8(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	if(ret<0)soc_errno = ret;
+	if(ret<0)SOCU_errno = ret;
 
 	if(ret<0)return -1;
 	return ret;
 }
 
-int socuipc_cmd9(int sockfd, const void *buf, int len, int flags, struct sockaddr *dest_addr, int addrlen)
+int socuipc_cmd9(int sockfd, const void *buf, int len, int flags, const struct sockaddr *dest_addr, int addrlen)
 {
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -340,17 +340,17 @@ int socuipc_cmd9(int sockfd, const void *buf, int len, int flags, struct sockadd
 	cmdbuf[9] = (((u32)len)<<4) | 10;
 	cmdbuf[10] = (u32)buf;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	if(ret<0)soc_errno = ret;
+	if(ret<0)SOCU_errno = ret;
 
 	if(ret<0)return -1;
 	return ret;
 }
 
-int socuipc_cmda(int sockfd, const void *buf, int len, int flags, struct sockaddr *dest_addr, int addrlen)
+int socuipc_cmda(int sockfd, const void *buf, int len, int flags, const struct sockaddr *dest_addr, int addrlen)
 {
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -370,11 +370,11 @@ int socuipc_cmda(int sockfd, const void *buf, int len, int flags, struct sockadd
 	cmdbuf[9] = (tmp_addrlen<<14) | 0x402;
 	cmdbuf[10] = (u32)tmpaddr;
 
-	if((ret = svc_sendSyncRequest(socu_handle))!=0)return ret;
+	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = (int)cmdbuf[2];
-	if(ret<0)soc_errno = ret;
+	if(ret<0)SOCU_errno = ret;
 
 	if(ret<0)return -1;
 	return ret;
@@ -382,13 +382,13 @@ int socuipc_cmda(int sockfd, const void *buf, int len, int flags, struct sockadd
 
 int recvfrom(int sockfd, void *buf, int len, int flags, struct sockaddr *src_addr, int *addrlen)//UDP is not supported for these since the input/output sockaddr is not used.
 {
-	//if(len<0x2000)return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
+	if(len<0x2000)return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
 	return socuipc_cmd7(sockfd, buf, len, flags, src_addr, addrlen);
 }
 
 int sendto(int sockfd, const void *buf, int len, int flags, const struct sockaddr *dest_addr, int addrlen)
 {
-	//if(len<0x2000)return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
+	if(len<0x2000)return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
 	return socuipc_cmd9(sockfd, buf, len, flags, (struct sockaddr*)dest_addr, addrlen);
 }
 
