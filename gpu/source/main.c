@@ -11,7 +11,7 @@
 #include <ctr/SHDR.h>
 #include <ctr/svc.h>
 #include "costable.h"
-#include "test_vsh_bin.h"
+#include "test_shbin.h"
 
 u8* gspHeap;
 u32* gxCmdBuf;
@@ -101,7 +101,7 @@ int main()
 
 	GPU_Reset(gxCmdBuf, gpuCmd, gpuCmdSize);
 	
-	DVLB_s* shader=SHDR_ParseSHBIN((u32*)test_vsh_bin,test_vsh_bin_size);
+	DVLB_s* shader=SHDR_ParseSHBIN((u32*)test_shbin,test_shbin_size);
 
 	APP_STATUS status;
 	while((status=aptGetStatus())!=APP_EXITING)
