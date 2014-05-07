@@ -1,6 +1,6 @@
 CC = arm-none-eabi-gcc
 AR = arm-none-eabi-ar
-CFLAGS += -Wall -std=c99 -march=armv6 -O0 -I"$(CURDIR)/include/" -I$(DEVKITPRO)/libnds/include
+CFLAGS += -Wall -std=c99 -march=armv6 -O0 -I"$(CURDIR)/include/"
 
 CFILES = $(wildcard source/*.c)
 OFILES = $(CFILES:source/%.c=build/%.o)
