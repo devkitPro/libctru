@@ -238,12 +238,12 @@ int listen(int sockfd, int max_connections)
 int accept(int sockfd, struct sockaddr *addr, int *addrlen)
 {
 	int ret=0;
+	int tmp_addrlen=0x1c;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[8];
-	int tmp_addrlen=8;
+	u8 tmpaddr[0x1c];
 	u32 saved_threadstorage[2];
 
-	memset(tmpaddr, 0, 8);
+	memset(tmpaddr, 0, 0x1c);
 
 	cmdbuf[0] = 0x00040082;
 	cmdbuf[1] = (u32)sockfd;
@@ -267,10 +267,9 @@ int accept(int sockfd, struct sockaddr *addr, int *addrlen)
 
 	if(ret>=0 && addr!=NULL)
 	{
-		*addrlen = tmpaddr[0];
-		memset(addr, 0, sizeof(struct sockaddr));
 		addr->sa_family = tmpaddr[1];
-		memcpy(&addr->sa_data, &tmpaddr[2], tmp_addrlen-2);
+		if(*addrlen > tmpaddr[0])*addrlen = tmpaddr[0];
+		memcpy(addr->sa_data, &tmpaddr[2], *addrlen - 2);
 	}
 
 	if(ret<0)return -1;
@@ -280,20 +279,36 @@ int accept(int sockfd, struct sockaddr *addr, int *addrlen)
 int bind(int sockfd, const struct sockaddr *addr, int addrlen)
 {
 	int ret=0;
+	int tmp_addrlen=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	//struct sockaddr_in *inaddr = (struct sockaddr_in*)addr;
-	u8 tmpaddr[8];
+	u8 tmpaddr[0x1c];
 
-	addrlen = 8;
-	tmpaddr[0] = 8;
+	memset(tmpaddr, 0, 0x1c);
+
+	if(addr->sa_family == AF_INET)
+	{
+		tmp_addrlen = 8;
+	}
+	else
+	{
+		tmp_addrlen = 0x1c;
+	}
+
+	if(addrlen < tmp_addrlen)
+	{
+		SOCU_errno = -EINVAL;
+		return -1;
+	}
+
+	tmpaddr[0] = tmp_addrlen;
 	tmpaddr[1] = addr->sa_family;
-	memcpy(&tmpaddr[2], &addr->sa_data, addrlen-2);
+	memcpy(&tmpaddr[2], &addr->sa_data, tmp_addrlen-2);
 
 	cmdbuf[0] = 0x00050084;
 	cmdbuf[1] = (u32)sockfd;
-	cmdbuf[2] = (u32)addrlen;
+	cmdbuf[2] = (u32)tmp_addrlen;
 	cmdbuf[3] = 0x20;
-	cmdbuf[5] = (((u32)addrlen)<<14) | 2;
+	cmdbuf[5] = (((u32)tmp_addrlen)<<14) | 2;
 	cmdbuf[6] = (u32)tmpaddr;
 
 	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
@@ -309,20 +324,36 @@ int bind(int sockfd, const struct sockaddr *addr, int addrlen)
 int connect(int sockfd, const struct sockaddr *addr, int addrlen)
 {
 	int ret=0;
+	int tmp_addrlen=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	//struct sockaddr_in *inaddr = (struct sockaddr_in*)addr;
-	u8 tmpaddr[8];
+	u8 tmpaddr[0x1c];
 
-	addrlen = 8;
-	tmpaddr[0] = 8;
+	memset(tmpaddr, 0, 0x1c);
+
+	if(addr->sa_family == AF_INET)
+	{
+		tmp_addrlen = 8;
+	}
+	else
+	{
+		tmp_addrlen = 0x1c;
+	}
+
+	if(addrlen < tmp_addrlen)
+	{
+		SOCU_errno = -EINVAL;
+		return -1;
+	}
+
+	tmpaddr[0] = tmp_addrlen;
 	tmpaddr[1] = addr->sa_family;
-	memcpy(&tmpaddr[2], &addr->sa_data, addrlen-2);
+	memcpy(&tmpaddr[2], &addr->sa_data, tmp_addrlen-2);
 
 	cmdbuf[0] = 0x00060084;
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)addrlen;
 	cmdbuf[3] = 0x20;
-	cmdbuf[5] = (((u32)addrlen)<<14) | 2;
+	cmdbuf[5] = (((u32)tmp_addrlen)<<14) | 2;
 	cmdbuf[6] = (u32)tmpaddr;
 
 	if((ret = svc_sendSyncRequest(SOCU_handle))!=0)return ret;
@@ -339,11 +370,13 @@ int socuipc_cmd7(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 {
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[8];
 	u32 tmp_addrlen=0;
+	u8 tmpaddr[0x1c];
 	u32 saved_threadstorage[2];
 
-	memset(tmpaddr, 0, 8);
+	memset(tmpaddr, 0, 0x1c);
+
+	if(src_addr)tmp_addrlen = 0x1c;
 
 	cmdbuf[0] = 0x00070104;
 	cmdbuf[1] = (u32)sockfd;
@@ -369,6 +402,13 @@ int socuipc_cmd7(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 	if(ret==0)ret = _net_convert_error(cmdbuf[2]);
 	if(ret<0)SOCU_errno = ret;
 
+	if(ret>0 && src_addr!=NULL)
+	{
+		src_addr->sa_family = tmpaddr[1];
+		if(*addrlen > tmpaddr[0])*addrlen = tmpaddr[0];
+		memcpy(src_addr->sa_data, &tmpaddr[2], *addrlen - 2);
+	}
+
 	if(ret<0)return -1;
 	return ret;
 }
@@ -376,12 +416,14 @@ int socuipc_cmd7(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 int socuipc_cmd8(int sockfd, void *buf, int len, int flags, struct sockaddr *src_addr, int *addrlen)
 {
 	int ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[8];
+	u32 *cmdbuf = getThreadCommandBuffer();	
 	u32 tmp_addrlen=0;
+	u8 tmpaddr[0x1c];
 	u32 saved_threadstorage[4];
 
-	memset(tmpaddr, 0, 8);
+	if(src_addr)tmp_addrlen = 0x1c;
+
+	memset(tmpaddr, 0, 0x1c);
 
 	cmdbuf[0] = 0x00080102;
 	cmdbuf[1] = (u32)sockfd;
@@ -411,6 +453,13 @@ int socuipc_cmd8(int sockfd, void *buf, int len, int flags, struct sockaddr *src
 	if(ret==0)ret = _net_convert_error(cmdbuf[2]);
 	if(ret<0)SOCU_errno = ret;
 
+	if(ret>0 && src_addr!=NULL)
+	{
+		src_addr->sa_family = tmpaddr[1];
+		if(*addrlen > tmpaddr[0])*addrlen = tmpaddr[0];
+		memcpy(src_addr->sa_data, &tmpaddr[2], *addrlen - 2);
+	}
+
 	if(ret<0)return -1;
 	return ret;
 }
@@ -419,10 +468,32 @@ int socuipc_cmd9(int sockfd, const void *buf, int len, int flags, const struct s
 {
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[8];
 	u32 tmp_addrlen=0;
+	u8 tmpaddr[0x1c];
 
-	memset(tmpaddr, 0, 8);
+	memset(tmpaddr, 0, 0x1c);
+
+	if(dest_addr)
+	{
+		if(dest_addr->sa_family == AF_INET)
+		{
+			tmp_addrlen = 8;
+		}
+		else
+		{
+			tmp_addrlen = 0x1c;
+		}
+
+		if(addrlen < tmp_addrlen)
+		{
+			SOCU_errno = -EINVAL;
+			return -1;
+		}
+
+		tmpaddr[0] = tmp_addrlen;
+		tmpaddr[1] = dest_addr->sa_family;
+		memcpy(&tmpaddr[2], &dest_addr->sa_data, tmp_addrlen-2);
+	}
 
 	cmdbuf[0] = 0x00090106;
 	cmdbuf[1] = (u32)sockfd;
@@ -449,10 +520,32 @@ int socuipc_cmda(int sockfd, const void *buf, int len, int flags, const struct s
 {
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[8];
-	int tmp_addrlen=0;
+	u32 tmp_addrlen=0;
+	u8 tmpaddr[0x1c];
 
-	memset(tmpaddr, 0, 8);
+	memset(tmpaddr, 0, 0x1c);
+
+	if(dest_addr)
+	{
+		if(dest_addr->sa_family == AF_INET)
+		{
+			tmp_addrlen = 8;
+		}
+		else
+		{
+			tmp_addrlen = 0x1c;
+		}
+
+		if(addrlen < tmp_addrlen)
+		{
+			SOCU_errno = -EINVAL;
+			return -1;
+		}
+
+		tmpaddr[0] = tmp_addrlen;
+		tmpaddr[1] = dest_addr->sa_family;
+		memcpy(&tmpaddr[2], &dest_addr->sa_data, tmp_addrlen-2);
+	}
 
 	cmdbuf[0] = 0x000A0106;
 	cmdbuf[1] = (u32)sockfd;
@@ -664,6 +757,7 @@ int getsockname(int sockfd, struct sockaddr *addr, int * addr_len)
 	{
 		addr->sa_family = tmpaddr[1];
 		if(*addr_len > tmpaddr[0])*addr_len = tmpaddr[0];
+		memset(addr, 0, sizeof(struct sockaddr));
 		memcpy(addr->sa_data, &tmpaddr[2], *addr_len - 2);
 	}
 
@@ -702,6 +796,7 @@ int getpeername(int sockfd, struct sockaddr *addr, int * addr_len)
 	{
 		addr->sa_family = tmpaddr[1];
 		if(*addr_len > tmpaddr[0])*addr_len = tmpaddr[0];
+		memset(addr, 0, sizeof(struct sockaddr));
 		memcpy(addr->sa_data, &tmpaddr[2], *addr_len - 2);
 	}
 
