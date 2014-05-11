@@ -568,7 +568,7 @@ int socuipc_cmda(int sockfd, const void *buf, int len, int flags, const struct s
 	return ret;
 }
 
-int recvfrom(int sockfd, void *buf, int len, int flags, struct sockaddr *src_addr, int *addrlen)//UDP is not supported for these since the input/output sockaddr is not used.
+int recvfrom(int sockfd, void *buf, int len, int flags, struct sockaddr *src_addr, int *addrlen)
 {
 	if(len<0x2000)return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
 	return socuipc_cmd7(sockfd, buf, len, flags, src_addr, addrlen);
