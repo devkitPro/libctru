@@ -1,4 +1,4 @@
-.section ".text"
+.section ".init"
 .arm
 .align 4
 .global _init

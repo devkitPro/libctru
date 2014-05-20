@@ -47,6 +47,52 @@ Result GSPGPU_ReleaseRight(Handle* handle)
 	return cmdbuf[1];
 }
 
+Result GSPGPU_ImportDisplayCaptureInfo(Handle* handle, GSP_CaptureInfo *captureinfo)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00180000; //request header code
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	ret = cmdbuf[1];
+
+	if(ret==0)
+	{
+		memcpy(captureinfo, &cmdbuf[2], 0x20);
+	}
+
+	return ret;
+}
+
+Result GSPGPU_SaveVramSysArea(Handle* handle)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00190000; //request header code
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_RestoreVramSysArea(Handle* handle)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x001A0000; //request header code
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result GSPGPU_SetLcdForceBlack(Handle* handle, u8 flags)
 {
 	if(!handle)handle=&gspGpuHandle;

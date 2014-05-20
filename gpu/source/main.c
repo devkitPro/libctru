@@ -128,6 +128,14 @@ int main()
 
 			swapBuffers();
 		}
+		else if(status == APP_SUSPENDING)
+		{
+			aptReturnToMenu();
+		}
+		else if(status == APP_SLEEPMODE)
+		{
+			aptWaitStatusEvent();
+		}
 		svc_sleepThread(16666666);
 	}
 
