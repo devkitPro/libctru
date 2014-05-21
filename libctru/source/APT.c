@@ -200,10 +200,6 @@ void aptEventHandler(u32 arg)
 							aptSetStatus(APP_RUNNING);
 							break;
 						case 0xC: //exiting application
-							aptOpenSession();
-							APT_ReplySleepQuery(NULL, currentAppId, 0x0);
-							aptCloseSession();
-
 							runThread=false;
 							aptSetStatus(APP_EXITING); //app exit signal
 							break;
@@ -251,23 +247,37 @@ void aptExit()
 	u8 buf1[4], buf2[4];
 
 	buf1[0]=0x02; buf1[1]=0x00; buf1[2]=0x00; buf1[3]=0x00;
+	
+	buf1[0]=0x10;
 	aptOpenSession();
 	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
 	aptCloseSession();
+
+	buf1[0]=0x00;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	buf1[0]=0x01;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	buf1[0]=0x00;
 	aptOpenSession();
 	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();
 
 	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
-	aptCloseSession();
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
-	aptOpenSession();
 	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();
 
+	if(aptGetStatusPower()==1)//This is only executed when application-termination was triggered via the home-menu power-off screen.
+	{
+		aptOpenSession();
+		APT_ReplySleepQuery(NULL, currentAppId, 0x0);
+		aptCloseSession();
+	}
 
 	aptOpenSession();
 	APT_PrepareToCloseApplication(NULL, 0x1);
