@@ -73,6 +73,37 @@ void aptWaitStatusEvent()
 	svc_clearEvent(aptStatusEvent);
 }
 
+void aptAppletUtility_Exit_RetToApp()
+{
+	u8 buf1[4], buf2[4];
+
+	memset(buf1, 0, 4);
+	
+	buf1[0]=0x10;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	buf1[0]=0x00;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	buf1[0]=0x01;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	buf1[0]=0x00;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+}
+
 void aptReturnToMenu()
 {
 	u32 tmp0 = 1, tmp1 = 0;
@@ -197,6 +228,7 @@ void aptEventHandler(u32 arg)
 						case 0xB: //just returned from menu
 							GSPGPU_AcquireRight(NULL, 0x0);
 							GSPGPU_RestoreVramSysArea(NULL);
+							aptAppletUtility_Exit_RetToApp();
 							aptSetStatus(APP_RUNNING);
 							break;
 						case 0xC: //exiting application
@@ -244,33 +276,7 @@ Result aptInit(NS_APPID appID)
 
 void aptExit()
 {
-	u8 buf1[4], buf2[4];
-
-	buf1[0]=0x02; buf1[1]=0x00; buf1[2]=0x00; buf1[3]=0x00;
-	
-	buf1[0]=0x10;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	buf1[0]=0x00;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	buf1[0]=0x01;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	buf1[0]=0x00;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
+	aptAppletUtility_Exit_RetToApp();
 
 	if(aptGetStatusPower()==1)//This is only executed when application-termination was triggered via the home-menu power-off screen.
 	{
@@ -296,7 +302,7 @@ void aptSetupEventHandler()
 {
 	u8 buf1[4], buf2[4];
 
-	buf1[0]=0x02; buf1[1]=0x00; buf1[2]=0x00; buf1[3]=0x04;
+	/*buf1[0]=0x02; buf1[1]=0x00; buf1[2]=0x00; buf1[3]=0x04;
 	aptOpenSession();
 	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
 	aptCloseSession();
@@ -312,6 +318,22 @@ void aptSetupEventHandler()
 	buf1[0]=0x13; buf1[1]=0x00; buf1[2]=0x10; buf1[3]=0x00;
 	aptOpenSession();
 	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();*/
+
+	memset(buf1, 0, 4);
+
+	buf1[0] = 0x10;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	buf1[0] = 0x00;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();
 
 	aptOpenSession();
