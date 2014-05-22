@@ -9,12 +9,13 @@ typedef enum{
 }NS_APPID; // cf http://3dbrew.org/wiki/NS#AppIDs
 
 typedef enum{
-	APT_NOTINITIALIZED,
+	APP_NOTINITIALIZED,
 	APP_RUNNING,
 	APP_SUSPENDED,
 	APP_EXITING,
 	APP_SUSPENDING,
-	APP_SLEEPMODE
+	APP_SLEEPMODE,
+	APP_PREPARE_SLEEPMODE
 }APP_STATUS;
 
 extern Handle aptEvents[3];

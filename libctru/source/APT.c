@@ -20,7 +20,8 @@ u64 aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]; //u64 so that it's 8-byte ali
 
 Handle aptStatusMutex;
 Handle aptStatusEvent = 0;
-u32 aptStatus = APT_NOTINITIALIZED;
+APP_STATUS aptStatus = APP_NOTINITIALIZED;
+APP_STATUS aptStatus_beforesleepmode = APP_NOTINITIALIZED;
 u32 aptStatusPower = 0;
 
 u32 aptParameters[0x1000/4]; //TEMP
@@ -212,21 +213,30 @@ void aptEventHandler(u32 arg)
 							break;
 
 						case 0x3: //preparing to enter sleep-mode
+							aptStatus_beforesleepmode = aptGetStatus();
+							GSPGPU_SetLcdForceBlack(NULL, 1);
 							aptOpenSession();
 							APT_ReplySleepQuery(NULL, currentAppId, 0x1);
 							aptCloseSession();
+							aptSetStatus(APP_PREPARE_SLEEPMODE);
 							break;
 
 						case 0x5: //entering sleep-mode
-							aptOpenSession();
-							APT_ReplySleepNotificationComplete(NULL, currentAppId);
-							aptCloseSession();
-							aptSetStatus(APP_SLEEPMODE);
+							if(aptGetStatus()==APP_PREPARE_SLEEPMODE)
+							{
+								aptOpenSession();
+								APT_ReplySleepNotificationComplete(NULL, currentAppId);
+								aptCloseSession();
+								aptSetStatus(APP_SLEEPMODE);
+							}
 							break;
 
 						case 0x6: //leaving sleep-mode
-							GSPGPU_SetLcdForceBlack(NULL, 0);
-							aptSetStatus(APP_RUNNING);
+							if(aptGetStatus()==APP_SLEEPMODE)
+							{
+								GSPGPU_SetLcdForceBlack(NULL, 0);
+								aptSetStatus(aptStatus_beforesleepmode);
+							}
 							break;
 					}
 				}
@@ -385,7 +395,7 @@ void aptSetStatus(APP_STATUS status)
 	prevstatus = status;
 	aptStatus = status;
 
-	if(prevstatus!=APT_NOTINITIALIZED)
+	if(prevstatus!=APP_NOTINITIALIZED)
 	{
 		if(status==APP_RUNNING)svc_signalEvent(aptStatusEvent);
 		if(status==APP_EXITING)svc_signalEvent(aptStatusEvent);
