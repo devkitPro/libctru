@@ -214,7 +214,6 @@ void aptEventHandler(u32 arg)
 
 						case 0x3: //preparing to enter sleep-mode
 							aptStatus_beforesleepmode = aptGetStatus();
-							GSPGPU_SetLcdForceBlack(NULL, 1);
 							aptOpenSession();
 							APT_ReplySleepQuery(NULL, currentAppId, 0x1);
 							aptCloseSession();
@@ -234,7 +233,7 @@ void aptEventHandler(u32 arg)
 						case 0x6: //leaving sleep-mode
 							if(aptGetStatus()==APP_SLEEPMODE)
 							{
-								GSPGPU_SetLcdForceBlack(NULL, 0);
+								if(aptStatus_beforesleepmode == APP_RUNNING)GSPGPU_SetLcdForceBlack(NULL, 0);
 								aptSetStatus(aptStatus_beforesleepmode);
 							}
 							break;
