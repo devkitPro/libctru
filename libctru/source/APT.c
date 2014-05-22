@@ -122,9 +122,12 @@ void aptReturnToMenu()
 	u32 ns_capinfo[0x20>>2];
 	u32 tmp_params[0x20>>2];
 
-	/*aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x6, 0x4, (u8*)&tmp0, 0x1, (u8*)&tmp1);
-	aptCloseSession();*/
+	if(aptGetStatusPower()==0)//This is only executed when ret-to-menu was triggered via the home-button, not the power-button.
+	{
+		aptOpenSession();
+		APT_AppletUtility(NULL, NULL, 0x6, 0x4, (u8*)&tmp0, 0x1, (u8*)&tmp1);
+		aptCloseSession();
+	}
 
 	aptOpenSession();
 	APT_PrepareToJumpToHomeMenu(NULL); //prepare for return to menu
