@@ -104,8 +104,20 @@ void aptAppletUtility_Exit_RetToApp()
 	aptCloseSession();
 }
 
+NS_APPID aptGetMenuAppID()
+{
+	NS_APPID menu_appid;
+
+	aptOpenSession();
+	APT_GetAppletManInfo(NULL, 0xff, NULL, NULL, &menu_appid, NULL);
+	aptCloseSession();
+
+	return menu_appid;
+}
+
 void aptReturnToMenu()
 {
+	NS_APPID menu_appid;
 	u32 tmp0 = 1, tmp1 = 0;
 	u32 ns_capinfo[0x20>>2];
 	u32 tmp_params[0x20>>2];
@@ -128,8 +140,10 @@ void aptReturnToMenu()
 
 	aptInitCaptureInfo(ns_capinfo);
 
+	menu_appid = aptGetMenuAppID();
+
 	aptOpenSession();
-	APT_SendParameter(NULL, currentAppId, 0x101, 0x20, ns_capinfo, 0x0, 0x10);
+	APT_SendParameter(NULL, currentAppId, menu_appid, 0x20, ns_capinfo, 0x0, 0x10);
 	aptCloseSession();
 
 	aptOpenSession();
@@ -446,6 +460,24 @@ Result APT_Enable(Handle* handle, u32 a)
 	
 	Result ret=0;
 	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	
+	return cmdbuf[1];
+}
+
+Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid)
+{
+	if(!handle)handle=&aptuHandle;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00050040; //request header code
+	cmdbuf[1]=inval;
+	
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	if(outval8)*outval8=cmdbuf[2];
+	if(outval32)*outval32=cmdbuf[3];
+	if(menu_appid)*menu_appid=cmdbuf[4];
+	if(active_appid)*active_appid=cmdbuf[5];
 	
 	return cmdbuf[1];
 }
