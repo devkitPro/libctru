@@ -47,6 +47,52 @@ Result GSPGPU_ReleaseRight(Handle* handle)
 	return cmdbuf[1];
 }
 
+Result GSPGPU_ImportDisplayCaptureInfo(Handle* handle, GSP_CaptureInfo *captureinfo)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00180000; //request header code
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	ret = cmdbuf[1];
+
+	if(ret==0)
+	{
+		memcpy(captureinfo, &cmdbuf[2], 0x20);
+	}
+
+	return ret;
+}
+
+Result GSPGPU_SaveVramSysArea(Handle* handle)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00190000; //request header code
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_RestoreVramSysArea(Handle* handle)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x001A0000; //request header code
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result GSPGPU_SetLcdForceBlack(Handle* handle, u8 flags)
 {
 	if(!handle)handle=&gspGpuHandle;
@@ -56,6 +102,22 @@ Result GSPGPU_SetLcdForceBlack(Handle* handle, u8 flags)
 	cmdbuf[1]=flags;
 
 	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_SetBufferSwap(Handle* handle, u32 screenid, GSP_FramebufferInfo *framebufinfo)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	if(!handle)handle=&gspGpuHandle;
+
+	cmdbuf[0] = 0x00050200;
+	cmdbuf[1] = screenid;
+	memcpy(&cmdbuf[2], framebufinfo, sizeof(GSP_FramebufferInfo));
+	
 	if((ret=svc_sendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
@@ -80,16 +142,17 @@ Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
 
 Result GSPGPU_InvalidateDataCache(Handle* handle, u8* adr, u32 size)
 {
-	if(!handle)handle=&gspGpuHandle;
-	
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x90082; //request header code
-	cmdbuf[1]=(u32)adr;
-	cmdbuf[2]=size;
-	cmdbuf[3]=0x0;
-	cmdbuf[4]=0xffff8001;
-
 	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	if(!handle)handle=&gspGpuHandle;
+
+	cmdbuf[0] = 0x00090082;
+	cmdbuf[1] = (u32)adr;
+	cmdbuf[2] = size;
+	cmdbuf[3] = 0;
+	cmdbuf[4] = 0xFFFF8001;
+
 	if((ret=svc_sendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];

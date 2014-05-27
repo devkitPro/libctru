@@ -11,7 +11,7 @@
 #include <ctr/SHDR.h>
 #include <ctr/svc.h>
 #include "costable.h"
-#include "test_vsh_bin.h"
+#include "test_shbin.h"
 
 u8* gspHeap;
 u32* gxCmdBuf;
@@ -101,7 +101,7 @@ int main()
 
 	GPU_Reset(gxCmdBuf, gpuCmd, gpuCmdSize);
 	
-	DVLB_s* shader=SHDR_ParseSHBIN((u32*)test_vsh_bin,test_vsh_bin_size);
+	DVLB_s* shader=SHDR_ParseSHBIN((u32*)test_shbin,test_shbin_size);
 
 	APP_STATUS status;
 	while((status=aptGetStatus())!=APP_EXITING)
@@ -127,6 +127,14 @@ int main()
 			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gspHeap, GX_BUFFER_DIM(480,400), (u32*)topLeftFramebuffers[currentBuffer], GX_BUFFER_DIM(480,400), 0x01001000);
 
 			swapBuffers();
+		}
+		else if(status == APP_SUSPENDING)
+		{
+			aptReturnToMenu();
+		}
+		else if(status == APP_SLEEPMODE)
+		{
+			aptWaitStatusEvent();
 		}
 		svc_sleepThread(16666666);
 	}

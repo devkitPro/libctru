@@ -2,7 +2,7 @@ CC = arm-none-eabi-gcc
 LINK = arm-none-eabi-ld
 AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
-CTRULIB = "../libctru"
+CTRULIB = ../libctru
 CFLAGS += -Wall -std=c99 -march=armv6 -O3 -I"$(CTRULIB)/include" -I$(DEVKITPRO)/libnds/include
 LDFLAGS += --script=ccd00.ld -L"$(DEVKITARM)/arm-none-eabi/lib" -L"$(CTRULIB)/lib"
 
@@ -28,7 +28,10 @@ endef
 
 .PHONY:=all
 
-all: $(PROJECTNAME).bin
+all: dir $(PROJECTNAME).bin
+
+dir:
+	@mkdir -p build
 
 ctrulib:
 	cd $(CTRULIB) && make

@@ -2,8 +2,8 @@ CC = arm-none-eabi-gcc
 LINK = arm-none-eabi-gcc
 AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
-CTRULIB = "../libctru"
-AEMSTROPATH = "../../aemstro"
+CTRULIB = ../libctru
+AEMSTROPATH = ../../aemstro
 CFLAGS += -Wall -std=c99 -march=armv6 -O3 -I"$(CTRULIB)/include" -I$(DEVKITPRO)/libnds/include
 # LDFLAGS += --script=ccd00.ld -L"$(DEVKITARM)/arm-none-eabi/lib" -L"$(DEVKITARM)/lib/gcc/arm-none-eabi/4.7.1" -L"$(CTRULIB)/lib"
 # LDFLAGS += --script=ccd00.ld -L"$(DEVKITARM)/arm-none-eabi/lib" -L"$(CTRULIB)/lib"

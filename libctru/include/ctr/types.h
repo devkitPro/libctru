@@ -4,7 +4,7 @@
 	#include <stdint.h>
 	#include <stdbool.h>
 
-	#define U64_MAX (0xFFFFFFFFFFFFFFFF)
+	#define U64_MAX	UINT64_MAX
 
 	typedef uint8_t u8;
 	typedef uint16_t u16;
@@ -25,8 +25,6 @@
 	typedef volatile s16 vs16;
 	typedef volatile s32 vs32;
 	typedef volatile s64 vs64;
-
-	typedef u16 wchar;
 
 	typedef u32 Handle;
 	typedef s32 Result;

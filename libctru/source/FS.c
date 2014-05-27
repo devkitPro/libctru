@@ -189,6 +189,21 @@ Result FSFILE_GetSize(Handle handle, u64 *size)
 	return cmdbuf[1];
 }
 
+Result FSFILE_SetSize(Handle handle, u64 size)
+{
+    u32 *cmdbuf = getThreadCommandBuffer();
+
+    cmdbuf[0] = 0x08050080;
+    cmdbuf[1] = (u32)size;
+    cmdbuf[2] = (u32)(size >> 32);
+
+    Result ret = 0;
+    if ((ret = svc_sendSyncRequest(handle)))return ret;
+
+
+    return cmdbuf[1];
+}
+
 Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, u16 *buffer)
 {
 	u32 *cmdbuf=getThreadCommandBuffer();

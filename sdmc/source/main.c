@@ -137,20 +137,32 @@ int main()
 
 	aptSetupEventHandler();
 	
-	while(!aptGetStatus())
+	APP_STATUS status;
+	while((status=aptGetStatus())!=APP_EXITING)
 	{
-		u32 PAD=hidSharedMem[7];
-		renderEffect();
-		swapBuffers();
-		copyBuffer();
-		u32 regData=PAD|0x01000000;
-		GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
-		svc_sleepThread(1000000000);
+		if(status==APP_RUNNING)
+		{
+			u32 PAD=hidSharedMem[7];
+			renderEffect();
+			swapBuffers();
+			copyBuffer();
+			u32 regData=PAD|0x01000000;
+			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
+			svc_sleepThread(1000000000);
+		}
+		else if(status == APP_SUSPENDING)
+		{
+			aptReturnToMenu();
+		}
+		else if(status == APP_SLEEPMODE)
+		{
+			aptWaitStatusEvent();
+		}
 	}
 
 	svc_closeHandle(fsuHandle);
 	hidExit();
-	gspGpuInit();
+	gspGpuExit();
 	aptExit();
 	svc_exitProcess();
 	return 0;

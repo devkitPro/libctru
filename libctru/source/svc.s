@@ -76,6 +76,12 @@ svc_createEvent:
 	str r1, [r2]
 	bx lr
 
+.global svc_signalEvent
+.type svc_signalEvent, %function
+svc_signalEvent:
+	svc 0x18
+	bx lr
+
 .global svc_clearEvent
 .type svc_clearEvent, %function
 svc_clearEvent:
@@ -128,6 +134,12 @@ svc_waitSynchronizationN:
 	ldr r5, [sp], #4
 	bx lr
 
+.global svc_getSystemTick
+.type svc_getSystemTick, %function
+svc_getSystemTick:
+	svc 0x28
+	bx lr
+
 .global svc_getSystemInfo
 .type svc_getSystemInfo, %function
 svc_getSystemInfo:
@@ -153,4 +165,13 @@ svc_connectToPort:
 .type svc_sendSyncRequest, %function
 svc_sendSyncRequest:
 	svc 0x32
+	bx lr
+
+.global svc_getProcessId
+.type svc_getProcessId, %function
+svc_getProcessId:
+	str r0, [sp,#-0x4]!
+	svc 0x35
+	ldr r3, [sp], #4
+	str r1, [r3]
 	bx lr

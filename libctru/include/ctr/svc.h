@@ -24,6 +24,7 @@ typedef enum{
 	Result svc_createMutex(Handle* mutex, bool initialLocked);
 	Result svc_releaseMutex(Handle handle);
 	Result svc_createEvent(Handle* event, u8 resettype);
+	Result svc_signalEvent(Handle handle);
 	Result svc_clearEvent(Handle handle);
 	Result svc_createMemoryBlock(Handle* memblock, u32 addr, u32 size, u32 mypermission, u32 otherpermission);
 	Result svc_mapMemoryBlock(Handle memblock, u32 addr, u32 mypermissions, u32 otherpermission);
@@ -31,8 +32,10 @@ typedef enum{
 	Result svc_waitSynchronization1(Handle handle, s64 nanoseconds);
 	Result svc_waitSynchronizationN(s32* out, Handle* handles, s32 handlecount, bool waitAll, s64 nanoseconds);
 	Result svc_closeHandle(Handle handle);
+	u64 svc_getSystemTick();
 	Result svc_getSystemInfo(s64* out, u32 type, s32 param);
 	Result svc_connectToPort(volatile Handle* out, const char* portName);
 	Result svc_sendSyncRequest(Handle session);
+	Result svc_getProcessId(u32 *out, Handle handle);
 
 #endif
