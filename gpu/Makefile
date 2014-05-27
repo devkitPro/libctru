@@ -44,7 +44,7 @@ $(PROJECTNAME).bin: $(PROJECTNAME).elf
 
 $(PROJECTNAME).elf: $(SHBINFILES) $(OFILES)
 	# $(LINK) $(LDFLAGS) -o $(PROJECTNAME).elf $(filter-out build/crt0.o, $(OFILES)) -lctru -lc -lgcc
-	$(LINK) $(LDFLAGS) -o $(PROJECTNAME).elf $(filter-out build/crt0.o, $(OFILES)) -g -lctru -lm -lc -lg
+	$(LINK) $(LDFLAGS) -o $(PROJECTNAME).elf $(filter-out build/crt0.o, $(OFILES)) -g -lctru -lm
 
 clean:
 	@rm -f build/*.o build/*.d

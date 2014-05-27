@@ -1,5 +1,7 @@
+; make sure you update aemstro_as for this (27/05/14)
+
 ; setup constants
-	.const 5, 0.0, 1.0, 2.0, 3.0
+	.const 5, 0.0, 0.0, -0.99, 1.0
 
 ; setup outmap
 	.out o0, result.position
@@ -14,22 +16,28 @@
 
 ;code
 	main:
-		; result.pos = mdlvMtx * in.pos
-		dp4 d40, d40, d00 (0x0)
-		dp4 d40, d41, d00 (0x1)
-		dp4 d40, d42, d00 (0x2)
-		mov d40, d25 (0x4)
-		; result.pos = projMtx * in.pos
-		dp4 d00, d44, d40 (0x0)
-		dp4 d00, d45, d40 (0x1)
-		dp4 d00, d46, d40 (0x2)
-		dp4 d00, d47, d40 (0x3)
-		; result.texcoord = const
-		mov d08, d25 (0x5)
-		mov d0C, d25 (0x5)
-		mov d10, d25 (0x5)
-		; result.color = in.pos
-		mov d04, d00 (0x5)
+		mov d1A, d00 (0x4)
+		mov d1A, d25 (0x3)
+		; tempreg = mdlvMtx * in.pos
+		dp4 d10, d40, d1A (0x0)
+		dp4 d10, d41, d1A (0x1)
+		dp4 d10, d42, d1A (0x2)
+		mov d10, d25 (0x3)
+		; result.pos = projMtx * tempreg
+		dp4 d00, d20, d10 (0x0)
+		dp4 d00, d21, d10 (0x1)
+		dp4 d00, d22, d10 (0x2)
+		dp4 d00, d23, d10 (0x3)
+		; result.texcoord = in.texcoord
+		mov d02, d01 (0x5)
+		mov d03, d25 (0x7)
+		mov d04, d25 (0x7)
+		; result.color = crappy lighting
+		dp3 d1A, d40, d02 (0x0)
+		dp3 d1A, d41, d02 (0x1)
+		dp3 d1A, d42, d02 (0x2)
+		dp4 d01, d00, d1A (0x6)
+		mov d01, d25 (0x3)
 		flush
 		end
 	endmain:
@@ -39,8 +47,8 @@
 	.opdesc _y__, xyzw, xyzw ; 0x1
 	.opdesc __z_, xyzw, xyzw ; 0x2
 	.opdesc ___w, xyzw, xyzw ; 0x3
-	.opdesc ___w, wwww, wwww ; 0x4
+	.opdesc xyz_, xyzw, xyzw ; 0x4
 	.opdesc xyzw, xyzw, xyzw ; 0x5
-	.opdesc __z_, xyzw, xyzw ; 0x6
-	.opdesc ___w, xyzw, xyzw ; 0x7
-	.opdesc xyzw, xyzw, xyzw ; 0x8
+	.opdesc xyz_, xyzw, xyzw ; 0x6
+	.opdesc xyzw, yyyw, xyzw ; 0x7
+	.opdesc xyzw, wwww, wwww ; 0x8

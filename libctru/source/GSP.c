@@ -78,6 +78,23 @@ Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
 	return cmdbuf[1];
 }
 
+Result GSPGPU_InvalidateDataCache(Handle* handle, u8* adr, u32 size)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x90082; //request header code
+	cmdbuf[1]=(u32)adr;
+	cmdbuf[2]=size;
+	cmdbuf[3]=0x0;
+	cmdbuf[4]=0xffff8001;
+
+	Result ret=0;
+	if((ret=svc_sendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result GSPGPU_WriteHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
 {
 	if(!handle)handle=&gspGpuHandle;

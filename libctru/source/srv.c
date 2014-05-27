@@ -11,7 +11,7 @@ Result initSrv()
 {
 	Result ret=0;
 	if(svc_connectToPort(&srvHandle, "srv:"))return ret;
-	return srv_Initialize(&srvHandle);
+	return srv_RegisterClient(&srvHandle);
 }
 
 Result exitSrv()
@@ -19,7 +19,7 @@ Result exitSrv()
 	if(srvHandle)svc_closeHandle(srvHandle);
 }
 
-Result srv_Initialize(Handle* handleptr)
+Result srv_RegisterClient(Handle* handleptr)
 {
 	if(!handleptr)handleptr=&srvHandle;
 	u32* cmdbuf=getThreadCommandBuffer();
