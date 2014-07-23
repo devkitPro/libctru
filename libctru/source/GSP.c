@@ -275,7 +275,7 @@ Result GSPGPU_submitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* 
 	u8 commandIndex=cmdBufHeader&0xFF;
 	u8 totalCommands=(cmdBufHeader>>8)&0xFF;
 
-	if(totalCommands>15)return -2;
+	if(totalCommands>=15)return -2;
 
 	u8 nextCmd=(commandIndex+totalCommands)%15; //there are 15 command slots
 	u32* dst=&sharedGspCmdBuf[8*(1+nextCmd)];
