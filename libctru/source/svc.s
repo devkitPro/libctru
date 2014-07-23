@@ -152,6 +152,17 @@ svc_getSystemInfo:
 	ldr r4, [sp], #4
 	bx lr
 
+.global svc_getProcessInfo
+.type svc_getProcessInfo, %function
+svc_getProcessInfo:
+	stmfd sp!, {r0, r4}
+	svc 0x2B
+	ldr r4, [sp], #4
+	str r1, [r4]
+	str r2, [r4, #4]
+	ldr r4, [sp], #4
+	bx lr
+
 .global svc_connectToPort
 .type svc_connectToPort, %function
 svc_connectToPort:

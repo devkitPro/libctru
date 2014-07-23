@@ -3,6 +3,8 @@
 
 #define CSND_SHAREDMEM_DEFAULT 0x10004000
 
+//See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
+
 Result CSND_initialize(u32* sharedMem);
 Result CSND_shutdown();
 

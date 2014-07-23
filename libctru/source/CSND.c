@@ -3,9 +3,11 @@
 #include <string.h>
 #include <ctr/types.h>
 
-#include <ctr/CSND.h>
+#include <ctr/OS.h>
 #include <ctr/svc.h>
 #include <ctr/srv.h>
+
+#include <ctr/CSND.h>
 
 //See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 
@@ -285,8 +287,8 @@ Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u3
 	u32 physaddr0 = 0;
 	u32 physaddr1 = 0;
 
-	if((u32)vaddr0 >= 0x14000000 && (u32)vaddr0<0x1c000000)physaddr0 = (u32)vaddr0 + 0x0c000000;
-	if((u32)vaddr1 >= 0x14000000 && (u32)vaddr1<0x1c000000)physaddr1 = (u32)vaddr1 + 0x0c000000;
+	physaddr0 = OS_ConvertVaddr2Physaddr((u32)vaddr0);
+	physaddr1 = OS_ConvertVaddr2Physaddr((u32)vaddr1);
 
 	CSND_sharedmemtype0_cmde(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
 	CSND_sharedmemtype0_cmd8(channel, samplerate);

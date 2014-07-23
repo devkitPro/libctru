@@ -34,6 +34,7 @@ typedef enum{
 	Result svc_closeHandle(Handle handle);
 	u64 svc_getSystemTick();
 	Result svc_getSystemInfo(s64* out, u32 type, s32 param);
+	Result svc_getProcessInfo(s64* out, Handle process, u32 type);
 	Result svc_connectToPort(volatile Handle* out, const char* portName);
 	Result svc_sendSyncRequest(Handle session);
 	Result svc_getProcessId(u32 *out, Handle handle);
