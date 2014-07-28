@@ -20,7 +20,7 @@ Result ACU_cmd1(Handle servhandle, u32 *ptr)//Unknown what this cmd does at the 
 	cmdbuf[0x100>>2] = 0x00800002;
 	cmdbuf[0x104>>2] = (u32)ptr;
 
-	if((ret = svc_sendSyncRequest(servhandle))!=0)return ret;
+	if((ret = svcSendSyncRequest(servhandle))!=0)return ret;
 
 	cmdbuf[0x100>>2] = tmp0;
 	cmdbuf[0x104>>2] = tmp1;
@@ -44,7 +44,7 @@ Result ACU_cmd26(Handle servhandle, u32 *ptr, u8 val)//Unknown what this cmd doe
 	cmdbuf[2] = 0x00800002;
 	cmdbuf[3] = (u32)ptr;
 
-	if((ret = svc_sendSyncRequest(servhandle))!=0)return ret;
+	if((ret = svcSendSyncRequest(servhandle))!=0)return ret;
 
 	cmdbuf[0x100>>2] = tmp0;
 	cmdbuf[0x104>>2] = tmp1;
@@ -59,7 +59,7 @@ Result ACU_GetWifiStatus(Handle servhandle, u32 *out)
 
 	cmdbuf[0] = 0x000D0000;
 
-	if((ret = svc_sendSyncRequest(servhandle))!=0)return ret;
+	if((ret = svcSendSyncRequest(servhandle))!=0)return ret;
 
 	*out = cmdbuf[2];
 
@@ -80,7 +80,7 @@ Result ACU_WaitInternetConnection()
 		if(ret==0 && outval==1)break;
 	}
 
-	svc_closeHandle(servhandle);
+	svcCloseHandle(servhandle);
 
 	return ret;
 }

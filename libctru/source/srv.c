@@ -10,13 +10,13 @@ Handle srvHandle=0;
 Result initSrv()
 {
 	Result ret=0;
-	if(svc_connectToPort(&srvHandle, "srv:"))return ret;
+	if(svcConnectToPort(&srvHandle, "srv:"))return ret;
 	return srv_RegisterClient(&srvHandle);
 }
 
 Result exitSrv()
 {
-	if(srvHandle)svc_closeHandle(srvHandle);
+	if(srvHandle)svcCloseHandle(srvHandle);
 }
 
 Result srv_RegisterClient(Handle* handleptr)
@@ -27,7 +27,7 @@ Result srv_RegisterClient(Handle* handleptr)
 	cmdbuf[1]=0x20;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handleptr)))return ret;
+	if((ret=svcSendSyncRequest(*handleptr)))return ret;
 
 	return cmdbuf[1];
 }
@@ -46,7 +46,7 @@ Result srv_getServiceHandle(Handle* handleptr, Handle* out, char* server)
 	cmdbuf[4]=0x0;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handleptr)))return ret;
+	if((ret=svcSendSyncRequest(*handleptr)))return ret;
 
 	*out=cmdbuf[3];
 

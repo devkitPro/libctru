@@ -1,7 +1,7 @@
 .arm
-
 .align 4
 
+/* THIS DOES NOT BELONG HERE */
 .global getThreadCommandBuffer
 .type getThreadCommandBuffer, %function
 getThreadCommandBuffer:
@@ -10,9 +10,9 @@ getThreadCommandBuffer:
 	bx lr
 
 
-.global svc_controlMemory
-.type svc_controlMemory, %function
-svc_controlMemory:
+.global svcControlMemory
+.type svcControlMemory, %function
+svcControlMemory:
 	stmfd sp!, {r0, r4}
 	ldr r0, [sp, #0x8]
 	ldr r4, [sp, #0x8+0x4]
@@ -22,15 +22,15 @@ svc_controlMemory:
 	ldr r4, [sp], #4
 	bx lr
 
-.global svc_exitProcess
-.type svc_exitProcess, %function
-svc_exitProcess:
+.global svcExitProcess
+.type svcExitProcess, %function
+svcExitProcess:
 	svc 0x03
 	bx lr
 
-.global svc_createThread
-.type svc_createThread, %function
-svc_createThread:
+.global svcCreateThread
+.type svcCreateThread, %function
+svcCreateThread:
 	stmfd sp!, {r0, r4}
 	ldr r0, [sp, #0x8]
 	ldr r4, [sp, #0x8+0x4]
@@ -40,57 +40,57 @@ svc_createThread:
 	ldr r4, [sp], #4
 	bx lr
 
-.global svc_exitThread
-.type svc_exitThread, %function
-svc_exitThread:
+.global svcExitThread
+.type svcExitThread, %function
+svcExitThread:
 	svc 0x09
 	bx lr
 
-.global svc_sleepThread
-.type svc_sleepThread, %function
-svc_sleepThread:
+.global svcSleepThread
+.type svcSleepThread, %function
+svcSleepThread:
 	svc 0x0A
 	bx lr
 
-.global svc_createMutex
-.type svc_createMutex, %function
-svc_createMutex:
+.global svcCreateMutex
+.type svcCreateMutex, %function
+svcCreateMutex:
 	str r0, [sp, #-4]!
 	svc 0x13
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx lr
 
-.global svc_releaseMutex
-.type svc_releaseMutex, %function
-svc_releaseMutex:
+.global svcReleaseMutex
+.type svcReleaseMutex, %function
+svcReleaseMutex:
 	svc 0x14
 	bx lr
 
-.global svc_createEvent
-.type svc_createEvent, %function
-svc_createEvent:
+.global svcCreateEvent
+.type svcCreateEvent, %function
+svcCreateEvent:
 	str r0, [sp,#-4]!
 	svc 0x17
 	ldr r2, [sp], #4
 	str r1, [r2]
 	bx lr
 
-.global svc_signalEvent
-.type svc_signalEvent, %function
-svc_signalEvent:
+.global svcSignalEvent
+.type svcSignalEvent, %function
+svcSignalEvent:
 	svc 0x18
 	bx lr
 
-.global svc_clearEvent
-.type svc_clearEvent, %function
-svc_clearEvent:
+.global svcClearEvent
+.type svcClearEvent, %function
+svcClearEvent:
 	svc 0x19
 	bx lr
 
-.global svc_createMemoryBlock
-.type svc_createMemoryBlock, %function
-svc_createMemoryBlock:
+.global svcCreateMemoryBlock
+.type svcCreateMemoryBlock, %function
+svcCreateMemoryBlock:
 	str r0, [sp, #-4]!
 	ldr r0, [sp, #4]
 	svc 0x1E
@@ -98,33 +98,33 @@ svc_createMemoryBlock:
 	str r1, [r2]
 	bx lr
 
-.global svc_mapMemoryBlock
-.type svc_mapMemoryBlock, %function
-svc_mapMemoryBlock:
+.global svcMapMemoryBlock
+.type svcMapMemoryBlock, %function
+svcMapMemoryBlock:
 	svc 0x1F
 	bx lr
 
-.global svc_unmapMemoryBlock
-.type svc_unmapMemoryBlock, %function
-svc_unmapMemoryBlock:
+.global svcUnmapMemoryBlock
+.type svcUnmapMemoryBlock, %function
+svcUnmapMemoryBlock:
 	svc 0x20
 	bx lr
 
-.global svc_closeHandle
-.type svc_closeHandle, %function
-svc_closeHandle:
+.global svcCloseHandle
+.type svcCloseHandle, %function
+svcCloseHandle:
 	svc 0x23
 	bx lr
 
-.global svc_waitSynchronization1
-.type svc_waitSynchronization1, %function
-svc_waitSynchronization1:
+.global svcWaitSynchronization
+.type svcWaitSynchronization, %function
+svcWaitSynchronization:
 	svc 0x24
 	bx lr
 
-.global svc_waitSynchronizationN
-.type svc_waitSynchronizationN, %function
-svc_waitSynchronizationN:
+.global svcWaitSynchronizationN
+.type svcWaitSynchronizationN, %function
+svcWaitSynchronizationN:
 	str r5, [sp, #-4]!
 	mov r5, r0
 	ldr r0, [sp, #0x4]
@@ -134,27 +134,27 @@ svc_waitSynchronizationN:
 	ldr r5, [sp], #4
 	bx lr
 
-.global svc_getSystemTick
-.type svc_getSystemTick, %function
-svc_getSystemTick:
+.global svcGetSystemTick
+.type svcGetSystemTick, %function
+svcGetSystemTick:
 	svc 0x28
 	bx lr
 
-.global svc_getSystemInfo
-.type svc_getSystemInfo, %function
-svc_getSystemInfo:
+.global svcGetSystemInfo
+.type svcGetSystemInfo, %function
+svcGetSystemInfo:
 	stmfd sp!, {r0, r4}
 	svc 0x2A
 	ldr r4, [sp], #4
 	str r1, [r4]
 	str r2, [r4, #4]
-	# str r3, [r4, #8] # ?
+	str r3, [r4, #8]
 	ldr r4, [sp], #4
 	bx lr
 
-.global svc_getProcessInfo
-.type svc_getProcessInfo, %function
-svc_getProcessInfo:
+.global svcGetProcessInfo
+.type svcGetProcessInfo, %function
+svcGetProcessInfo:
 	stmfd sp!, {r0, r4}
 	svc 0x2B
 	ldr r4, [sp], #4
@@ -163,24 +163,24 @@ svc_getProcessInfo:
 	ldr r4, [sp], #4
 	bx lr
 
-.global svc_connectToPort
-.type svc_connectToPort, %function
-svc_connectToPort:
+.global svcConnectToPort
+.type svcConnectToPort, %function
+svcConnectToPort:
 	str r0, [sp,#-0x4]!
 	svc 0x2D
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx lr
 
-.global svc_sendSyncRequest
-.type svc_sendSyncRequest, %function
-svc_sendSyncRequest:
+.global svcSendSyncRequest
+.type svcSendSyncRequest, %function
+svcSendSyncRequest:
 	svc 0x32
 	bx lr
 
-.global svc_getProcessId
-.type svc_getProcessId, %function
-svc_getProcessId:
+.global svcGetProcessId
+.type svcGetProcessId, %function
+svcGetProcessId:
 	str r0, [sp,#-0x4]!
 	svc 0x35
 	ldr r3, [sp], #4

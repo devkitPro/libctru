@@ -21,7 +21,7 @@ Result CFGNOR_Initialize(u8 value)
 	cmdbuf[0] = 0x00010040;
 	cmdbuf[1] = (u32)value;
 
-	if((ret = svc_sendSyncRequest(CFGNOR_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CFGNOR_handle))!=0)return ret;
 
 	ret = (Result)cmdbuf[1];
 	return ret;
@@ -34,10 +34,10 @@ Result CFGNOR_Shutdown()
 
 	cmdbuf[0] = 0x00020000;
 
-	if((ret = svc_sendSyncRequest(CFGNOR_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CFGNOR_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
-	svc_closeHandle(CFGNOR_handle);
+	svcCloseHandle(CFGNOR_handle);
 	CFGNOR_handle = 0;
 
 	return ret;
@@ -54,7 +54,7 @@ Result CFGNOR_ReadData(u32 offset, u32 *buf, u32 size)
 	cmdbuf[3] = (size<<4) | 12;
 	cmdbuf[4] = (u32)buf;
 
-	if((ret = svc_sendSyncRequest(CFGNOR_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CFGNOR_handle))!=0)return ret;
 
 	ret = (Result)cmdbuf[1];
 	return ret;
@@ -71,7 +71,7 @@ Result CFGNOR_WriteData(u32 offset, u32 *buf, u32 size)
 	cmdbuf[3] = (size<<4) | 10;
 	cmdbuf[4] = (u32)buf;
 
-	if((ret = svc_sendSyncRequest(CFGNOR_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CFGNOR_handle))!=0)return ret;
 
 	ret = (Result)cmdbuf[1];
 	return ret;

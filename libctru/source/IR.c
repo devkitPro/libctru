@@ -20,7 +20,7 @@ Result irucmd_Initialize()
 
 	cmdbuf[0] = 0x00010000;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	return ret;
@@ -33,7 +33,7 @@ Result irucmd_Shutdown()
 
 	cmdbuf[0] = 0x00020000;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	return ret;
@@ -49,7 +49,7 @@ Result irucmd_StartSendTransfer(u8 *buf, u32 size)
 	cmdbuf[2] = (size<<4) | 10;
 	cmdbuf[3] = (u32)buf;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	return ret;
@@ -62,7 +62,7 @@ Result irucmd_WaitSendTransfer()
 
 	cmdbuf[0] = 0x00040000;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	return ret;
@@ -80,7 +80,7 @@ Result irucmd_StartRecvTransfer(u32 size, u8 flag)
 	cmdbuf[4] = 0;
 	cmdbuf[5] = iru_sharedmem_handle;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	return ret;
@@ -93,7 +93,7 @@ Result irucmd_WaitRecvTransfer(u32 *transfercount)
 
 	cmdbuf[0] = 0x00060000;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	*transfercount = cmdbuf[2];
@@ -109,7 +109,7 @@ Result IRU_SetBitRate(u8 value)
 	cmdbuf[0] = 0x00090040;
 	cmdbuf[1] = (u32)value;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	return ret;
@@ -122,7 +122,7 @@ Result IRU_GetBitRate(u8 *out)
 
 	cmdbuf[0] = 0x000A0000;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	*out = (u8)cmdbuf[2];
@@ -138,7 +138,7 @@ Result IRU_SetIRLEDState(u32 value)
 	cmdbuf[0] = 0x000B0040;
 	cmdbuf[1] = value;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	return ret;
@@ -151,7 +151,7 @@ Result IRU_GetIRLEDRecvState(u32 *out)
 
 	cmdbuf[0] = 0x000C0000;
 
-	if((ret = svc_sendSyncRequest(iru_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(iru_handle))!=0)return ret;
 	ret = (Result)cmdbuf[1];
 
 	*out = cmdbuf[2];
@@ -171,7 +171,7 @@ Result IRU_Initialize(u32 *sharedmem_addr, u32 sharedmem_size)
 	ret = irucmd_Initialize();
 	if(ret!=0)return ret;
 
-	ret = svc_createMemoryBlock(&iru_sharedmem_handle, (u32)sharedmem_addr, sharedmem_size, 1, 3);
+	ret = svcCreateMemoryBlock(&iru_sharedmem_handle, (u32)sharedmem_addr, sharedmem_size, 1, 3);
 	if(ret!=0)return ret;
 
 	iru_sharedmem = sharedmem_addr;
@@ -189,8 +189,8 @@ Result IRU_Shutdown()
 	ret = irucmd_Shutdown();
 	if(ret!=0)return ret;
 
-	svc_closeHandle(iru_handle);
-	svc_closeHandle(iru_sharedmem_handle);
+	svcCloseHandle(iru_handle);
+	svcCloseHandle(iru_sharedmem_handle);
 
 	iru_handle = 0;
 	iru_sharedmem_handle = 0;

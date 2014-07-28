@@ -15,7 +15,7 @@ Result gspInit()
 
 void gspExit()
 {
-	if(gspGpuHandle)svc_closeHandle(gspGpuHandle);
+	if(gspGpuHandle)svcCloseHandle(gspGpuHandle);
 }
 
 Result GSPGPU_AcquireRight(Handle* handle, u8 flags)
@@ -29,7 +29,7 @@ Result GSPGPU_AcquireRight(Handle* handle, u8 flags)
 	cmdbuf[3]=0xffff8001;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -42,7 +42,7 @@ Result GSPGPU_ReleaseRight(Handle* handle)
 	cmdbuf[0]=0x170000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -55,7 +55,7 @@ Result GSPGPU_ImportDisplayCaptureInfo(Handle* handle, GSP_CaptureInfo *capturei
 	cmdbuf[0]=0x00180000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	ret = cmdbuf[1];
 
@@ -75,7 +75,7 @@ Result GSPGPU_SaveVramSysArea(Handle* handle)
 	cmdbuf[0]=0x00190000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -88,7 +88,7 @@ Result GSPGPU_RestoreVramSysArea(Handle* handle)
 	cmdbuf[0]=0x001A0000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -102,7 +102,7 @@ Result GSPGPU_SetLcdForceBlack(Handle* handle, u8 flags)
 	cmdbuf[1]=flags;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -118,7 +118,7 @@ Result GSPGPU_SetBufferSwap(Handle* handle, u32 screenid, GSP_FramebufferInfo *f
 	cmdbuf[1] = screenid;
 	memcpy(&cmdbuf[2], framebufinfo, sizeof(GSP_FramebufferInfo));
 	
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -135,7 +135,7 @@ Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
 	cmdbuf[4]=0xffff8001;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -153,7 +153,7 @@ Result GSPGPU_InvalidateDataCache(Handle* handle, u8* adr, u32 size)
 	cmdbuf[3] = 0;
 	cmdbuf[4] = 0xFFFF8001;
 
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -172,7 +172,7 @@ Result GSPGPU_WriteHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
 	cmdbuf[4]=(u32)data;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -193,7 +193,7 @@ Result GSPGPU_WriteHWRegsWithMask(Handle* handle, u32 regAddr, u32* data, u8 dat
 	cmdbuf[6]=(u32)maskdata;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -212,7 +212,7 @@ Result GSPGPU_ReadHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
 	cmdbuf[0x40+1]=(u32)data;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -228,7 +228,7 @@ Result GSPGPU_RegisterInterruptRelayQueue(Handle* handle, Handle eventHandle, u3
 	cmdbuf[3]=eventHandle;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	if(threadID)*threadID=cmdbuf[2];
 	if(outMemHandle)*outMemHandle=cmdbuf[4];
@@ -244,7 +244,7 @@ Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle)
 	cmdbuf[0]=0x00140000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -257,7 +257,7 @@ Result GSPGPU_TriggerCmdReqQueue(Handle* handle)
 	cmdbuf[0]=0xC0000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }

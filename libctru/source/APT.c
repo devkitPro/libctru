@@ -70,8 +70,8 @@ void aptInitCaptureInfo(u32 *ns_capinfo)
 
 void aptWaitStatusEvent()
 {
-	svc_waitSynchronization1(aptStatusEvent, U64_MAX);
-	svc_clearEvent(aptStatusEvent);
+	svcWaitSynchronization1(aptStatusEvent, U64_MAX);
+	svcClearEvent(aptStatusEvent);
 }
 
 void aptAppletUtility_Exit_RetToApp()
@@ -134,7 +134,7 @@ void aptReturnToMenu()
 	APT_PrepareToJumpToHomeMenu(NULL); //prepare for return to menu
 	aptCloseSession();
 
-	svc_clearEvent(aptStatusEvent);
+	svcClearEvent(aptStatusEvent);
 	aptSetStatus(APP_SUSPENDED);
 
 	GSPGPU_SaveVramSysArea(NULL);
@@ -182,8 +182,8 @@ void aptEventHandler(u32 arg)
 	while(runThread)
 	{
 		s32 syncedID=0x0;
-		svc_waitSynchronizationN(&syncedID, aptEvents, 2, 0, U64_MAX);
-		svc_clearEvent(aptEvents[syncedID]);
+		svcWaitSynchronizationN(&syncedID, aptEvents, 2, 0, U64_MAX);
+		svcClearEvent(aptEvents[syncedID]);
 	
 		switch(syncedID)
 		{
@@ -269,7 +269,7 @@ void aptEventHandler(u32 arg)
 				break;
 		}
 	}
-	svc_exitThread();
+	svcExitThread();
 }
 
 Result aptInit(NS_APPID appID)
@@ -279,7 +279,7 @@ Result aptInit(NS_APPID appID)
 	//initialize APT stuff, escape load screen
 	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
 	if((ret=APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle)))return ret;
-	svc_closeHandle(aptuHandle);
+	svcCloseHandle(aptuHandle);
 
 	currentAppId=appID;
 
@@ -295,7 +295,7 @@ Result aptInit(NS_APPID appID)
 	if((ret=APT_NotifyToWait(NULL, currentAppId)))return ret;
 	aptCloseSession();
 
-	svc_createEvent(&aptStatusEvent, 0);
+	svcCreateEvent(&aptStatusEvent, 0);
 	
 	return 0;
 }
@@ -319,9 +319,9 @@ void aptExit()
 	APT_CloseApplication(NULL, 0x0, 0x0, 0x0);
 	aptCloseSession();
 
-	svc_closeHandle(aptStatusMutex);
-	// svc_closeHandle(aptLockHandle);
-	svc_closeHandle(aptStatusEvent);
+	svcCloseHandle(aptStatusMutex);
+	// svcCloseHandle(aptLockHandle);
+	svcCloseHandle(aptStatusEvent);
 }
 
 void aptSetupEventHandler()
@@ -366,22 +366,22 @@ void aptSetupEventHandler()
 	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();
 
-	svc_createMutex(&aptStatusMutex, true);
+	svcCreateMutex(&aptStatusMutex, true);
 	aptStatus=0;
-	svc_releaseMutex(aptStatusMutex);
+	svcReleaseMutex(aptStatusMutex);
 
 	aptSetStatus(APP_RUNNING);
 
 	//create thread for stuff handling APT events
-	svc_createThread(&aptEventHandlerThread, aptEventHandler, 0x0, (u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
+	svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0, (u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
 }
 
 APP_STATUS aptGetStatus()
 {
 	APP_STATUS ret;
-	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
 	ret=aptStatus;
-	svc_releaseMutex(aptStatusMutex);
+	svcReleaseMutex(aptStatusMutex);
 	return ret;
 }
 
@@ -389,46 +389,46 @@ void aptSetStatus(APP_STATUS status)
 {
 	u32 prevstatus;
 
-	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
 
 	prevstatus = status;
 	aptStatus = status;
 
 	if(prevstatus!=APP_NOTINITIALIZED)
 	{
-		if(status==APP_RUNNING)svc_signalEvent(aptStatusEvent);
-		if(status==APP_EXITING)svc_signalEvent(aptStatusEvent);
+		if(status==APP_RUNNING)svcSignalEvent(aptStatusEvent);
+		if(status==APP_EXITING)svcSignalEvent(aptStatusEvent);
 	}
 
-	svc_releaseMutex(aptStatusMutex);
+	svcReleaseMutex(aptStatusMutex);
 }
 
 u32 aptGetStatusPower()
 {
 	u32 ret;
-	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
 	ret=aptStatusPower;
-	svc_releaseMutex(aptStatusMutex);
+	svcReleaseMutex(aptStatusMutex);
 	return ret;
 }
 
 void aptSetStatusPower(u32 status)
 {
-	svc_waitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
 	aptStatusPower = status;
-	svc_releaseMutex(aptStatusMutex);
+	svcReleaseMutex(aptStatusMutex);
 }
 
 void aptOpenSession()
 {
-	svc_waitSynchronization1(aptLockHandle, U64_MAX);
+	svcWaitSynchronization1(aptLockHandle, U64_MAX);
 	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
 }
 
 void aptCloseSession()
 {
-	svc_closeHandle(aptuHandle);
-	svc_releaseMutex(aptLockHandle);
+	svcCloseHandle(aptuHandle);
+	svcReleaseMutex(aptLockHandle);
 }
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle)
@@ -439,7 +439,7 @@ Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle)
 	cmdbuf[1]=flags;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 	
 	if(lockHandle)*lockHandle=cmdbuf[5];
 	
@@ -455,7 +455,7 @@ Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Hand
 	cmdbuf[2]=0x0;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 	
 	if(eventHandle1)*eventHandle1=cmdbuf[3]; //return to menu event ?
 	if(eventHandle2)*eventHandle2=cmdbuf[4];
@@ -471,7 +471,7 @@ Result APT_Enable(Handle* handle, u32 a)
 	cmdbuf[1]=a;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -484,7 +484,7 @@ Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32
 	cmdbuf[1]=inval;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	if(outval8)*outval8=cmdbuf[2];
 	if(outval32)*outval32=cmdbuf[3];
@@ -502,7 +502,7 @@ Result APT_InquireNotification(Handle* handle, u32 appID, u8* signalType)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	if(signalType)*signalType=cmdbuf[2];
 	
@@ -516,7 +516,7 @@ Result APT_PrepareToJumpToHomeMenu(Handle* handle)
 	cmdbuf[0]=0x2b0000; //request header code
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -532,7 +532,7 @@ Result APT_JumpToHomeMenu(Handle* handle, u32 a, u32 b, u32 c)
 	cmdbuf[4]=(b<<14)|2;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -545,7 +545,7 @@ Result APT_NotifyToWait(Handle* handle, NS_APPID appID)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -565,7 +565,7 @@ Result APT_AppletUtility(Handle* handle, u32* out, u32 a, u32 size1, u8* buf1, u
 	cmdbuf[1+0x100/4]=(u32)buf2;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	if(out)*out=cmdbuf[2];
 
@@ -584,7 +584,7 @@ Result APT_GlanceParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32* 
 	cmdbuf[1+0x100/4]=(u32)buffer;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	if(signalType)*signalType=cmdbuf[3];
 	if(actualSize)*actualSize=cmdbuf[4];
@@ -604,7 +604,7 @@ Result APT_ReceiveParameter(Handle* handle, NS_APPID appID, u32 bufferSize, u32*
 	cmdbuf[1+0x100/4]=(u32)buffer;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	if(signalType)*signalType=cmdbuf[3];
 	if(actualSize)*actualSize=cmdbuf[4];
@@ -631,7 +631,7 @@ Result APT_SendParameter(Handle* handle, NS_APPID src_appID, NS_APPID dst_appID,
 	cmdbuf[8] = (u32)buffer;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -648,7 +648,7 @@ Result APT_SendCaptureBufferInfo(Handle* handle, u32 bufferSize, u32* buffer)
 	cmdbuf[3] = (u32)buffer;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -663,7 +663,7 @@ Result APT_ReplySleepQuery(Handle* handle, NS_APPID appID, u32 a)
 	cmdbuf[2]=a;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -677,7 +677,7 @@ Result APT_ReplySleepNotificationComplete(Handle* handle, NS_APPID appID)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -691,7 +691,7 @@ Result APT_PrepareToCloseApplication(Handle* handle, u8 a)
 	cmdbuf[1]=a;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -709,7 +709,7 @@ Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c)
 	cmdbuf[5]=c;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }

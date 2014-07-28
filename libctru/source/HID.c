@@ -20,7 +20,7 @@ Result hidInit(u32* sharedMem)
 	
 	if((ret=HIDUSER_GetInfo(NULL, &hidMemHandle)))return ret;
 	hidSharedMem=sharedMem;
-	svc_mapMemoryBlock(hidMemHandle, (u32)hidSharedMem, 0x1, 0x10000000);
+	svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, 0x1, 0x10000000);
 
 	if((ret=HIDUSER_EnableAccelerometer(NULL)))return ret;
 
@@ -29,9 +29,9 @@ Result hidInit(u32* sharedMem)
 
 void hidExit()
 {
-	svc_unmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
-	svc_closeHandle(hidMemHandle);
-	svc_closeHandle(hidHandle);
+	svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
+	svcCloseHandle(hidMemHandle);
+	svcCloseHandle(hidHandle);
 }
 
 Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle)
@@ -41,7 +41,7 @@ Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle)
 	cmdbuf[0]=0xa0000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	if(outMemHandle)*outMemHandle=cmdbuf[3];
 
@@ -55,7 +55,7 @@ Result HIDUSER_EnableAccelerometer(Handle* handle)
 	cmdbuf[0]=0x110000; //request header code
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
 }

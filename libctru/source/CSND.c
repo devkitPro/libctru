@@ -33,7 +33,7 @@ Result CSND_cmd1(Handle *mutexhandle, Handle *sharedmemhandle, u32 sharedmem_siz
 	cmdbuf[4] = off2;
 	cmdbuf[5] = off3;
 
-	if((ret = svc_sendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
 
 	*mutexhandle = cmdbuf[3];
 	*sharedmemhandle = cmdbuf[4];
@@ -48,7 +48,7 @@ Result CSND_cmd2()
 
 	cmdbuf[0] = 0x00020000;
 
-	if((ret = svc_sendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -60,7 +60,7 @@ Result CSND_cmd5(u32 *bitmask)
 
 	cmdbuf[0] = 0x00050000;
 
-	if((ret = svc_sendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
 
 	*bitmask = cmdbuf[2];
 
@@ -80,7 +80,7 @@ Result CSND_initialize(u32* sharedMem)
 	ret = CSND_cmd1(&CSND_mutexhandle, &CSND_sharedmemhandle, CSND_sharedmem_cmdblocksize+0x114, CSND_sharedmem_cmdblocksize, CSND_sharedmem_cmdblocksize+8, CSND_sharedmem_cmdblocksize+0xc8, CSND_sharedmem_cmdblocksize+0xd8);
 	if(ret!=0)return ret;
 
-	ret = svc_mapMemoryBlock(CSND_sharedmemhandle, (u32)CSND_sharedmem, 3, 0x10000000);
+	ret = svcMapMemoryBlock(CSND_sharedmemhandle, (u32)CSND_sharedmem, 3, 0x10000000);
 	if(ret!=0)return ret;
 
 	memset(CSND_sharedmem, 0, 0x2114);
@@ -95,13 +95,13 @@ Result CSND_shutdown()
 {
 	Result ret;
 
-	svc_unmapMemoryBlock(CSND_sharedmemhandle, (u32)CSND_sharedmem);
-	svc_closeHandle(CSND_sharedmemhandle);
+	svcUnmapMemoryBlock(CSND_sharedmemhandle, (u32)CSND_sharedmem);
+	svcCloseHandle(CSND_sharedmemhandle);
 
 	ret = CSND_cmd2();
 	if(ret!=0)return ret;
 
-	return svc_closeHandle(CSND_handle);
+	return svcCloseHandle(CSND_handle);
 }
 
 Result CSND_cmd3(u32 offset)
@@ -112,7 +112,7 @@ Result CSND_cmd3(u32 offset)
 	cmdbuf[0] = 0x00030040;
 	cmdbuf[1] = offset;
 
-	if((ret = svc_sendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -123,7 +123,7 @@ void CSND_writesharedmem_cmdtype0(u16 cmdid, u8 *cmdparams)
 	u32 prevoff;
 	s32 outindex=0;
 
-	svc_waitSynchronizationN(&outindex, &CSND_mutexhandle, 1, 0, ~0);
+	svcWaitSynchronizationN(&outindex, &CSND_mutexhandle, 1, 0, ~0);
 
 	if(CSND_sharedmem_startcmdoff != CSND_sharedmem_currentcmdoff)
 	{
@@ -151,7 +151,7 @@ void CSND_writesharedmem_cmdtype0(u16 cmdid, u8 *cmdparams)
 	CSND_sharedmem_currentcmdoff+= 0x20;
 	if(CSND_sharedmem_currentcmdoff >= CSND_sharedmem_cmdblocksize)CSND_sharedmem_currentcmdoff = 0;
 
-	svc_releaseMutex(CSND_mutexhandle);
+	svcReleaseMutex(CSND_mutexhandle);
 }
 
 Result CSND_processtype0cmds()

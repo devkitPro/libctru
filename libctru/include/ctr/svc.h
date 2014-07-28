@@ -1,42 +1,50 @@
+/*
+  svc.h _ Syscall wrappers.
+*/
+
 #ifndef SVC_H
 #define SVC_H
 
-typedef enum{
-	MEMOP_FREE = 1,
-	MEMOP_RESERVE = 2,
-	MEMOP_COMMIT = 3,
-	MEMOP_MAP = 4,
-	MEMOP_UNMAP = 5,
-	MEMOP_PROTECT = 6,
-	MEMOP_REGION_APP = 0x100,
-	MEMOP_REGION_SYSTEM = 0x200,
-	MEMOP_REGION_BASE = 0x300,
-	MEMOP_LINEAR = 0x1000,
-}MEMORY_OPERATION;
 
-	u32* getThreadCommandBuffer(void);
-	
-	Result svc_controlMemory(u32* outaddr, u32 addr0, u32 addr1, u32 size, u32 operation, u32 permissions); //(outaddr is usually the same as the input addr0)
-	void svc_exitProcess(void);
-	Result svc_createThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stacktop, s32 threadpriority, s32 processorid);
-	void svc_exitThread();
-	void svc_sleepThread(s64 ns);
-	Result svc_createMutex(Handle* mutex, bool initialLocked);
-	Result svc_releaseMutex(Handle handle);
-	Result svc_createEvent(Handle* event, u8 resettype);
-	Result svc_signalEvent(Handle handle);
-	Result svc_clearEvent(Handle handle);
-	Result svc_createMemoryBlock(Handle* memblock, u32 addr, u32 size, u32 mypermission, u32 otherpermission);
-	Result svc_mapMemoryBlock(Handle memblock, u32 addr, u32 mypermissions, u32 otherpermission);
-	Result svc_unmapMemoryBlock(Handle memblock, u32 addr);
-	Result svc_waitSynchronization1(Handle handle, s64 nanoseconds);
-	Result svc_waitSynchronizationN(s32* out, Handle* handles, s32 handlecount, bool waitAll, s64 nanoseconds);
-	Result svc_closeHandle(Handle handle);
-	u64 svc_getSystemTick();
-	Result svc_getSystemInfo(s64* out, u32 type, s32 param);
-	Result svc_getProcessInfo(s64* out, Handle process, u32 type);
-	Result svc_connectToPort(volatile Handle* out, const char* portName);
-	Result svc_sendSyncRequest(Handle session);
-	Result svc_getProcessId(u32 *out, Handle handle);
+typedef enum {
+    MEMOP_FREE =1, // Free heap
+    MEMOP_ALLOC=3, // Allocate heap
+    MEMOP_MAP  =4, // Mirror mapping
+    MEMOP_UNMAP=5, // Mirror unmapping
+    MEMOP_PROT =6, // Change protection
+
+    MEMOP_FREE_LINEAR =0x10001, // Free linear heap
+    MEMOP_ALLOC_LINEAR=0x10003  // Allocate linear heap
+} MemOp;
+
+typedef enum {
+    MEMPERM_READ   =1,
+    MEMPERM_WRITE  =2,
+    MEMPERM_EXECUTE=4
+} MemPerm;
+
+s32  svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op, MemPerm perm);
+void svcExitProcess();
+s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_top, s32 thread_priority, s32 processor_id);
+void svcExitThread();
+void svcSleepThread(s64 ns);
+s32  svcCreateMutex(Handle* mutex, bool initially_locked);
+s32  svcReleaseMutex(Handle handle);
+s32  svcCreateEvent(Handle* event, u8 reset_type);
+s32  svcSignalEvent(Handle handle);
+s32  svcClearEvent(Handle handle);
+s32  svcCreateMemoryBlock(Handle* memblock, u32 addr, u32 size, MemPerm my_perm, MemPerm other_perm);
+s32  svcMapMemoryBlock(Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm);
+s32  svcUnmapMemoryBlock(Handle memblock, u32 addr);
+s32  svcWaitSynchronization(Handle handle, s64 nanoseconds);
+s32  svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
+s32  svcCloseHandle(Handle handle);
+u64  svcGetSystemTick();
+s32  svcGetSystemInfo(s64* out, u32 type, s32 param);
+s32  svcGetProcessInfo(s64* out, Handle process, u32 type);
+s32  svcConnectToPort(volatile Handle* out, const char* portName);
+s32  svcSendSyncRequest(Handle session);
+s32  svcGetProcessId(u32 *out, Handle handle);
+
 
 #endif

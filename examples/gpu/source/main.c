@@ -42,15 +42,15 @@ void gspGpuInit()
 
 	//setup our gsp shared mem section
 	u8 threadID;
-	svc_createEvent(&gspEvent, 0x0);
+	svcCreateEvent(&gspEvent, 0x0);
 	GSPGPU_RegisterInterruptRelayQueue(NULL, gspEvent, 0x1, &gspSharedMemHandle, &threadID);
-	svc_mapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
+	svcMapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
 
 	//map GSP heap
-	svc_controlMemory((u32*)&gspHeap, 0x0, 0x0, 0x2000000, 0x10003, 0x3);
+	svcControlMemory((u32*)&gspHeap, 0x0, 0x0, 0x2000000, 0x10003, 0x3);
 
 	//wait until we can write stuff to it
-	svc_waitSynchronization1(gspEvent, 0x55bcb0);
+	svcWaitSynchronization1(gspEvent, 0x55bcb0);
 
 	//GSP shared mem : 0x2779F000
 	gxCmdBuf=(u32*)(0x10002000+0x800+threadID*0x200);
@@ -63,14 +63,14 @@ void gspGpuExit()
 	GSPGPU_UnregisterInterruptRelayQueue(NULL);
 
 	//unmap GSP shared mem
-	svc_unmapMemoryBlock(gspSharedMemHandle, 0x10002000);
-	svc_closeHandle(gspSharedMemHandle);
-	svc_closeHandle(gspEvent);
+	svcUnmapMemoryBlock(gspSharedMemHandle, 0x10002000);
+	svcCloseHandle(gspSharedMemHandle);
+	svcCloseHandle(gspEvent);
 	
 	gspExit();
 
 	//free GSP heap
-	svc_controlMemory((u32*)&gspHeap, (u32)gspHeap, 0x0, 0x2000000, MEMOP_FREE, 0x0);
+	svcControlMemory((u32*)&gspHeap, (u32)gspHeap, 0x0, 0x2000000, MEMOP_FREE, 0x0);
 }
 
 void swapBuffers()
@@ -136,12 +136,12 @@ int main()
 		{
 			aptWaitStatusEvent();
 		}
-		svc_sleepThread(16666666);
+		svcSleepThread(16666666);
 	}
 
 	hidExit();
 	gspGpuExit();
 	aptExit();
-	svc_exitProcess();
+	svcExitProcess();
 	return 0;
 }

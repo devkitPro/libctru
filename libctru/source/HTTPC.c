@@ -14,7 +14,7 @@ Result HTTPC_Initialize(Handle handle)
 	cmdbuf[2]=0x20; //unk
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -31,7 +31,7 @@ Result HTTPC_CreateContext(Handle handle, char* url, Handle* contextHandle)
 	cmdbuf[4]=(u32)url;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 	
 	if(contextHandle)*contextHandle=cmdbuf[2];
 
@@ -47,7 +47,7 @@ Result HTTPC_InitializeConnectionSession(Handle handle, Handle contextHandle)
 	cmdbuf[2]=0x20; //unk, constant afaict
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -60,7 +60,7 @@ Result HTTPC_SetProxyDefault(Handle handle, Handle contextHandle)
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -73,7 +73,7 @@ Result HTTPC_CloseContext(Handle handle, Handle contextHandle)
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -95,7 +95,7 @@ Result HTTPC_AddRequestHeaderField(Handle handle, Handle contextHandle, char* na
 	cmdbuf[7]=(u32)value;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -108,7 +108,7 @@ Result HTTPC_BeginRequest(Handle handle, Handle contextHandle)
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -124,7 +124,7 @@ Result HTTPC_ReceiveData(Handle handle, Handle contextHandle, u8* buffer, u32 si
 	cmdbuf[4]=(u32)buffer;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }

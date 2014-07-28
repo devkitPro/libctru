@@ -12,7 +12,7 @@ Result FSUSER_Initialize(Handle handle)
 	cmdbuf[1]=32;
 	
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -33,7 +33,7 @@ Result FSUSER_OpenFile(Handle handle, Handle* out, FS_archive archive, FS_path f
 	cmdbuf[9]=(u32)fileLowPath.data;
  
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
  
 	if(out)*out=cmdbuf[3];
  
@@ -59,7 +59,7 @@ Result FSUSER_OpenFileDirectly(Handle handle, Handle* out, FS_archive archive, F
 	cmdbuf[12]=(u32)fileLowPath.data;
  
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
  
 	if(out)*out=cmdbuf[3];
  
@@ -79,7 +79,7 @@ Result FSUSER_OpenArchive(Handle handle, FS_archive* archive)
 	cmdbuf[5]=(u32)archive->lowPath.data;
  
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
  
 	archive->handleLow=cmdbuf[2];
 	archive->handleHigh=cmdbuf[3];
@@ -100,7 +100,7 @@ Result FSUSER_OpenDirectory(Handle handle, Handle* out, FS_archive archive, FS_p
 	cmdbuf[6]=(u32)dirLowPath.data;
  
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
  
 	if(out)*out=cmdbuf[3];
  
@@ -117,7 +117,7 @@ Result FSUSER_CloseArchive(Handle handle, FS_archive* archive)
 	cmdbuf[2]=archive->handleLow;
  
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
  
 	return cmdbuf[1];
 }
@@ -129,7 +129,7 @@ Result FSFILE_Close(Handle handle)
 	cmdbuf[0]=0x08080000;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -146,7 +146,7 @@ Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 s
 	cmdbuf[5]=(u32)buffer;
  
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	if(bytesRead)*bytesRead=cmdbuf[2];
 
@@ -168,7 +168,7 @@ Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *data, u32
 	cmdbuf[6]=(u32)data;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	if(bytesWritten)*bytesWritten=cmdbuf[2];
 
@@ -182,7 +182,7 @@ Result FSFILE_GetSize(Handle handle, u64 *size)
 	cmdbuf[0] = 0x08040000;
  
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
  
 	if(size)*size = *((u64*)&cmdbuf[2]);
  
@@ -198,7 +198,7 @@ Result FSFILE_SetSize(Handle handle, u64 size)
     cmdbuf[2] = (u32)(size >> 32);
 
     Result ret = 0;
-    if ((ret = svc_sendSyncRequest(handle)))return ret;
+    if ((ret = svcSendSyncRequest(handle)))return ret;
 
 
     return cmdbuf[1];
@@ -214,7 +214,7 @@ Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, u16 *buffer)
 	cmdbuf[3]=(u32)buffer;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	if(entriesRead)*entriesRead=cmdbuf[2];
 
@@ -228,7 +228,7 @@ Result FSDIR_Close(Handle handle)
 	cmdbuf[0]=0x08020000;
 
 	Result ret=0;
-	if((ret=svc_sendSyncRequest(handle)))return ret;
+	if((ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
