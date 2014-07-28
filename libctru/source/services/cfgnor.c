@@ -11,7 +11,7 @@ Result CFGNOR_Initialize(u8 value)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	ret = srv_getServiceHandle(NULL, &CFGNOR_handle, "cfg:nor");
+	ret = srvGetServiceHandle(&CFGNOR_handle, "cfg:nor");
 	if(ret!=0)return ret;
 
 	cmdbuf[0] = 0x00010040;

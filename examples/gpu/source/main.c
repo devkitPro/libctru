@@ -81,7 +81,7 @@ void swapBuffers()
 
 int main()
 {
-	initSrv();
+	srvInit();
 	
 	aptInit(APPID_APPLICATION);
 

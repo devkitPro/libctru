@@ -8,7 +8,7 @@ Handle gspGpuHandle=0;
 
 Result gspInit()
 {
-	return srv_getServiceHandle(NULL, &gspGpuHandle, "gsp::Gpu");
+	return srvGetServiceHandle(&gspGpuHandle, "gsp::Gpu");
 }
 
 void gspExit()

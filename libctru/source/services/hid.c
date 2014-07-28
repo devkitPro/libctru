@@ -14,7 +14,7 @@ Result hidInit(u32* sharedMem)
 	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
 	Result ret=0;
 
-	if((ret=srv_getServiceHandle(NULL, &hidHandle, "hid:USER")))return ret;
+	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")))return ret;
 	
 	if((ret=HIDUSER_GetInfo(NULL, &hidMemHandle)))return ret;
 	hidSharedMem=sharedMem;

@@ -275,7 +275,7 @@ Result aptInit(NS_APPID appID)
 	Result ret=0;
 
 	//initialize APT stuff, escape load screen
-	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
+	srvGetServiceHandle(&aptuHandle, "APT:U");
 	if((ret=APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle)))return ret;
 	svcCloseHandle(aptuHandle);
 
@@ -420,7 +420,7 @@ void aptSetStatusPower(u32 status)
 void aptOpenSession()
 {
 	svcWaitSynchronization1(aptLockHandle, U64_MAX);
-	srv_getServiceHandle(NULL, &aptuHandle, "APT:U");
+	srvGetServiceHandle(&aptuHandle, "APT:U");
 }
 
 void aptCloseSession()

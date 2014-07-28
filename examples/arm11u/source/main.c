@@ -112,7 +112,7 @@ void renderEffect()
 
 int main()
 {
-	initSrv();
+	srvInit();
 	
 	aptInit(APPID_APPLICATION);
 

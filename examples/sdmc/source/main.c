@@ -112,7 +112,7 @@ void renderEffect()
 
 int main()
 {
-	initSrv();
+	srvInit();
 		
 	aptInit(APPID_APPLICATION);
 
@@ -121,7 +121,7 @@ int main()
 	hidInit(NULL);
 
 	Handle fsuHandle;
-	srv_getServiceHandle(NULL, &fsuHandle, "fs:USER");
+	srvGetServiceHandle(&fsuHandle, "fs:USER");
 	FSUSER_Initialize(fsuHandle);
 
 	Handle fileHandle;

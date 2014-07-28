@@ -70,7 +70,7 @@ Result CSND_initialize(u32* sharedMem)
 	if(sharedMem==NULL)sharedMem = (u32*)CSND_SHAREDMEM_DEFAULT;
 	CSND_sharedmem = sharedMem;
 
-	ret = srv_getServiceHandle(NULL, &CSND_handle, "csnd:SND");
+	ret = srvGetServiceHandle(&CSND_handle, "csnd:SND");
 	if(ret!=0)return ret;
 
 	ret = CSND_cmd1(&CSND_mutexhandle, &CSND_sharedmemhandle, CSND_sharedmem_cmdblocksize+0x114, CSND_sharedmem_cmdblocksize, CSND_sharedmem_cmdblocksize+8, CSND_sharedmem_cmdblocksize+0xc8, CSND_sharedmem_cmdblocksize+0xd8);

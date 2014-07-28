@@ -142,7 +142,7 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)
 	ret = svcCreateMemoryBlock(&memhandle, (u32)context_addr, context_size, 0, 3);
 	if(ret!=0)return ret;
 
-	if((ret = srv_getServiceHandle(NULL, &SOCU_handle, "soc:U"))!=0)return ret;
+	if((ret = srvGetServiceHandle(&SOCU_handle, "soc:U"))!=0)return ret;
 
 	return socu_cmd1(memhandle, context_size);
 }

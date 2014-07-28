@@ -162,7 +162,7 @@ Result IRU_Initialize(u32 *sharedmem_addr, u32 sharedmem_size)
 
 	if(iru_handle)return 0;
 
-	ret = srv_getServiceHandle(NULL, &iru_handle, "ir:u");
+	ret = srvGetServiceHandle(&iru_handle, "ir:u");
 	if(ret!=0)return ret;
 
 	ret = irucmd_Initialize();

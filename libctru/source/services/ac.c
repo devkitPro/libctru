@@ -69,7 +69,7 @@ Result ACU_WaitInternetConnection()
 	Result ret=0;
 	u32 outval=0;
 
-	if((ret = srv_getServiceHandle(NULL, &servhandle, "ac:u"))!=0)return ret;
+	if((ret = srvGetServiceHandle(&servhandle, "ac:u"))!=0)return ret;
 
 	while(1)
 	{
