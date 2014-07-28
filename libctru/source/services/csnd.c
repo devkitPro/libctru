@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <3ds/types.h>
-#include <3ds/OS.h>
+#include <3ds/os.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/CSND.h>
@@ -283,8 +283,8 @@ Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u3
 	u32 physaddr0 = 0;
 	u32 physaddr1 = 0;
 
-	physaddr0 = OS_ConvertVaddr2Physaddr((u32)vaddr0);
-	physaddr1 = OS_ConvertVaddr2Physaddr((u32)vaddr1);
+	physaddr0 = osConvertVirtToPhys((u32)vaddr0);
+	physaddr1 = osConvertVirtToPhys((u32)vaddr1);
 
 	CSND_sharedmemtype0_cmde(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
 	CSND_sharedmemtype0_cmd8(channel, samplerate);
