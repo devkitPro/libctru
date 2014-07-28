@@ -1,36 +1,124 @@
-CC = arm-none-eabi-gcc
-AR = arm-none-eabi-ar
-CFLAGS += -Wall -std=c99 -march=armv6 -O0 -I"$(CURDIR)/include/"
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
 
-CFILES = $(wildcard source/*.c)
-OFILES = $(CFILES:source/%.c=build/%.o)
-DFILES = $(CFILES:source/%.c=build/%.d)
-SFILES = $(wildcard source/*.s)
-OFILES += $(SFILES:source/%.s=build/%.o)
-PROJECTNAME = "libctru"
+ifeq ($(strip $(DEVKITARM)),)
+$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+endif
 
-.PHONY:=all dir
+include $(DEVKITARM)/base_rules
 
-all: dir lib/$(PROJECTNAME).a
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# DATA is a list of directories containing data files
+# INCLUDES is a list of directories containing header files
+#---------------------------------------------------------------------------------
+TARGET		:=	ctru
+BUILD		:=	build
+SOURCES		:=	source source/services
+DATA		:=	data
+INCLUDES	:=	include
 
-dir:
-	mkdir -p build
-	mkdir -p lib
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+ARCH	:=	-marm
 
-lib/$(PROJECTNAME).a: $(OFILES)
-	$(AR) rvs $@ $^
+CFLAGS	:=	-g -Wall -O2 -mthumb-interwork\
+		-mcpu=mpcore -mtune=mpcore \
+		-mfpu=vfp -ffast-math -mword-relocations \
+		$(ARCH)
 
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
+
+ASFLAGS	:=	-g $(ARCH) -mcpu=mpcore -mtune=mpcore
+LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+
+#---------------------------------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#---------------------------------------------------------------------------------
+LIBDIRS	:=
+
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+
+export OUTPUT	:=	$(CURDIR)/lib/lib$(TARGET).a
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
+.PHONY: $(BUILD) clean all
+
+#---------------------------------------------------------------------------------
+all: $(BUILD)
+
+lib:
+	@[ -d $@ ] || mkdir -p $@
+
+$(BUILD): lib
+	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+#---------------------------------------------------------------------------------
 clean:
-	@rm -f build/*.o build/*.d
-	@rm -f $(PROJECTNAME).a
-	@echo "all cleaned up !"
+	@echo clean ...
+	@rm -fr $(BUILD) lib
 
--include $(DFILES)
+#---------------------------------------------------------------------------------
+else
 
-build/%.o: source/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-	@$(CC) -MM $< > build/$*.d
+DEPENDS	:=	$(OFILES:.o=.d)
 
-build/%.o: source/%.s
-	$(CC) $(CFLAGS) -c $< -o $@
-	@$(CC) -MM $< > build/$*.d
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+$(OUTPUT)	:	$(OFILES)
+
+#---------------------------------------------------------------------------------
+%.bin.o	:	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+
+-include $(DEPENDS)
+
+#---------------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------------
