@@ -1,11 +1,7 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <ctr/types.h>
-#include <ctr/svc.h>
-#include <ctr/srv.h>
-#include <ctr/SOC.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/SOC.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>

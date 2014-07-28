@@ -1,12 +1,11 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctr/types.h>
-#include <ctr/GSP.h>
-#include <ctr/GX.h>
-#include <ctr/GPU.h>
-#include <ctr/SHDR.h>
-#include <ctr/svc.h>
+#include <3ds/types.h>
+#include <3ds/GSP.h>
+#include <3ds/GX.h>
+#include <3ds/GPU.h>
+#include <3ds/SHDR.h>
+#include <3ds/svc.h>
+
 
 //please don't feed this an invalid SHBIN
 DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)

@@ -1,9 +1,7 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <ctr/types.h>
-#include <ctr/HTTPC.h>
-#include <ctr/svc.h>
+#include <3ds/types.h>
+#include <3ds/HTTPC.h>
+#include <3ds/svc.h>
 
 Result HTTPC_Initialize(Handle handle)
 {

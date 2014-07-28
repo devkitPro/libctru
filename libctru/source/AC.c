@@ -1,11 +1,8 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctr/types.h>
-
-#include <ctr/AC.h>
-#include <ctr/svc.h>
-#include <ctr/srv.h>
+#include <3ds/types.h>
+#include <3ds/AC.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
 
 Result ACU_cmd1(Handle servhandle, u32 *ptr)//Unknown what this cmd does at the time of writing. (ptr=0x200-byte outbuf)
 {

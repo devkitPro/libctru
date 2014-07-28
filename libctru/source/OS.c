@@ -1,9 +1,7 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctr/types.h>
-#include <ctr/svc.h>
-#include <ctr/OS.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/OS.h>
+
 
 u32 OS_ConvertVaddr2Physaddr(u32 vaddr)
 {

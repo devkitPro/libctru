@@ -1,7 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctr/types.h>
+#include <3ds/types.h>
 
 u32 gpuResetSequence[]=
 	{0x000F01D4, 0x00000001,

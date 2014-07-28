@@ -1,11 +1,9 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctr/types.h>
-#include <ctr/GSP.h>
-#include <ctr/GX.h>
-#include <ctr/GPU.h>
-#include <ctr/svc.h>
+#include <3ds/types.h>
+#include <3ds/GSP.h>
+#include <3ds/GX.h>
+#include <3ds/GPU.h>
+#include <3ds/svc.h>
 
 u32* gpuCmdBuf;
 u32 gpuCmdBufSize;

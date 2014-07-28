@@ -1,12 +1,8 @@
 #include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-
-#include <ctr/types.h>
-#include <ctr/svc.h>
-#include <ctr/srv.h>
-
-#include <ctr/CFGNOR.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/CFGNOR.h>
 
 Handle CFGNOR_handle = 0;
 

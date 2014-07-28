@@ -1,12 +1,9 @@
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
-
-#include <ctr/types.h>
-#include <ctr/svc.h>
-#include <ctr/srv.h>
-
-#include <ctr/IR.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/IR.h>
 
 static Handle iru_handle=0;
 static Handle iru_sharedmem_handle=0;
