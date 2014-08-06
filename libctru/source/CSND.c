@@ -232,7 +232,7 @@ void CSND_sharedmemtype0_cmd8(u32 channel, u32 samplerate)
 	CSND_writesharedmem_cmdtype0(0x8, (u8*)&cmdparams);
 }
 
-void CSND_sharedmemtype0_cmde(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
+void CSND_sharedmemtype0_cmde(u32 channel, CSND_LOOPING looping, CSND_ENCODING encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 {
 	u32 val;
 	u32 cmdparams[0x18>>2];
@@ -241,8 +241,8 @@ void CSND_sharedmemtype0_cmde(u32 channel, u32 looping, u32 encoding, u32 sample
 
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[0] |= (unk0 & 0xf) << 6;
-	if(!looping)cmdparams[0] |= 2 << 10;
-	if(looping)cmdparams[0] |= 1 << 10;
+	if(looping==CSND_LOOP_DISABLE)cmdparams[0] |= 2 << 10;
+	if(looping==CSND_LOOP_ENABLE)cmdparams[0] |= 1 << 10;
 	cmdparams[0] |= (encoding & 3) << 12;
 	cmdparams[0] |= (unk1 & 3) << 14;
 
@@ -282,7 +282,7 @@ Result CSND_sharedmemtype0_cmdupdatestate(int waitdone)
 	return 0;
 }
 
-Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1)
+Result CSND_playsound(u32 channel, CSND_LOOPING looping, CSND_ENCODING encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1)
 {
 	u32 physaddr0 = 0;
 	u32 physaddr1 = 0;
@@ -292,7 +292,7 @@ Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u3
 
 	CSND_sharedmemtype0_cmde(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
 	CSND_sharedmemtype0_cmd8(channel, samplerate);
-	if(looping)CSND_sharedmemtype0_cmd3(channel, physaddr0, totalbytesize);
+	if(looping==CSND_LOOP_ENABLE)CSND_sharedmemtype0_cmd3(channel, physaddr0, totalbytesize);
 	CSND_sharedmemtype0_cmd8(channel, samplerate);
 	CSND_sharedmemtype0_cmd9(channel, 0xffff);
 	CSND_setchannel_playbackstate(channel, 1);
