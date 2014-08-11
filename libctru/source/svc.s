@@ -67,6 +67,15 @@ svc_releaseMutex:
 	svc 0x14
 	bx lr
 
+.global svc_releaseSemaphore
+.type svc_releaseSemaphore, %function
+svc_releaseSemaphore:
+        str r0, [sp,#-4]!
+        svc 0x16
+        ldr r2, [sp], #4
+        str r1, [r2]
+        bx lr
+
 .global svc_createEvent
 .type svc_createEvent, %function
 svc_createEvent:
@@ -109,6 +118,12 @@ svc_mapMemoryBlock:
 svc_unmapMemoryBlock:
 	svc 0x20
 	bx lr
+
+.global svc_arbitrateAddress
+.type svc_arbitrateAddress, %function
+svc_arbitrateAddress:
+        svc 0x22
+        bx lr
 
 .global svc_closeHandle
 .type svc_closeHandle, %function
