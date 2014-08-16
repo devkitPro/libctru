@@ -1,3 +1,4 @@
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/FS.h>
 #include <3ds/svc.h>

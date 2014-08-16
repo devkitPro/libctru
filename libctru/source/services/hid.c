@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/HID.h>
 #include <3ds/srv.h>
@@ -18,7 +19,7 @@ Result hidInit(u32* sharedMem)
 	
 	if((ret=HIDUSER_GetInfo(NULL, &hidMemHandle)))return ret;
 	hidSharedMem=sharedMem;
-	svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, 0x1, 0x10000000);
+	svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000);
 
 	if((ret=HIDUSER_EnableAccelerometer(NULL)))return ret;
 

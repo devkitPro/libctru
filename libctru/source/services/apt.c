@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/srv.h>
 #include <3ds/APT.h>
@@ -68,7 +69,7 @@ void aptInitCaptureInfo(u32 *ns_capinfo)
 
 void aptWaitStatusEvent()
 {
-	svcWaitSynchronization1(aptStatusEvent, U64_MAX);
+	svcWaitSynchronization(aptStatusEvent, U64_MAX);
 	svcClearEvent(aptStatusEvent);
 }
 
@@ -377,7 +378,7 @@ void aptSetupEventHandler()
 APP_STATUS aptGetStatus()
 {
 	APP_STATUS ret;
-	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization(aptStatusMutex, U64_MAX);
 	ret=aptStatus;
 	svcReleaseMutex(aptStatusMutex);
 	return ret;
@@ -387,7 +388,7 @@ void aptSetStatus(APP_STATUS status)
 {
 	u32 prevstatus;
 
-	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization(aptStatusMutex, U64_MAX);
 
 	prevstatus = status;
 	aptStatus = status;
@@ -404,7 +405,7 @@ void aptSetStatus(APP_STATUS status)
 u32 aptGetStatusPower()
 {
 	u32 ret;
-	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization(aptStatusMutex, U64_MAX);
 	ret=aptStatusPower;
 	svcReleaseMutex(aptStatusMutex);
 	return ret;
@@ -412,14 +413,14 @@ u32 aptGetStatusPower()
 
 void aptSetStatusPower(u32 status)
 {
-	svcWaitSynchronization1(aptStatusMutex, U64_MAX);
+	svcWaitSynchronization(aptStatusMutex, U64_MAX);
 	aptStatusPower = status;
 	svcReleaseMutex(aptStatusMutex);
 }
 
 void aptOpenSession()
 {
-	svcWaitSynchronization1(aptLockHandle, U64_MAX);
+	svcWaitSynchronization(aptLockHandle, U64_MAX);
 	srvGetServiceHandle(&aptuHandle, "APT:U");
 }
 

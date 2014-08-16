@@ -2,6 +2,7 @@
   srv.c _ Service manager.
 */
 
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/srv.h>
 #include <3ds/svc.h>
@@ -68,10 +69,9 @@ Result srvInit()
 {
     Result rc = 0;
 
-    if(rc = svcConnectToPort(&g_srv_handle, "srv:"))
-        return rc;
+    if((rc = svcConnectToPort(&g_srv_handle, "srv:")))return rc;
 
-    if(rc = srvRegisterClient()) {
+    if((rc = srvRegisterClient())) {
         svcCloseHandle(g_srv_handle);
         g_srv_handle = 0;
     }
@@ -81,8 +81,7 @@ Result srvInit()
 
 Result srvExit()
 {
-    if(g_srv_handle != 0)
-        svcCloseHandle(g_srv_handle);
+    if(g_srv_handle != 0)svcCloseHandle(g_srv_handle);
 
     g_srv_handle = 0;
     return 0;
@@ -95,8 +94,7 @@ Result srvRegisterClient()
     cmdbuf[1] = 0x20;
 
     Result rc;
-    if(rc = svcSendSyncRequest(g_srv_handle))
-        return rc;
+    if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
     return cmdbuf[1];
 }
@@ -121,8 +119,7 @@ Result srvGetServiceHandle(Handle* out, char* name)
     cmdbuf[4] = 0x0;
 
     Result rc;
-    if(rc = svcSendSyncRequest(g_srv_handle))
-        return rc;
+    if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
     *out = cmdbuf[3];
     return cmdbuf[1];

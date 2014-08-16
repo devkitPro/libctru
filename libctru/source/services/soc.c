@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <string.h>
 
 Handle SOCU_handle = 0;
 static int SOCU_errno = 0;

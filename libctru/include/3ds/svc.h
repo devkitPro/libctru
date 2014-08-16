@@ -20,8 +20,11 @@ typedef enum {
 typedef enum {
     MEMPERM_READ   =1,
     MEMPERM_WRITE  =2,
-    MEMPERM_EXECUTE=4
+    MEMPERM_EXECUTE=4,
+    MEMPERM_MAX    =0xFFFFFFFF //force 4-byte
 } MemPerm;
+
+u32* getThreadCommandBuffer(void);
 
 s32  svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op, MemPerm perm);
 void svcExitProcess();
