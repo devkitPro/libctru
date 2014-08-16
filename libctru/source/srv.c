@@ -29,7 +29,7 @@ typedef struct {
     } services[];
 } service_list_t;
 
-extern service_list_t* _service_ptr;
+extern service_list_t* __service_ptr;
 #endif
 
 static Handle g_srv_handle = 0;
@@ -51,14 +51,14 @@ static int __name_cmp(const char* a, const char* b) {
 }
 
 static Handle __get_handle_from_list(char* name) {
-    if((u32)_service_ptr == 0)
+    if((u32)__service_ptr == 0)
         return 0;
 
-    u32 i, num = _service_ptr->num;
+    u32 i, num = __service_ptr->num;
 
     for(i=0; i<num; i++) {
-        if(__name_cmp(_service_ptr->services[i].name, name) == 0)
-            return _service_ptr->services[i].handle;
+        if(__name_cmp(__service_ptr->services[i].name, name) == 0)
+            return __service_ptr->services[i].handle;
     }
 
     return 0;
