@@ -36,12 +36,15 @@ static inline FS_path FS_makePath(FS_pathType type, char* path)
 	return (FS_path){type, strlen(path)+1, (u8*)path};
 }
 
-Result FSUSER_Initialize(Handle handle);
-Result FSUSER_OpenArchive(Handle handle, FS_archive* archive);
-Result FSUSER_OpenDirectory(Handle handle, Handle* out, FS_archive archive, FS_path dirLowPath);
-Result FSUSER_OpenFile(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
-Result FSUSER_OpenFileDirectly(Handle handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
-Result FSUSER_CloseArchive(Handle handle, FS_archive* archive);
+Result fsInit(void);
+Result fsExit(void);
+
+Result FSUSER_Initialize(Handle* handle);
+Result FSUSER_OpenArchive(Handle* handle, FS_archive* archive);
+Result FSUSER_OpenDirectory(Handle* handle, Handle* out, FS_archive archive, FS_path dirLowPath);
+Result FSUSER_OpenFile(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
+Result FSUSER_OpenFileDirectly(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
+Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 size);
