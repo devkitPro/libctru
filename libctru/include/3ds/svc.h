@@ -42,6 +42,7 @@ s32  svcUnmapMemoryBlock(Handle memblock, u32 addr);
 s32  svcWaitSynchronization(Handle handle, s64 nanoseconds);
 s32  svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
 s32  svcCloseHandle(Handle handle);
+s32  svcDuplicateHandle(Handle* out, Handle original);
 u64  svcGetSystemTick();
 s32  svcGetSystemInfo(s64* out, u32 type, s32 param);
 s32  svcGetProcessInfo(s64* out, Handle process, u32 type);

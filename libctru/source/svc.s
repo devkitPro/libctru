@@ -134,6 +134,15 @@ svcWaitSynchronizationN:
 	ldr r5, [sp], #4
 	bx lr
 
+.global svcDuplicateHandle
+.type svcDuplicateHandle, %function
+svcDuplicateHandle:
+	str r0, [sp,#-0x4]!
+	svc 0x27
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx lr
+
 .global svcGetSystemTick
 .type svcGetSystemTick, %function
 svcGetSystemTick:

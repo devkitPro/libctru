@@ -107,7 +107,7 @@ Result srvGetServiceHandle(Handle* out, char* name)
     Handle h = __get_handle_from_list(name);
 
     if(h != 0) {
-       *out = h; return 0;
+        return svcDuplicateHandle(out, h);
     }
 #endif
 
