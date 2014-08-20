@@ -8,7 +8,6 @@
 #include <3ds/svc.h>
 
 
-#ifdef SRV_OVERRIDE_SUPPORT
 /*
   The homebrew loader can choose to supply a list of service handles that have
   been "stolen" from other processes that have been compromised. This allows us
@@ -30,13 +29,11 @@ typedef struct {
 } service_list_t;
 
 extern service_list_t* __service_ptr;
-#endif
 
 static Handle g_srv_handle = 0;
 
 
 
-#ifdef SRV_OVERRIDE_SUPPORT
 static int __name_cmp(const char* a, const char* b) {
     u32 i;
 
@@ -63,7 +60,6 @@ static Handle __get_handle_from_list(char* name) {
 
     return 0;
 }
-#endif
 
 Result srvInit()
 {
@@ -101,7 +97,6 @@ Result srvRegisterClient()
 
 Result srvGetServiceHandle(Handle* out, char* name)
 {
-#ifdef SRV_OVERRIDE_SUPPORT
     /* Look in service-list given to us by loader. If we find find a match,
        we return it. */
     Handle h = __get_handle_from_list(name);
@@ -109,7 +104,6 @@ Result srvGetServiceHandle(Handle* out, char* name)
     if(h != 0) {
         return svcDuplicateHandle(out, h);
     }
-#endif
 
     /* Normal request to service manager. */
     u32* cmdbuf = getThreadCommandBuffer();
