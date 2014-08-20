@@ -19,17 +19,17 @@ extern char* fake_heap_start;
 extern char* fake_heap_end;
 
 static void initArgv();
+static u32 heapBase;
 
 void __attribute__((noreturn)) __ctru_exit(int rc)
 {
-	// Run the global destructors
-	__libc_fini_array();
+	// Run the global destructors -- disabled for now (it crashes for an unknown reason)
+	//__libc_fini_array();
 
 	// TODO: APT exit goes here
 
 	// Unmap the heap
-	u32 blockAddr;
-	svcControlMemory(&blockAddr, 0x08000000, 0x0, __heap_size, MEMOP_FREE, 0x0);
+	svcControlMemory(&heapBase, heapBase, 0x0, __heap_size, MEMOP_FREE, 0x0);
 
 	// Jump to the loader if it provided a callback
 	if (__system_retAddr)
@@ -46,11 +46,11 @@ void initSystem(void (*retAddr)(void))
 	__system_retAddr = __service_ptr ? retAddr : NULL;
 
 	// Allocate the application heap
-	u32 blockAddr;
-	svcControlMemory(&blockAddr, 0x08000000, 0x0, __heap_size, MEMOP_ALLOC, 0x3);
+	heapBase = 0x08000000;
+	svcControlMemory(&heapBase, heapBase, 0x0, __heap_size, MEMOP_ALLOC, 0x3);
 
 	// Set up newlib heap
-	fake_heap_start = (char*)0x08000000;
+	fake_heap_start = (char*)heapBase;
 	fake_heap_end = fake_heap_start + __heap_size;
 
 	// Build argc/argv if present
