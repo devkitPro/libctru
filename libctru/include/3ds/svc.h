@@ -27,9 +27,9 @@ typedef enum {
 u32* getThreadCommandBuffer(void);
 
 s32  svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op, MemPerm perm);
-void svcExitProcess();
+void __attribute__((noreturn)) svcExitProcess();
 s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_top, s32 thread_priority, s32 processor_id);
-void svcExitThread();
+void __attribute__((noreturn)) svcExitThread();
 void svcSleepThread(s64 ns);
 s32  svcCreateMutex(Handle* mutex, bool initially_locked);
 s32  svcReleaseMutex(Handle handle);

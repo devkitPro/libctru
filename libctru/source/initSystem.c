@@ -20,7 +20,7 @@ extern char* fake_heap_end;
 
 static void initArgv();
 
-void __ctru_exit(int rc)
+void __attribute__((noreturn)) __ctru_exit(int rc)
 {
 	// Run the global destructors
 	__libc_fini_array();
@@ -35,8 +35,8 @@ void __ctru_exit(int rc)
 	if (__system_retAddr)
 		__system_retAddr();
 
-	// Since above did not jump: hang
-	for (;;);
+	// Since above did not jump, end this process
+	svcExitProcess();
 }
 
 void initSystem(void (*retAddr)(void))
