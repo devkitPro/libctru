@@ -5,7 +5,18 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 
+#define GSP_EVENT_STACK_SIZE 0x1000
+
 Handle gspGpuHandle=0;
+Handle gspEvents[GSPEVENT_count];
+u64 gspEventStack[GSP_EVENT_STACK_SIZE/sizeof(u64)]; //u64 so that it's 8-byte aligned
+volatile bool gspRunEvents;
+Handle gspEventThread;
+
+static Handle gspEvent;
+static vu8* gspEventData;
+
+static void gspEventThreadMain(u32 arg);
 
 Result gspInit()
 {
@@ -15,6 +26,76 @@ Result gspInit()
 void gspExit()
 {
 	if(gspGpuHandle)svcCloseHandle(gspGpuHandle);
+}
+
+Result gspInitEventHandler(Handle _gspEvent, vu8* _gspSharedMem, u8 gspThreadId)
+{
+	// Create events
+	int i;
+	for (i = 0; i < GSPEVENT_count; i ++)
+	{
+		Result rc = svcCreateEvent(&gspEvents[i], 0);
+		if (rc != 0)
+		{
+			// Destroy already created events due to failure
+			int j;
+			for (j = 0; j < i; j ++)
+				svcCloseHandle(gspEvents[j]);
+			return rc;
+		}
+	}
+
+	// Start event thread
+	gspEvent = _gspEvent;
+	gspEventData = _gspSharedMem + gspThreadId*0x40;
+	gspRunEvents = true;
+	return svcCreateThread(&gspEventThread, gspEventThreadMain, 0x0, (u32*)((char*)gspEventStack + sizeof(gspEventStack)), 0x31, 0xfffffffe);
+}
+
+void gspExitEventHandler()
+{
+	// Stop event thread
+	gspRunEvents = false;
+	svcWaitSynchronization(gspEventThread, 1000000000);
+
+	// Free events
+	int i;
+	for (i = 0; i < GSPEVENT_count; i ++)
+		svcCloseHandle(gspEvents[i]);
+}
+
+void gspWaitForEvent(GSP_Event id)
+{
+	svcClearEvent(gspEvents[id]);
+	svcWaitSynchronization(gspEvents[id], U64_MAX);
+}
+
+void gspEventThreadMain(u32 arg)
+{
+	while (gspRunEvents)
+	{
+		svcWaitSynchronization(gspEvent, U64_MAX);
+		svcClearEvent(gspEvent);
+
+		int count = gspEventData[1];
+		int last = gspEventData[0] + count;
+		while (last >= 0x34) last -= 0x34;
+		int cur = last;
+		int i;
+		for (i = 0; i < count; i ++)
+		{
+			int curEvt = gspEventData[0xC + cur];
+			cur --;
+			if (cur < 0) cur += 0x34;
+			if (curEvt >= GSPEVENT_count) continue;
+			svcSignalEvent(gspEvents[curEvt]);
+		}
+
+		gspEventData[0] = last;
+		gspEventData[1] -= count;
+		gspEventData[2] = 0;
+	}
+	svcExitThread();
 }
 
 Result GSPGPU_AcquireRight(Handle* handle, u8 flags)
