@@ -847,6 +847,8 @@ struct hostent * gethostbyname(const char * name)
 	SOC_hostent.h_length    = 4;
 	SOC_hostent.h_addr_list = SOC_hostent_results;
 
+	SOC_hostent_alias = NULL;
+
 	for(i = 0; i < num_results; ++i)
 		SOC_hostent_results[i] = (char*)outbuf + 0x1908 + i*0x10;
 	SOC_hostent_results[num_results] = NULL;
