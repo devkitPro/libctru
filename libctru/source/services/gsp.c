@@ -8,7 +8,7 @@
 #define GSP_EVENT_STACK_SIZE 0x1000
 
 Handle gspGpuHandle=0;
-Handle gspEvents[GSPEVENT_count];
+Handle gspEvents[GSPEVENT_MAX];
 u64 gspEventStack[GSP_EVENT_STACK_SIZE/sizeof(u64)]; //u64 so that it's 8-byte aligned
 volatile bool gspRunEvents;
 Handle gspEventThread;
@@ -32,7 +32,7 @@ Result gspInitEventHandler(Handle _gspEvent, vu8* _gspSharedMem, u8 gspThreadId)
 {
 	// Create events
 	int i;
-	for (i = 0; i < GSPEVENT_count; i ++)
+	for (i = 0; i < GSPEVENT_MAX; i ++)
 	{
 		Result rc = svcCreateEvent(&gspEvents[i], 0);
 		if (rc != 0)
@@ -60,14 +60,17 @@ void gspExitEventHandler()
 
 	// Free events
 	int i;
-	for (i = 0; i < GSPEVENT_count; i ++)
+	for (i = 0; i < GSPEVENT_MAX; i ++)
 		svcCloseHandle(gspEvents[i]);
 }
 
-void gspWaitForEvent(GSP_Event id)
+void gspWaitForEvent(GSP_Event id, bool nextEvent)
 {
-	svcClearEvent(gspEvents[id]);
+	if (nextEvent)
+		svcClearEvent(gspEvents[id]);
 	svcWaitSynchronization(gspEvents[id], U64_MAX);
+	if (!nextEvent)
+		svcClearEvent(gspEvents[id]);
 }
 
 void gspEventThreadMain(u32 arg)
@@ -87,7 +90,7 @@ void gspEventThreadMain(u32 arg)
 			int curEvt = gspEventData[0xC + cur];
 			cur --;
 			if (cur < 0) cur += 0x34;
-			if (curEvt >= GSPEVENT_count) continue;
+			if (curEvt >= GSPEVENT_MAX) continue;
 			svcSignalEvent(gspEvents[curEvt]);
 		}
 

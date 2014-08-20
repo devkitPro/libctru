@@ -36,7 +36,8 @@ typedef enum
 	GSPEVENT_PPF,
 	GSPEVENT_P3D,
 	GSPEVENT_DMA,
-	GSPEVENT_count, // used to know how many events there are
+
+	GSPEVENT_MAX, // used to know how many events there are
 } GSP_Event;
 
 Result gspInit();
@@ -44,15 +45,15 @@ void gspExit();
 
 Result gspInitEventHandler(Handle gspEvent, vu8* gspSharedMem, u8 gspThreadId);
 void gspExitEventHandler();
-void gspWaitForEvent(GSP_Event id);
-#define gspWaitForPSC0() gspWaitForEvent(GSPEVENT_PSC0)
-#define gspWaitForPSC1() gspWaitForEvent(GSPEVENT_PSC1)
+void gspWaitForEvent(GSP_Event id, bool nextEvent);
+#define gspWaitForPSC0() gspWaitForEvent(GSPEVENT_PSC0, false)
+#define gspWaitForPSC1() gspWaitForEvent(GSPEVENT_PSC1, false)
 #define gspWaitForVBlank() gspWaitForVBlank0()
-#define gspWaitForVBlank0() gspWaitForEvent(GSPEVENT_VBlank0)
-#define gspWaitForVBlank1() gspWaitForEvent(GSPEVENT_VBlank1)
-#define gspWaitForPPF() gspWaitForEvent(GSPEVENT_PPF)
-#define gspWaitForP3D() gspWaitForEvent(GSPEVENT_P3D)
-#define gspWaitForDMA() gspWaitForEvent(GSPEVENT_DMA)
+#define gspWaitForVBlank0() gspWaitForEvent(GSPEVENT_VBlank0, true)
+#define gspWaitForVBlank1() gspWaitForEvent(GSPEVENT_VBlank1, true)
+#define gspWaitForPPF() gspWaitForEvent(GSPEVENT_PPF, false)
+#define gspWaitForP3D() gspWaitForEvent(GSPEVENT_P3D, false)
+#define gspWaitForDMA() gspWaitForEvent(GSPEVENT_DMA, false)
 
 Result GSPGPU_AcquireRight(Handle *handle, u8 flags);
 Result GSPGPU_ReleaseRight(Handle *handle);
