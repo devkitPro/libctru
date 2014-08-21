@@ -4,7 +4,8 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 
-Result ACU_cmd1(Handle servhandle, u32 *ptr)//Unknown what this cmd does at the time of writing. (ptr=0x200-byte outbuf)
+// ptr=0x200-byte outbuf
+Result ACU_CreateDefaultConfig(Handle servhandle, u32 *ptr)
 {
 	u32 tmp0, tmp1;
 	Result ret=0;
@@ -25,7 +26,8 @@ Result ACU_cmd1(Handle servhandle, u32 *ptr)//Unknown what this cmd does at the 
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_cmd26(Handle servhandle, u32 *ptr, u8 val)//Unknown what this cmd does at the time of writing. (ptr=0x200-byte inbuf/outbuf)
+// Unknown what this cmd does at the time of writing. (ptr=0x200-byte inbuf/outbuf)
+Result ACU_cmd26(Handle servhandle, u32 *ptr, u8 val)
 {
 	u32 tmp0, tmp1;
 	Result ret=0;
