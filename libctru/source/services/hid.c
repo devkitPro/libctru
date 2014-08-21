@@ -1,3 +1,6 @@
+/*
+  _hid.c - Touch screen, buttons, gyroscope, accelerometer etc.
+*/
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
@@ -14,95 +17,136 @@ static u32 kOld, kHeld, kDown, kUp;
 static touchPosition tPos;
 static circlePosition cPos;
 
+
 Result hidInit(u32* sharedMem)
 {
-	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
-	Result ret=0;
+    if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
+    Result ret=0;
 
-	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")))return ret;
-	
-	if((ret=HIDUSER_GetInfo(NULL, &hidMemHandle)))return ret;
-	hidSharedMem=sharedMem;
-	svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000);
+    // Request service.
+    if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")))return ret;
 
-	if((ret=HIDUSER_EnableAccelerometer(NULL)))return ret;
+    // Get sharedmem handle.
+    if((ret=HIDUSER_GetSharedMem(&hidMemHandle))) goto cleanup1;
 
-	kOld = kHeld = kDown = kUp = 0;
+    // Map HID shared memory at addr "sharedMem".
+    hidSharedMem=sharedMem;
+    if((ret=svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
 
-	return 0;
+    // Reset internal state.
+    kOld = kHeld = kDown = kUp = 0;
+    return 0;
+
+cleanup2:
+    svcCloseHandle(hidMemHandle);
+cleanup1:
+    svcCloseHandle(hidHandle);
+    return ret;
 }
 
 void hidExit()
 {
-	svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
-	svcCloseHandle(hidMemHandle);
-	svcCloseHandle(hidHandle);
+    // Unmap HID sharedmem and close handles.
+    svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
+    svcCloseHandle(hidMemHandle);
+    svcCloseHandle(hidHandle);
 }
 
 void hidScanInput()
 {
-	kOld = kHeld;
+    kOld = kHeld;
 
-	int padId = hidSharedMem[4];
-	kHeld = hidSharedMem[10 + padId*4];
-	cPos = *(circlePosition*)&hidSharedMem[10 + padId*4 + 3];
+    int padId = hidSharedMem[4];
+    kHeld = hidSharedMem[10 + padId*4];
+    cPos = *(circlePosition*)&hidSharedMem[10 + padId*4 + 3];
 
-	int touchId = hidSharedMem[42 + 4];
-	tPos = *(touchPosition*)&hidSharedMem[42 + 8 + touchId*2];
-	if (hidSharedMem[42 + 8 + touchId*2 + 1])
-		kHeld |= KEY_TOUCH;
+    int touchId = hidSharedMem[42 + 4];
+    tPos = *(touchPosition*)&hidSharedMem[42 + 8 + touchId*2];
+    if (hidSharedMem[42 + 8 + touchId*2 + 1])
+        kHeld |= KEY_TOUCH;
 
-	kDown = (~kOld) & kHeld;
-	kUp = kOld & (~kHeld);
+    kDown = (~kOld) & kHeld;
+    kUp = kOld & (~kHeld);
 }
 
 u32 hidKeysHeld()
 {
-	return kHeld;
+    return kHeld;
 }
 
 u32 hidKeysDown()
 {
-	return kDown;
+    return kDown;
 }
 
 u32 hidKeysUp()
 {
-	return kUp;
+    return kUp;
 }
 
 void hidTouchRead(touchPosition* pos)
 {
-	if (pos) *pos = tPos;
+    if (pos) *pos = tPos;
 }
 
 void hidCircleRead(circlePosition* pos)
 {
-	if (pos) *pos = cPos;
+    if (pos) *pos = cPos;
 }
 
-Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle)
+Result HIDUSER_GetSharedMem(Handle* outMemHandle)
 {
-	if(!handle)handle=&hidHandle;
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0xa0000; //request header code
+    u32* cmdbuf=getThreadCommandBuffer();
+    cmdbuf[0]=0xa0000; //request header code
 
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
+    Result ret=0;
+    if((ret=svcSendSyncRequest(hidHandle)))return ret;
 
-	if(outMemHandle)*outMemHandle=cmdbuf[3];
+    if(outMemHandle)*outMemHandle=cmdbuf[3];
 
-	return cmdbuf[1];
+    return cmdbuf[1];
 }
 
-Result HIDUSER_EnableAccelerometer(Handle* handle)
+Result HIDUSER_EnableAccelerometer()
 {
-	if(!handle)handle=&hidHandle;
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x110000; //request header code
+    u32* cmdbuf=getThreadCommandBuffer();
+    cmdbuf[0]=0x110000; //request header code
 
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
+    Result ret=0;
+    if((ret=svcSendSyncRequest(hidHandle)))return ret;
 
-	return cmdbuf[1];
+    return cmdbuf[1];
+}
+
+Result HIDUSER_DisableAccelerometer()
+{
+    u32* cmdbuf=getThreadCommandBuffer();
+    cmdbuf[0]=0x120000; //request header code
+
+    Result ret=0;
+    if((ret=svcSendSyncRequest(hidHandle)))return ret;
+
+    return cmdbuf[1];
+}
+
+Result HIDUSER_EnableGyroscope()
+{
+    u32* cmdbuf=getThreadCommandBuffer();
+    cmdbuf[0]=0x130000; //request header code
+
+    Result ret=0;
+    if((ret=svcSendSyncRequest(hidHandle)))return ret;
+
+    return cmdbuf[1];
+}
+
+Result HIDUSER_DisableGyroscope()
+{
+    u32* cmdbuf=getThreadCommandBuffer();
+    cmdbuf[0]=0x140000; //request header code
+
+    Result ret=0;
+    if((ret=svcSendSyncRequest(hidHandle)))return ret;
+
+    return cmdbuf[1];
 }

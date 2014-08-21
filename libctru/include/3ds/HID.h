@@ -61,7 +61,10 @@ void hidCircleRead(circlePosition* pos);
 #define touchRead  hidTouchRead
 #define circleRead hidCircleRead
 
-Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle);
-Result HIDUSER_EnableAccelerometer(Handle* handle);
+Result HIDUSER_GetSharedMem(Handle* outMemHandle);
+Result HIDUSER_EnableAccelerometer();
+Result HIDUSER_DisableAccelerometer();
+Result HIDUSER_EnableGyroscope();
+Result HIDUSER_DisableGyroscope();
 
 #endif
