@@ -15,6 +15,22 @@ u32 osConvertVirtToPhys(u32 vaddr)
     return 0;
 }
 
+sysVersion osGetFirmVersion() {
+    return (sysVersion) {
+        .major=*(u8*)0x1FF80003,
+        .minor=*(u8*)0x1FF80002,
+        .revision=*(u8*)0x1FF80001
+    };
+}
+
+sysVersion osGetKernelVersion() {
+    return (sysVersion) {
+        .major=*(u8*)0x1FF80063,
+        .minor=*(u8*)0x1FF80062,
+        .revision=*(u8*)0x1FF80061
+    };
+}
+
 const char* osStrError(u32 error) {
     switch((error>>26) & 0x3F) {
     case 0:
