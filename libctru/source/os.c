@@ -15,20 +15,12 @@ u32 osConvertVirtToPhys(u32 vaddr)
     return 0;
 }
 
-sysVersion osGetFirmVersion() {
-    return (sysVersion) {
-        .major=*(u8*)0x1FF80003,
-        .minor=*(u8*)0x1FF80002,
-        .revision=*(u8*)0x1FF80001
-    };
+u32 osGetFirmVersion() {
+    return (*(u32*)0x1FF80000) & ~0xFF;
 }
 
-sysVersion osGetKernelVersion() {
-    return (sysVersion) {
-        .major=*(u8*)0x1FF80063,
-        .minor=*(u8*)0x1FF80062,
-        .revision=*(u8*)0x1FF80061
-    };
+u32 osGetKernelVersion() {
+    return (*(u32*)0x1FF80060) & ~0xFF;
 }
 
 const char* osStrError(u32 error) {
