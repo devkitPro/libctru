@@ -5,23 +5,22 @@
 #ifndef SVC_H
 #define SVC_H
 
-
 typedef enum {
-    MEMOP_FREE =1, // Free heap
-    MEMOP_ALLOC=3, // Allocate heap
-    MEMOP_MAP  =4, // Mirror mapping
-    MEMOP_UNMAP=5, // Mirror unmapping
-    MEMOP_PROT =6, // Change protection
+	MEMOP_FREE =1, // Free heap
+	MEMOP_ALLOC=3, // Allocate heap
+	MEMOP_MAP  =4, // Mirror mapping
+	MEMOP_UNMAP=5, // Mirror unmapping
+	MEMOP_PROT =6, // Change protection
 
-    MEMOP_FREE_LINEAR =0x10001, // Free linear heap
-    MEMOP_ALLOC_LINEAR=0x10003  // Allocate linear heap
+	MEMOP_FREE_LINEAR =0x10001, // Free linear heap
+	MEMOP_ALLOC_LINEAR=0x10003  // Allocate linear heap
 } MemOp;
 
 typedef enum {
-    MEMPERM_READ   =1,
-    MEMPERM_WRITE  =2,
-    MEMPERM_EXECUTE=4,
-    MEMPERM_MAX    =0xFFFFFFFF //force 4-byte
+	MEMPERM_READ   =1,
+	MEMPERM_WRITE  =2,
+	MEMPERM_EXECUTE=4,
+	MEMPERM_MAX    =0xFFFFFFFF //force 4-byte
 } MemPerm;
 
 u32* getThreadCommandBuffer(void);
@@ -49,6 +48,5 @@ s32  svcGetProcessInfo(s64* out, Handle process, u32 type);
 s32  svcConnectToPort(volatile Handle* out, const char* portName);
 s32  svcSendSyncRequest(Handle session);
 s32  svcGetProcessId(u32 *out, Handle handle);
-
 
 #endif
