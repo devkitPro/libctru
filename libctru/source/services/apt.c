@@ -196,8 +196,8 @@ void aptEventHandler(u32 arg)
 	
 					switch(signalType)
 					{
-						case 0x1: //home menu button got pressed
-						case 0x8: //power button got pressed
+						case APTSIGNAL_HOMEBUTTON:
+						case APTSIGNAL_POWERBUTTON:
 							if(aptGetStatus()==APP_RUNNING)
 							{
 								aptOpenSession();
@@ -211,7 +211,7 @@ void aptEventHandler(u32 arg)
 
 							break;
 
-						case 0x3: //preparing to enter sleep-mode
+						case APTSIGNAL_PREPARESLEEP:
 							aptStatus_beforesleepmode = aptGetStatus();
 							aptOpenSession();
 							APT_ReplySleepQuery(NULL, currentAppId, 0x1);
@@ -219,7 +219,7 @@ void aptEventHandler(u32 arg)
 							aptSetStatus(APP_PREPARE_SLEEPMODE);
 							break;
 
-						case 0x5: //entering sleep-mode
+						case APTSIGNAL_ENTERSLEEP:
 							if(aptGetStatus()==APP_PREPARE_SLEEPMODE)
 							{
 								aptOpenSession();
@@ -229,7 +229,7 @@ void aptEventHandler(u32 arg)
 							}
 							break;
 
-						case 0x6: //leaving sleep-mode
+						case APTSIGNAL_WAKEUP: // Leaving sleep-mode.
 							if(aptGetStatus()==APP_SLEEPMODE)
 							{
 								if(aptStatus_beforesleepmode == APP_RUNNING)GSPGPU_SetLcdForceBlack(NULL, 0);

@@ -18,6 +18,21 @@ typedef enum{
 	APP_PREPARE_SLEEPMODE
 }APP_STATUS;
 
+enum {
+	APTSIGNAL_HOMEBUTTON   = 1,
+	// 2: sleep-mode related?
+	APTSIGNAL_PREPARESLEEP = 3,
+	// 4: triggered when ptm:s GetShellStatus() returns 5.
+	APTSIGNAL_ENTERSLEEP   = 5,
+	APTSIGNAL_WAKEUP       = 6,
+	APTSIGNAL_ENABLE       = 7,
+	APTSIGNAL_POWERBUTTON  = 8,
+	APTSIGNAL_UTILITY      = 9,
+	APTSIGNAL_SLEEPSYSTEM  = 10,
+	APTSIGNAL_ERROR        = 11
+};
+
+
 extern Handle aptEvents[3];
 
 Result aptInit(NS_APPID appID);
