@@ -10,6 +10,10 @@ Handle hidMemHandle;
 
 vu32* hidSharedMem;
 
+static u32 kOld, kHeld, kDown, kUp;
+static touchPosition tPos;
+static circlePosition cPos;
+
 Result hidInit(u32* sharedMem)
 {
 	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
@@ -23,6 +27,8 @@ Result hidInit(u32* sharedMem)
 
 	if((ret=HIDUSER_EnableAccelerometer(NULL)))return ret;
 
+	kOld = kHeld = kDown = kUp = 0;
+
 	return 0;
 }
 
@@ -31,6 +37,48 @@ void hidExit()
 	svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
 	svcCloseHandle(hidMemHandle);
 	svcCloseHandle(hidHandle);
+}
+
+void hidScanInput()
+{
+	kOld = kHeld;
+
+	int padId = hidSharedMem[4];
+	kHeld = hidSharedMem[10 + padId*4];
+	cPos = *(circlePosition*)&hidSharedMem[10 + padId*4 + 3];
+
+	int touchId = hidSharedMem[42 + 4];
+	tPos = *(touchPosition*)&hidSharedMem[42 + 8 + touchId*2];
+	if (hidSharedMem[42 + 8 + touchId*2 + 1])
+		kHeld |= KEY_TOUCH;
+
+	kDown = (~kOld) & kHeld;
+	kUp = kOld & (~kHeld);
+}
+
+u32 hidKeysHeld()
+{
+	return kHeld;
+}
+
+u32 hidKeysDown()
+{
+	return kDown;
+}
+
+u32 hidKeysUp()
+{
+	return kUp;
+}
+
+void hidTouchRead(touchPosition* pos)
+{
+	if (pos) *pos = tPos;
+}
+
+void hidCircleRead(circlePosition* pos)
+{
+	if (pos) *pos = cPos;
 }
 
 Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle)

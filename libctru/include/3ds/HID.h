@@ -3,33 +3,63 @@
 
 #define HID_SHAREDMEM_DEFAULT (0x10000000)
 
-#define CPAD_X(v) ((s16)((v)&0xFFFF))
-#define CPAD_Y(v) ((s16)(((v>>16))&0xFFFF))
-
-#define TOUCH_X(v) ((u16)((v)&0xFFFF))
-#define TOUCH_Y(v) ((u16)(((v>>16))&0xFFFF))
-
 typedef enum
 {
-	PAD_A = (1<<0),
-	PAD_B = (1<<1),
-	PAD_SELECT = (1<<2),
-	PAD_START = (1<<3),
-	PAD_RIGHT = (1<<4),
-	PAD_LEFT = (1<<5),
-	PAD_UP = (1<<6),
-	PAD_DOWN = (1<<7),
-	PAD_R = (1<<8),
-	PAD_L = (1<<9),
-	PAD_X = (1<<10),
-	PAD_Y = (1<<11)
-}PAD_KEY;
+	KEY_A      = BIT(0),
+	KEY_B      = BIT(1),
+	KEY_SELECT = BIT(2),
+	KEY_START  = BIT(3),
+	KEY_DRIGHT = BIT(4),
+	KEY_DLEFT  = BIT(5),
+	KEY_DUP    = BIT(6),
+	KEY_DDOWN  = BIT(7),
+	KEY_R      = BIT(8),
+	KEY_L      = BIT(9),
+	KEY_X      = BIT(10),
+	KEY_Y      = BIT(11),
+	KEY_TOUCH  = BIT(20), // Not actually provided by HID
+	KEY_CLEFT  = BIT(28),
+	KEY_CRIGHT = BIT(29),
+	KEY_CUP    = BIT(30),
+	KEY_CDOWN  = BIT(31),
+
+	// Generic catch-all directions
+	KEY_UP    = KEY_DUP    | KEY_CUP,
+	KEY_DOWN  = KEY_DDOWN  | KEY_CDOWN,
+	KEY_LEFT  = KEY_DLEFT  | KEY_CLEFT,
+	KEY_RIGHT = KEY_DRIGHT | KEY_CRIGHT,
+} PAD_KEY;
+
+typedef struct
+{
+	u16 px, py;
+} touchPosition;
+
+typedef struct
+{
+	s16 dx, dy;
+} circlePosition;
 
 extern Handle hidMemHandle;
 extern vu32* hidSharedMem;
 
 Result hidInit(u32* sharedMem);
 void hidExit();
+
+void hidScanInput();
+u32 hidKeysHeld();
+u32 hidKeysDown();
+u32 hidKeysUp();
+void hidTouchRead(touchPosition* pos);
+void hidCircleRead(circlePosition* pos);
+
+// libnds compatibility defines
+#define scanKeys   hidScanInput
+#define keysHeld   hidKeysHeld
+#define keysDown   hidKeysDown
+#define keysUp     hidKeysUp
+#define touchRead  hidTouchRead
+#define circleRead hidCircleRead
 
 Result HIDUSER_GetInfo(Handle* handle, Handle* outMemHandle);
 Result HIDUSER_EnableAccelerometer(Handle* handle);
