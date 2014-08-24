@@ -24,18 +24,17 @@ INCLUDES	:=	include
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-marm
+ARCH	:=	-march=armv6k -mtune=mpcore
 
-CFLAGS	:=	-g -Wall -O2 -mthumb-interwork\
-		-mcpu=mpcore -mtune=mpcore \
-		-mfpu=vfp -ffast-math -mword-relocations \
-		$(ARCH)
+CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+			-fomit-frame-pointer -ffast-math \
+			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
-ASFLAGS	:=	-g $(ARCH) -mcpu=mpcore -mtune=mpcore
-LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+
+ASFLAGS	:=	-g $(ARCH)
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
