@@ -1,3 +1,7 @@
+/*
+  gx.c _ Sending GPU requests via GSP shared memory.
+*/
+
 #include <stdlib.h>
 #include <3ds/types.h>
 #include <3ds/GSP.h>

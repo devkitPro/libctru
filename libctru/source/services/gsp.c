@@ -1,3 +1,7 @@
+/*
+  gsp.c _ Gpu/lcd stuff.
+*/
+
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
@@ -17,6 +21,7 @@ static Handle gspEvent;
 static vu8* gspEventData;
 
 static void gspEventThreadMain(u32 arg);
+
 
 Result gspInit()
 {
