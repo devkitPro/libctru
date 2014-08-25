@@ -47,7 +47,7 @@ static int __name_cmp(const char* a, const char* b) {
 	return 0;
 }
 
-static Handle __get_handle_from_list(char* name) {
+Handle __get_handle_from_list(char* name) {
 	if((u32)__service_ptr == 0)
 		return 0;
 

@@ -14,6 +14,9 @@
 /*! FSUSER handle */
 static Handle fsuHandle;
 
+// used to determine whether or not we should do FSUSER_Initialize on fsuHandle
+Handle __get_handle_from_list(char* name);
+
 /*! Initialize FS service
  *
  *  @returns error
@@ -21,7 +24,10 @@ static Handle fsuHandle;
 Result
 fsInit(void)
 {
-	return srvGetServiceHandle(&fsuHandle, "fs:USER");
+	Result ret;
+	if((ret=srvGetServiceHandle(&fsuHandle, "fs:USER"))!=0)return ret;
+	if(__get_handle_from_list("fs:USER")==0)ret=FSUSER_Initialize(NULL);
+	return ret;
 }
 
 /*! Deinitialize FS service
@@ -62,7 +68,12 @@ Result
 FSUSER_Initialize(Handle* handle)
 {
 	if(!handle)
+	{
+		// don't run command if we got handle from the list
 		handle = &fsuHandle;
+		if(fsuHandle != 0 && __get_handle_from_list("fs:USER")==0)
+			return 0;
+	}
 
 	u32 *cmdbuf = getThreadCommandBuffer();
 
