@@ -51,6 +51,8 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 	}
 }
 
+extern u32 __gsp_heap_size;
+
 void gfxInit()
 {
 	gspInit();
@@ -65,7 +67,7 @@ void gfxInit()
 	svcMapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
 
 	//map GSP heap
-	svcControlMemory((u32*)&gspHeap, 0x0, 0x0, 0x02000000, 0x10003, 0x3);
+	svcControlMemory((u32*)&gspHeap, 0x0, 0x0, __gsp_heap_size, 0x10003, 0x3);
 
 	// default gspHeap configuration :
 	//		topleft1  0x00000000-0x00046500
@@ -88,19 +90,23 @@ void gfxInit()
 	gfxSetFramebufferInfo(GFX_TOP, 0);
 	gfxSetFramebufferInfo(GFX_BOTTOM, 0);
 
-	//wait until we can write stuff to it
-	svcWaitSynchronization(gspEvent, 0x55bcb0);
-
 	//GSP shared mem : 0x2779F000
 	gxCmdBuf=(u32*)(0x10002000+0x800+threadID*0x200);
 
 	currentBuffer=0;
+
+	// Initialize event handler and wait for VBlank
+	gspInitEventHandler(gspEvent, (vu8*)0x10002000, threadID);
+	gspWaitForVBlank();
 }
 
 void gfxExit()
 {
+	// Exit event handler
+	gspExitEventHandler();
+
 	//free GSP heap
-	svcControlMemory((u32*)&gspHeap, (u32)gspHeap, 0x0, 0x02000000, MEMOP_FREE, 0x0);
+	svcControlMemory((u32*)&gspHeap, (u32)gspHeap, 0x0, __gsp_heap_size, MEMOP_FREE, 0x0);
 
 	//unmap GSP shared mem
 	svcUnmapMemoryBlock(gspSharedMemHandle, 0x10002000);
