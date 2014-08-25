@@ -14,6 +14,15 @@ typedef struct
 	u32 unk;//"?"
 } GSP_FramebufferInfo;
 
+typedef enum
+{
+	GSP_RGBA8_OES=0,
+	GSP_BGR8_OES=1,
+	GSP_RGB565_OES=2,
+	GSP_RGB5_A1_OES=3,
+	GSP_RGBA4_OES=4
+}GSP_FramebufferFormats;
+
 typedef struct//See this for GSP_CaptureInfoEntry and GSP_CaptureInfo: http://3dbrew.org/wiki/GSPGPU:ImportDisplayCaptureInfo
 {
 	u32 *framebuf0_vaddr;

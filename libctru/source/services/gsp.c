@@ -101,6 +101,175 @@ void gspEventThreadMain(u32 arg)
 	svcExitThread();
 }
 
+Result GSPGPU_WriteHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	if(size>0x80 || !data)return -1;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00010082; //request header code
+	cmdbuf[1]=regAddr;
+	cmdbuf[2]=size;
+	cmdbuf[3]=(size<<14)|2;
+	cmdbuf[4]=(u32)data;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_WriteHWRegsWithMask(Handle* handle, u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	if(datasize>0x80 || !data)return -1;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00020084; //request header code
+	cmdbuf[1]=regAddr;
+	cmdbuf[2]=datasize;
+	cmdbuf[3]=(datasize<<14)|2;
+	cmdbuf[4]=(u32)data;
+	cmdbuf[5]=(masksize<<14)|0x402;
+	cmdbuf[6]=(u32)maskdata;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_ReadHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	if(size>0x80 || !data)return -1;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00040080; //request header code
+	cmdbuf[1]=regAddr;
+	cmdbuf[2]=size;
+	cmdbuf[0x40]=(size<<14)|2;
+	cmdbuf[0x40+1]=(u32)data;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_SetBufferSwap(Handle* handle, u32 screenid, GSP_FramebufferInfo *framebufinfo)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	if(!handle)handle=&gspGpuHandle;
+
+	cmdbuf[0] = 0x00050200;
+	cmdbuf[1] = screenid;
+	memcpy(&cmdbuf[2], framebufinfo, sizeof(GSP_FramebufferInfo));
+	
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00080082; //request header code
+	cmdbuf[1]=(u32)adr;
+	cmdbuf[2]=size;
+	cmdbuf[3]=0x0;
+	cmdbuf[4]=0xffff8001;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_InvalidateDataCache(Handle* handle, u8* adr, u32 size)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	if(!handle)handle=&gspGpuHandle;
+
+	cmdbuf[0] = 0x00090082;
+	cmdbuf[1] = (u32)adr;
+	cmdbuf[2] = size;
+	cmdbuf[3] = 0;
+	cmdbuf[4] = 0xFFFF8001;
+
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_SetLcdForceBlack(Handle* handle, u8 flags)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x000B0040; //request header code
+	cmdbuf[1]=flags;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_TriggerCmdReqQueue(Handle* handle)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x000C0000; //request header code
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_RegisterInterruptRelayQueue(Handle* handle, Handle eventHandle, u32 flags, Handle* outMemHandle, u8* threadID)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00130042; //request header code
+	cmdbuf[1]=flags;
+	cmdbuf[2]=0x0;
+	cmdbuf[3]=eventHandle;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	if(threadID)*threadID=cmdbuf[2];
+	if(outMemHandle)*outMemHandle=cmdbuf[4];
+	
+	return cmdbuf[1];
+}
+
+Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle)
+{
+	if(!handle)handle=&gspGpuHandle;
+	
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00140000; //request header code
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+	
+	return cmdbuf[1];
+}
+
 Result GSPGPU_AcquireRight(Handle* handle, u8 flags)
 {
 	if(!handle)handle=&gspGpuHandle;
@@ -169,175 +338,6 @@ Result GSPGPU_RestoreVramSysArea(Handle* handle)
 	
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x001A0000; //request header code
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_SetLcdForceBlack(Handle* handle, u8 flags)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0xB0040; //request header code
-	cmdbuf[1]=flags;
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_SetBufferSwap(Handle* handle, u32 screenid, GSP_FramebufferInfo *framebufinfo)
-{
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
-	if(!handle)handle=&gspGpuHandle;
-
-	cmdbuf[0] = 0x00050200;
-	cmdbuf[1] = screenid;
-	memcpy(&cmdbuf[2], framebufinfo, sizeof(GSP_FramebufferInfo));
-	
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_FlushDataCache(Handle* handle, u8* adr, u32 size)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x80082; //request header code
-	cmdbuf[1]=(u32)adr;
-	cmdbuf[2]=size;
-	cmdbuf[3]=0x0;
-	cmdbuf[4]=0xffff8001;
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_InvalidateDataCache(Handle* handle, u8* adr, u32 size)
-{
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
-	if(!handle)handle=&gspGpuHandle;
-
-	cmdbuf[0] = 0x00090082;
-	cmdbuf[1] = (u32)adr;
-	cmdbuf[2] = size;
-	cmdbuf[3] = 0;
-	cmdbuf[4] = 0xFFFF8001;
-
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_WriteHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	if(size>0x80 || !data)return -1;
-
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x10082; //request header code
-	cmdbuf[1]=regAddr;
-	cmdbuf[2]=size;
-	cmdbuf[3]=(size<<14)|2;
-	cmdbuf[4]=(u32)data;
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_WriteHWRegsWithMask(Handle* handle, u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	if(datasize>0x80 || !data)return -1;
-
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x20084; //request header code
-	cmdbuf[1]=regAddr;
-	cmdbuf[2]=datasize;
-	cmdbuf[3]=(datasize<<14)|2;
-	cmdbuf[4]=(u32)data;
-	cmdbuf[5]=(masksize<<14)|0x402;
-	cmdbuf[6]=(u32)maskdata;
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_ReadHWRegs(Handle* handle, u32 regAddr, u32* data, u8 size)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	if(size>0x80 || !data)return -1;
-
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x40080; //request header code
-	cmdbuf[1]=regAddr;
-	cmdbuf[2]=size;
-	cmdbuf[0x40]=(size<<14)|2;
-	cmdbuf[0x40+1]=(u32)data;
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	return cmdbuf[1];
-}
-
-Result GSPGPU_RegisterInterruptRelayQueue(Handle* handle, Handle eventHandle, u32 flags, Handle* outMemHandle, u8* threadID)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x130042; //request header code
-	cmdbuf[1]=flags;
-	cmdbuf[2]=0x0;
-	cmdbuf[3]=eventHandle;
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-
-	if(threadID)*threadID=cmdbuf[2];
-	if(outMemHandle)*outMemHandle=cmdbuf[4];
-	
-	return cmdbuf[1];
-}
-
-Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x00140000; //request header code
-
-	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
-	
-	return cmdbuf[1];
-}
-
-Result GSPGPU_TriggerCmdReqQueue(Handle* handle)
-{
-	if(!handle)handle=&gspGpuHandle;
-	
-	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0xC0000; //request header code
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(*handle)))return ret;
