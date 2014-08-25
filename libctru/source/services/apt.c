@@ -307,12 +307,12 @@ Result aptInit(void)
 
 	currentAppId = __apt_appid;
 
-	aptOpenSession();
-	if((ret=APT_Initialize(NULL, currentAppId, &aptEvents[0], &aptEvents[1])))return ret;
-	aptCloseSession();
-
 	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))
 	{
+		aptOpenSession();
+		if((ret=APT_Initialize(NULL, currentAppId, &aptEvents[0], &aptEvents[1])))return ret;
+		aptCloseSession();
+		
 		aptOpenSession();
 		if((ret=APT_Enable(NULL, 0x0)))return ret;
 		aptCloseSession();
@@ -380,6 +380,12 @@ void aptSetupEventHandler()
 	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();*/
 
+	svcCreateMutex(&aptStatusMutex, true);
+	aptStatus=0;
+	svcReleaseMutex(aptStatusMutex);
+
+	aptSetStatus(APP_RUNNING);
+
 	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))
 	{
 		memset(buf1, 0, 4);
@@ -397,17 +403,11 @@ void aptSetupEventHandler()
 		aptOpenSession();
 		APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 		aptCloseSession();
+
+		// Create thread for stuff handling APT events.
+		svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
+			(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
 	}
-
-	svcCreateMutex(&aptStatusMutex, true);
-	aptStatus=0;
-	svcReleaseMutex(aptStatusMutex);
-
-	aptSetStatus(APP_RUNNING);
-
-	// Create thread for stuff handling APT events.
-	svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
-		(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
 }
 
 APP_STATUS aptGetStatus()
