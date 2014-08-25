@@ -1,6 +1,9 @@
 #ifndef APT_H
 #define APT_H
 
+// TODO : find a better place to put this
+#define RUNFLAG_APTWORKAROUND (BIT(0))
+
 typedef enum{
 	APPID_HOMEMENU = 0x101, // Home Menu
 	APPID_CAMERA = 0x110, // Camera applet
@@ -35,7 +38,7 @@ enum {
 
 extern Handle aptEvents[3];
 
-Result aptInit(NS_APPID appID);
+Result aptInit();
 void aptExit();
 void aptOpenSession();
 void aptCloseSession();

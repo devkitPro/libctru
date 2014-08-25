@@ -12,6 +12,10 @@
 
 #define APT_HANDLER_STACKSIZE (0x1000)
 
+//TODO : better place to put this ?
+extern u32 __apt_appid;
+extern u32 __system_runflags;
+
 NS_APPID currentAppId;
 
 Handle aptLockHandle;
@@ -292,7 +296,7 @@ void aptEventHandler(u32 arg)
 	svcExitThread();
 }
 
-Result aptInit(NS_APPID appID)
+Result aptInit(void)
 {
 	Result ret=0;
 
@@ -301,19 +305,22 @@ Result aptInit(NS_APPID appID)
 	if((ret=APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle)))return ret;
 	svcCloseHandle(aptuHandle);
 
-	currentAppId = appID;
+	currentAppId = __apt_appid;
 
 	aptOpenSession();
 	if((ret=APT_Initialize(NULL, currentAppId, &aptEvents[0], &aptEvents[1])))return ret;
 	aptCloseSession();
-	
-	aptOpenSession();
-	if((ret=APT_Enable(NULL, 0x0)))return ret;
-	aptCloseSession();
-	
-	aptOpenSession();
-	if((ret=APT_NotifyToWait(NULL, currentAppId)))return ret;
-	aptCloseSession();
+
+	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))
+	{
+		aptOpenSession();
+		if((ret=APT_Enable(NULL, 0x0)))return ret;
+		aptCloseSession();
+		
+		aptOpenSession();
+		if((ret=APT_NotifyToWait(NULL, currentAppId)))return ret;
+		aptCloseSession();
+	}
 
 	svcCreateEvent(&aptStatusEvent, 0);
 	return 0;
@@ -331,13 +338,16 @@ void aptExit()
 		aptCloseSession();
 	}
 
-	aptOpenSession();
-	APT_PrepareToCloseApplication(NULL, 0x1);
-	aptCloseSession();
-	
-	aptOpenSession();
-	APT_CloseApplication(NULL, 0x0, 0x0, 0x0);
-	aptCloseSession();
+	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))
+	{
+		aptOpenSession();
+		APT_PrepareToCloseApplication(NULL, 0x1);
+		aptCloseSession();
+		
+		aptOpenSession();
+		APT_CloseApplication(NULL, 0x0, 0x0, 0x0);
+		aptCloseSession();
+	}
 
 	svcCloseHandle(aptStatusMutex);
 	//svcCloseHandle(aptLockHandle);
@@ -370,21 +380,24 @@ void aptSetupEventHandler()
 	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();*/
 
-	memset(buf1, 0, 4);
+	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))
+	{
+		memset(buf1, 0, 4);
 
-	buf1[0] = 0x10;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
-	aptCloseSession();
+		buf1[0] = 0x10;
+		aptOpenSession();
+		APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
+		aptCloseSession();
 
-	buf1[0] = 0x00;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
+		buf1[0] = 0x00;
+		aptOpenSession();
+		APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+		aptCloseSession();
 
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
+		aptOpenSession();
+		APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+		aptCloseSession();
+	}
 
 	svcCreateMutex(&aptStatusMutex, true);
 	aptStatus=0;
