@@ -21,6 +21,25 @@ Handle gspEvent, gspSharedMemHandle;
 
 u8* gspHeap;
 u32* gxCmdBuf;
+extern u32 __gsp_heap_size;
+
+
+
+// TODO: this function is not thread-safe and you cannot 'free' this memory.
+void* gfxAllocLinear(size_t size)
+{
+    static size_t currentOffset = 0;
+    size_t free = __gsp_heap_size - currentOffset;
+
+    if(free >= size)
+    {
+        currentOffset += size;
+        return (void*) &gspHeap[currentOffset - size];
+    }
+
+    return NULL;
+}
+
 
 void gfxSet3D(bool enable)
 {
@@ -51,8 +70,6 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 	}
 }
 
-extern u32 __gsp_heap_size;
-
 void gfxInit()
 {
 	gspInit();
@@ -78,12 +95,12 @@ void gfxInit()
 	//		topright1 0x000FD200-0x00143700
 	//		topright2 0x00143700-0x00189C00
 
-	gfxTopLeftFramebuffers[0]=(u8*)gspHeap;
-	gfxTopLeftFramebuffers[1]=gfxTopLeftFramebuffers[0]+0x46500;
-	gfxBottomFramebuffers[0]=gfxTopLeftFramebuffers[1]+0x46500;
-	gfxBottomFramebuffers[1]=gfxBottomFramebuffers[0]+0x38400;
-	gfxTopRightFramebuffers[0]=gfxBottomFramebuffers[1]+0x38400;
-	gfxTopRightFramebuffers[1]=gfxTopRightFramebuffers[0]+0x46500;
+	gfxTopLeftFramebuffers[0]=gfxAllocLinear(0x46500);
+	gfxTopLeftFramebuffers[1]=gfxAllocLinear(0x46500);
+	gfxBottomFramebuffers[0]=gfxAllocLinear(0x38400);
+	gfxBottomFramebuffers[1]=gfxAllocLinear(0x38400);
+	gfxTopRightFramebuffers[0]=gfxAllocLinear(0x46500);
+	gfxTopRightFramebuffers[1]=gfxAllocLinear(0x46500);
 	enable3d=false;
 
 	//initialize framebuffer info structures
