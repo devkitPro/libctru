@@ -36,7 +36,8 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 		if(enable3d)topFramebufferInfo.framebuf1_vaddr=(u32*)gfxTopRightFramebuffers[id];
 		else topFramebufferInfo.framebuf1_vaddr=topFramebufferInfo.framebuf0_vaddr;
 		topFramebufferInfo.framebuf_widthbytesize=240*3;
-		topFramebufferInfo.format=((1)<<8)|((1)<<6)|((enable3d&1)<<5)|GSP_BGR8_OES;
+		u8 bit5=(enable3d!=0);
+		topFramebufferInfo.format=((1)<<8)|((1^bit5)<<6)|((bit5)<<5)|GSP_BGR8_OES;
 		topFramebufferInfo.framebuf_dispselect=id;
 		topFramebufferInfo.unk=0x00000000;
 	}else{
