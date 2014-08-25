@@ -1,3 +1,7 @@
+/*
+  gx.c _ Sending GPU requests via GSP shared memory.
+*/
+
 #include <stdlib.h>
 #include <3ds/types.h>
 #include <3ds/GSP.h>
@@ -13,7 +17,7 @@ Result GX_RequestDma(u32* gxbuf, u32* src, u32* dst, u32 length)
 	gxCommand[3]=length; //size
 	gxCommand[4]=gxCommand[5]=gxCommand[6]=gxCommand[7]=0x0;
 
-	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
+	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }
 
 Result GX_SetCommandList_Last(u32* gxbuf, u32* buf0a, u32 buf0s, u8 flags)
@@ -26,7 +30,7 @@ Result GX_SetCommandList_Last(u32* gxbuf, u32* buf0a, u32 buf0s, u8 flags)
 	gxCommand[4]=gxCommand[5]=gxCommand[6]=0x0;
 	gxCommand[7]=(flags>>1)&1; //when non-zero, call svcFlushProcessDataCache() with the specified buffer
 
-	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
+	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }
 
 Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width0, u32* buf1a, u32 buf1v, u32* buf1e, u16 width1)
@@ -42,7 +46,7 @@ Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width
 	gxCommand[6]=(u32)buf1e; //buf1 end addr
 	gxCommand[7]=(width0)|(width1<<16);
 
-	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
+	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }
 
 // Flags, for applications this is 0x1001000 for the main screen, and 0x1000 for the sub screen.
@@ -57,7 +61,7 @@ Result GX_SetDisplayTransfer(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32
 	gxCommand[5]=flags;
 	gxCommand[6]=gxCommand[7]=0x0;
 
-	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
+	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }
 
 Result GX_SetTextureCopy(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 size, u32 flags)
@@ -72,7 +76,7 @@ Result GX_SetTextureCopy(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 out
 	gxCommand[6]=flags;
 	gxCommand[7]=0x0;
 
-	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
+	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }
 
 Result GX_SetCommandList_First(u32* gxbuf, u32* buf0a, u32 buf0s, u32* buf1a, u32 buf1s, u32* buf2a, u32 buf2s)
@@ -87,5 +91,5 @@ Result GX_SetCommandList_First(u32* gxbuf, u32* buf0a, u32 buf0s, u32* buf1a, u3
 	gxCommand[6]=(u32)buf2s; //buf2 size
 	gxCommand[7]=0x0;
 
-	return GSPGPU_submitGxCommand(gxbuf, gxCommand, NULL);
+	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }

@@ -17,7 +17,7 @@ include $(DEVKITARM)/base_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	ctru
 BUILD		:=	build
-SOURCES		:=	source source/services
+SOURCES		:=	source source/services source/gpu
 DATA		:=	data
 INCLUDES	:=	include
 
@@ -87,6 +87,10 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 #---------------------------------------------------------------------------------
 all: $(BUILD)
 
+dox:
+	@doxygen Doxyfile
+	@doxygen Doxyfile.internal
+
 lib:
 	@[ -d $@ ] || mkdir -p $@
 
@@ -97,7 +101,7 @@ $(BUILD): lib
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) lib
+	@rm -fr $(BUILD) lib docs internal_docs
 
 #---------------------------------------------------------------------------------
 else

@@ -1,39 +1,146 @@
+#pragma once
 #ifndef FS_H
 #define FS_H
 
-#define FS_OPEN_READ (1<<0)
-#define FS_OPEN_WRITE (1<<1)
-#define FS_OPEN_CREATE (1<<2)
+/*! @file FS.h
+ *
+ *  Filesystem Services
+ */
 
-#define FS_ATTRIBUTE_NONE (0x00000000)
-#define FS_ATTRIBUTE_READONLY (0x00000001)
-#define FS_ATTRIBUTE_ARCHIVE (0x00000100)
-#define FS_ATTRIBUTE_HIDDEN (0x00010000)
-#define FS_ATTRIBUTE_DIRECTORY (0x01000000)
+#include <string.h>
+#include <3ds/types.h>
 
-typedef enum{
-	PATH_INVALID = 0,	// Specifies an invalid path.
-	PATH_EMPTY = 1,		// Specifies an empty path.
-	PATH_BINARY = 2,	// Specifies a binary path, which is non-text based.
-	PATH_CHAR = 3,		// Specifies a text based path with a 8-bit byte per character.
-	PATH_WCHAR = 4,		// Specifies a text based path with a 16-bit short per character.
-}FS_pathType;
-
-typedef struct{
-	FS_pathType type;
-	u32 size;
-	u8* data;
-}FS_path;
-
-typedef struct{
-	u32 id;
-	FS_path lowPath;
-	Handle handleLow, handleHigh;
-}FS_archive;
-
-static inline FS_path FS_makePath(FS_pathType type, char* path)
+#ifdef __cplusplus
+extern "C"
 {
-	return (FS_path){type, strlen(path)+1, (u8*)path};
+#endif
+
+/*! @defgroup fs_open_flags FS Open Flags
+ *
+ *  @sa FSUSER_OpenFile
+ *  @sa FSUSER_OpenFileDirectly
+ *
+ *  @{
+ */
+
+/*! Open file for read. */
+#define FS_OPEN_READ   (1<<0)
+/*! Open file for write. */
+#define FS_OPEN_WRITE  (1<<1)
+/*! Create file if it doesn't exist. */
+#define FS_OPEN_CREATE (1<<2)
+/* @} */
+
+/*! @defgroup fs_create_attributes FS Create Attributes
+ *
+ *  @sa FSUSER_OpenFile
+ *  @sa FSUSER_OpenFileDirectly
+ *
+ *  @{
+ */
+
+/*! No attributes. */
+#define FS_ATTRIBUTE_NONE      (0x00000000)
+/*! Create with read-only attribute. */
+#define FS_ATTRIBUTE_READONLY  (0x00000001)
+/*! Create with archive attribute. */
+#define FS_ATTRIBUTE_ARCHIVE   (0x00000100)
+/*! Create with hidden attribute. */
+#define FS_ATTRIBUTE_HIDDEN    (0x00010000)
+/*! Create with directory attribute. */
+#define FS_ATTRIBUTE_DIRECTORY (0x01000000)
+/*! @} */
+
+/*! @defgroup fs_write_flush_flags FS Flush Flags
+ *
+ *  @sa FSFILE_Write
+ *
+ *  @{
+ */
+
+/*! Don't flush */
+#define FS_WRITE_NOFLUSH (0x00000000)
+/*! Flush */
+#define FS_WRITE_FLUSH   (0x00010001)
+
+/* @} */
+
+/*! FS path type */
+typedef enum
+{
+	PATH_INVALID = 0, //!< Specifies an invalid path.
+	PATH_EMPTY   = 1, //!< Specifies an empty path.
+	PATH_BINARY  = 2, //!< Specifies a binary path, which is non-text based.
+	PATH_CHAR    = 3, //!< Specifies a text based path with a 8-bit byte per character.
+	PATH_WCHAR   = 4, //!< Specifies a text based path with a 16-bit short per character.
+} FS_pathType;
+
+/*! FS path */
+typedef struct
+{
+	FS_pathType type;  //!< FS path type.
+	u32         size;  //!< FS path size.
+	const u8    *data; //!< Pointer to FS path data.
+} FS_path;
+
+/*! FS archive */
+typedef struct
+{
+	u32     id;         //!< Archive ID.
+	FS_path lowPath;    //!< FS path.
+	Handle  handleLow;  //!< High word of handle.
+	Handle  handleHigh; //!< Low word of handle.
+} FS_archive;
+
+/*! Directory entry */
+typedef struct
+{
+  // 0x00
+  u16 name[0x106];     //!< UTF-16 encoded name
+  // 0x20C
+  u8  shortName[0x09]; //!< 8.3 file name
+  // 0x215
+  u8  unknown1;        //!< ???
+  // 0x216
+  u8  shortExt[0x04];  //!< 8.3 file extension (set to spaces for directories)
+  // 0x21A
+  u8  unknown2;        //!< ???
+  // 0x21B
+  u8  unknown3;        //!< ???
+  // 0x21C
+  u8  isDirectory;     //!< 0x00 for files, 0x01 for directories
+  // 0x21D
+  u8  unknown4;        //!< ???
+  // 0x21E
+  u8  isFile;          //!< 0x01 for files, 0x00 for directories
+  // 0x21F
+  u8  unknown5;        //!< ???
+  // 0x220
+  u8  unknown6;        //!< ???
+  // 0x221
+  u8  unknown7;        //!< ???
+  // 0x222
+  u8  unknown8;        //!< ???
+  // 0x223
+  u8  unknown9;        //!< ???
+  // 0x224
+  u8  padding[0x04];   //!< ???
+} FS_dirent;
+
+/*! Create an FS_path from a type and data pointer.
+ *
+ *  @param[in] type Path type.
+ *  @param[in] path Pointer to path data.
+ *
+ *  @returns FS_path
+ *
+ *  @sa FS_pathType
+ */
+static inline FS_path
+FS_makePath(FS_pathType type,
+            const char  *path)
+{
+	return (FS_path){type, strlen(path)+1, (const u8*)path};
 }
 
 Result fsInit(void);
@@ -45,14 +152,24 @@ Result FSUSER_OpenDirectory(Handle* handle, Handle* out, FS_archive archive, FS_
 Result FSUSER_OpenFile(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
 Result FSUSER_OpenFileDirectly(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
 Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
+Result FSUSER_CreateDirectory(Handle* handle, FS_archive archive, FS_path dirLowPath);
+Result FSUSER_DeleteFile(Handle *handle, FS_archive archive, FS_path fileLowPath);
+Result FSUSER_DeleteDirectory(Handle *handle, FS_archive archive, FS_path dirLowPath);
 
 Result FSFILE_Close(Handle handle);
-Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, u32 *buffer, u32 size);
-Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, u32 *buffer, u32 size, u32 flushFlags);
+Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, void *buffer, u32 size);
+Result FSFILE_Write(Handle handle, u32 *bytesWritten, u64 offset, const void *buffer, u32 size, u32 flushFlags);
 Result FSFILE_GetSize(Handle handle, u64 *size);
 Result FSFILE_SetSize(Handle handle, u64 size);
+Result FSFILE_GetAttributes(Handle handle, u32 *attributes);
+Result FSFILE_SetAttributes(Handle handle, u32 attributes);
+Result FSFILE_Flush(Handle handle);
 
-Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, u16 *buffer);
+Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, FS_dirent *buffer);
 Result FSDIR_Close(Handle handle);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,3 +1,7 @@
+/*
+  apt.c _ Applet/NS shell interaction
+*/
+
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
@@ -15,15 +19,16 @@ Handle aptuHandle;
 Handle aptEvents[3];
 
 Handle aptEventHandlerThread;
-u64 aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]; //u64 so that it's 8-byte aligned
+u64 aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]; // u64 so that it's 8-byte aligned
 
 Handle aptStatusMutex;
 Handle aptStatusEvent = 0;
 APP_STATUS aptStatus = APP_NOTINITIALIZED;
-APP_STATUS aptStatus_beforesleepmode = APP_NOTINITIALIZED;
+APP_STATUS aptStatusBeforeSleep = APP_NOTINITIALIZED;
 u32 aptStatusPower = 0;
 
 u32 aptParameters[0x1000/4]; //TEMP
+
 
 void aptInitCaptureInfo(u32 *ns_capinfo)
 {
@@ -33,30 +38,17 @@ void aptInitCaptureInfo(u32 *ns_capinfo)
 
 	memset(&gspcapinfo, 0, sizeof(GSP_CaptureInfo));
 
+	// Get display-capture info from GSP.
 	GSPGPU_ImportDisplayCaptureInfo(NULL, &gspcapinfo);
 
+	// Fill in display-capture info for NS.
 	if(gspcapinfo.screencapture[0].framebuf0_vaddr != gspcapinfo.screencapture[1].framebuf0_vaddr)ns_capinfo[1] = 1;
 	
 	ns_capinfo[4] = gspcapinfo.screencapture[0].format & 0x7;
 	ns_capinfo[7] = gspcapinfo.screencapture[1].format & 0x7;
 
-	if(ns_capinfo[4] < 2)
-	{
-		main_pixsz = 3;
-	}
-	else
-	{
-		main_pixsz = 2;
-	}
-
-	if(ns_capinfo[7] < 2)
-	{
-		sub_pixsz = 3;
-	}
-	else
-	{
-		sub_pixsz = 2;
-	}
+	main_pixsz = (ns_capinfo[4] < 2) ? 3 : 2;
+	sub_pixsz  = (ns_capinfo[7] < 2) ? 3 : 2;
 
 	ns_capinfo[2] = sub_pixsz * 0x14000;
 	ns_capinfo[3] = ns_capinfo[2];
@@ -122,22 +114,27 @@ void aptReturnToMenu()
 	u32 ns_capinfo[0x20>>2];
 	u32 tmp_params[0x20>>2];
 
-	if(aptGetStatusPower()==0)//This is only executed when ret-to-menu was triggered via the home-button, not the power-button.
+	// This is only executed when ret-to-menu was triggered via the home-button, not the power-button.
+	if(aptGetStatusPower() == 0)
 	{
 		aptOpenSession();
 		APT_AppletUtility(NULL, NULL, 0x6, 0x4, (u8*)&tmp0, 0x1, (u8*)&tmp1);
 		aptCloseSession();
 	}
 
+	// Prepare for return to menu
 	aptOpenSession();
-	APT_PrepareToJumpToHomeMenu(NULL); //prepare for return to menu
+	APT_PrepareToJumpToHomeMenu(NULL);
 	aptCloseSession();
 
+	// Set status to SUSPENDED.
 	svcClearEvent(aptStatusEvent);
 	aptSetStatus(APP_SUSPENDED);
 
+	// Save Vram
 	GSPGPU_SaveVramSysArea(NULL);
 
+	// Capture screen.
 	memset(tmp_params, 0, 0x20);
 	memset(ns_capinfo, 0, 0x20);
 
@@ -145,6 +142,7 @@ void aptReturnToMenu()
 
 	menu_appid = aptGetMenuAppID();
 
+	// Send capture-screen info to menu.
 	aptOpenSession();
 	APT_SendParameter(NULL, currentAppId, menu_appid, 0x20, ns_capinfo, 0x0, 0x10);
 	aptCloseSession();
@@ -153,17 +151,21 @@ void aptReturnToMenu()
 	APT_SendCaptureBufferInfo(NULL, 0x20, ns_capinfo);
 	aptCloseSession();
 
-	GSPGPU_ReleaseRight(NULL); //disable GSP module access
+	// Release GSP module.
+	GSPGPU_ReleaseRight(NULL);
 
+	// Jump to menu!
 	aptOpenSession();
-	APT_JumpToHomeMenu(NULL, 0x0, 0x0, 0x0); //jump !
+	APT_JumpToHomeMenu(NULL, 0x0, 0x0, 0x0);
 	aptCloseSession();
 
+	// Wait for return to application.
 	aptOpenSession();
 	APT_NotifyToWait(NULL, currentAppId);
 	aptCloseSession();
 
-	if(aptGetStatusPower()==0)//This is only executed when ret-to-menu was triggered via the home-button, not the power-button.
+	// This is only executed when ret-to-menu was triggered via the home-button, not the power-button.
+	if(aptGetStatusPower() == 0)
 	{
 		tmp0 = 0;
 		aptOpenSession();
@@ -174,100 +176,119 @@ void aptReturnToMenu()
 	aptWaitStatusEvent();
 }
 
+static void __handle_notification() {
+	u8 type;
+
+	// Get notification type.
+	aptOpenSession();
+	APT_InquireNotification(NULL, currentAppId, &type);
+	aptCloseSession();
+
+	switch(type)
+	{
+	case APTSIGNAL_HOMEBUTTON:
+	case APTSIGNAL_POWERBUTTON:
+		// The main thread should call aptReturnToMenu() when the status gets set to this.
+		if(aptGetStatus() == APP_RUNNING)
+		{
+			aptOpenSession();
+			APT_ReplySleepQuery(NULL, currentAppId, 0x0);
+			aptCloseSession();
+		
+			if(type == APTSIGNAL_HOMEBUTTON)  aptSetStatusPower(0);
+			if(type == APTSIGNAL_POWERBUTTON) aptSetStatusPower(1);
+			aptSetStatus(APP_SUSPENDING);
+		}
+		break;
+
+	case APTSIGNAL_PREPARESLEEP:
+		// Reply to sleep-request.
+		aptStatusBeforeSleep = aptGetStatus();
+		aptOpenSession();
+		APT_ReplySleepQuery(NULL, currentAppId, 0x1);
+		aptCloseSession();
+
+		aptSetStatus(APP_PREPARE_SLEEPMODE);
+		break;
+
+	case APTSIGNAL_ENTERSLEEP:
+		if(aptGetStatus() == APP_PREPARE_SLEEPMODE)
+		{
+			// Report into sleep-mode.
+			aptOpenSession();
+			APT_ReplySleepNotificationComplete(NULL, currentAppId);
+			aptCloseSession();
+			aptSetStatus(APP_SLEEPMODE);
+		}
+		break;
+
+	// Leaving sleep-mode.
+	case APTSIGNAL_WAKEUP:
+		if(aptGetStatus() == APP_SLEEPMODE)
+		{
+			if(aptStatusBeforeSleep == APP_RUNNING)GSPGPU_SetLcdForceBlack(NULL, 0);
+
+			// Restore old aptStatus.
+			aptSetStatus(aptStatusBeforeSleep);
+		}
+		break;
+	}
+}
+
+static bool __handle_incoming_parameter() {
+	u8 type;
+
+	aptOpenSession();
+	APT_ReceiveParameter(NULL, currentAppId, 0x1000, aptParameters, NULL, &type);
+	aptCloseSession();
+
+	switch(type)
+	{
+	case 0x1: // Application just started.
+		return true;
+
+	case 0xB: // Just returned from menu.
+		GSPGPU_AcquireRight(NULL, 0x0);
+		GSPGPU_RestoreVramSysArea(NULL);
+		aptAppletUtility_Exit_RetToApp();
+		aptSetStatus(APP_RUNNING);
+		return true;
+
+	case 0xC: // Exiting application.
+		aptSetStatus(APP_EXITING);
+		return false;
+	}
+
+	return true;
+}
+
 void aptEventHandler(u32 arg)
 {
-	bool runThread=true;
+	bool runThread = true;
 
 	while(runThread)
 	{
-		s32 syncedID=0x0;
+		s32 syncedID = 0;
 		svcWaitSynchronizationN(&syncedID, aptEvents, 2, 0, U64_MAX);
 		svcClearEvent(aptEvents[syncedID]);
 	
 		switch(syncedID)
 		{
-			case 0x0: //event 0 means we got a signal from NS (home button, power button etc)
-				{
-					u8 signalType;
-
-					aptOpenSession();
-					APT_InquireNotification(NULL, currentAppId, &signalType); //check signal type
-					aptCloseSession();
-	
-					switch(signalType)
-					{
-						case APTSIGNAL_HOMEBUTTON:
-						case APTSIGNAL_POWERBUTTON:
-							if(aptGetStatus()==APP_RUNNING)
-							{
-								aptOpenSession();
-								APT_ReplySleepQuery(NULL, currentAppId, 0x0);
-								aptCloseSession();
-
-								if(signalType==0x1)aptSetStatusPower(0);
-								if(signalType==0x8)aptSetStatusPower(1);
-								aptSetStatus(APP_SUSPENDING);//The main thread should call aptReturnToMenu() when the status gets set to this.
-							}
-
-							break;
-
-						case APTSIGNAL_PREPARESLEEP:
-							aptStatus_beforesleepmode = aptGetStatus();
-							aptOpenSession();
-							APT_ReplySleepQuery(NULL, currentAppId, 0x1);
-							aptCloseSession();
-							aptSetStatus(APP_PREPARE_SLEEPMODE);
-							break;
-
-						case APTSIGNAL_ENTERSLEEP:
-							if(aptGetStatus()==APP_PREPARE_SLEEPMODE)
-							{
-								aptOpenSession();
-								APT_ReplySleepNotificationComplete(NULL, currentAppId);
-								aptCloseSession();
-								aptSetStatus(APP_SLEEPMODE);
-							}
-							break;
-
-						case APTSIGNAL_WAKEUP: // Leaving sleep-mode.
-							if(aptGetStatus()==APP_SLEEPMODE)
-							{
-								if(aptStatus_beforesleepmode == APP_RUNNING)GSPGPU_SetLcdForceBlack(NULL, 0);
-								aptSetStatus(aptStatus_beforesleepmode);
-							}
-							break;
-					}
-				}
+			// Event 0 means we got a signal from NS (home button, power button etc).
+			case 0x0:
+				__handle_notification();
 				break;
-			case 0x1: //event 1 means app just started, we're returning to app, exiting app etc.
-				{
-					u8 signalType;
-					aptOpenSession();
-					APT_ReceiveParameter(NULL, currentAppId, 0x1000, aptParameters, NULL, &signalType);
-					aptCloseSession();
-	
-					switch(signalType)
-					{
-						case 0x1: //application just started
-							break;
-						case 0xB: //just returned from menu
-							GSPGPU_AcquireRight(NULL, 0x0);
-							GSPGPU_RestoreVramSysArea(NULL);
-							aptAppletUtility_Exit_RetToApp();
-							aptSetStatus(APP_RUNNING);
-							break;
-						case 0xC: //exiting application
-							runThread=false;
-							aptSetStatus(APP_EXITING); //app exit signal
-							break;
-					}
-				}
+			// Event 1 means we got an incoming parameter.
+			case 0x1:
+				runThread = __handle_incoming_parameter();
 				break;
-			case 0x2: //event 2 means we should exit the thread (event will be added later)
-				runThread=false;
+			// Event 2 means we should exit the thread (event will be added later).
+			case 0x2:
+				runThread = false;
 				break;
 		}
 	}
+
 	svcExitThread();
 }
 
@@ -275,12 +296,12 @@ Result aptInit(NS_APPID appID)
 {
 	Result ret=0;
 
-	//initialize APT stuff, escape load screen
+	// Initialize APT stuff, escape load screen.
 	srvGetServiceHandle(&aptuHandle, "APT:U");
 	if((ret=APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle)))return ret;
 	svcCloseHandle(aptuHandle);
 
-	currentAppId=appID;
+	currentAppId = appID;
 
 	aptOpenSession();
 	if((ret=APT_Initialize(NULL, currentAppId, &aptEvents[0], &aptEvents[1])))return ret;
@@ -295,7 +316,6 @@ Result aptInit(NS_APPID appID)
 	aptCloseSession();
 
 	svcCreateEvent(&aptStatusEvent, 0);
-	
 	return 0;
 }
 
@@ -303,7 +323,8 @@ void aptExit()
 {
 	aptAppletUtility_Exit_RetToApp();
 
-	if(aptGetStatusPower()==1)//This is only executed when application-termination was triggered via the home-menu power-off screen.
+	// This is only executed when application-termination was triggered via the home-menu power-off screen.
+	if(aptGetStatusPower() == 1)
 	{
 		aptOpenSession();
 		APT_ReplySleepQuery(NULL, currentAppId, 0x0);
@@ -319,7 +340,7 @@ void aptExit()
 	aptCloseSession();
 
 	svcCloseHandle(aptStatusMutex);
-	// svcCloseHandle(aptLockHandle);
+	//svcCloseHandle(aptLockHandle);
 	svcCloseHandle(aptStatusEvent);
 }
 
@@ -371,15 +392,16 @@ void aptSetupEventHandler()
 
 	aptSetStatus(APP_RUNNING);
 
-	//create thread for stuff handling APT events
-	svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0, (u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
+	// Create thread for stuff handling APT events.
+	svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
+		(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
 }
 
 APP_STATUS aptGetStatus()
 {
 	APP_STATUS ret;
 	svcWaitSynchronization(aptStatusMutex, U64_MAX);
-	ret=aptStatus;
+	ret = aptStatus;
 	svcReleaseMutex(aptStatusMutex);
 	return ret;
 }
@@ -393,10 +415,10 @@ void aptSetStatus(APP_STATUS status)
 	prevstatus = status;
 	aptStatus = status;
 
-	if(prevstatus!=APP_NOTINITIALIZED)
+	if(prevstatus != APP_NOTINITIALIZED)
 	{
-		if(status==APP_RUNNING)svcSignalEvent(aptStatusEvent);
-		if(status==APP_EXITING)svcSignalEvent(aptStatusEvent);
+		if(status == APP_RUNNING || status == APP_EXITING)
+			svcSignalEvent(aptStatusEvent);
 	}
 
 	svcReleaseMutex(aptStatusMutex);
@@ -406,7 +428,7 @@ u32 aptGetStatusPower()
 {
 	u32 ret;
 	svcWaitSynchronization(aptStatusMutex, U64_MAX);
-	ret=aptStatusPower;
+	ret = aptStatusPower;
 	svcReleaseMutex(aptStatusMutex);
 	return ret;
 }

@@ -1,3 +1,7 @@
+/*
+  gsp.c _ Gpu/lcd stuff.
+*/
+
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
@@ -17,6 +21,7 @@ static Handle gspEvent;
 static vu8* gspEventData;
 
 static void gspEventThreadMain(u32 arg);
+
 
 Result gspInit()
 {
@@ -348,7 +353,7 @@ Result GSPGPU_RestoreVramSysArea(Handle* handle)
 //essentially : get commandIndex and totalCommands, calculate offset of new command, copy command and update totalCommands
 //use LDREX/STREX because this data may also be accessed by the GSP module and we don't want to break stuff
 //(mostly, we could overwrite the buffer header with wrong data and make the GSP module reexecute old commands)
-Result GSPGPU_submitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* handle)
+Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* handle)
 {
 	if(!sharedGspCmdBuf || !gxCommand)return -1;
 
