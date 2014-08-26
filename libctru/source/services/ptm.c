@@ -18,6 +18,7 @@ Result ptmExit()
 
 Result PTMU_GetBatteryLevel(Handle* servhandle, u8 *out)
 {
+	if(!servhandle)servhandle=&ptmHandle;
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -32,6 +33,7 @@ Result PTMU_GetBatteryLevel(Handle* servhandle, u8 *out)
 
 Result PTMU_GetBatteryChargeState(Handle* servhandle, u8 *out)
 {
+	if(!servhandle)servhandle=&ptmHandle;
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 

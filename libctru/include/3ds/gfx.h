@@ -28,6 +28,7 @@ void gfxSwapBuffersGpu();
 
 //helper stuff
 u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* height);
+void* gfxAllocLinear(size_t size);
 
 //global variables
 extern u8* gfxTopLeftFramebuffers[2];
