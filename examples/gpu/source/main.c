@@ -18,16 +18,8 @@
 #include "test_png_bin.h"
 #include "mdl.h"
 
-u8* gspHeap;
-u32* gxCmdBuf;
-
-Handle gspEvent, gspSharedMemHandle;
-
 DVLB_s* shader;
-
 float* vertArray;
-float* colorArray;
-u16* indArray;
 u32* texData;
 
 void loadIdentity44(float* m)
@@ -214,7 +206,6 @@ void doFrame1()
 		initProjectionMatrix(projection, 1.3962634f, 240.0f/400.0f, 0.01f, 10.0f);
 
 		setUniformMatrix(0x20, modelView);
-		// setUniformMatrix(0x24, projection);
 		setUniformMatrix(0x80, projection);
 
 	//draw first model
@@ -240,19 +231,28 @@ void doFrame1()
 		GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
 }
 
-void doFrame3()
+void demoControls(void)
 {
-	GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
+	hidScanInput();
+	u32 PAD=hidKeysHeld();
+
+	if(PAD&KEY_UP)tx+=0.1f;
+	if(PAD&KEY_DOWN)tx-=0.1f;
+
+	if(PAD&KEY_LEFT)ty+=0.1f;
+	if(PAD&KEY_RIGHT)ty-=0.1f;
+
+	if(PAD&KEY_R)tz+=0.1f;
+	if(PAD&KEY_L)tz-=0.1f;
+
+	if(PAD&KEY_A)angle+=0.1f;
+	if(PAD&KEY_Y)angle-=0.1f;
+
+	if(PAD&KEY_X)angleZ+=0.1f;
+	if(PAD&KEY_B)angleZ-=0.1f;
 }
 
-void doModel()
-{
-	memcpy(vertArray, mdlData, sizeof(mdlData));
-}
-
-extern u32* gpuCmdBuf;
-extern u32 gpuCmdBufSize;
-extern u32 gpuCmdBufOffset;
+extern u32* gxCmdBuf;
 
 int main()
 {
@@ -264,27 +264,21 @@ int main()
 	
 	GPU_Init(NULL);
 
-	u32* gpuCmd=(u32*)(&gspHeap[0x200000]);
-	u32 gpuCmdSize=0x10000;
+	u32 gpuCmdSize=0x40000;
+	u32* gpuCmd=(u32*)gfxAllocLinear(gpuCmdSize*4);
 
 	GPU_Reset(gxCmdBuf, gpuCmd, gpuCmdSize);
 
-	vertArray=(float*)&gpuCmd[gpuCmdSize];
-	colorArray=(float*)&vertArray[0x300];
-	indArray=(u16*)&colorArray[0x100];
-	texData=(u32*)&indArray[0x10000];
+	vertArray=(float*)gfxAllocLinear(0x100000);
+	texData=(u32*)gfxAllocLinear(0x100000);
 
-	memset(vertArray, 0x00, 0x500*4);
 	memcpy(texData, test_png_bin, test_png_bin_size);
+	memcpy(vertArray, mdlData, sizeof(mdlData));
 
-	doModel();
-
-	tx=ty=0.0f;
-	tz=-0.1f;
+	tx=ty=0.0f; tz=-0.1f;
 	shader=SHDR_ParseSHBIN((u32*)test_shbin,test_shbin_size);
 
 	GX_SetMemoryFill(gxCmdBuf, (u32*)gpuOut, 0x404040FF, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
-
 	gfxSwapBuffersGpu();
 
 	APP_STATUS status;
@@ -292,36 +286,9 @@ int main()
 	{
 		if(status==APP_RUNNING)
 		{
-			u32 PAD=hidSharedMem[7];
-			
-			u32 regData=PAD|0x01000000;
-			if(!PAD)regData=0x0;
-			GSPGPU_WriteHWRegs(NULL, 0x202A04, &regData, 4);
+			demoControls();
 
-			if(PAD&KEY_UP)tx+=0.1f;
-			if(PAD&KEY_DOWN)tx-=0.1f;
-
-			if(PAD&KEY_LEFT)ty+=0.1f;
-			if(PAD&KEY_RIGHT)ty-=0.1f;
-
-			if(PAD&KEY_R)tz+=0.1f;
-			if(PAD&KEY_L)tz-=0.1f;
-
-			if(PAD&KEY_A)angle+=0.1f;
-			if(PAD&KEY_Y)angle-=0.1f;
-
-			if(PAD&KEY_X)angleZ+=0.1f;
-			if(PAD&KEY_B)angleZ-=0.1f;
-
-			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
 			GX_SetMemoryFill(gxCmdBuf, (u32*)gpuOut, 0x404040FF, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
-
-			svcSleepThread(1000000); //not sure how to do proper GPU (v)sync yet
-
-			// GPUCMD_SetBuffer((u32*)gspHeap, gpuCmdSize, 0);
-			// GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
-			// GPUCMD_Finalize();
-			// GPUCMD_Run(gxCmdBuf);
 
 			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
 			doFrame1();
@@ -329,8 +296,9 @@ int main()
 			GPUCMD_Run(gxCmdBuf);
 
 			gfxSwapBuffersGpu();
+			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
 		}
-		svcSleepThread(16666666/2);
+		gspWaitForVBlank();
 	}
 
 	hidExit();
