@@ -608,7 +608,8 @@ FSUSER_CloseArchive(Handle     *handle,
 
 /*! Check if SD card is detected
  *
- *  @param[in] handle fs:USER handle
+ *  @param[in]  handle   fs:USER handle
+ *  @param[out] detected Output detected state
  *
  *  @returns error
  *
@@ -628,7 +629,8 @@ FSUSER_CloseArchive(Handle     *handle,
  *  1          | Result code
  */
 Result
-FSUSER_IsSdmcDetected(Handle *handle)
+FSUSER_IsSdmcDetected(Handle *handle,
+                      u32    *detected)
 {
 	if(!handle)
 		handle = &fsuHandle;
@@ -641,12 +643,16 @@ FSUSER_IsSdmcDetected(Handle *handle)
 	if((ret = svcSendSyncRequest(*handle)))
 		return ret;
 
+	if(detected)
+		*detected = cmdbuf[2];
+
 	return cmdbuf[1];
 }
 
 /*! Check if SD card is writable
  *
- *  @param[in] handle fs:USER handle
+ *  @param[in]  handle   fs:USER handle
+ *  @param[out] writable Output writable state
  *
  *  @returns error
  *
@@ -666,7 +672,8 @@ FSUSER_IsSdmcDetected(Handle *handle)
  *  1          | Result code
  */
 Result
-FSUSER_IsSdmcWritable(Handle *handle)
+FSUSER_IsSdmcWritable(Handle *handle,
+                      u32    *writable)
 {
 	if(!handle)
 		handle = &fsuHandle;
@@ -678,6 +685,9 @@ FSUSER_IsSdmcWritable(Handle *handle)
 	Result ret = 0;
 	if((ret = svcSendSyncRequest(*handle)))
 		return ret;
+
+	if(writable)
+		*writable = cmdbuf[2];
 
 	return cmdbuf[1];
 }
