@@ -1,5 +1,4 @@
-#ifndef HID_H
-#define HID_H
+#pragma once
 
 #define HID_SHAREDMEM_DEFAULT (0x10000000)
 
@@ -66,5 +65,3 @@ Result HIDUSER_EnableAccelerometer();
 Result HIDUSER_DisableAccelerometer();
 Result HIDUSER_EnableGyroscope();
 Result HIDUSER_DisableGyroscope();
-
-#endif

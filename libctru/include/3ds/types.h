@@ -2,10 +2,7 @@
   types.h _ Various system types.
 */
 
-#ifndef TYPES_H
-#define TYPES_H
-
-
+#pragma once
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -36,5 +33,3 @@ typedef s32 Result;
 typedef void (*ThreadFunc)(u32);
 
 #define BIT(n) (1U<<(n))
-
-#endif

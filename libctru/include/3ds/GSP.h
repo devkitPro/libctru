@@ -1,5 +1,4 @@
-#ifndef GSP_H
-#define GSP_H
+#pragma once
 
 #define GSP_REBASE_REG(r) ((r)-0x1EB00000)
 
@@ -80,5 +79,3 @@ Result GSPGPU_RegisterInterruptRelayQueue(Handle *handle, Handle eventHandle, u3
 Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle);
 Result GSPGPU_TriggerCmdReqQueue(Handle *handle);
 Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* handle);
-
-#endif

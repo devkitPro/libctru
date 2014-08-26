@@ -1,5 +1,4 @@
-#ifndef CSND_H
-#define CSND_H
+#pragma once
 
 #define CSND_SHAREDMEM_DEFAULT 0x10004000
 
@@ -29,6 +28,3 @@ Result CSND_sharedmemtype0_cmdupdatestate(int waitdone);
 
 Result CSND_getchannelstate(u32 entryindex, u32 *out);
 Result CSND_getchannelstate_isplaying(u32 entryindex, u8 *status);
-
-#endif
-

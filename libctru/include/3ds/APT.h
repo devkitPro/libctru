@@ -1,5 +1,4 @@
-#ifndef APT_H
-#define APT_H
+#pragma once
 
 // TODO : find a better place to put this
 #define RUNFLAG_APTWORKAROUND (BIT(0))
@@ -68,5 +67,3 @@ Result APT_ReplySleepQuery(Handle* handle, NS_APPID appID, u32 a);
 Result APT_ReplySleepNotificationComplete(Handle* handle, NS_APPID appID);
 Result APT_PrepareToCloseApplication(Handle* handle, u8 a);
 Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c);
-
-#endif
