@@ -77,6 +77,13 @@ typedef enum{
 #define GPU_TEVSOURCES(a,b,c) (((a))|((b)<<4)|((c)<<8))
 #define GPU_TEVOPERANDS(a,b,c) (((a))|((b)<<4)|((c)<<8))
 
+typedef enum{
+	GPU_TRIANGLES = 0x0000,
+	GPU_TRIANGLE_STRIP = 0x0100,
+	GPU_TRIANGLE_FAN = 0x0200,
+	GPU_UNKPRIM = 0x0300 // ?
+}GPU_Primitive_t;
+
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 void GPU_DepthRange(float nearVal, float farVal);
@@ -86,5 +93,8 @@ void GPU_SetFaceCulling(GPU_CULLMODE mode);
 void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[]);
 void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
 void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor);
+
+void GPU_DrawArray(GPU_Primitive_t primitive, u32 n);
+void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n);
 
 #endif

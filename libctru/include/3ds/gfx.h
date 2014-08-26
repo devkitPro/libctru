@@ -24,6 +24,7 @@ void gfxExit();
 void gfxSet3D(bool enable);
 void gfxFlushBuffers();
 void gfxSwapBuffers();
+void gfxSwapBuffersGpu();
 
 //helper stuff
 u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* height);

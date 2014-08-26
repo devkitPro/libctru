@@ -10,6 +10,9 @@
 
 GSP_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
 
+u8 gfxThreadID;
+u8* gfxSharedMemory;
+
 u8* gfxTopLeftFramebuffers[2];
 u8* gfxTopRightFramebuffers[2];
 u8* gfxBottomFramebuffers[2];
@@ -51,20 +54,31 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 	}
 }
 
+void gfxWriteFramebufferInfo(gfxScreen_t screen)
+{
+	u8* framebufferInfoHeader=gfxSharedMemory+0x200+gfxThreadID*0x80;
+	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x40;
+	GSP_FramebufferInfo* framebufferInfo=(GSP_FramebufferInfo*)&framebufferInfoHeader[0x4];
+	framebufferInfoHeader[0x0]^=1;
+	framebufferInfo[framebufferInfoHeader[0x0]]=(screen==GFX_TOP)?(topFramebufferInfo):(bottomFramebufferInfo);
+	framebufferInfoHeader[0x1]=1;
+}
+
 extern u32 __gsp_heap_size;
 
 void gfxInit()
 {
 	gspInit();
 
+	gfxSharedMemory=(u8*)0x10002000;
+
 	GSPGPU_AcquireRight(NULL, 0x0);
 	GSPGPU_SetLcdForceBlack(NULL, 0x0);
 
 	//setup our gsp shared mem section
-	u8 threadID;
 	svcCreateEvent(&gspEvent, 0x0);
-	GSPGPU_RegisterInterruptRelayQueue(NULL, gspEvent, 0x1, &gspSharedMemHandle, &threadID);
-	svcMapMemoryBlock(gspSharedMemHandle, 0x10002000, 0x3, 0x10000000);
+	GSPGPU_RegisterInterruptRelayQueue(NULL, gspEvent, 0x1, &gspSharedMemHandle, &gfxThreadID);
+	svcMapMemoryBlock(gspSharedMemHandle, (u32)gfxSharedMemory, 0x3, 0x10000000);
 
 	//map GSP heap
 	svcControlMemory((u32*)&gspHeap, 0x0, 0x0, __gsp_heap_size, 0x10003, 0x3);
@@ -91,12 +105,12 @@ void gfxInit()
 	gfxSetFramebufferInfo(GFX_BOTTOM, 0);
 
 	//GSP shared mem : 0x2779F000
-	gxCmdBuf=(u32*)(0x10002000+0x800+threadID*0x200);
+	gxCmdBuf=(u32*)(gfxSharedMemory+0x800+gfxThreadID*0x200);
 
 	currentBuffer=0;
 
 	// Initialize event handler and wait for VBlank
-	gspInitEventHandler(gspEvent, (vu8*)0x10002000, threadID);
+	gspInitEventHandler(gspEvent, (vu8*)gfxSharedMemory, gfxThreadID);
 	gspWaitForVBlank();
 }
 
@@ -149,4 +163,13 @@ void gfxSwapBuffers()
 	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer);
 	GSPGPU_SetBufferSwap(NULL, GFX_TOP, &topFramebufferInfo);
 	GSPGPU_SetBufferSwap(NULL, GFX_BOTTOM, &bottomFramebufferInfo);
+}
+
+void gfxSwapBuffersGpu()
+{
+	currentBuffer^=1;
+	gfxSetFramebufferInfo(GFX_TOP, currentBuffer);
+	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer);
+	gfxWriteFramebufferInfo(GFX_TOP);
+	gfxWriteFramebufferInfo(GFX_BOTTOM);
 }
