@@ -1,19 +1,19 @@
 ; make sure you update aemstro_as for this (27/05/14)
-
+ 
 ; setup constants
 	.const 5, 0.0, 0.0, -0.99, 1.0
-
+ 
 ; setup outmap
 	.out o0, result.position
 	.out o1, result.color
 	.out o2, result.texcoord0
 	.out o3, result.texcoord1
 	.out o4, result.texcoord2
-
+ 
 ; setup uniform map (not required)
 	.uniform 0x10, 0x13, mdlvMtx
 	.uniform 0x14, 0x17, projMtx
-
+ 
 ;code
 	main:
 		mov d1A, d00 (0x4)
@@ -41,7 +41,7 @@
 		flush
 		end
 	endmain:
-
+ 
 ;operand descriptors
 	.opdesc x___, xyzw, xyzw ; 0x0
 	.opdesc _y__, xyzw, xyzw ; 0x1
