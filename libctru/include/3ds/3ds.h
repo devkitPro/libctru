@@ -13,4 +13,4 @@
 #include <3ds/os.h>
 #include <3ds/gfx.h>
 
-#endif __3DS_H
+#endif

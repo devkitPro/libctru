@@ -4,7 +4,7 @@
 #include <string.h>
 #include <3ds/3ds.h>
 #include "math.h"
-#include "test_shbin.h"
+#include "test_vsh_shbin.h"
 #include "test_png_bin.h"
 #include "mdl.h"
 
@@ -172,7 +172,7 @@ int main()
 	memcpy(vertArray, mdlData, sizeof(mdlData));
 
 	tx=ty=0.0f; tz=-0.1f;
-	shader=SHDR_ParseSHBIN((u32*)test_shbin,test_shbin_size);
+	shader=SHDR_ParseSHBIN((u32*)test_vsh_shbin,test_vsh_shbin_size);
 
 	GX_SetMemoryFill(gxCmdBuf, (u32*)gpuOut, 0x404040FF, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
 	gfxSwapBuffersGpu();
