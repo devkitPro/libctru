@@ -19,23 +19,23 @@
 		mov d1A, d00 (0x4)
 		mov d1A, d25 (0x3)
 		; tempreg = mdlvMtx * in.pos
-		dp4 d10, d40, d1A (0x0)
-		dp4 d10, d41, d1A (0x1)
-		dp4 d10, d42, d1A (0x2)
+		dp4 d10, d44, d1A (0x0)
+		dp4 d10, d45, d1A (0x1)
+		dp4 d10, d46, d1A (0x2)
 		mov d10, d25 (0x3)
 		; result.pos = projMtx * tempreg
-		dp4 d00, d20, d10 (0x0)
-		dp4 d00, d21, d10 (0x1)
-		dp4 d00, d22, d10 (0x2)
-		dp4 d00, d23, d10 (0x3)
+		dp4 d00, d40, d10 (0x0)
+		dp4 d00, d41, d10 (0x1)
+		dp4 d00, d42, d10 (0x2)
+		dp4 d00, d43, d10 (0x3)
 		; result.texcoord = in.texcoord
 		mov d02, d01 (0x5)
 		mov d03, d25 (0x7)
 		mov d04, d25 (0x7)
 		; result.color = crappy lighting
-		dp3 d1A, d40, d02 (0x0)
-		dp3 d1A, d41, d02 (0x1)
-		dp3 d1A, d42, d02 (0x2)
+		dp3 d1A, d44, d02 (0x0)
+		dp3 d1A, d45, d02 (0x1)
+		dp3 d1A, d46, d02 (0x2)
 		dp4 d01, d00, d1A (0x6)
 		mov d01, d25 (0x3)
 		flush

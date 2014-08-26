@@ -101,8 +101,8 @@ void doFrame1()
 
 		initProjectionMatrix(projection, 1.3962634f, 240.0f/400.0f, 0.01f, 10.0f);
 
-		setUniformMatrix(0x20, modelView);
-		setUniformMatrix(0x80, projection);
+		setUniformMatrix(0x24, modelView);
+		setUniformMatrix(0x20, projection);
 
 	//draw first model
 		GPU_DrawArray(GPU_TRIANGLES, mdlFaces*3);
@@ -116,7 +116,7 @@ void doFrame1()
 		rotateMatrixX(modelView, -angle);
 		rotateMatrixZ(modelView, -angleZ);
 
-		setUniformMatrix(0x20, modelView);
+		setUniformMatrix(0x24, modelView);
 
 	//draw second
 		GPU_DrawArray(GPU_TRIANGLES, mdlFaces*3);
