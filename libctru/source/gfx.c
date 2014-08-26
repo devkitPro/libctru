@@ -26,8 +26,6 @@ u8* gspHeap;
 u32* gxCmdBuf;
 extern u32 __gsp_heap_size;
 
-
-
 // TODO: this function is not thread-safe and you cannot 'free' this memory.
 void* gfxAllocLinear(size_t size)
 {
