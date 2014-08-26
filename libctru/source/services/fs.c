@@ -1,8 +1,5 @@
 #include <string.h>
-#include <3ds/types.h>
-#include <3ds/FS.h>
-#include <3ds/srv.h>
-#include <3ds/svc.h>
+#include <3ds.h>
 
 /*! @internal
  *
@@ -601,6 +598,82 @@ FSUSER_CloseArchive(Handle     *handle,
 	cmdbuf[0] = 0x080E0080;
 	cmdbuf[1] = archive->handleLow;
 	cmdbuf[2] = archive->handleHigh;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	return cmdbuf[1];
+}
+
+/*! Check if SD card is detected
+ *
+ *  @param[in] handle fs:USER handle
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08170000]
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ */
+Result
+FSUSER_IsSdmcDetected(Handle *handle)
+{
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08170000;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	return cmdbuf[1];
+}
+
+/*! Check if SD card is writable
+ *
+ *  @param[in] handle fs:USER handle
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08180000]
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ */
+Result
+FSUSER_IsSdmcWritable(Handle *handle)
+{
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08180000;
 
 	Result ret = 0;
 	if((ret = svcSendSyncRequest(*handle)))

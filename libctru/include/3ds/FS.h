@@ -139,6 +139,8 @@ Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
 Result FSUSER_CreateDirectory(Handle* handle, FS_archive archive, FS_path dirLowPath);
 Result FSUSER_DeleteFile(Handle *handle, FS_archive archive, FS_path fileLowPath);
 Result FSUSER_DeleteDirectory(Handle *handle, FS_archive archive, FS_path dirLowPath);
+Result FSUSER_IsSdmcDetected(Handle *handle);
+Result FSUSER_IsSdmcWritable(Handle *handle);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, void *buffer, u32 size);
