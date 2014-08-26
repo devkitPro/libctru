@@ -108,23 +108,15 @@ typedef struct
   // 0x21B
   u8  unknown3;        //!< ???
   // 0x21C
-  u8  isDirectory;     //!< 0x00 for files, 0x01 for directories
+  u8  isDirectory;     //!< directory bit
   // 0x21D
-  u8  unknown4;        //!< ???
+  u8  isHidden;        //!< hidden bit
   // 0x21E
-  u8  isFile;          //!< 0x01 for files, 0x00 for directories
+  u8  isArchive;       //!< archive bit
   // 0x21F
-  u8  unknown5;        //!< ???
+  u8  isReadOnly;      //!< read-only bit
   // 0x220
-  u8  unknown6;        //!< ???
-  // 0x221
-  u8  unknown7;        //!< ???
-  // 0x222
-  u8  unknown8;        //!< ???
-  // 0x223
-  u8  unknown9;        //!< ???
-  // 0x224
-  u8  padding[0x04];   //!< ???
+  u64 fileSize;        //!< file size
 } FS_dirent;
 
 /*! Create an FS_path from a type and data pointer.
