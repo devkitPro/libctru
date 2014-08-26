@@ -627,6 +627,7 @@ FSUSER_CloseArchive(Handle     *handle,
  *  -----------|-------------------------
  *  0          | Header code
  *  1          | Result code
+ *  2          | Whether SD is detected
  */
 Result
 FSUSER_IsSdmcDetected(Handle *handle,
@@ -670,6 +671,7 @@ FSUSER_IsSdmcDetected(Handle *handle,
  *  -----------|-------------------------
  *  0          | Header code
  *  1          | Result code
+ *  2          | Whether SD is writable
  */
 Result
 FSUSER_IsSdmcWritable(Handle *handle,
