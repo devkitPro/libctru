@@ -188,10 +188,24 @@ void SHDR_UseProgram(DVLB_s* dvlb, u8 id)
 	if(!dvlb || id>dvlb->numDVLE)return;
 	DVLE_s* dvle=&dvlb->DVLE[id];
 
+	//?
+		GPUCMD_AddSingleParam(0x00010229, 0x00000000);
+		GPUCMD_AddSingleParam(0x00010244, 0x00000000);
+
 	DVLP_SendCode(&dvlb->DVLP);
 	DVLP_SendOpDesc(&dvlb->DVLP);
-	DVLE_SendOutmap(dvle);
 	DVLE_SendConstants(dvle);
+
+	GPUCMD_AddSingleParam(0x00080229, 0x00000000);
+	GPUCMD_AddSingleParam(0x000F02BA, 0x7FFF0000|(dvle->mainOffset&0xFFFF)); //set entrypoint
+
+	GPUCMD_AddSingleParam(0x000F0252, 0x00000000); // should all be part of DVLE_SendOutmap ?
+
+	DVLE_SendOutmap(dvle);
+
+	//?
+		GPUCMD_AddSingleParam(0x000F0064, 0x00000001);
+		GPUCMD_AddSingleParam(0x000F006F, 0x00000703);
 }
 
 //TODO
