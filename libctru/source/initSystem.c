@@ -6,10 +6,11 @@
 int __system_argc;
 char** __system_argv;
 void (*__system_retAddr)(void);
+u32 __linear_heap;
 
 // Data from _prm structure
 extern void* __service_ptr; // used to detect if we're run from a homebrew launcher
-extern u32 __heap_size;
+extern u32 __heap_size, __linear_heap_size;
 extern const char* __system_arglist;
 
 // newlib definitions we need
@@ -27,7 +28,10 @@ void __attribute__((noreturn)) __ctru_exit(int rc)
 
 	// TODO: APT exit goes here
 
-	// Unmap the heap
+	// Unmap the linear heap
+	svcControlMemory(&__linear_heap, __linear_heap, 0x0, __linear_heap_size, MEMOP_FREE, 0x0);
+
+	// Unmap the application heap
 	svcControlMemory(&heapBase, heapBase, 0x0, __heap_size, MEMOP_FREE, 0x0);
 
 	// Jump to the loader if it provided a callback
@@ -47,6 +51,9 @@ void initSystem(void (*retAddr)(void))
 	// Allocate the application heap
 	heapBase = 0x08000000;
 	svcControlMemory(&heapBase, heapBase, 0x0, __heap_size, MEMOP_ALLOC, 0x3);
+
+	// Allocate the linear heap
+	svcControlMemory(&__linear_heap, 0x0, 0x0, __linear_heap_size, MEMOP_ALLOC_LINEAR, 0x3);
 
 	// Set up newlib heap
 	fake_heap_start = (char*)heapBase;

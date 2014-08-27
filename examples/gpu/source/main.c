@@ -161,12 +161,12 @@ int main()
 	GPU_Init(NULL);
 
 	u32 gpuCmdSize=0x40000;
-	u32* gpuCmd=(u32*)gfxAllocLinear(gpuCmdSize*4);
+	u32* gpuCmd=(u32*)linearAlloc(gpuCmdSize*4);
 
 	GPU_Reset(gxCmdBuf, gpuCmd, gpuCmdSize);
 
-	vertArray=(float*)gfxAllocLinear(0x100000);
-	texData=(u32*)gfxAllocLinear(0x100000);
+	vertArray=(float*)linearAlloc(0x100000);
+	texData=(u32*)linearAlloc(0x100000);
 
 	memcpy(texData, test_png_bin, test_png_bin_size);
 	memcpy(vertArray, mdlData, sizeof(mdlData));

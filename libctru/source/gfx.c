@@ -17,25 +17,7 @@ bool enable3d;
 
 Handle gspEvent, gspSharedMemHandle;
 
-u8* gspHeap;
 u32* gxCmdBuf;
-extern u32 __gsp_heap_size;
-
-// TODO: this function is not thread-safe and you cannot 'free' this memory.
-void* gfxAllocLinear(size_t size)
-{
-    static size_t currentOffset = 0;
-    size_t free = __gsp_heap_size - currentOffset;
-
-    if(free >= size)
-    {
-        currentOffset += size;
-        return (void*) &gspHeap[currentOffset - size];
-    }
-
-    return NULL;
-}
-
 
 void gfxSet3D(bool enable)
 {
@@ -90,9 +72,6 @@ void gfxInit()
 	GSPGPU_RegisterInterruptRelayQueue(NULL, gspEvent, 0x1, &gspSharedMemHandle, &gfxThreadID);
 	svcMapMemoryBlock(gspSharedMemHandle, (u32)gfxSharedMemory, 0x3, 0x10000000);
 
-	//map GSP heap
-	svcControlMemory((u32*)&gspHeap, 0x0, 0x0, __gsp_heap_size, 0x10003, 0x3);
-
 	// default gspHeap configuration :
 	//		topleft1  0x00000000-0x00046500
 	//		topleft2  0x00046500-0x0008CA00
@@ -102,12 +81,12 @@ void gfxInit()
 	//		topright1 0x000FD200-0x00143700
 	//		topright2 0x00143700-0x00189C00
 
-	gfxTopLeftFramebuffers[0]=gfxAllocLinear(0x46500);
-	gfxTopLeftFramebuffers[1]=gfxAllocLinear(0x46500);
-	gfxBottomFramebuffers[0]=gfxAllocLinear(0x38400);
-	gfxBottomFramebuffers[1]=gfxAllocLinear(0x38400);
-	gfxTopRightFramebuffers[0]=gfxAllocLinear(0x46500);
-	gfxTopRightFramebuffers[1]=gfxAllocLinear(0x46500);
+	gfxTopLeftFramebuffers[0]=linearAlloc(0x46500);
+	gfxTopLeftFramebuffers[1]=linearAlloc(0x46500);
+	gfxBottomFramebuffers[0]=linearAlloc(0x38400);
+	gfxBottomFramebuffers[1]=linearAlloc(0x38400);
+	gfxTopRightFramebuffers[0]=linearAlloc(0x46500);
+	gfxTopRightFramebuffers[1]=linearAlloc(0x46500);
 	enable3d=false;
 
 	//initialize framebuffer info structures
@@ -129,8 +108,13 @@ void gfxExit()
 	// Exit event handler
 	gspExitEventHandler();
 
-	//free GSP heap
-	svcControlMemory((u32*)&gspHeap, (u32)gspHeap, 0x0, __gsp_heap_size, MEMOP_FREE, 0x0);
+	// Free framebuffers (let's pretend linearFree is actually implemented...)
+	linearFree(gfxTopRightFramebuffers[1]);
+	linearFree(gfxTopRightFramebuffers[0]);
+	linearFree(gfxBottomFramebuffers[1]);
+	linearFree(gfxBottomFramebuffers[0]);
+	linearFree(gfxTopLeftFramebuffers[1]);
+	linearFree(gfxTopLeftFramebuffers[0]);
 
 	//unmap GSP shared mem
 	svcUnmapMemoryBlock(gspSharedMemHandle, 0x10002000);
