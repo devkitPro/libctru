@@ -14,7 +14,8 @@ extern u32 __heap_size, __linear_heap_size;
 extern const char* __system_arglist;
 
 // newlib definitions we need
-void __libc_fini_array();
+void __libc_init_array(void);
+void __libc_fini_array(void);
 extern char* fake_heap_start;
 extern char* fake_heap_end;
 
@@ -23,8 +24,8 @@ static u32 heapBase;
 
 void __attribute__((noreturn)) __ctru_exit(int rc)
 {
-	// Run the global destructors -- disabled for now (it crashes for an unknown reason)
-	//__libc_fini_array();
+	// Run the global destructors
+	__libc_fini_array();
 
 	// TODO: APT exit goes here
 
@@ -63,6 +64,9 @@ void initSystem(void (*retAddr)(void))
 	initArgv();
 
 	// TODO: APT init goes here
+
+	// Run the global constructors
+	__libc_init_array();
 }
 
 void initArgv()
