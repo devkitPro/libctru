@@ -4,11 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <3ds/types.h>
-#include <3ds/srv.h>
-#include <3ds/APT.h>
-#include <3ds/GSP.h>
-#include <3ds/svc.h>
+#include <3ds.h>
 
 #define APT_HANDLER_STACKSIZE (0x1000)
 

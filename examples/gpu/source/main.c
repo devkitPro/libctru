@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include <3ds/3ds.h>
+#include <3ds.h>
 #include "math.h"
 #include "test_vsh_shbin.h"
 #include "test_png_bin.h"

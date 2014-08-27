@@ -1,6 +1,4 @@
-#include <3ds/types.h>
-#include <3ds/svc.h>
-#include <3ds/os.h>
+#include <3ds.h>
 
 u32 osConvertVirtToPhys(u32 vaddr)
 {

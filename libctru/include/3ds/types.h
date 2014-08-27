@@ -2,12 +2,12 @@
   types.h _ Various system types.
 */
 
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #define U64_MAX	UINT64_MAX
 
@@ -36,5 +36,3 @@ typedef s32 Result;
 typedef void (*ThreadFunc)(u32);
 
 #define BIT(n) (1U<<(n))
-
-#endif

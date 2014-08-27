@@ -1,5 +1,4 @@
-#ifndef GX_H
-#define GX_H
+#pragma once
 
 #define GX_BUFFER_DIM(w, h) (((h)<<16)|((w)&0xFFFF))
 
@@ -9,5 +8,3 @@ Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width
 Result GX_SetDisplayTransfer(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 flags);
 Result GX_SetTextureCopy(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 size, u32 flags);
 Result GX_SetCommandList_First(u32* gxbuf, u32* buf0a, u32 buf0s, u32* buf1a, u32 buf1s, u32* buf2a, u32 buf2s);
-
-#endif

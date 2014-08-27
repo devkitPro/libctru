@@ -1,8 +1,5 @@
 #include <stdlib.h>
-#include <3ds/types.h>
-#include <3ds/AC.h>
-#include <3ds/svc.h>
-#include <3ds/srv.h>
+#include <3ds.h>
 
 static Handle acHandle;
 

@@ -3,10 +3,7 @@
 */
 #include <stdlib.h>
 #include <string.h>
-#include <3ds/types.h>
-#include <3ds/HID.h>
-#include <3ds/srv.h>
-#include <3ds/svc.h>
+#include <3ds.h>
 
 Handle hidHandle;
 Handle hidMemHandle;

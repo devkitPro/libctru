@@ -1,5 +1,4 @@
-#ifndef SHDR_H
-#define SHDR_H
+#pragma once
 
 typedef enum{
 	VERTEX_SHDR=0x0,
@@ -67,5 +66,3 @@ void DVLP_SendOpDesc(DVLP_s* dvlp);
 
 void DVLE_SendOutmap(DVLE_s* dvle);
 void DVLE_SendConstants(DVLE_s* dvle);
-
-#endif

@@ -1,8 +1,5 @@
 #include <string.h>
-#include <3ds/types.h>
-#include <3ds/FS.h>
-#include <3ds/srv.h>
-#include <3ds/svc.h>
+#include <3ds.h>
 
 /*! @internal
  *
@@ -605,6 +602,156 @@ FSUSER_CloseArchive(Handle     *handle,
 	Result ret = 0;
 	if((ret = svcSendSyncRequest(*handle)))
 		return ret;
+
+	return cmdbuf[1];
+}
+
+/*! Get SD FAT information
+ *
+ *  @param[in]  handle       fs:USER handle
+ *  @param[out] sectorSize   Sector size (bytes)
+ *  @param[out] clusterSize  Cluster size (bytes)
+ *  @param[out] numClusters  Total number of clusters
+ *  @param[out] freeClusters Number of free clusters
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08140000]
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ *  2          | Sector (bytes)
+ *  3          | Cluster (bytes)
+ *  4          | Partition capacity (clusters)
+ *  5          | Free space (clusters)
+ */
+Result
+FSUSER_GetSdmcArchiveResource(Handle *handle,
+                              u32    *sectorSize,
+                              u32    *clusterSize,
+                              u32    *numClusters,
+                              u32    *freeClusters)
+{
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08140000;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	if(sectorSize)
+		*sectorSize = cmdbuf[2];
+
+	if(clusterSize)
+		*clusterSize = cmdbuf[3];
+
+	if(numClusters)
+		*numClusters = cmdbuf[4];
+
+	if(freeClusters)
+		*freeClusters = cmdbuf[5];
+
+	return cmdbuf[1];
+}
+
+/*! Check if SD card is detected
+ *
+ *  @param[in]  handle   fs:USER handle
+ *  @param[out] detected Output detected state
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08170000]
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ *  2          | Whether SD is detected
+ */
+Result
+FSUSER_IsSdmcDetected(Handle *handle,
+                      u32    *detected)
+{
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08170000;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	if(detected)
+		*detected = cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+/*! Check if SD card is writable
+ *
+ *  @param[in]  handle   fs:USER handle
+ *  @param[out] writable Output writable state
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08180000]
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ *  2          | Whether SD is writable
+ */
+Result
+FSUSER_IsSdmcWritable(Handle *handle,
+                      u32    *writable)
+{
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08180000;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	if(writable)
+		*writable = cmdbuf[2];
 
 	return cmdbuf[1];
 }

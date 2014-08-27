@@ -1,6 +1,4 @@
-#ifndef GFX_H
-#define GFX_H
-
+#pragma once
 #include <3ds/types.h>
 
 typedef enum
@@ -34,5 +32,3 @@ void* gfxAllocLinear(size_t size);
 extern u8* gfxTopLeftFramebuffers[2];
 extern u8* gfxSubFramebuffers[2];
 extern u8* gfxBottomFramebuffers[2];
-
-#endif

@@ -1,19 +1,11 @@
 #pragma once
-#ifndef FS_H
-#define FS_H
+#include <string.h>
+#include <3ds/types.h>
 
 /*! @file FS.h
  *
  *  Filesystem Services
  */
-
-#include <string.h>
-#include <3ds/types.h>
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*! @defgroup fs_open_flags FS Open Flags
  *
@@ -147,6 +139,9 @@ Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
 Result FSUSER_CreateDirectory(Handle* handle, FS_archive archive, FS_path dirLowPath);
 Result FSUSER_DeleteFile(Handle *handle, FS_archive archive, FS_path fileLowPath);
 Result FSUSER_DeleteDirectory(Handle *handle, FS_archive archive, FS_path dirLowPath);
+Result FSUSER_GetSdmcArchiveResource(Handle *handle, u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
+Result FSUSER_IsSdmcDetected(Handle *handle, u32 *detected);
+Result FSUSER_IsSdmcWritable(Handle *handle, u32 *writable);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, void *buffer, u32 size);
@@ -159,9 +154,3 @@ Result FSFILE_Flush(Handle handle);
 
 Result FSDIR_Read(Handle handle, u32 *entriesRead, u32 entrycount, FS_dirent *buffer);
 Result FSDIR_Close(Handle handle);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

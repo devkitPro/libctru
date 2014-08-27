@@ -1,5 +1,4 @@
-#ifndef GPU_H
-#define GPU_H
+#pragma once
 
 void GPU_Init(Handle *gsphandle);
 void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize);
@@ -96,5 +95,3 @@ void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16
 
 void GPU_DrawArray(GPU_Primitive_t primitive, u32 n);
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n);
-
-#endif

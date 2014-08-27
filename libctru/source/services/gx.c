@@ -3,10 +3,7 @@
 */
 
 #include <stdlib.h>
-#include <3ds/types.h>
-#include <3ds/GSP.h>
-#include <3ds/GX.h>
-#include <3ds/svc.h>
+#include <3ds.h>
 
 Result GX_RequestDma(u32* gxbuf, u32* src, u32* dst, u32 length)
 {

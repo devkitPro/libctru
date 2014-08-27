@@ -4,11 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <3ds/types.h>
-#include <3ds/GSP.h>
-#include <3ds/GX.h>
-#include <3ds/GPU.h>
-#include <3ds/svc.h>
+#include <3ds.h>
 
 u32* gpuCmdBuf;
 u32 gpuCmdBufSize;

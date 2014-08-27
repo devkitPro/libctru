@@ -1,8 +1,3 @@
-#include <3ds/types.h>
-#include <3ds/svc.h>
-#include <3ds/srv.h>
-#include <3ds/SOC.h>
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -10,6 +5,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <string.h>
+#include <3ds.h>
 
 Handle SOCU_handle = 0;
 static int SOCU_errno = 0;
