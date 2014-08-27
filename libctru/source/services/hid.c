@@ -53,11 +53,13 @@ void hidScanInput()
 {
 	kOld = kHeld;
 
-	int padId = hidSharedMem[4];
+	u32 padId = hidSharedMem[4];
+	if(padId>7)padId=7;
 	kHeld = hidSharedMem[10 + padId*4];
 	cPos = *(circlePosition*)&hidSharedMem[10 + padId*4 + 3];
 
-	int touchId = hidSharedMem[42 + 4];
+	u32 touchId = hidSharedMem[42 + 4];
+	if(touchId>7)touchId=7;
 	tPos = *(touchPosition*)&hidSharedMem[42 + 8 + touchId*2];
 	if (hidSharedMem[42 + 8 + touchId*2 + 1])
 		kHeld |= KEY_TOUCH;
