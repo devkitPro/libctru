@@ -17,8 +17,8 @@ typedef enum
 	KEY_X      = BIT(10),
 	KEY_Y      = BIT(11),
 	KEY_TOUCH  = BIT(20), // Not actually provided by HID
-	KEY_CLEFT  = BIT(28),
-	KEY_CRIGHT = BIT(29),
+	KEY_CRIGHT = BIT(28),
+	KEY_CLEFT  = BIT(29),
 	KEY_CUP    = BIT(30),
 	KEY_CDOWN  = BIT(31),
 
