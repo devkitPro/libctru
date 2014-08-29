@@ -354,9 +354,6 @@ Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* 
 {
 	if(!sharedGspCmdBuf || !gxCommand)return -1;
 	
-	svcWaitSynchronization(gspEvent, 0x55bcb0);
-	svcClearEvent(gspEvent);
-
 	u32 cmdBufHeader;
 	__asm__ __volatile__ ("ldrex %[result], [%[adr]]" : [result] "=r" (cmdBufHeader) : [adr] "r" (sharedGspCmdBuf));
 

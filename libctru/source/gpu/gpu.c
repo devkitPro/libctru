@@ -10,6 +10,8 @@ u32* gpuCmdBuf;
 u32 gpuCmdBufSize;
 u32 gpuCmdBufOffset;
 
+extern Handle gspEvent;
+
 void GPU_Init(Handle *gsphandle)
 {
 	gpuCmdBuf=NULL;
@@ -26,6 +28,7 @@ void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset)
 
 void GPUCMD_Run(u32* gxbuf)
 {
+	//should wait for some event here
 	GX_SetCommandList_First(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, NULL, 0, NULL, 0);
 	GX_SetCommandList_Last(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
 }
@@ -62,8 +65,6 @@ void GPUCMD_AddSingleParam(u32 cmd, u32 param)
 
 void GPUCMD_Finalize()
 {
-	GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
-	GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
 	GPUCMD_AddSingleParam(0x000F0010, 0x12345678);
 }
 
@@ -382,6 +383,9 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 n)
 	GPUCMD_AddSingleParam(0x000F022E, 0x00000001);
 	GPUCMD_AddSingleParam(0x00010245, 0x00000001);
 	GPUCMD_AddSingleParam(0x000F0231, 0x00000001);
+
+	GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
+	GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
 }
 
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n)
