@@ -8,6 +8,8 @@
 Handle hidHandle;
 Handle hidMemHandle;
 
+Handle hidEvents[5];
+
 vu32* hidSharedMem;
 
 static u32 kOld, kHeld, kDown, kUp;
@@ -24,7 +26,7 @@ Result hidInit(u32* sharedMem)
 	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")))return ret;
 
 	// Get sharedmem handle.
-	if((ret=HIDUSER_GetSharedMem(&hidMemHandle))) goto cleanup1;
+	if((ret=HIDUSER_GetHandles(&hidMemHandle, &hidEvents[HIDEVENT_PAD0], &hidEvents[HIDEVENT_PAD1], &hidEvents[HIDEVENT_Accel], &hidEvents[HIDEVENT_Gyro], &hidEvents[HIDEVENT_DebugPad]))) goto cleanup1;
 
 	// Map HID shared memory at addr "sharedMem".
 	hidSharedMem=sharedMem;
@@ -47,6 +49,17 @@ void hidExit()
 	svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
 	svcCloseHandle(hidMemHandle);
 	svcCloseHandle(hidHandle);
+}
+
+void hidWaitForEvent(HID_Event id, bool nextEvent)
+{
+	if(id>=HIDEVENT_MAX)return;
+
+	if (nextEvent)
+		svcClearEvent(hidEvents[id]);
+	svcWaitSynchronization(hidEvents[id], U64_MAX);
+	if (!nextEvent)
+		svcClearEvent(hidEvents[id]);
 }
 
 void hidScanInput()
@@ -93,7 +106,7 @@ void hidCircleRead(circlePosition* pos)
 	if (pos) *pos = cPos;
 }
 
-Result HIDUSER_GetSharedMem(Handle* outMemHandle)
+Result HIDUSER_GetHandles(Handle* outMemHandle, Handle *eventpad0, Handle *eventpad1, Handle *eventaccel, Handle *eventgyro, Handle *eventdebugpad)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0xa0000; //request header code
@@ -102,6 +115,12 @@ Result HIDUSER_GetSharedMem(Handle* outMemHandle)
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	if(outMemHandle)*outMemHandle=cmdbuf[3];
+
+	if(eventpad0)*eventpad0=cmdbuf[4];
+	if(eventpad1)*eventpad1=cmdbuf[5];
+	if(eventaccel)*eventaccel=cmdbuf[6];
+	if(eventgyro)*eventgyro=cmdbuf[7];
+	if(eventdebugpad)*eventdebugpad=cmdbuf[8];
 
 	return cmdbuf[1];
 }

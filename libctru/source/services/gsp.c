@@ -68,6 +68,8 @@ void gspExitEventHandler()
 
 void gspWaitForEvent(GSP_Event id, bool nextEvent)
 {
+	if(id>=GSPEVENT_MAX)return;
+
 	if (nextEvent)
 		svcClearEvent(gspEvents[id]);
 	svcWaitSynchronization(gspEvents[id], U64_MAX);
