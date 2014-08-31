@@ -41,6 +41,20 @@ typedef struct
 	s16 dx, dy;
 } circlePosition;
 
+typedef struct
+{
+	s16 x;
+	s16 y;
+	s16 z;
+} accelVector;
+
+typedef struct
+{
+	s16 x;//roll
+	s16 z;//yaw
+	s16 y;//pitch
+} angularRate;
+
 typedef enum
 {
 	HIDEVENT_PAD0 = 0, //"Event signaled by HID-module, when the sharedmem+0(PAD/circle-pad)/+0xA8(touch-screen) region was updated."
@@ -64,6 +78,8 @@ u32 hidKeysDown();
 u32 hidKeysUp();
 void hidTouchRead(touchPosition* pos);
 void hidCircleRead(circlePosition* pos);
+void hidAccelRead(accelVector* vector);
+void hidGyroRead(angularRate* rate);
 
 void hidWaitForEvent(HID_Event id, bool nextEvent);
 
@@ -80,3 +96,4 @@ Result HIDUSER_EnableAccelerometer();
 Result HIDUSER_DisableAccelerometer();
 Result HIDUSER_EnableGyroscope();
 Result HIDUSER_DisableGyroscope();
+

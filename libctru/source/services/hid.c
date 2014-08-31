@@ -15,6 +15,8 @@ vu32* hidSharedMem;
 static u32 kOld, kHeld, kDown, kUp;
 static touchPosition tPos;
 static circlePosition cPos;
+static accelVector aVec;
+static angularRate gRate;
 
 
 Result hidInit(u32* sharedMem)
@@ -62,23 +64,66 @@ void hidWaitForEvent(HID_Event id, bool nextEvent)
 		svcClearEvent(hidEvents[id]);
 }
 
+u32 hidCheckSectionUpdateTime(vu32 *sharedmem_section, u32 id)
+{
+	s64 tick0=0, tick1=0;
+
+	if(id==0)
+	{
+		tick0 = *((u64*)&sharedmem_section[0]);
+		tick1 = *((u64*)&sharedmem_section[2]);
+
+		if(tick0==tick1 || tick0<0 || tick1<0)return 1;
+	}
+
+	return 0;
+}
+
 void hidScanInput()
 {
+	u32 Id=0;
+
 	kOld = kHeld;
 
-	u32 padId = hidSharedMem[4];
-	if(padId>7)padId=7;
-	kHeld = hidSharedMem[10 + padId*4];
-	cPos = *(circlePosition*)&hidSharedMem[10 + padId*4 + 3];
+	kHeld = 0;
+	memset(&cPos, 0, sizeof(circlePosition));
+	memset(&tPos, 0, sizeof(touchPosition));
+	memset(&aVec, 0, sizeof(accelVector));
+	memset(&gRate, 0, sizeof(angularRate));
 
-	u32 touchId = hidSharedMem[42 + 4];
-	if(touchId>7)touchId=7;
-	tPos = *(touchPosition*)&hidSharedMem[42 + 8 + touchId*2];
-	if (hidSharedMem[42 + 8 + touchId*2 + 1])
-		kHeld |= KEY_TOUCH;
+	Id = hidSharedMem[4];//PAD / circle-pad
+	if(Id>7)Id=7;
+	if(hidCheckSectionUpdateTime(hidSharedMem, Id)==0)
+	{
+		kHeld = hidSharedMem[10 + Id*4];
+		cPos = *(circlePosition*)&hidSharedMem[10 + Id*4 + 3];
+	}
+
+	Id = hidSharedMem[42 + 4];//Touch-screen
+	if(Id>7)Id=7;
+	if(hidCheckSectionUpdateTime(&hidSharedMem[42], Id)==0)
+	{
+		tPos = *(touchPosition*)&hidSharedMem[42 + 8 + Id*2];
+		if (hidSharedMem[42 + 8 + Id*2 + 1])
+			kHeld |= KEY_TOUCH;
+	}
 
 	kDown = (~kOld) & kHeld;
 	kUp = kOld & (~kHeld);
+
+	Id = hidSharedMem[66 + 4];//Accelerometer
+	if(Id>7)Id=7;
+	if(hidCheckSectionUpdateTime(&hidSharedMem[66], Id)==0)
+	{
+		aVec = *(accelVector*)&hidSharedMem[66 + 8 + Id*2];
+	}
+
+	Id = hidSharedMem[86 + 4];//Gyroscope
+	if(Id>31)Id=31;
+	if(hidCheckSectionUpdateTime(&hidSharedMem[86], Id)==0)
+	{
+		gRate = *(angularRate*)&hidSharedMem[86 + 8 + Id*2];
+	}
 }
 
 u32 hidKeysHeld()
@@ -104,6 +149,16 @@ void hidTouchRead(touchPosition* pos)
 void hidCircleRead(circlePosition* pos)
 {
 	if (pos) *pos = cPos;
+}
+
+void hidAccelRead(accelVector* vector)
+{
+	if (vector) *vector = aVec;
+}
+
+void hidGyroRead(angularRate* rate)
+{
+	if (rate) *rate = gRate;
 }
 
 Result HIDUSER_GetHandles(Handle* outMemHandle, Handle *eventpad0, Handle *eventpad1, Handle *eventaccel, Handle *eventgyro, Handle *eventdebugpad)
@@ -168,3 +223,4 @@ Result HIDUSER_DisableGyroscope()
 
 	return cmdbuf[1];
 }
+
