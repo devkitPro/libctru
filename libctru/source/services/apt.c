@@ -743,3 +743,35 @@ Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c)
 
 	return cmdbuf[1];
 }
+
+//See http://3dbrew.org/APT:SetApplicationCpuTimeLimit
+Result APT_SetAppCpuTimeLimit(Handle* handle, u32 percent)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x4F0080;
+	cmdbuf[1]=1;
+	cmdbuf[2]=percent;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_GetAppCpuTimeLimit(Handle* handle, u32 *percent)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x500040;
+	cmdbuf[1]=1;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	if(percent)*percent=cmdbuf[2];
+
+	return cmdbuf[1];
+}
