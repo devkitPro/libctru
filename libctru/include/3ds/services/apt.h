@@ -67,3 +67,5 @@ Result APT_ReplySleepQuery(Handle* handle, NS_APPID appID, u32 a);
 Result APT_ReplySleepNotificationComplete(Handle* handle, NS_APPID appID);
 Result APT_PrepareToCloseApplication(Handle* handle, u8 a);
 Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c);
+Result APT_SetAppCpuTimeLimit(Handle* handle, u32 percent);
+Result APT_GetAppCpuTimeLimit(Handle* handle, u32 *percent);
