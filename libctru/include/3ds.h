@@ -23,6 +23,7 @@ extern "C" {
 #include <3ds/services/ir.h>
 #include <3ds/services/ptm.h>
 #include <3ds/services/soc.h>
+#include <3ds/services/mic.h>
 
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
