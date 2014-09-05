@@ -745,9 +745,9 @@ Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c)
 }
 
 //See http://3dbrew.org/APT:SetApplicationCpuTimeLimit
-Result APT_SetAppCpuTimeLimit(Handle* handle, u32 percent)
+Result APT_SetAppCpuTimeLimit(u32 percent)
 {
-	if(!handle)handle=&aptuHandle;
+	aptOpenSession();
 
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x4F0080;
@@ -755,23 +755,33 @@ Result APT_SetAppCpuTimeLimit(Handle* handle, u32 percent)
 	cmdbuf[2]=percent;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(aptuHandle)))
+	{
+		aptCloseSession();
+		return ret;
+	}
 
+	aptCloseSession();
 	return cmdbuf[1];
 }
 
-Result APT_GetAppCpuTimeLimit(Handle* handle, u32 *percent)
+Result APT_GetAppCpuTimeLimit(u32 *percent)
 {
-	if(!handle)handle=&aptuHandle;
+	aptOpenSession();
 
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x500040;
 	cmdbuf[1]=1;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(*handle)))return ret;
+	if((ret=svcSendSyncRequest(aptuHandle)))
+	{
+		aptCloseSession();
+		return ret;
+	}
 
 	if(percent)*percent=cmdbuf[2];
 
+	aptCloseSession();
 	return cmdbuf[1];
 }
