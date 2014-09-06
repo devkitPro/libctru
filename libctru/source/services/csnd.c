@@ -285,7 +285,11 @@ Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u3
 
 	CSND_sharedmemtype0_cmde(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
 	CSND_sharedmemtype0_cmd8(channel, samplerate);
-	if(looping)CSND_sharedmemtype0_cmd3(channel, physaddr0, totalbytesize);
+	if(looping)
+	{
+		if(physaddr1>physaddr0)totalbytesize-= (u32)physaddr1 - (u32)physaddr0;
+		CSND_sharedmemtype0_cmd3(channel, physaddr1, totalbytesize);
+	}
 	CSND_sharedmemtype0_cmd8(channel, samplerate);
 	CSND_sharedmemtype0_cmd9(channel, 0xffff);
 	CSND_setchannel_playbackstate(channel, 1);
