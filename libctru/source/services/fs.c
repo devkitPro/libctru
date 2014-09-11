@@ -68,7 +68,7 @@ FSUSER_Initialize(Handle* handle)
 	{
 		// don't run command if we got handle from the list
 		handle = &fsuHandle;
-		if(fsuHandle != 0 && __get_handle_from_list("fs:USER")==0)
+		if(fsuHandle != 0 && __get_handle_from_list("fs:USER")!=0)
 			return 0;
 	}
 
