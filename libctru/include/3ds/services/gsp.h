@@ -37,12 +37,12 @@ typedef struct
 
 typedef enum
 {
-	GSPEVENT_PSC0 = 0,
+	GSPEVENT_PSC0 = 0,	// memory fill completed
 	GSPEVENT_PSC1,
 	GSPEVENT_VBlank0,
 	GSPEVENT_VBlank1,
-	GSPEVENT_PPF,
-	GSPEVENT_P3D,
+	GSPEVENT_PPF,		// display transfer finished
+	GSPEVENT_P3D,		// command list processing finished
 	GSPEVENT_DMA,
 
 	GSPEVENT_MAX, // used to know how many events there are
