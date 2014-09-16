@@ -5,20 +5,20 @@ extern u32 __linear_heap, __linear_heap_size;
 // TODO: this allocator sucks! It is not thread-safe and you cannot 'free' this memory.
 void* linearAlloc(size_t size)
 {
-    static size_t currentOffset = 0;
-    size_t free = __linear_heap_size - currentOffset;
+	static size_t currentOffset = 0;
+	size_t free = __linear_heap_size - currentOffset;
 
-	// Enforce 8-byte alignment
-	size = (size + 7) &~ 7;
+	// Enforce 16-byte alignment
+	size = (size + 15) &~ 15;
 
 	void* mem = NULL;
-    if (free >= size)
-    {
+	if (free >= size)
+	{
 		mem = (void*)(__linear_heap + currentOffset);
-        currentOffset += size;
-    }
+		currentOffset += size;
+	}
 
-    return mem;
+	return mem;
 }
 
 void* linearRealloc(void* mem, size_t size)
