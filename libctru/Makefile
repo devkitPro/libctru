@@ -17,7 +17,7 @@ include $(DEVKITARM)/base_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	ctru
 BUILD		:=	build
-SOURCES		:=	source source/services source/gpu
+SOURCES		:=	source source/services source/gpu source/allocator
 DATA		:=	data
 INCLUDES	:=	include
 
