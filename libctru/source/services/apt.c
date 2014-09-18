@@ -26,6 +26,7 @@ Handle aptStatusEvent = 0;
 APP_STATUS aptStatus = APP_NOTINITIALIZED;
 APP_STATUS aptStatusBeforeSleep = APP_NOTINITIALIZED;
 u32 aptStatusPower = 0;
+Handle aptSleepSync = 0;
 
 u32 aptParameters[0x1000/4]; //TEMP
 
@@ -204,21 +205,24 @@ static void __handle_notification() {
 	case APTSIGNAL_PREPARESLEEP:
 		// Reply to sleep-request.
 		aptStatusBeforeSleep = aptGetStatus();
+		aptSetStatus(APP_PREPARE_SLEEPMODE);
+		svcWaitSynchronization(aptSleepSync, U64_MAX);
+		svcClearEvent(aptSleepSync);
+		
 		aptOpenSession();
 		APT_ReplySleepQuery(NULL, currentAppId, 0x1);
 		aptCloseSession();
-
-		aptSetStatus(APP_PREPARE_SLEEPMODE);
 		break;
 
 	case APTSIGNAL_ENTERSLEEP:
 		if(aptGetStatus() == APP_PREPARE_SLEEPMODE)
 		{
 			// Report into sleep-mode.
+			aptSetStatus(APP_SLEEPMODE);
+			
 			aptOpenSession();
 			APT_ReplySleepNotificationComplete(NULL, currentAppId);
 			aptCloseSession();
-			aptSetStatus(APP_SLEEPMODE);
 		}
 		break;
 
@@ -319,6 +323,7 @@ Result aptInit(void)
 	}
 
 	svcCreateEvent(&aptStatusEvent, 0);
+	svcCreateEvent(&aptSleepSync, 0);
 	return 0;
 }
 
@@ -344,6 +349,8 @@ void aptExit()
 		APT_CloseApplication(NULL, 0x0, 0x0, 0x0);
 		aptCloseSession();
 	}
+	
+	svcCloseHandle(aptSleepSync);
 
 	svcCloseHandle(aptStatusMutex);
 	//svcCloseHandle(aptLockHandle);
@@ -421,7 +428,7 @@ void aptSetStatus(APP_STATUS status)
 
 	svcWaitSynchronization(aptStatusMutex, U64_MAX);
 
-	prevstatus = status;
+	prevstatus = aptStatus;
 	aptStatus = status;
 
 	if(prevstatus != APP_NOTINITIALIZED)
@@ -459,6 +466,11 @@ void aptCloseSession()
 {
 	svcCloseHandle(aptuHandle);
 	svcReleaseMutex(aptLockHandle);
+}
+
+void aptSignalReadyForSleep()
+{
+	svcSignalEvent(aptSleepSync);
 }
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle)
