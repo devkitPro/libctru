@@ -65,6 +65,9 @@ void GPUCMD_AddSingleParam(u32 cmd, u32 param)
 
 void GPUCMD_Finalize()
 {
+	GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
+	GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
+	GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
 	GPUCMD_AddSingleParam(0x000F0010, 0x12345678);
 }
 
@@ -272,7 +275,7 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_Add(0x800F0065, param, 0x00000003);
 
 	//enable depth buffer
-	param[0x0]=0x00000000;
+	param[0x0]=0x0000000F;
 	param[0x1]=0x0000000F;
 	param[0x2]=0x00000002;
 	param[0x3]=0x00000002;
@@ -286,6 +289,11 @@ void GPU_DepthRange(float nearVal, float farVal)
 	GPUCMD_AddSingleParam(0x000F004E, f32tof24(farVal));
 }
 
+void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref)
+{
+	GPUCMD_AddSingleParam(0x000F0104, (enable&1)|((function&7)<<4)|(ref<<8));
+}
+
 void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref)
 {
 	GPUCMD_AddSingleParam(0x000F0105, (enable&1)|((function&7)<<4)|(ref<<8));
@@ -296,12 +304,54 @@ void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref)
 	GPUCMD_AddSingleParam(0x000F0107, (enable&1)|((function&7)<<4)|(ref<<8));
 }
 
-void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType)
+void GPU_SetAlphaBlending(GPU_BLENDEQUATION colorEquation, GPU_BLENDEQUATION alphaEquation, 
+	GPU_BLENDFACTOR colorSrc, GPU_BLENDFACTOR colorDst, 
+	GPU_BLENDFACTOR alphaSrc, GPU_BLENDFACTOR alphaDst)
 {
-	GPUCMD_AddSingleParam(0x000F008E, colorType);
-	GPUCMD_AddSingleParam(0x000F0085, ((u32)data)>>3);
-	GPUCMD_AddSingleParam(0x000F0082, (width)|(height<<16));
-	GPUCMD_AddSingleParam(0x000F0083, param);
+	// TODO: fixed color
+	// it is controlled by command 0103 but I haven't found were to place said command without freezing the GPU
+	
+	GPUCMD_AddSingleParam(0x000F0101, colorEquation | (alphaEquation<<8) | (colorSrc<<16) | (colorDst<<20) | (alphaSrc<<24) | (alphaDst<<28));
+	GPUCMD_AddSingleParam(0x00020100, 0x00000100);
+}
+
+void GPU_SetColorLogicOp(GPU_LOGICOP op)
+{
+	GPUCMD_AddSingleParam(0x000F0102, op);
+	GPUCMD_AddSingleParam(0x00020100, 0x00000000);
+}
+
+void GPU_SetTextureEnable(GPU_TEXUNIT units)
+{
+	GPUCMD_AddSingleParam(0x0002006F, units<<8); 			// enables texcoord outputs
+	GPUCMD_AddSingleParam(0x000F0080, 0x00011000|units);	// enables texture units
+}
+
+void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType)
+{
+	switch (unit)
+	{
+	case GPU_TEXUNIT0:
+		GPUCMD_AddSingleParam(0x000F008E, colorType);
+		GPUCMD_AddSingleParam(0x000F0085, ((u32)data)>>3);
+		GPUCMD_AddSingleParam(0x000F0082, (width)|(height<<16));
+		GPUCMD_AddSingleParam(0x000F0083, param);
+		break;
+		
+	case GPU_TEXUNIT1:
+		GPUCMD_AddSingleParam(0x000F0096, colorType);
+		GPUCMD_AddSingleParam(0x000F0095, ((u32)data)>>3);
+		GPUCMD_AddSingleParam(0x000F0092, (width)|(height<<16));
+		GPUCMD_AddSingleParam(0x000F0093, param);
+		break;
+		
+	case GPU_TEXUNIT2:
+		GPUCMD_AddSingleParam(0x000F009E, colorType);
+		GPUCMD_AddSingleParam(0x000F009D, ((u32)data)>>3);
+		GPUCMD_AddSingleParam(0x000F009A, (width)|(height<<16));
+		GPUCMD_AddSingleParam(0x000F009B, param);
+		break;
+	}
 }
 
 const u8 GPU_FORMATSIZE[4]={1,1,2,4};
@@ -385,7 +435,6 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 n)
 	GPUCMD_AddSingleParam(0x000F0231, 0x00000001);
 
 	GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
-	GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
 }
 
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n)
@@ -405,4 +454,13 @@ void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n)
 	GPUCMD_AddSingleParam(0x000F022F, 0x00000001);
 	GPUCMD_AddSingleParam(0x00010245, 0x00000001);
 	GPUCMD_AddSingleParam(0x000F0231, 0x00000001);
+	
+	// CHECKME: does this one also require command 0x0111 at the end?
+}
+
+void GPU_FinishDrawing()
+{
+	GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
+	GPUCMD_AddSingleParam(0x000F0110, 0x00000001); 
+	GPUCMD_AddSingleParam(0x000F0063, 0x00000001);
 }

@@ -9,6 +9,13 @@ void GPUCMD_Add(u32 cmd, u32* param, u32 paramlength);
 void GPUCMD_AddSingleParam(u32 cmd, u32 param);
 void GPUCMD_Finalize();
 
+typedef enum
+{
+	GPU_TEXUNIT0 = 0x1,
+	GPU_TEXUNIT1 = 0x2,
+	GPU_TEXUNIT2 = 0x4
+} GPU_TEXUNIT;
+
 typedef enum{
 	GPU_RGBA8=0x0,
 	GPU_RGB8=0x1,
@@ -36,6 +43,54 @@ typedef enum
 	GPU_GREATER = 6,
 	GPU_GEQUAL = 7
 }GPU_TESTFUNC;
+
+typedef enum
+{
+	GPU_BLEND_ADD = 0,
+	GPU_BLEND_SUBTRACT = 1,
+	GPU_BLEND_REVERSE_SUBTRACT = 2,
+	GPU_BLEND_MIN = 3,
+	GPU_BLEND_MAX = 4
+} GPU_BLENDEQUATION;
+
+typedef enum
+{
+	GPU_ZERO = 0,
+	GPU_ONE = 1,
+	GPU_SRC_COLOR = 2,
+	GPU_ONE_MINUS_SRC_COLOR = 3,
+	GPU_DST_COLOR = 4,
+	GPU_ONE_MINUS_DST_COLOR = 5,
+	GPU_SRC_ALPHA = 6,
+	GPU_ONE_MINUS_SRC_ALPHA = 7,
+	GPU_DST_ALPHA = 8,
+	GPU_ONE_MINUS_DST_ALPHA = 9,
+	GPU_CONSTANT_COLOR = 10,
+	GPU_ONE_MINUS_CONSTANT_COLOR = 11,
+	GPU_CONSTANT_ALPHA = 12,
+	GPU_ONE_MINUS_CONSTANT_ALPHA = 13,
+	GPU_SRC_ALPHA_SATURATE = 14
+} GPU_BLENDFACTOR;
+
+typedef enum
+{
+	GPU_LOGICOP_CLEAR = 0,
+	GPU_LOGICOP_AND = 1,
+	GPU_LOGICOP_AND_REVERSE = 2,
+	GPU_LOGICOP_COPY = 3,
+	GPU_LOGICOP_SET = 4,
+	GPU_LOGICOP_COPY_INVERTED = 5,
+	GPU_LOGICOP_NOOP = 6,
+	GPU_LOGICOP_INVERT = 7,
+	GPU_LOGICOP_NAND = 8,
+	GPU_LOGICOP_OR = 9,
+	GPU_LOGICOP_NOR = 10,
+	GPU_LOGICOP_XOR = 11,
+	GPU_LOGICOP_EQUIV = 12,
+	GPU_LOGICOP_AND_INVERTED = 13,
+	GPU_LOGICOP_OR_REVERSE = 14,
+	GPU_LOGICOP_OR_INVERTED = 15
+} GPU_LOGICOP;
 
 typedef enum{
 	GPU_BYTE = 0,
@@ -84,14 +139,28 @@ typedef enum{
 }GPU_Primitive_t;
 
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
+
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
+
 void GPU_DepthRange(float nearVal, float farVal);
+void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetFaceCulling(GPU_CULLMODE mode);
+
+// these two can't be used together
+void GPU_SetAlphaBlending(GPU_BLENDEQUATION colorEquation, GPU_BLENDEQUATION alphaEquation, 
+	GPU_BLENDFACTOR colorSrc, GPU_BLENDFACTOR colorDst, 
+	GPU_BLENDFACTOR alphaSrc, GPU_BLENDFACTOR alphaDst);
+void GPU_SetColorLogicOp(GPU_LOGICOP op);
+
 void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[]);
-void GPU_SetTexture(u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
+
+void GPU_SetTextureEnable(GPU_TEXUNIT units); // GPU_TEXUNITx values can be ORed together to enable multiple texture units
+void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
 void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor);
 
 void GPU_DrawArray(GPU_Primitive_t primitive, u32 n);
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n);
+
+void GPU_FinishDrawing();
