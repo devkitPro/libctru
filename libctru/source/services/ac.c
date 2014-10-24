@@ -95,4 +95,3 @@ Result ACU_WaitInternetConnection()
 
 	return ret;
 }
-

@@ -170,6 +170,8 @@ int main()
 
 	memcpy(texData, test_png_bin, test_png_bin_size);
 	memcpy(vertArray, mdlData, sizeof(mdlData));
+	GSPGPU_FlushDataCache(NULL, mdlData, sizeof(mdlData));
+	GSPGPU_FlushDataCache(NULL, test_png_bin, test_png_bin_size);
 
 	tx=ty=0.0f; tz=-0.1f;
 	shader=SHDR_ParseSHBIN((u32*)test_vsh_shbin,test_vsh_shbin_size);
