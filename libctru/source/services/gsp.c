@@ -68,6 +68,8 @@ void gspExitEventHandler()
 
 void gspWaitForEvent(GSP_Event id, bool nextEvent)
 {
+	if(id>=GSPEVENT_MAX)return;
+
 	if (nextEvent)
 		svcClearEvent(gspEvents[id]);
 	svcWaitSynchronization(gspEvents[id], U64_MAX);
@@ -83,15 +85,15 @@ void gspEventThreadMain(u32 arg)
 		svcClearEvent(gspEvent);
 
 		int count = gspEventData[1];
-		int last = gspEventData[0] + count;
+		int cur = gspEventData[0];
+		int last = cur + count;
 		while (last >= 0x34) last -= 0x34;
-		int cur = last;
 		int i;
 		for (i = 0; i < count; i ++)
 		{
 			int curEvt = gspEventData[0xC + cur];
-			cur --;
-			if (cur < 0) cur += 0x34;
+			cur ++;
+			if (cur >= 0x34) cur -= 0x34;
 			if (curEvt >= GSPEVENT_MAX) continue;
 			svcSignalEvent(gspEvents[curEvt]);
 		}

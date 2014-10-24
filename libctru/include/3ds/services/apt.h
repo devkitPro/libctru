@@ -48,6 +48,7 @@ u32 aptGetStatusPower();//This can be used when the status is APP_SUSPEND* to ch
 void aptSetStatusPower(u32 status);
 void aptReturnToMenu();//This should be called by the user application when aptGetStatus() returns APP_SUSPENDING, not calling this will result in return-to-menu being disabled with the status left at APP_SUSPENDING. This function will not return until the system returns to the application, or when the status was changed to APP_EXITING.
 void aptWaitStatusEvent();
+void aptSignalReadyForSleep();
 NS_APPID aptGetMenuAppID();
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
@@ -67,3 +68,5 @@ Result APT_ReplySleepQuery(Handle* handle, NS_APPID appID, u32 a);
 Result APT_ReplySleepNotificationComplete(Handle* handle, NS_APPID appID);
 Result APT_PrepareToCloseApplication(Handle* handle, u8 a);
 Result APT_CloseApplication(Handle* handle, u32 a, u32 b, u32 c);
+Result APT_SetAppCpuTimeLimit(Handle* handle, u32 percent);
+Result APT_GetAppCpuTimeLimit(Handle* handle, u32 *percent);
