@@ -84,6 +84,7 @@ void hidScanInput()
 	u32 Id=0;
 
 	kOld = kHeld;
+	irrstScanInput();
 
 	kHeld = 0;
 	memset(&cPos, 0, sizeof(circlePosition));
@@ -107,6 +108,8 @@ void hidScanInput()
 		if (hidSharedMem[42 + 8 + Id*2 + 1])
 			kHeld |= KEY_TOUCH;
 	}
+
+	kHeld |= irrstKeysHeld();
 
 	kDown = (~kOld) & kHeld;
 	kUp = kOld & (~kHeld);
