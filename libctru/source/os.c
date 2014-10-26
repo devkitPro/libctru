@@ -36,8 +36,10 @@ u64 osGetTime() {
 	switch(*__datetime_selector & 1) {
 	case 0:
 		dt = __datetime1;
+		break;
 	case 1:
 		dt = __datetime2;
+		break;
 	}
 
 	u64 offset = (svcGetSystemTick() - dt->update_tick) / TICKS_PER_MSEC;
