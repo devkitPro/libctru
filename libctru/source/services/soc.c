@@ -648,7 +648,6 @@ int fcntl(int sockfd, int cmd, ...)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	va_list args;
-    	va_start(args, cmd);
 
 	if(cmd!=F_GETFL && cmd!=F_SETFL)
 	{
@@ -656,6 +655,7 @@ int fcntl(int sockfd, int cmd, ...)
 		return -1;
 	}
 
+	va_start(args, cmd);
 	if(cmd==F_SETFL)
 	{
 		arg = va_arg(args, int);
@@ -663,11 +663,13 @@ int fcntl(int sockfd, int cmd, ...)
 		if(arg && arg!=O_NONBLOCK)
 		{
 			SOCU_errno = -EINVAL;
+			va_end(args);
 			return -1;
 		}
 
 		if(arg==O_NONBLOCK)arg = 0x4;
 	}
+	va_end(args);
 
 	cmdbuf[0] = 0x001300C2;
 	cmdbuf[1] = (u32)sockfd;
