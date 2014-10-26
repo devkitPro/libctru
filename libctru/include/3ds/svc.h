@@ -23,9 +23,22 @@ typedef enum {
 	MEMPERM_MAX    =0xFFFFFFFF //force 4-byte
 } MemPerm;
 
+typedef struct {
+    u32 base_addr;
+    u32 size;
+    u32 perm;
+    u32 state;
+} MemInfo;
+
+typedef struct {
+    u32 flags;
+} PageInfo;
+
+
 u32* getThreadCommandBuffer(void);
 
 s32  svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op, MemPerm perm);
+s32  svcQueryMemory(MemInfo* info, PageInfo* out, u32 addr);
 void __attribute__((noreturn)) svcExitProcess();
 s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_top, s32 thread_priority, s32 processor_id);
 void __attribute__((noreturn)) svcExitThread();
