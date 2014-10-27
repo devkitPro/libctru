@@ -30,6 +30,7 @@ Handle aptSleepSync = 0;
 
 u32 aptParameters[0x1000/4]; //TEMP
 
+static void aptAppStarted(void);
 
 void aptInitCaptureInfo(u32 *ns_capinfo)
 {
@@ -325,7 +326,8 @@ Result aptInit(void)
 		// create APT event handler thread
 		svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
 			(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
-	}
+	} else
+		aptAppStarted();
 
 	svcCreateEvent(&aptStatusEvent, 0);
 	svcCreateEvent(&aptSleepSync, 0);
