@@ -1,11 +1,11 @@
 #include <3ds/types.h>
 #include <3ds/srv.h>
-#include <3ds/APT.h>
-#include <3ds/GSP.h>
-#include <3ds/GX.h>
-#include <3ds/HID.h>
-#include <3ds/FS.h>
 #include <3ds/svc.h>
+#include <3ds/gpu/gx.h>
+#include <3ds/services/apt.h>
+#include <3ds/services/gsp.h>
+#include <3ds/services/hid.h>
+#include <3ds/services/fs.h>
 #include "costable.h"
 
 u8* gspHeap;
@@ -44,7 +44,7 @@ void gspGpuInit()
 	svcControlMemory((u32*)&gspHeap, 0x0, 0x0, 0x2000000, 0x10003, 0x3);
 
 	//wait until we can write stuff to it
-	svcWaitSynchronization1(gspEvent, 0x55bcb0);
+	svcWaitSynchronization(gspEvent, 0x55bcb0);
 
 	//GSP shared mem : 0x2779F000
 	gxCmdBuf=(u32*)(0x10002000+0x800+threadID*0x200);
