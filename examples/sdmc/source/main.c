@@ -131,8 +131,6 @@ int main()
 	FSUSER_OpenFileDirectly(fsuHandle, &fileHandle, sdmcArchive, filePath, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
 	FSFILE_Read(fileHandle, &bytesRead, 0x0, (u32*)gspHeap, 0x46500);
 	FSFILE_Close(fileHandle);
-
-	aptSetupEventHandler();
 	
 	APP_STATUS status;
 	while((status=aptGetStatus())!=APP_EXITING)

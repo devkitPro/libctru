@@ -41,7 +41,6 @@ Result aptInit();
 void aptExit();
 void aptOpenSession();
 void aptCloseSession();
-void aptSetupEventHandler();
 void aptSetStatus(APP_STATUS status);
 APP_STATUS aptGetStatus();
 u32 aptGetStatusPower();//This can be used when the status is APP_SUSPEND* to check how the return-to-menu was triggered: 0 = home-button, 1 = power-button.

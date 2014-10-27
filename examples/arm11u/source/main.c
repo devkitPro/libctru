@@ -121,8 +121,6 @@ int main()
 
 	hidInit(NULL);
 
-	aptSetupEventHandler();
-
 	APP_STATUS status;
 	while((status=aptGetStatus())!=APP_EXITING)
 	{

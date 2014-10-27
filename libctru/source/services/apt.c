@@ -249,6 +249,7 @@ static bool __handle_incoming_parameter() {
 	switch(type)
 	{
 	case 0x1: // Application just started.
+		aptAppStarted();
 		return true;
 
 	case 0xB: // Just returned from menu.
@@ -320,6 +321,10 @@ Result aptInit(void)
 		aptOpenSession();
 		if((ret=APT_NotifyToWait(NULL, currentAppId)))return ret;
 		aptCloseSession();
+		
+		// create APT event handler thread
+		svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
+			(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
 	}
 
 	svcCreateEvent(&aptStatusEvent, 0);
@@ -357,31 +362,9 @@ void aptExit()
 	svcCloseHandle(aptStatusEvent);
 }
 
-void aptSetupEventHandler()
+void aptAppStarted()
 {
 	u8 buf1[4], buf2[4];
-
-	/*buf1[0]=0x02; buf1[1]=0x00; buf1[2]=0x00; buf1[3]=0x04;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	buf1[0]=0x13; buf1[1]=0x00; buf1[2]=0x10; buf1[3]=0x00;
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x7, 0x4, buf1, 0x1, buf2);
-	aptCloseSession();
-
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();*/
 
 	svcCreateMutex(&aptStatusMutex, true);
 	aptStatus=0;
@@ -406,10 +389,6 @@ void aptSetupEventHandler()
 		aptOpenSession();
 		APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 		aptCloseSession();
-
-		// Create thread for stuff handling APT events.
-		svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
-			(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
 	}
 }
 

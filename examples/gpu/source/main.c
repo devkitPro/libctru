@@ -56,7 +56,7 @@ void doFrame1()
 
 		GPU_SetFaceCulling(GPU_CULL_BACK_CCW);
 		GPU_SetStencilTest(false, GPU_ALWAYS, 0x00);
-		GPU_SetDepthTest(true, GPU_GREATER, 0x1F);
+		GPU_SetDepthTestAndWriteMask(true, GPU_GREATER, GPU_WRITE_ALL);
 
 	// ?
 		GPUCMD_AddSingleParam(0x00010062, 0x00000000); //param always 0x0 according to code
@@ -122,9 +122,7 @@ void doFrame1()
 		GPU_DrawArray(GPU_TRIANGLES, mdlFaces*3);
 
 	//finalize stuff ?
-		GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
-		GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
-		GPUCMD_AddSingleParam(0x0008025E, 0x00000000);
+		GPU_FinishDrawing();
 }
 
 void demoControls(void)
@@ -156,7 +154,6 @@ int main()
 	aptInit();
 	gfxInit();
 	hidInit(NULL);
-	aptSetupEventHandler();
 	
 	GPU_Init(NULL);
 
@@ -177,6 +174,7 @@ int main()
 	shader=SHDR_ParseSHBIN((u32*)test_vsh_shbin,test_vsh_shbin_size);
 
 	GX_SetMemoryFill(gxCmdBuf, (u32*)gpuOut, 0x404040FF, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
+	gspWaitForPSC0();
 	gfxSwapBuffersGpu();
 
 	APP_STATUS status;
@@ -187,14 +185,17 @@ int main()
 			demoControls();
 
 			GX_SetMemoryFill(gxCmdBuf, (u32*)gpuOut, 0x404040FF, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
+			gspWaitForPSC0();
 
 			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
 			doFrame1();
 			GPUCMD_Finalize();
 			GPUCMD_Run(gxCmdBuf);
+			gspWaitForP3D();
 
 			gfxSwapBuffersGpu();
 			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
+			gspWaitForPPF();
 		}
 		gspWaitForVBlank();
 	}

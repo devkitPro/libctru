@@ -16,7 +16,6 @@ int main()
 	aptInit();
 	gfxInit();
 	hidInit(NULL);
-	aptSetupEventHandler();
 	
 	CSND_initialize(NULL);
 
