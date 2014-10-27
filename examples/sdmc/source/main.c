@@ -126,7 +126,7 @@ int main()
 
 	Handle fileHandle;
 	u32 bytesRead;
-	FS_archive sdmcArchive=(FS_archive){0x9, (FS_path){PATH_EMPTY, 1, (u8*)""}};
+	FS_archive sdmcArchive=(FS_archive){ARCH_SDMC, (FS_path){PATH_EMPTY, 1, (u8*)""}};
 	FS_path filePath=(FS_path){PATH_CHAR, 10, (u8*)"/test.bin"};
 	FSUSER_OpenFileDirectly(fsuHandle, &fileHandle, sdmcArchive, filePath, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
 	FSFILE_Read(fileHandle, &bytesRead, 0x0, (u32*)gspHeap, 0x46500);
