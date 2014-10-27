@@ -11,6 +11,13 @@
 
 #define U64_MAX	UINT64_MAX
 
+typedef enum
+{
+	mediatype_NAND,
+	mediatype_SDMC,
+	mediatype_GAMECARD,
+} mediatypes_enum;
+
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;

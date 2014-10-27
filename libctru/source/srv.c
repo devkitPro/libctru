@@ -31,7 +31,6 @@ extern service_list_t* __service_ptr;
 static Handle g_srv_handle = 0;
 
 
-
 static int __name_cmp(const char* a, const char* b) {
 	u32 i;
 
@@ -45,7 +44,7 @@ static int __name_cmp(const char* a, const char* b) {
 	return 0;
 }
 
-Handle __get_handle_from_list(char* name) {
+Handle __get_handle_from_list(const char* name) {
 	if((u32)__service_ptr == 0)
 		return 0;
 
@@ -83,18 +82,22 @@ Result srvExit()
 
 Result srvRegisterClient()
 {
+	Result rc = 0;
+	
 	u32* cmdbuf = getThreadCommandBuffer();
+	
 	cmdbuf[0] = 0x10002;
 	cmdbuf[1] = 0x20;
 
-	Result rc;
 	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
 	return cmdbuf[1];
 }
 
-Result srvGetServiceHandle(Handle* out, char* name)
+Result srvGetServiceHandle(Handle* out, const char* name)
 {
+	Result rc = 0;
+
 	/* Look in service-list given to us by loader. If we find find a match,
 	   we return it. */
 	Handle h = __get_handle_from_list(name);
@@ -109,10 +112,55 @@ Result srvGetServiceHandle(Handle* out, char* name)
 	strcpy((char*) &cmdbuf[1], name);
 	cmdbuf[3] = strlen(name);
 	cmdbuf[4] = 0x0;
-
-	Result rc;
+	
 	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
 	*out = cmdbuf[3];
+	return cmdbuf[1];
+}
+
+// Old srv:pm interface, will only work on systems where srv:pm was a port (<7.X)
+Result srvPmInit()
+{	
+	Result rc = 0;
+	
+	if((rc = svcConnectToPort(&g_srv_handle, "srv:pm")))return rc;
+	
+	if((rc = srvRegisterClient())) {
+		svcCloseHandle(g_srv_handle);
+		g_srv_handle = 0;
+	}
+
+	return rc;
+}
+
+Result srvRegisterProcess(u32 procid, u32 count, void *serviceaccesscontrol)
+{
+	Result rc = 0;
+	
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x04030082; // <7.x
+	cmdbuf[1] = procid;
+	cmdbuf[2] = count;
+	cmdbuf[3] = (count << 16) | 2;
+	cmdbuf[4] = (u32)serviceaccesscontrol;
+	
+	if((rc = svcSendSyncRequest(g_srv_handle))) return rc;
+		
+	return cmdbuf[1];
+}
+
+Result srvUnregisterProcess(u32 procid)
+{
+	Result rc = 0;
+	
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x04040040; // <7.x
+	cmdbuf[1] = procid;
+	
+	if((rc = svcSendSyncRequest(g_srv_handle))) return rc;
+		
 	return cmdbuf[1];
 }
