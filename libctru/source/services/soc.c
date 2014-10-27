@@ -9,6 +9,7 @@
 
 Handle SOCU_handle = 0;
 static int SOCU_errno = 0;
+static Handle socMemhandle = 0;
 
 #define NET_UNKNOWN_ERROR_OFFSET	-10000//This is from libogc network_wii.c.
 
@@ -127,6 +128,7 @@ Result SOC_Shutdown()
 	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
 
 	svcCloseHandle(SOCU_handle);
+	svcCloseHandle(socMemhandle);
 
 	return cmdbuf[1];
 }
@@ -134,14 +136,13 @@ Result SOC_Shutdown()
 Result SOC_Initialize(u32 *context_addr, u32 context_size)
 {
 	Result ret=0;
-	Handle memhandle = 0;
 
-	ret = svcCreateMemoryBlock(&memhandle, (u32)context_addr, context_size, 0, 3);
+	ret = svcCreateMemoryBlock(&socMemhandle, (u32)context_addr, context_size, 0, 3);
 	if(ret!=0)return ret;
 
 	if((ret = srvGetServiceHandle(&SOCU_handle, "soc:U"))!=0)return ret;
 
-	return socu_cmd1(memhandle, context_size);
+	return socu_cmd1(socMemhandle, context_size);
 }
 
 int SOC_GetErrno()
