@@ -67,6 +67,23 @@ typedef enum
 	PATH_WCHAR   = 4, //!< Specifies a text based path with a 16-bit short per character.
 } FS_pathType;
 
+/*! FS archive ids */
+typedef enum
+{
+	ARCH_ROMFS = 0x3,
+	ARCH_SAVEDATA = 0x4,
+	ARCH_EXTDATA = 0x6,
+	ARCH_SHARED_EXTDATA = 0x7,
+	ARCH_SYSTEM_SAVEDATA = 0x8,
+	ARCH_SDMC = 0x9,
+	ARCH_SDMC_WRITE_ONLY = 0xA,
+	ARCH_BOSS_EXTDATA = 0x12345678,
+	ARCH_CARD_SPIFS = 0x12345679,
+	ARCH_NAND_RW = 0x1234567D,
+	ARCH_NAND_RO = 0x1234567E,
+	ARCH_NAND_RO_WRITE_ACCESS = 0x1234567F,
+} FS_archiveIds;
+
 /*! FS path */
 typedef struct
 {
