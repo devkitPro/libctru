@@ -46,6 +46,26 @@ typedef enum
 
 typedef enum
 {
+	GPU_KEEP = 0, 		// keep destination value
+	GPU_AND_NOT = 1, 	// destination & ~source
+	GPU_XOR = 5,		// destination ^ source
+	// 2 is the same as 1. Other values are too weird to even be usable.
+} GPU_STENCILOP;
+
+typedef enum
+{
+	GPU_WRITE_RED = 0x01,
+	GPU_WRITE_GREEN = 0x02,
+	GPU_WRITE_BLUE = 0x04,
+	GPU_WRITE_ALPHA = 0x08,
+	GPU_WRITE_DEPTH = 0x10,
+	
+	GPU_WRITE_COLOR = 0x0F,
+	GPU_WRITE_ALL = 0x1F
+} GPU_WRITEMASK;
+
+typedef enum
+{
 	GPU_BLEND_ADD = 0,
 	GPU_BLEND_SUBTRACT = 1,
 	GPU_BLEND_REVERSE_SUBTRACT = 2,
@@ -144,8 +164,9 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 
 void GPU_DepthRange(float nearVal, float farVal);
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref);
-void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref);
-void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref);
+void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask); // GPU_WRITEMASK values can be ORed together
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace);
+void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass);
 void GPU_SetFaceCulling(GPU_CULLMODE mode);
 
 // these two can't be used together
@@ -153,6 +174,8 @@ void GPU_SetAlphaBlending(GPU_BLENDEQUATION colorEquation, GPU_BLENDEQUATION alp
 	GPU_BLENDFACTOR colorSrc, GPU_BLENDFACTOR colorDst, 
 	GPU_BLENDFACTOR alphaSrc, GPU_BLENDFACTOR alphaDst);
 void GPU_SetColorLogicOp(GPU_LOGICOP op);
+
+void GPU_SetBlendingColor(u8 r, u8 g, u8 b, u8 a);
 
 void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[]);
 

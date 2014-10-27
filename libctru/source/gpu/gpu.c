@@ -294,23 +294,25 @@ void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref)
 	GPUCMD_AddSingleParam(0x000F0104, (enable&1)|((function&7)<<4)|(ref<<8));
 }
 
-void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref)
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace)
 {
-	GPUCMD_AddSingleParam(0x000F0105, (enable&1)|((function&7)<<4)|(ref<<8));
+	GPUCMD_AddSingleParam(0x000F0105, (enable&1)|((function&7)<<4)|(replace<<8)|(ref<<16)|(mask<<24));
 }
 
-void GPU_SetDepthTest(bool enable, GPU_TESTFUNC function, u8 ref)
+void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass)
 {
-	GPUCMD_AddSingleParam(0x000F0107, (enable&1)|((function&7)<<4)|(ref<<8));
+	GPUCMD_AddSingleParam(0x000F0106, sfail | (dfail << 4) | (pass << 8));
+}
+
+void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask)
+{
+	GPUCMD_AddSingleParam(0x000F0107, (enable&1)|((function&7)<<4)|(writemask<<8));
 }
 
 void GPU_SetAlphaBlending(GPU_BLENDEQUATION colorEquation, GPU_BLENDEQUATION alphaEquation, 
 	GPU_BLENDFACTOR colorSrc, GPU_BLENDFACTOR colorDst, 
 	GPU_BLENDFACTOR alphaSrc, GPU_BLENDFACTOR alphaDst)
 {
-	// TODO: fixed color
-	// it is controlled by command 0103 but I haven't found were to place said command without freezing the GPU
-	
 	GPUCMD_AddSingleParam(0x000F0101, colorEquation | (alphaEquation<<8) | (colorSrc<<16) | (colorDst<<20) | (alphaSrc<<24) | (alphaDst<<28));
 	GPUCMD_AddSingleParam(0x00020100, 0x00000100);
 }
@@ -319,6 +321,11 @@ void GPU_SetColorLogicOp(GPU_LOGICOP op)
 {
 	GPUCMD_AddSingleParam(0x000F0102, op);
 	GPUCMD_AddSingleParam(0x00020100, 0x00000000);
+}
+
+void GPU_SetBlendingColor(u8 r, u8 g, u8 b, u8 a)
+{
+	GPUCMD_AddSingleParam(0x000F0103, r | (g << 8) | (b << 16) | (a << 24));
 }
 
 void GPU_SetTextureEnable(GPU_TEXUNIT units)
