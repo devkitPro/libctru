@@ -1,41 +1,139 @@
-CC = arm-none-eabi-gcc
-LINK = arm-none-eabi-ld
-OBJCOPY = arm-none-eabi-objcopy
-CTRULIB = ../../libctru
-CFLAGS += -Wall -std=c99 -march=armv6 -O3 -I"$(CTRULIB)/include"
-LDFLAGS += --script=ccd00.ld -L"$(DEVKITARM)/arm-none-eabi/lib" -L"$(CTRULIB)/lib"
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
 
-CFILES = $(wildcard source/*.c)
-OFILES = $(CFILES:source/%.c=build/%.o)
-DFILES = $(CFILES:source/%.c=build/%.d)
-SFILES = $(wildcard source/*.s)
-OFILES += $(SFILES:source/%.s=build/%.o)
-PROJECTNAME = ${shell basename "$(CURDIR)"}
+ifeq ($(strip $(DEVKITARM)),)
+$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+endif
 
-.PHONY:=all dir
+ifeq ($(strip $(CTRULIB)),)
+# THIS IS TEMPORARY - in the future it should be at $(DEVKITPRO)/libctru
+$(error "Please set CTRULIB in your environment. export CTRULIB=<path to>libctru")
+endif
 
-all: dir $(PROJECTNAME).bin
+TOPDIR ?= $(CURDIR)
+include $(DEVKITARM)/3ds_rules
 
-dir:
-	@mkdir -p build
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# DATA is a list of directories containing data files
+# INCLUDES is a list of directories containing header files
+# SPECS is the directory containing the important build and link files
+#---------------------------------------------------------------------------------
+export TARGET		:=	$(shell basename $(CURDIR))
+BUILD		:=	build
+SOURCES		:=	source
+DATA		:=	data
+INCLUDES	:=	include
 
-$(PROJECTNAME).bin: $(PROJECTNAME).elf
-	$(OBJCOPY) -O binary $< $@
 
-$(PROJECTNAME).elf: $(OFILES)
-	$(LINK) $(LDFLAGS) -o $(PROJECTNAME).elf $(filter-out build/crt0.o, $(OFILES)) -lctru -lc
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+ARCH	:=	-march=armv6k -mtune=mpcore
 
+CFLAGS	:=	-g -Wall -O2 -mword-relocations -save-temps \
+			-fomit-frame-pointer -ffast-math \
+			$(ARCH)
+
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+
+ASFLAGS	:=	-g $(ARCH)
+LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) \
+			-Wl,-Map,$(TARGET).map
+
+LIBS	:= -lctru -lm
+
+#---------------------------------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#---------------------------------------------------------------------------------
+LIBDIRS	:= $(CTRULIB)
+ 
+  
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+ 
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export TOPDIR	:=	$(CURDIR)
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+.PHONY: $(BUILD) clean all
+ 
+#---------------------------------------------------------------------------------
+all: $(BUILD)
+
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+ 
+#---------------------------------------------------------------------------------
 clean:
-	@rm -f build/*.o build/*.d
-	@rm -f $(PROJECTNAME).elf $(PROJECTNAME).bin
-	@echo "all cleaned up !"
+	@echo clean ...
+	@rm -fr $(BUILD) $(TARGET).3dsx $(TARGET).elf
+ 
+ 
+#---------------------------------------------------------------------------------
+else
+ 
+DEPENDS	:=	$(OFILES:.o=.d)
+ 
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+$(OUTPUT).3dsx	:	$(OUTPUT).elf
+$(OUTPUT).elf	:	$(OFILES)
 
--include $(DFILES)
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data 
+#---------------------------------------------------------------------------------
+%.bin.o	:	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	$(bin2o)
 
-build/%.o: source/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-	@$(CC) -MM $< > build/$*.d
-
-build/%.o: source/%.s
-	$(CC) $(CFLAGS) -c $< -o $@
-	@$(CC) -MM $< > build/$*.d
+-include $(DEPENDS)
+ 
+#---------------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------------
