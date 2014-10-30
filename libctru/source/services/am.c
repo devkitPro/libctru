@@ -95,7 +95,7 @@ Result AM_CancelCIAInstall(Handle *ciahandle)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x04050002;
+	cmdbuf[0] = 0x04040002;
 	cmdbuf[1] = 0x10;
 	cmdbuf[2] = *ciahandle;
 
@@ -109,7 +109,7 @@ Result AM_FinishCiaInstall(u8 mediatype, Handle *ciahandle)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x04040002;
+	cmdbuf[0] = 0x04050002;
 	cmdbuf[1] = 0x10;
 	cmdbuf[2] = *ciahandle;
 
