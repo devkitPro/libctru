@@ -84,7 +84,7 @@ sdmc_devoptab =
 /*! SDMC archive handle */
 static FS_archive sdmcArchive =
 {
-  .id = 0x00000009,
+  .id = ARCH_SDMC,
   .lowPath =
   {
     .type = PATH_EMPTY,
