@@ -436,7 +436,7 @@ sdmc_stat(struct _reent *r,
 /*! Hard link a file
  *
  *  @param[in,out] r        newlib reentrancy struct
- *  @param[in]     existing Path of ile to link
+ *  @param[in]     existing Path of file to link
  *  @param[in]     newLink  Path of new link
  *
  *  @returns 0 for success
