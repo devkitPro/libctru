@@ -340,7 +340,7 @@ sdmc_read(struct _reent *r,
  *  @param[in]     pos    Offset to seek to
  *  @param[in]     whence Where to seek from
  *
- *  @returns 0 for success
+ *  @returns new offset for success
  *  @returns -1 for error
  */
 static off_t
@@ -394,7 +394,7 @@ sdmc_seek(struct _reent *r,
 
   /* update the current offset */
   file->offset = offset + pos;
-  return 0;
+  return file->offset;
 }
 
 /*! Get file stats from an open file
