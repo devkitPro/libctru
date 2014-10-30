@@ -788,7 +788,10 @@ FSFILE_Close(Handle handle)
 	if((ret = svcSendSyncRequest(handle)))
 		return ret;
 
-	return cmdbuf[1];
+	ret = cmdbuf[1];
+	if(!ret)ret = svcCloseHandle(handle);
+
+	return ret;
 }
 
 /*! Read data from an open file

@@ -22,6 +22,8 @@ extern char* fake_heap_end;
 static void initArgv();
 static u32 heapBase;
 
+void __destroy_handle_list(void);
+
 void __attribute__((noreturn)) __ctru_exit(int rc)
 {
 	// Run the global destructors
@@ -34,6 +36,9 @@ void __attribute__((noreturn)) __ctru_exit(int rc)
 
 	// Unmap the application heap
 	svcControlMemory(&heapBase, heapBase, 0x0, __heap_size, MEMOP_FREE, 0x0);
+
+	// Close some handles
+	__destroy_handle_list();
 
 	// Jump to the loader if it provided a callback
 	if (__system_retAddr)

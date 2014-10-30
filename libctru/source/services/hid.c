@@ -48,6 +48,7 @@ cleanup1:
 void hidExit()
 {
 	// Unmap HID sharedmem and close handles.
+	int i; for(i=0; i<5; i++)svcCloseHandle(hidEvents[i]);
 	svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
 	svcCloseHandle(hidMemHandle);
 	svcCloseHandle(hidHandle);

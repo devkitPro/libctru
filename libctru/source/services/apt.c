@@ -360,7 +360,7 @@ void aptExit()
 	svcCloseHandle(aptSleepSync);
 
 	svcCloseHandle(aptStatusMutex);
-	//svcCloseHandle(aptLockHandle);
+	svcCloseHandle(aptLockHandle);
 	svcCloseHandle(aptStatusEvent);
 }
 

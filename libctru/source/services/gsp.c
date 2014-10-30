@@ -59,6 +59,7 @@ void gspExitEventHandler()
 	// Stop event thread
 	gspRunEvents = false;
 	svcWaitSynchronization(gspEventThread, 1000000000);
+	svcCloseHandle(gspEventThread);
 
 	// Free events
 	int i;

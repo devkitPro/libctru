@@ -45,6 +45,7 @@ cleanup1:
 void irrstExit()
 {
 	irrstUsed = false;
+	svcCloseHandle(irrstEvent);
 	// Unmap ir:rst sharedmem and close handles.
 	svcUnmapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem);
 	svcCloseHandle(irrstMemHandle);

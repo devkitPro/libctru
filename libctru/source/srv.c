@@ -58,6 +58,18 @@ Handle __get_handle_from_list(const char* name) {
 	return 0;
 }
 
+void __destroy_handle_list(void) {
+	if((u32)__service_ptr == 0)
+		return;
+
+	u32 i, num = __service_ptr->num;
+
+	for(i=0; i<num; i++)
+		svcCloseHandle(__service_ptr->services[i].handle);
+
+	__service_ptr->num = 0;
+}
+
 Result srvInit()
 {
 	Result rc = 0;
