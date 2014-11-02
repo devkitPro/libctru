@@ -394,6 +394,25 @@ void aptExit()
 	svcCloseHandle(aptStatusEvent);
 }
 
+bool aptMainLoop()
+{
+	for (;;) switch (aptGetStatus())
+	{
+		case APP_RUNNING:
+			return true;
+		case APP_SUSPENDING:
+			aptReturnToMenu();
+			break;
+		case APP_SLEEPMODE:
+			aptWaitStatusEvent();
+			break;
+		case APP_EXITING:
+			return false;
+		default:
+			break;
+	}
+}
+
 void aptAppStarted()
 {
 	u8 buf1[4], buf2[4];

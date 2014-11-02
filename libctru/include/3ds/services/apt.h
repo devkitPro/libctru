@@ -49,6 +49,7 @@ void aptReturnToMenu();//This should be called by the user application when aptG
 void aptWaitStatusEvent();
 void aptSignalReadyForSleep();
 NS_APPID aptGetMenuAppID();
+bool aptMainLoop(); // Use like this in your main(): while (aptMainLoop()) { your code here... }
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
 Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);

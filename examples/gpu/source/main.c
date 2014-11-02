@@ -177,26 +177,22 @@ int main()
 	gspWaitForPSC0();
 	gfxSwapBuffersGpu();
 
-	APP_STATUS status;
-	while((status=aptGetStatus())!=APP_EXITING)
+	while(aptMainLoop())
 	{
-		if(status==APP_RUNNING)
-		{
-			demoControls();
+		demoControls();
 
-			GX_SetMemoryFill(gxCmdBuf, (u32*)gpuOut, 0x404040FF, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
-			gspWaitForPSC0();
+		GX_SetMemoryFill(gxCmdBuf, (u32*)gpuOut, 0x404040FF, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
+		gspWaitForPSC0();
 
-			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
-			doFrame1();
-			GPUCMD_Finalize();
-			GPUCMD_Run(gxCmdBuf);
-			gspWaitForP3D();
+		GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
+		doFrame1();
+		GPUCMD_Finalize();
+		GPUCMD_Run(gxCmdBuf);
+		gspWaitForP3D();
 
-			gfxSwapBuffersGpu();
-			GX_SetDisplayTransfer(gxCmdBuf, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
-			gspWaitForPPF();
-		}
+		gfxSwapBuffersGpu();
+		GX_SetDisplayTransfer(gxCmdBuf, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
+		gspWaitForPPF();
 		gspWaitForVBlank();
 	}
 
