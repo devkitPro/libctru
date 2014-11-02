@@ -808,7 +808,11 @@ Result APT_CheckNew3DS_Application(Handle* handle, u8 *out)
 	Result ret=0;
 	if((ret=svcSendSyncRequest(*handle)))return ret;
 
-	if(out)*out=cmdbuf[2];
+	if(out)
+	{
+		*out = 0;
+		if(ret==0)*out=cmdbuf[2];
+	}
 
 	return cmdbuf[1];
 }
@@ -823,7 +827,11 @@ Result APT_CheckNew3DS_System(Handle* handle, u8 *out)
 	Result ret=0;
 	if((ret=svcSendSyncRequest(*handle)))return ret;
 
-	if(out)*out=cmdbuf[2];
+	if(out)
+	{
+		*out = 0;
+		if(ret==0)*out=cmdbuf[2];
+	}
 
 	return cmdbuf[1];
 }
