@@ -17,6 +17,9 @@ NS_APPID currentAppId;
 static char *__apt_servicestr = NULL;
 static char *__apt_servicenames[3] = {"APT:U", "APT:S", "APT:A"};
 
+static u32 __apt_new3dsflag_initialized = 0;
+static u8 __apt_new3dsflag = 0;
+
 Handle aptLockHandle;
 Handle aptuHandle;
 Handle aptEvents[3];
@@ -838,7 +841,22 @@ Result APT_CheckNew3DS_System(Handle* handle, u8 *out)
 
 Result APT_CheckNew3DS(Handle* handle, u8 *out)
 {
-	if(currentAppId==APPID_APPLICATION)return APT_CheckNew3DS_Application(NULL, out);
-	return APT_CheckNew3DS_System(NULL, out);
+	Result ret=0;
+
+	if(__apt_new3dsflag_initialized)
+	{
+		*out = __apt_new3dsflag;
+		return 0;
+	}
+
+	aptOpenSession();
+	if(currentAppId==APPID_APPLICATION)ret = APT_CheckNew3DS_Application(NULL, out);
+	ret = APT_CheckNew3DS_System(NULL, out);
+	aptCloseSession();
+
+	__apt_new3dsflag_initialized = 1;
+	__apt_new3dsflag = *out;
+
+	return ret;
 }
 

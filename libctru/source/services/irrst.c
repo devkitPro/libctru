@@ -17,6 +17,8 @@ static bool irrstUsed = false;
 
 Result irrstInit(u32* sharedMem)
 {
+	if(irrstUsed)return 0;
+
 	if(!sharedMem)sharedMem=(u32*)IRRST_SHAREDMEM_DEFAULT;
 	Result ret=0;
 
@@ -44,6 +46,8 @@ cleanup1:
 
 void irrstExit()
 {
+	if(!irrstUsed)return;
+
 	irrstUsed = false;
 	svcCloseHandle(irrstEvent);
 	// Unmap ir:rst sharedmem and close handles.
