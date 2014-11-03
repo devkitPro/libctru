@@ -21,6 +21,8 @@ static angularRate gRate;
 
 Result hidInit(u32* sharedMem)
 {
+	u8 val=0;
+
 	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
 	Result ret=0;
 
@@ -34,9 +36,16 @@ Result hidInit(u32* sharedMem)
 	hidSharedMem=sharedMem;
 	if((ret=svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
 
+	APT_CheckNew3DS(NULL, &val);
+
+	if(val)
+	{
+		ret = irrstInit(NULL);
+	}
+
 	// Reset internal state.
 	kOld = kHeld = kDown = kUp = 0;
-	return 0;
+	return ret;
 
 cleanup2:
 	svcCloseHandle(hidMemHandle);
@@ -48,10 +57,18 @@ cleanup1:
 void hidExit()
 {
 	// Unmap HID sharedmem and close handles.
+	u8 val=0;
 	int i; for(i=0; i<5; i++)svcCloseHandle(hidEvents[i]);
 	svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
 	svcCloseHandle(hidMemHandle);
 	svcCloseHandle(hidHandle);
+
+	APT_CheckNew3DS(NULL, &val);
+
+	if(val)
+	{
+		irrstExit();
+	}
 }
 
 void hidWaitForEvent(HID_Event id, bool nextEvent)

@@ -24,60 +24,48 @@ int main()
 
 	MIC_Initialize(sharedmem, sharedmem_size, control, 0, 3, 1, 1);//See mic.h.
 
-	APP_STATUS status;
-	while((status=aptGetStatus())!=APP_EXITING)
+	while(aptMainLoop())
 	{
-		if(status==APP_RUNNING)
+		framebuf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+		hidScanInput();
+
+		if(hidKeysDown() & KEY_A)
 		{
-			framebuf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-			hidScanInput();
+			audiobuf_pos = 0;
 
-			if(hidKeysDown() & KEY_A)
-			{
-				audiobuf_pos = 0;
+			CSND_setchannel_playbackstate(0x8, 0);//Stop audio playback.
+			CSND_sharedmemtype0_cmdupdatestate(0);
 
-				CSND_setchannel_playbackstate(0x8, 0);//Stop audio playback.
-				CSND_sharedmemtype0_cmdupdatestate(0);
+			MIC_SetRecording(1);
 
-				MIC_SetRecording(1);
+			memset(framebuf, 0x20, 0x46500);
+		}
 
-				memset(framebuf, 0x20, 0x46500);
-			}
+		if((hidKeysHeld() & KEY_A) && audiobuf_pos < audiobuf_size)
+		{
+			audiobuf_pos+= MIC_ReadAudioData(&audiobuf[audiobuf_pos], audiobuf_size-audiobuf_pos, 1);
+			if(audiobuf_pos > audiobuf_size)audiobuf_pos = audiobuf_size;
 
-			if((hidKeysHeld() & KEY_A) && audiobuf_pos < audiobuf_size)
-			{
-				audiobuf_pos+= MIC_ReadAudioData(&audiobuf[audiobuf_pos], audiobuf_size-audiobuf_pos, 1);
-				if(audiobuf_pos > audiobuf_size)audiobuf_pos = audiobuf_size;
+			memset(framebuf, 0x60, 0x46500);
+		}
 
-				memset(framebuf, 0x60, 0x46500);
-			}
+		if(hidKeysUp() & KEY_A)
+		{
+			MIC_SetRecording(0);
+			GSPGPU_FlushDataCache(NULL, audiobuf, audiobuf_pos);
+			CSND_playsound(0x8, CSND_LOOP_DISABLE, CSND_ENCODING_PCM16, 16000, (u32*)audiobuf, NULL, audiobuf_pos, 2, 0);
 
-			if(hidKeysUp() & KEY_A)
-			{
-				MIC_SetRecording(0);
-				GSPGPU_FlushDataCache(NULL, audiobuf, audiobuf_pos);
-				CSND_playsound(0x8, CSND_LOOP_DISABLE, CSND_ENCODING_PCM16, 16000, (u32*)audiobuf, NULL, audiobuf_pos, 2, 0);
-
-				memset(framebuf, 0xe0, 0x46500);
-
-				gfxFlushBuffers();
-				gfxSwapBuffers();
-
-				framebuf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-				memset(framebuf, 0xe0, 0x46500);
-			}
+			memset(framebuf, 0xe0, 0x46500);
 
 			gfxFlushBuffers();
 			gfxSwapBuffers();
+
+			framebuf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+			memset(framebuf, 0xe0, 0x46500);
 		}
-		else if(status == APP_SUSPENDING)
-		{
-			aptReturnToMenu();
-		}
-		else if(status == APP_SLEEPMODE)
-		{
-			aptWaitStatusEvent();
-		}
+
+		gfxFlushBuffers();
+		gfxSwapBuffers();
 		gspWaitForVBlank();
 	}
 

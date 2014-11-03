@@ -14,6 +14,12 @@ extern u32 __system_runflags;
 
 NS_APPID currentAppId;
 
+static char *__apt_servicestr = NULL;
+static char *__apt_servicenames[3] = {"APT:U", "APT:S", "APT:A"};
+
+static u32 __apt_new3dsflag_initialized = 0;
+static u8 __apt_new3dsflag = 0;
+
 Handle aptLockHandle;
 Handle aptuHandle;
 Handle aptEvents[3];
@@ -31,6 +37,29 @@ Handle aptSleepSync = 0;
 u32 aptParameters[0x1000/4]; //TEMP
 
 static void aptAppStarted(void);
+
+static Result __apt_initservicehandle()
+{
+	Result ret=0;
+	u32 i;
+
+	if(__apt_servicestr)
+	{
+		return srvGetServiceHandle(&aptuHandle, __apt_servicestr);
+	}
+
+	for(i=0; i<3; i++)
+	{
+		ret = srvGetServiceHandle(&aptuHandle, __apt_servicenames[i]);
+		if(ret==0)
+		{
+			__apt_servicestr = __apt_servicenames[i];
+			return ret;
+		}
+	}
+
+	return ret;
+}
 
 void aptInitCaptureInfo(u32 *ns_capinfo)
 {
@@ -303,7 +332,8 @@ Result aptInit(void)
 	Result ret=0;
 
 	// Initialize APT stuff, escape load screen.
-	srvGetServiceHandle(&aptuHandle, "APT:U");
+	ret = __apt_initservicehandle();
+	if(ret!=0)return ret;
 	if((ret=APT_GetLockHandle(&aptuHandle, 0x0, &aptLockHandle)))return ret;
 	svcCloseHandle(aptuHandle);
 
@@ -362,6 +392,25 @@ void aptExit()
 	svcCloseHandle(aptStatusMutex);
 	svcCloseHandle(aptLockHandle);
 	svcCloseHandle(aptStatusEvent);
+}
+
+bool aptMainLoop()
+{
+	for (;;) switch (aptGetStatus())
+	{
+		case APP_RUNNING:
+			return true;
+		case APP_SUSPENDING:
+			aptReturnToMenu();
+			break;
+		case APP_SLEEPMODE:
+			aptWaitStatusEvent();
+			break;
+		case APP_EXITING:
+			return false;
+		default:
+			break;
+	}
 }
 
 void aptAppStarted()
@@ -439,8 +488,10 @@ void aptSetStatusPower(u32 status)
 
 void aptOpenSession()
 {
+	//Result ret;
+
 	svcWaitSynchronization(aptLockHandle, U64_MAX);
-	srvGetServiceHandle(&aptuHandle, "APT:U");
+	__apt_initservicehandle();
 }
 
 void aptCloseSession()
@@ -768,3 +819,63 @@ Result APT_GetAppCpuTimeLimit(Handle* handle, u32 *percent)
 
 	return cmdbuf[1];
 }
+
+Result APT_CheckNew3DS_Application(Handle* handle, u8 *out)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x01010000;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	if(out)
+	{
+		*out = 0;
+		if(ret==0)*out=cmdbuf[2];
+	}
+
+	return cmdbuf[1];
+}
+
+Result APT_CheckNew3DS_System(Handle* handle, u8 *out)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x01020000;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	if(out)
+	{
+		*out = 0;
+		if(ret==0)*out=cmdbuf[2];
+	}
+
+	return cmdbuf[1];
+}
+
+Result APT_CheckNew3DS(Handle* handle, u8 *out)
+{
+	Result ret=0;
+
+	if(__apt_new3dsflag_initialized)
+	{
+		*out = __apt_new3dsflag;
+		return 0;
+	}
+
+	aptOpenSession();
+	if(currentAppId==APPID_APPLICATION)ret = APT_CheckNew3DS_Application(NULL, out);
+	ret = APT_CheckNew3DS_System(NULL, out);
+	aptCloseSession();
+
+	__apt_new3dsflag_initialized = 1;
+	__apt_new3dsflag = *out;
+
+	return ret;
+}
+

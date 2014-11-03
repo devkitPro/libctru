@@ -103,6 +103,33 @@ svcSignalEvent:
 svcClearEvent:
 	svc 0x19
 	bx lr
+	
+.global svcCreateTimer
+.type svcCreateTimer, %function
+svcCreateTimer:
+	str r0, [sp,#-4]!
+	svc 0x1A
+	ldr r2, [sp], #4
+	str r1, [r2]
+	bx lr
+	
+.global svcSetTimer
+.type svcSetTimer, %function
+svcSetTimer:
+	svc 0x1B
+	bx lr
+	
+.global svcCancelTimer
+.type svcCancelTimer, %function
+svcCancelTimer:
+	svc 0x1C
+	bx lr
+	
+.global svcClearTimer
+.type svcClearTimer, %function
+svcClearTimer:
+	svc 0x1D
+	bx lr
 
 .global svcCreateMemoryBlock
 .type svcCreateMemoryBlock, %function
