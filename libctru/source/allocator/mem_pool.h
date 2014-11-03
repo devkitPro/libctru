@@ -85,4 +85,5 @@ struct MemPool
 	}
 
 	//void Dump(const char* title);
+	u32 GetFreeSpace();
 };

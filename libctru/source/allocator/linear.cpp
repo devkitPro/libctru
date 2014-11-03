@@ -48,3 +48,8 @@ void linearFree(void* mem)
 	auto pChunk = (MemChunk*)((u8*)mem - 16);
 	sLinearPool.Deallocate(*pChunk);
 }
+
+u32 linearSpaceFree()
+{
+	return sLinearPool.GetFreeSpace();
+}

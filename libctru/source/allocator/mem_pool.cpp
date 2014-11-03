@@ -123,3 +123,11 @@ void MemPool::Dump(const char* title)
 		printf("  - %p (%u bytes)\n", b->base, b->size);
 }
 */
+
+u32 MemPool::GetFreeSpace()
+{
+	u32 acc = 0;
+	for (auto b = first; b; b = b->next)
+		acc += b->size;
+	return acc;
+}
