@@ -339,6 +339,9 @@ Result aptInit(void)
 
 	currentAppId = __apt_appid;
 
+	svcCreateEvent(&aptStatusEvent, 0);
+	svcCreateEvent(&aptSleepSync, 0);
+
 	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))
 	{
 		aptOpenSession();
@@ -359,8 +362,6 @@ Result aptInit(void)
 	} else
 		aptAppStarted();
 
-	svcCreateEvent(&aptStatusEvent, 0);
-	svcCreateEvent(&aptSleepSync, 0);
 	return 0;
 }
 
@@ -396,20 +397,24 @@ void aptExit()
 
 bool aptMainLoop()
 {
-	for (;;) switch (aptGetStatus())
+	while(1)
 	{
-		case APP_RUNNING:
-			return true;
-		case APP_SUSPENDING:
-			aptReturnToMenu();
-			break;
-		case APP_SLEEPMODE:
-			aptWaitStatusEvent();
-			break;
-		case APP_EXITING:
-			return false;
-		default:
-			break;
+		switch(aptGetStatus())
+		{
+			case APP_RUNNING:
+				return true;
+			case APP_EXITING:
+				return false;
+			case APP_SUSPENDING:
+				aptReturnToMenu();
+				break;
+			default:
+			//case APP_NOTINITIALIZED:
+			//case APP_PREPARE_SLEEPMODE:
+			//case APP_SLEEPMODE:
+				aptWaitStatusEvent();
+				break;
+		}
 	}
 }
 
@@ -461,11 +466,11 @@ void aptSetStatus(APP_STATUS status)
 	prevstatus = aptStatus;
 	aptStatus = status;
 
-	if(prevstatus != APP_NOTINITIALIZED)
-	{
-		if(status == APP_RUNNING || status == APP_EXITING)
+	//if(prevstatus != APP_NOTINITIALIZED)
+	//{
+		if(status == APP_RUNNING || status == APP_EXITING || status == APP_SLEEPMODE)
 			svcSignalEvent(aptStatusEvent);
-	}
+	//}
 
 	svcReleaseMutex(aptStatusMutex);
 }
