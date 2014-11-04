@@ -408,9 +408,11 @@ bool aptMainLoop()
 			case APP_SUSPENDING:
 				aptReturnToMenu();
 				break;
+			case APP_PREPARE_SLEEPMODE:
+				aptSignalReadyForSleep();
+				// Fall through
 			default:
 			//case APP_NOTINITIALIZED:
-			//case APP_PREPARE_SLEEPMODE:
 			//case APP_SLEEPMODE:
 				aptWaitStatusEvent();
 				break;
