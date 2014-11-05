@@ -16,24 +16,44 @@ static bool linearInit()
 	return false;
 }
 
-void* linearAlloc(size_t size)
+void* linearMemAlign(size_t size, size_t alignment)
 {
+	// Enforce minimum alignment
+	if (alignment < 16)
+		alignment = 16;
+
+	// Convert alignment to shift amount
+	int shift;
+	for (shift = 4; shift < 32; shift ++)
+	{
+		if ((1U<<shift) == alignment)
+			break;
+	}
+	if (shift == 32) // Invalid alignment
+		return nullptr;
+
 	// Initialize the pool if it is not ready
 	if (!sLinearPool.Ready() && !linearInit())
 		return nullptr;
 
 	// Reserve memory for MemChunk structure
-	size += 16;
+	size += alignment;
 
 	// Allocate the chunk
 	MemChunk chunk;
-	if (!sLinearPool.Allocate(chunk, size, 4)) // 16-byte alignment
+	if (!sLinearPool.Allocate(chunk, size, shift))
 		return nullptr;
 
 	// Copy the MemChunk structure and return memory
 	auto addr = chunk.addr;
 	*(MemChunk*)addr = chunk;
-	return addr + 16;
+	*(u32*)(addr + alignment - sizeof(u32)) = alignment;
+	return addr + alignment;
+}
+
+void* linearAlloc(size_t size)
+{
+	return linearMemAlign(size, 16);
 }
 
 void* linearRealloc(void* mem, size_t size)
@@ -45,7 +65,8 @@ void* linearRealloc(void* mem, size_t size)
 void linearFree(void* mem)
 {
 	// Find MemChunk structure and free the chunk
-	auto pChunk = (MemChunk*)((u8*)mem - 16);
+	u32 alignment = *((u32*)mem - 1);
+	auto pChunk = (MemChunk*)((u8*)mem - alignment);
 	sLinearPool.Deallocate(*pChunk);
 }
 
