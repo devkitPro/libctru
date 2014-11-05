@@ -10,6 +10,24 @@ void GPUCMD_Add(u32 cmd, u32* param, u32 paramlength);
 void GPUCMD_AddSingleParam(u32 cmd, u32 param);
 void GPUCMD_Finalize();
 
+//tex param
+#define GPU_TEXTURE_MAG_FILTER(v) (((v)&0x1)<<1) //takes a GPU_TEXTURE_FILTER_PARAM
+#define GPU_TEXTURE_MIN_FILTER(v) (((v)&0x1)<<2) //takes a GPU_TEXTURE_FILTER_PARAM
+#define GPU_TEXTURE_WRAP_S(v) (((v)&0x3)<<8) //takes a GPU_TEXTURE_WRAP_PARAM
+#define GPU_TEXTURE_WRAP_T(v) (((v)&0x3)<<12) //takes a GPU_TEXTURE_WRAP_PARAM
+
+typedef enum
+{
+	GPU_NEAREST = 0x0,
+	GPU_LINEAR = 0x1,
+}GPU_TEXTURE_FILTER_PARAM;
+
+typedef enum
+{
+	GPU_CLAMP_TO_EDGE = 0x0,
+	GPU_REPEAT = 0x2,
+}GPU_TEXTURE_WRAP_PARAM;
+
 typedef enum
 {
 	GPU_TEXUNIT0 = 0x1,
