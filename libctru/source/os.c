@@ -29,6 +29,13 @@ u32 osConvertVirtToPhys(u32 vaddr)
 	return 0;
 }
 
+u32 osConvertOldLINEARMemToNew(u32 vaddr)
+{
+	if(vaddr >= 0x30000000 && vaddr < 0x40000000)return vaddr;
+	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)return vaddr+=0x1c000000;
+	return 0;
+}
+
 // Returns number of milliseconds since 1st Jan 1900 00:00.
 u64 osGetTime() {
 	volatile datetime_t* dt;
