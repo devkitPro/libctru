@@ -10,8 +10,6 @@ u32* gpuCmdBuf;
 u32 gpuCmdBufSize;
 u32 gpuCmdBufOffset;
 
-extern Handle gspEvent;
-
 void GPU_Init(Handle *gsphandle)
 {
 	gpuCmdBuf=NULL;
