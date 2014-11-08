@@ -5,8 +5,12 @@
 #include <stdlib.h>
 #include <3ds.h>
 
+u32* gxCmdBuf;
+
 Result GX_RequestDma(u32* gxbuf, u32* src, u32* dst, u32 length)
 {
+	if(!gxbuf)gxbuf=gxCmdBuf;
+
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x00; //CommandID
 	gxCommand[1]=(u32)src; //source address
@@ -19,6 +23,8 @@ Result GX_RequestDma(u32* gxbuf, u32* src, u32* dst, u32 length)
 
 Result GX_SetCommandList_Last(u32* gxbuf, u32* buf0a, u32 buf0s, u8 flags)
 {
+	if(!gxbuf)gxbuf=gxCmdBuf;
+
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x01; //CommandID
 	gxCommand[1]=(u32)buf0a; //buf0 address
@@ -32,6 +38,8 @@ Result GX_SetCommandList_Last(u32* gxbuf, u32* buf0a, u32 buf0s, u8 flags)
 
 Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width0, u32* buf1a, u32 buf1v, u32* buf1e, u16 width1)
 {
+	if(!gxbuf)gxbuf=gxCmdBuf;
+
 	u32 gxCommand[0x8];
 	// gxCommand[0]=0x02; //CommandID
 	gxCommand[0]=0x01000102; //CommandID
@@ -49,6 +57,8 @@ Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width
 // Flags, for applications this is 0x1001000 for the main screen, and 0x1000 for the sub screen.
 Result GX_SetDisplayTransfer(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 flags)
 {
+	if(!gxbuf)gxbuf=gxCmdBuf;
+
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x03; //CommandID
 	gxCommand[1]=(u32)inadr;
@@ -63,6 +73,8 @@ Result GX_SetDisplayTransfer(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32
 
 Result GX_SetTextureCopy(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 size, u32 flags)
 {
+	if(!gxbuf)gxbuf=gxCmdBuf;
+
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x04; //CommandID
 	gxCommand[1]=(u32)inadr;
@@ -78,6 +90,8 @@ Result GX_SetTextureCopy(u32* gxbuf, u32* inadr, u32 indim, u32* outadr, u32 out
 
 Result GX_SetCommandList_First(u32* gxbuf, u32* buf0a, u32 buf0s, u32* buf1a, u32 buf1s, u32* buf2a, u32 buf2s)
 {
+	if(!gxbuf)gxbuf=gxCmdBuf;
+
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x05; //CommandID
 	gxCommand[1]=(u32)buf0a; //buf0 address
