@@ -26,6 +26,21 @@ void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset)
 	gpuCmdBufOffset=offset;
 }
 
+void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset)
+{
+	if(adr)*adr=gpuCmdBuf;
+	if(size)*size=gpuCmdBufSize;
+	if(offset)*offset=gpuCmdBufOffset;
+}
+
+void GPUCMD_AddRawCommands(u32* cmd, u32 size)
+{
+	if(!cmd || !size)return;
+
+	memcpy(&gpuCmdBuf[gpuCmdBufOffset], cmd, size*4);
+	gpuCmdBufOffset+=size;
+}
+
 void GPUCMD_Run(u32* gxbuf)
 {
 	GX_SetCommandList_First(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, NULL, 0, NULL, 0);

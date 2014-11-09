@@ -4,6 +4,8 @@ void GPU_Init(Handle *gsphandle);
 void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize);
 
 void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset);
+void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset);
+void GPUCMD_AddRawCommands(u32* cmd, u32 size);
 void GPUCMD_Run(u32* gxbuf);
 void GPUCMD_FlushAndRun(u32* gxbuf);
 void GPUCMD_Add(u32 cmd, u32* param, u32 paramlength);
