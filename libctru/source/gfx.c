@@ -17,8 +17,6 @@ bool enable3d;
 
 Handle gspEvent, gspSharedMemHandle;
 
-u32* gxCmdBuf;
-
 void gfxSet3D(bool enable)
 {
 	enable3d=enable;
