@@ -19,7 +19,6 @@ int main()
 	while(aptMainLoop())
 	{
 		hidScanInput();
-		svcSleepThread(100000000LL);
 
 		if(hidKeysDown() & KEY_A)
 		{
