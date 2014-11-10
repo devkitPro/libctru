@@ -304,6 +304,16 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_Add(0x800F0112, param, 0x00000004);
 }
 
+void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h)
+{
+	u32 param[3];
+	
+	param[0x0] = mode;
+	param[0x1] = (y<<16)|(x&0xFFFF);
+	param[0x2] = ((h-1)<<16)|((w-1)&0xFFFF);
+	GPUCMD_Add(0x800F0065, param, 0x00000003);
+}
+
 void GPU_DepthRange(float nearVal, float farVal)
 {
 	GPUCMD_AddSingleParam(0x000F006D, 0x00000001); //?

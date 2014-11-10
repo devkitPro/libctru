@@ -67,6 +67,15 @@ typedef enum
 
 typedef enum
 {
+	GPU_SCISSOR_DISABLE = 0,	// disable scissor test
+	GPU_SCISSOR_INVERT = 1,		// exclude pixels inside the scissor box
+	// 2 is the same as 0
+	GPU_SCISSOR_NORMAL = 3,		// exclude pixels outside of the scissor box
+	
+} GPU_SCISSORMODE;
+
+typedef enum
+{
 	GPU_KEEP = 0, 		// keep destination value
 	GPU_AND_NOT = 1, 	// destination & ~source
 	GPU_XOR = 5,		// destination ^ source
@@ -182,6 +191,8 @@ typedef enum{
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
 
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
+
+void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h);
 
 void GPU_DepthRange(float nearVal, float farVal);
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref);
