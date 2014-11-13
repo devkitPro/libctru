@@ -102,7 +102,7 @@ void initArgv()
 	fake_heap_start += argSize;
 
 	// Fill argv array
-	memcpy(argCopy, __system_arglist, argSize);
+	memcpy(argCopy, &__system_arglist[4], argSize);
 	temp = argCopy;
 	for (i = 0; i < __system_argc; i ++)
 	{

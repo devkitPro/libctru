@@ -177,7 +177,6 @@ void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize)
 	GPUCMD_AddSingleParam(0x000F0115, 0x00000003);
 
 	GPUCMD_AddSingleParam(0x000F01C5, 0x00000000);
-
 	for(i=0;i<32;i++)GPUCMD_Add(0x800F01C8, zero, 0x00000008);
 	GPUCMD_AddSingleParam(0x000F01C5, 0x00000100);
 	for(i=0;i<32;i++)GPUCMD_Add(0x800F01C8, zero, 0x00000008);
@@ -191,6 +190,7 @@ void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize)
 	for(i=0;i<32;i++)GPUCMD_Add(0x800F01C8, zero, 0x00000008);
 	GPUCMD_AddSingleParam(0x000F01C5, 0x00000600);
 	for(i=0;i<32;i++)GPUCMD_Add(0x800F01C8, zero, 0x00000008);
+		
 	GPUCMD_AddSingleParam(0x000F0290, 0x80000000);
 	for(i=0;i<48;i++)GPUCMD_Add(0x800F0291, zero, 0x00000008);
 	GPUCMD_AddSingleParam(0x000F02CB, 0x00000000);
@@ -420,6 +420,11 @@ void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attribute
 
 	GPUCMD_AddSingleParam(0x000F02BB, attributePermutation&0xFFFFFFFF);
 	GPUCMD_AddSingleParam(0x000F02BC, (attributePermutation>>32)&0xFFFF);
+}
+
+void GPU_SetAttributeBuffersAddress(u32* baseAddress)
+{
+	GPUCMD_AddSingleParam(0x000F0200, ((u32)baseAddress)>>3);
 }
 
 void GPU_SetFaceCulling(GPU_CULLMODE mode)
