@@ -24,6 +24,11 @@ void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset)
 	gpuCmdBufOffset=offset;
 }
 
+void GPUCMD_SetBufferOffset(u32 offset)
+{
+	gpuCmdBufOffset=offset;
+}
+
 void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset)
 {
 	if(adr)*adr=gpuCmdBuf;
