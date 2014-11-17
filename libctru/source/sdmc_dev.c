@@ -141,6 +141,10 @@ sdmc_open(struct _reent *r,
   Result      rc;
   u32         sdmc_flags = 0;
   u32         attributes = FS_ATTRIBUTE_NONE;
+  char        *pathptr = NULL;
+
+  pathptr = strchr(path, '/');
+  if(pathptr==NULL)pathptr = (char*)path;
 
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fileStruct;
@@ -181,11 +185,11 @@ sdmc_open(struct _reent *r,
   /* TODO: Test O_EXCL. */
 
   /* set attributes */
-  if(!(mode & S_IWUSR))
-    attributes |= FS_ATTRIBUTE_READONLY;
+  /*if(!(mode & S_IWUSR))
+    attributes |= FS_ATTRIBUTE_READONLY;*/
 
   /* open the file */
-  rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, path),
+  rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr),
                        sdmc_flags, attributes);
   if(rc == 0)
   {
@@ -516,10 +520,14 @@ sdmc_mkdir(struct _reent *r,
            int           mode)
 {
   Result rc;
+  char        *pathptr = NULL;
+
+  pathptr = strchr(path, '/');
+  if(pathptr==NULL)pathptr = (char*)path;
 
   /* TODO: Use mode to set directory attributes. */
 
-  rc = FSUSER_CreateDirectory(NULL, sdmcArchive, FS_makePath(PATH_CHAR, path));
+  rc = FSUSER_CreateDirectory(NULL, sdmcArchive, FS_makePath(PATH_CHAR, pathptr));
   if(rc == 0)
     return 0;
 
@@ -543,12 +551,16 @@ sdmc_diropen(struct _reent *r,
 {
   Handle         fd;
   Result         rc;
+  char        *pathptr = NULL;
+
+  pathptr = strchr(path, '/');
+  if(pathptr==NULL)pathptr = (char*)path;
 
   /* get pointer to our data */
   sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
 
   /* open the directory */
-  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, path));
+  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr));
   if(rc == 0)
   {
     dir->fd = fd;
