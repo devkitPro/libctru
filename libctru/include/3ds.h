@@ -31,6 +31,8 @@ extern "C" {
 #include <3ds/gpu/gpu.h>
 #include <3ds/gpu/shdr.h>
 
+#include <3ds/sdmc.h>
+
 #ifdef __cplusplus
 }
 #endif
