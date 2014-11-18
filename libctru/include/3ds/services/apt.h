@@ -73,4 +73,6 @@ Result APT_GetAppCpuTimeLimit(Handle* handle, u32 *percent);
 Result APT_CheckNew3DS_Application(Handle* handle, u8 *out);//*Application and *System use APT commands 0x01010000 and 0x01020000. Using APT_CheckNew3DS() is recommended, this determines which of those two funcs to use automatically. When this is first called(this calls aptOpenSession/aptCloseSession internally), this initializes an internal flag, which is then used for the out val for all future calls.
 Result APT_CheckNew3DS_System(Handle* handle, u8 *out);
 Result APT_CheckNew3DS(Handle* handle, u8 *out);
+Result APT_PrepareToDoAppJump(Handle* handle, u8 flags, u64 programID, u8 mediatype);
+Result APT_DoAppJump(Handle* handle, u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Ptr);
 

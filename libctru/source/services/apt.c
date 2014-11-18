@@ -886,3 +886,39 @@ Result APT_CheckNew3DS(Handle* handle, u8 *out)
 	return ret;
 }
 
+Result APT_PrepareToDoAppJump(Handle* handle, u8 flags, u64 programID, u8 mediatype)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x310100; //request header code
+	cmdbuf[1]=flags;
+	cmdbuf[2]=(u32)programID;
+	cmdbuf[3]=(u32)(programID>>32);
+	cmdbuf[4]=mediatype;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_DoAppJump(Handle* handle, u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Ptr)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x320084; //request header code
+	cmdbuf[1]=NSbuf0Size;
+	cmdbuf[2]=NSbuf1Size;
+	cmdbuf[3]=(NSbuf0Size<<14)|2;
+	cmdbuf[4]=(u32)NSbuf0Ptr;
+	cmdbuf[5]=(NSbuf1Size<<14)|0x802;
+	cmdbuf[6]=(u32)NSbuf1Ptr;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
