@@ -145,6 +145,13 @@ void aptReturnToMenu()
 	u32 ns_capinfo[0x20>>2];
 	u32 tmp_params[0x20>>2];
 
+	if(__system_runflags&RUNFLAG_APTWORKAROUND)
+	{
+		svcClearEvent(aptStatusEvent);
+		aptSetStatus(APP_EXITING);
+		return;
+	}
+
 	// This is only executed when ret-to-menu was triggered via the home-button, not the power-button.
 	if(aptGetStatusPower() == 0)
 	{
@@ -209,11 +216,14 @@ void aptReturnToMenu()
 
 static void __handle_notification() {
 	u8 type;
+	Result ret=0;
 
 	// Get notification type.
 	aptOpenSession();
-	APT_InquireNotification(NULL, currentAppId, &type);
+	ret = APT_InquireNotification(NULL, currentAppId, &type);
 	aptCloseSession();
+
+	if(ret!=0)return;
 
 	switch(type)
 	{
@@ -367,7 +377,7 @@ Result aptInit(void)
 
 void aptExit()
 {
-	aptAppletUtility_Exit_RetToApp();
+	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))aptAppletUtility_Exit_RetToApp();
 
 	// This is only executed when application-termination was triggered via the home-menu power-off screen.
 	if(aptGetStatusPower() == 1)
@@ -399,6 +409,8 @@ bool aptMainLoop()
 {
 	while(1)
 	{
+		//if(__system_runflags&RUNFLAG_APTWORKAROUND)__handle_notification();
+
 		switch(aptGetStatus())
 		{
 			case APP_RUNNING:
@@ -461,11 +473,8 @@ APP_STATUS aptGetStatus()
 
 void aptSetStatus(APP_STATUS status)
 {
-	u32 prevstatus;
-
 	svcWaitSynchronization(aptStatusMutex, U64_MAX);
 
-	prevstatus = aptStatus;
 	aptStatus = status;
 
 	//if(prevstatus != APP_NOTINITIALIZED)
@@ -876,8 +885,14 @@ Result APT_CheckNew3DS(Handle* handle, u8 *out)
 	}
 
 	aptOpenSession();
-	if(currentAppId==APPID_APPLICATION)ret = APT_CheckNew3DS_Application(NULL, out);
-	ret = APT_CheckNew3DS_System(NULL, out);
+	if(currentAppId==APPID_APPLICATION)
+	{
+		ret = APT_CheckNew3DS_Application(NULL, out);
+	}
+	else
+	{
+		ret = APT_CheckNew3DS_System(NULL, out);
+	}
 	aptCloseSession();
 
 	__apt_new3dsflag_initialized = 1;
