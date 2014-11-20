@@ -553,6 +553,18 @@ Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Hand
 	return cmdbuf[1];
 }
 
+Result APT_HardwareResetAsync(Handle* handle)
+{
+	if(!handle)handle=&aptuHandle;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x4E0000; //request header code
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+	
+	return cmdbuf[1];
+}
+
 Result APT_Enable(Handle* handle, u32 a)
 {
 	if(!handle)handle=&aptuHandle;

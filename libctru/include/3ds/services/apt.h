@@ -53,6 +53,7 @@ bool aptMainLoop(); // Use like this in your main(): while (aptMainLoop()) { you
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
 Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
+Result APT_HardwareResetAsync(Handle* handle);
 Result APT_Enable(Handle* handle, u32 a);
 Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid);
 Result APT_PrepareToJumpToHomeMenu(Handle* handle);
