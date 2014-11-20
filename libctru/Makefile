@@ -8,6 +8,13 @@ endif
 
 include $(DEVKITARM)/base_rules
 
+export LIBCTRU_MAJOR	:= 0
+export LIBCTRU_MINOR	:= 1
+export LIBCTRU_PATCH	:= 0
+
+
+VERSION	:=	$(LIBCTRU_MAJOR).$(LIBCTRU_MINOR).$(LIBCTRU_PATCH)
+
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
@@ -91,6 +98,16 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
+
+dist-bin: all
+	@tar -cjf libctru-$(VERSION).tar.bz2 include lib default_icon.png
+
+dist-src:
+	@tar -cjf libctru-src-$(VERSION).tar.bz2 include source Makefile Doxyfile Doxyfile.internal default_icon.png
+
+install: dist-bin
+	mkdir -p $(DEVKITPRO)/libctru
+	bzip2 -cd libctru-$(VERSION).tar.bz2 | tar -x -C $(DEVKITPRO)/libctru
 
 dox:
 	@doxygen Doxyfile
