@@ -34,6 +34,14 @@ typedef struct {
     u32 flags;
 } PageInfo;
 
+typedef enum {
+	ARBITER_FREE           =0,
+	ARBITER_ACQUIRE        =1,
+	ARBITER_KERNEL2        =2,
+	ARBITER_ACQUIRE_TIMEOUT=3,
+	ARBITER_KERNEL4        =4,
+} ArbitrationType;
+
 
 u32* getThreadCommandBuffer(void);
 
@@ -55,6 +63,8 @@ s32  svcClearTimer(Handle timer);
 s32  svcCreateMemoryBlock(Handle* memblock, u32 addr, u32 size, MemPerm my_perm, MemPerm other_perm);
 s32  svcMapMemoryBlock(Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm);
 s32  svcUnmapMemoryBlock(Handle memblock, u32 addr);
+s32  svcCreateAddressArbiter(Handle *arbiter);
+s32  svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
 s32  svcWaitSynchronization(Handle handle, s64 nanoseconds);
 s32  svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
 s32  svcCloseHandle(Handle handle);

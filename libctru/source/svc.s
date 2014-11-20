@@ -153,6 +153,24 @@ svcUnmapMemoryBlock:
 	svc 0x20
 	bx lr
 
+.global svcCreateAddressArbiter
+.type svcCreateAddressArbiter, %function
+svcCreateAddressArbiter:
+	svc 0x21
+	bx lr
+
+.global svcArbitrateAddress
+.type svcArbitrateAddress, %function
+svcArbitrateAddress:
+	push {r4,r5}
+	add sp, #8
+	ldr r5, [sp]
+	ldr r4, [sp, #4]
+	sub sp, #8
+	svc 0x22
+	pop {r4,r5}
+	bx lr
+
 .global svcCloseHandle
 .type svcCloseHandle, %function
 svcCloseHandle:
