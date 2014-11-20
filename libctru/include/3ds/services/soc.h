@@ -4,4 +4,9 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size);//Example context_siz
 Result SOC_Shutdown();
 int SOC_GetErrno();
 
-long gethostid();
+Result SOC_Shutdown(void);
+int SOC_GetErrno(void);
+
+/* this is supposed to be in unistd.h but newlib only puts it for cygwin */
+long gethostid(void);
+

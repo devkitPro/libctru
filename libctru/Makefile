@@ -21,6 +21,7 @@ SOURCES		:=	source \
 			source/allocator \
 			source/gpu \
 			source/services \
+			source/services/soc \
 			source/util
 DATA		:=	data
 INCLUDES	:=	include
