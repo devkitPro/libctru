@@ -33,5 +33,7 @@ int ioctl(int fd, int request, ...)
 		break;
 	}
 
+	va_end(ap);
+
 	return ret;
 }
