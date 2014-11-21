@@ -59,7 +59,7 @@ typedef struct{
 DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize);
 void SHDR_UseProgram(DVLB_s* dvlb, u8 id);
 void SHDR_FreeDVLB(DVLB_s* dvlb);
-s8 SHDR_GetUniformRegister(DVLB_s* dvlb, char* name, u8 programID);
+s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID);
 
 void DVLP_SendCode(DVLP_s* dvlp);
 void DVLP_SendOpDesc(DVLP_s* dvlp);
