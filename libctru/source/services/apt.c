@@ -36,6 +36,13 @@ Handle aptSleepSync = 0;
 
 u32 aptParameters[0x1000/4]; //TEMP
 
+static u32 __ns_capinfo[0x20>>2];
+
+static NS_APPID __apt_launchapplet_appID;
+static Handle __apt_launchapplet_inhandle;
+static u32 *__apt_launchapplet_parambuf;
+static u32 __apt_launchapplet_parambufsize;
+
 static void aptAppStarted(void);
 
 static Result __apt_initservicehandle()
@@ -142,8 +149,6 @@ void aptReturnToMenu()
 {
 	NS_APPID menu_appid;
 	u32 tmp0 = 1, tmp1 = 0;
-	u32 ns_capinfo[0x20>>2];
-	u32 tmp_params[0x20>>2];
 
 	if(__system_runflags&RUNFLAG_APTWORKAROUND)
 	{
@@ -173,20 +178,19 @@ void aptReturnToMenu()
 	GSPGPU_SaveVramSysArea(NULL);
 
 	// Capture screen.
-	memset(tmp_params, 0, 0x20);
-	memset(ns_capinfo, 0, 0x20);
+	memset(__ns_capinfo, 0, 0x20);
 
-	aptInitCaptureInfo(ns_capinfo);
+	aptInitCaptureInfo(__ns_capinfo);
 
 	menu_appid = aptGetMenuAppID();
 
 	// Send capture-screen info to menu.
 	aptOpenSession();
-	APT_SendParameter(NULL, currentAppId, menu_appid, 0x20, ns_capinfo, 0x0, 0x10);
+	APT_SendParameter(NULL, currentAppId, menu_appid, 0x20, __ns_capinfo, 0x0, 0x10);
 	aptCloseSession();
 
 	aptOpenSession();
-	APT_SendCaptureBufferInfo(NULL, 0x20, ns_capinfo);
+	APT_SendCaptureBufferInfo(NULL, 0x20, __ns_capinfo);
 	aptCloseSession();
 
 	// Release GSP module.
@@ -212,6 +216,54 @@ void aptReturnToMenu()
 	}
 
 	aptWaitStatusEvent();
+}
+
+void aptAppletStarted()
+{
+	u8 buf1[4], buf2[4];
+
+	memset(buf1, 0, 4);
+
+	// Set status to SUSPENDED.
+	svcClearEvent(aptStatusEvent);
+	aptSetStatus(APP_SUSPENDED);
+
+	aptOpenSession();
+	APT_SendCaptureBufferInfo(NULL, 0x20, __ns_capinfo);
+	aptCloseSession();
+
+	aptOpenSession();
+	APT_ReplySleepQuery(NULL, currentAppId, 0x0);
+	aptCloseSession();
+
+	aptOpenSession();
+	APT_StartLibraryApplet(NULL, __apt_launchapplet_appID, __apt_launchapplet_inhandle, __apt_launchapplet_parambuf, __apt_launchapplet_parambufsize);
+	aptCloseSession();
+
+	buf1[0]=0x00;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	aptOpenSession();
+	APT_NotifyToWait(NULL, currentAppId);
+	aptCloseSession();
+
+	buf1[0]=0x00;
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+}
+
+void aptAppletClosed()
+{
+	aptAppletUtility_Exit_RetToApp();
+
+	GSPGPU_AcquireRight(NULL, 0x0);
+	GSPGPU_RestoreVramSysArea(NULL);
+
+	svcClearEvent(aptStatusEvent);
+	aptSetStatus(APP_RUNNING);
 }
 
 static void __handle_notification() {
@@ -292,6 +344,13 @@ static bool __handle_incoming_parameter() {
 		aptAppStarted();
 		return true;
 
+	case 0x3: // "Launched library applet finished loading"
+		aptSetStatus(APP_APPLETSTARTED);
+		return true;
+	case 0xA: // "Launched library applet closed"
+		if(__apt_launchapplet_parambuf && __apt_launchapplet_parambufsize)memcpy(__apt_launchapplet_parambuf, aptParameters, __apt_launchapplet_parambufsize);
+		aptSetStatus(APP_APPLETCLOSED);
+		return true;
 	case 0xB: // Just returned from menu.
 		GSPGPU_AcquireRight(NULL, 0x0);
 		GSPGPU_RestoreVramSysArea(NULL);
@@ -423,6 +482,12 @@ bool aptMainLoop()
 			case APP_PREPARE_SLEEPMODE:
 				aptSignalReadyForSleep();
 				// Fall through
+			case APP_APPLETSTARTED:
+				aptAppletStarted();
+				break;
+			case APP_APPLETCLOSED:
+				aptAppletClosed();
+				break;
 			default:
 			//case APP_NOTINITIALIZED:
 			//case APP_SLEEPMODE:
@@ -479,7 +544,7 @@ void aptSetStatus(APP_STATUS status)
 
 	//if(prevstatus != APP_NOTINITIALIZED)
 	//{
-		if(status == APP_RUNNING || status == APP_EXITING || status == APP_SLEEPMODE)
+		if(status == APP_RUNNING || status == APP_EXITING || status == APP_SLEEPMODE || status == APP_APPLETSTARTED || status == APP_APPLETCLOSED)
 			svcSignalEvent(aptStatusEvent);
 	//}
 
@@ -592,6 +657,21 @@ Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32
 	if(outval32)*outval32=cmdbuf[3];
 	if(menu_appid)*menu_appid=cmdbuf[4];
 	if(active_appid)*active_appid=cmdbuf[5];
+	
+	return cmdbuf[1];
+}
+
+Result APT_IsRegistered(Handle* handle, NS_APPID appID, u8* out)
+{
+	if(!handle)handle=&aptuHandle;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x90040; //request header code
+	cmdbuf[1]=appID;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	if(out)*out=cmdbuf[2];
 	
 	return cmdbuf[1];
 }
@@ -947,5 +1027,107 @@ Result APT_DoAppJump(Handle* handle, u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0P
 	if((ret=svcSendSyncRequest(*handle)))return ret;
 
 	return cmdbuf[1];
+}
+
+Result APT_PrepareToStartLibraryApplet(Handle* handle, NS_APPID appID)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x180040; //request header code
+	cmdbuf[1]=appID;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_StartLibraryApplet(Handle* handle, NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x1E0084; //request header code
+	cmdbuf[1]=appID;
+	cmdbuf[2]=parambufsize;
+	cmdbuf[3]=0;
+	cmdbuf[4]=inhandle;
+	cmdbuf[5]=(parambufsize<<14)|2;
+	cmdbuf[6]=(u32)parambuf;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize)
+{
+	Result ret=0;
+	u8 tmp=0;
+
+	u8 buf1[4];
+	u8 buf2[4];
+
+	aptOpenSession();
+	APT_ReplySleepQuery(NULL, currentAppId, 0);
+	aptCloseSession();
+
+	memset(buf1, 0, 4);
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	aptOpenSession();
+	APT_ReplySleepQuery(NULL, currentAppId, 0);
+	aptCloseSession();
+
+	aptOpenSession();
+	ret=APT_PrepareToStartLibraryApplet(NULL, appID);
+	aptCloseSession();
+	if(ret!=0)return ret;
+
+	memset(buf1, 0, 4);
+	aptOpenSession();
+	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+	aptCloseSession();
+
+	while(1)
+	{
+		aptOpenSession();
+		ret=APT_IsRegistered(NULL, appID, &tmp);
+		aptCloseSession();
+		if(ret!=0)return ret;
+
+		if(tmp!=0)break;
+	}
+
+	// Set status to SUSPENDED.
+	svcClearEvent(aptStatusEvent);
+	aptSetStatus(APP_SUSPENDED);
+
+	// Save Vram
+	GSPGPU_SaveVramSysArea(NULL);
+
+	// Capture screen.
+	memset(__ns_capinfo, 0, 0x20);
+
+	aptInitCaptureInfo(__ns_capinfo);
+
+	// Send capture-screen info to the library applet.
+	aptOpenSession();
+	APT_SendParameter(NULL, currentAppId, appID, 0x20, __ns_capinfo, 0x0, 0x2);
+	aptCloseSession();
+
+	// Release GSP module.
+	GSPGPU_ReleaseRight(NULL);
+
+	__apt_launchapplet_appID = appID;
+	__apt_launchapplet_inhandle = inhandle;
+	__apt_launchapplet_parambuf = parambuf;
+	__apt_launchapplet_parambufsize = parambufsize;
+
+	return 0;
 }
 
