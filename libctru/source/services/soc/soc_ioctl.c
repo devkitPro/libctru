@@ -23,7 +23,7 @@ int ioctl(int fd, int request, ...)
 
 		flags = fcntl(fd, F_GETFL, 0);
 		if(flags == -1) {
-			errno = SOCU_GetError();
+			errno = SOC_GetErrno();
 			return -1;
 		}
 
@@ -31,7 +31,7 @@ int ioctl(int fd, int request, ...)
 		else       ret = fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
 
 		if(ret != 0)
-			errno = SOCU_GetError();
+			errno = SOC_GetErrno();
 
 		break;
 
