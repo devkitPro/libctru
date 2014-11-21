@@ -16,15 +16,23 @@ int ioctl(int fd, int request, ...)
 	switch(request) {
 	case FIONBIO:
 		value = va_arg(ap, int*);
-		if(value == NULL) ret = -1;
-		else if(*value) {
-			flags = fcntl(fd, F_GETFL, 0);
-			ret = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+		if(value == NULL) {
+			errno = EFAULT;
+			ret = -1;
 		}
-		else {
-			flags = fcntl(fd, F_GETFL, 0);
-			ret = fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+
+		flags = fcntl(fd, F_GETFL, 0);
+		if(flags == -1) {
+			errno = SOCU_GetError();
+			return -1;
 		}
+
+		if(*value) ret = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+		else       ret = fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+
+		if(ret != 0)
+			errno = SOCU_GetError();
+
 		break;
 
 	default:
