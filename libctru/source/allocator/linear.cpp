@@ -1,9 +1,56 @@
 #include <3ds.h>
+#include <3ds/util/rbtree.h>
 #include "mem_pool.h"
 
 extern u32 __linear_heap, __linear_heap_size;
 
 static MemPool sLinearPool;
+static rbtree_t sAddrMap;
+
+struct addrMapNode
+{
+	rbtree_node node;
+	MemChunk chunk;
+};
+
+#define getAddrMapNode(x) rbtree_item((x), addrMapNode, node)
+
+static int addrMapNodeComparator(const rbtree_node_t* _lhs, const rbtree_node_t* _rhs)
+{
+	auto lhs = getAddrMapNode(_lhs)->chunk.addr;
+	auto rhs = getAddrMapNode(_rhs)->chunk.addr;
+	if (lhs < rhs)
+		return -1;
+	if (lhs > rhs)
+		return 1;
+	return 0;
+}
+
+static void addrMapNodeDestructor(rbtree_node_t* a)
+{
+	free(getAddrMapNode(a));
+}
+
+static addrMapNode* getNode(void* addr)
+{
+	addrMapNode n;
+	n.chunk.addr = (u8*)addr;
+	auto p = rbtree_find(&sAddrMap, &n.node);
+	return p ? getAddrMapNode(p) : nullptr;
+}
+
+static addrMapNode* newNode(const MemChunk& chunk)
+{
+	auto p = (addrMapNode*)malloc(sizeof(addrMapNode));
+	if (!p) return nullptr;
+	p->chunk = chunk;
+	return p;
+}
+
+static void delNode(addrMapNode* node)
+{
+	rbtree_remove(&sAddrMap, &node->node, addrMapNodeDestructor);
+}
 
 static bool linearInit()
 {
@@ -11,6 +58,7 @@ static bool linearInit()
 	if (blk)
 	{
 		sLinearPool.AddBlock(blk);
+		rbtree_init(&sAddrMap, addrMapNodeComparator);
 		return true;
 	}
 	return false;
@@ -36,19 +84,19 @@ void* linearMemAlign(size_t size, size_t alignment)
 	if (!sLinearPool.Ready() && !linearInit())
 		return nullptr;
 
-	// Reserve memory for MemChunk structure
-	size += alignment;
-
 	// Allocate the chunk
 	MemChunk chunk;
 	if (!sLinearPool.Allocate(chunk, size, shift))
 		return nullptr;
 
-	// Copy the MemChunk structure and return memory
-	auto addr = chunk.addr;
-	*(MemChunk*)addr = chunk;
-	*(u32*)(addr + alignment - sizeof(u32)) = alignment;
-	return addr + alignment;
+	auto node = newNode(chunk);
+	if (!node)
+	{
+		sLinearPool.Deallocate(chunk);
+		return nullptr;
+	}
+	if (rbtree_insert(&sAddrMap, &node->node));
+	return chunk.addr;
 }
 
 void* linearAlloc(size_t size)
@@ -64,10 +112,14 @@ void* linearRealloc(void* mem, size_t size)
 
 void linearFree(void* mem)
 {
-	// Find MemChunk structure and free the chunk
-	u32 alignment = *((u32*)mem - 1);
-	auto pChunk = (MemChunk*)((u8*)mem - alignment);
-	sLinearPool.Deallocate(*pChunk);
+	auto node = getNode(mem);
+	if (!node) return;
+
+	// Free the chunk
+	sLinearPool.Deallocate(node->chunk);
+
+	// Free the node
+	delNode(node);
 }
 
 u32 linearSpaceFree()
