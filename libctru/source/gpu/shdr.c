@@ -56,7 +56,7 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 		return ret;
 }
 
-s8 SHDR_GetUniformRegister(DVLB_s* dvlb, char* name, u8 programID)
+s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
 {
 	if(!dvlb || !name)return -1;
 
