@@ -298,11 +298,76 @@ FSUSER_DeleteFile(Handle     *handle,
 	return cmdbuf[1];
 }
 
-/* stub */
+/*! Renames or moves a file.
+ *
+ *  @param[in] handle          fs:USER handle
+ *  @param[in] srcArchive      Open archive of source
+ *  @param[in] srcFileLowPath  File path to source
+ *  @param[in] destArchive     Open archive of destination
+ *  @param[in] destFileLowPath File path to destination
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08050244]
+ *  1          | 0
+ *  2          | srcArchive.handleLow
+ *  3          | srcArchive.handleHigh
+ *  4          | srcFileLowPath.type
+ *  5          | srcFileLowPath.size
+ *  6          | destArchive.handleLow
+ *  7          | destArchive.handleHigh
+ *  8          | destFileLowPath.type
+ *  9          | destFileLowPath.size
+ *  10         | (srcFileLowPath.size << 14) \| 0x2
+ *  11         | srcFileLowPath.data
+ *  12         | (destFileLowPath.size << 14) \| 0x2
+ *  13         | destFileLowPath.data
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ */
 Result
-FSUSER_RenameFile(void)
+FSUSER_RenameFile(Handle     *handle,
+                  FS_archive srcArchive,
+                  FS_path    srcFileLowPath,
+                  FS_archive destArchive,
+                  FS_path    destFileLowPath)
 {
-	return -1;
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08050244;
+	cmdbuf[1] = 0;
+	cmdbuf[2] = srcArchive.handleLow;
+	cmdbuf[3] = srcArchive.handleHigh;
+	cmdbuf[4] = srcFileLowPath.type;
+	cmdbuf[5] = srcFileLowPath.size;
+	cmdbuf[6] = destArchive.handleLow;
+	cmdbuf[7] = destArchive.handleHigh;
+	cmdbuf[8] = destFileLowPath.type;
+	cmdbuf[9] = destFileLowPath.size;
+	cmdbuf[10] = (srcFileLowPath.size << 14) | 0x402;
+	cmdbuf[11] = (u32)srcFileLowPath.data;
+	cmdbuf[12] = (destFileLowPath.size << 14) | 0x802;
+	cmdbuf[13] = (u32)destFileLowPath.data;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	return cmdbuf[1];
 }
 
 /*! Delete a directory
@@ -433,11 +498,76 @@ FSUSER_CreateDirectory(Handle     *handle,
 	return cmdbuf[1];
 }
 
-/* stub */
+/*! Renames or moves a directory.
+ *
+ *  @param[in] handle         fs:USER handle
+ *  @param[in] srcArchive     Open archive of source
+ *  @param[in] srcDirLowPath  Dir path to source
+ *  @param[in] destArchive    Open archive of destination
+ *  @param[in] destDirLowPath Dir path to destination
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08050244]
+ *  1          | 0
+ *  2          | srcArchive.handleLow
+ *  3          | srcArchive.handleHigh
+ *  4          | srcDirLowPath.type
+ *  5          | srcDirLowPath.size
+ *  6          | destArchive.handleLow
+ *  7          | destArchive.handleHigh
+ *  8          | destDirLowPath.type
+ *  9          | destDirLowPath.size
+ *  10         | (srcDirLowPath.size << 14) \| 0x2
+ *  11         | srcDirLowPath.data
+ *  12         | (destDirLowPath.size << 14) \| 0x2
+ *  13         | destDirLowPath.data
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ */
 Result
-FSUSER_RenameDirectory(void)
+FSUSER_RenameDirectory(Handle     *handle,
+                       FS_archive srcArchive,
+                       FS_path    srcDirLowPath,
+                       FS_archive destArchive,
+                       FS_path    destDirLowPath)
 {
-	return -1;
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x080A0244;
+	cmdbuf[1] = 0;
+	cmdbuf[2] = srcArchive.handleLow;
+	cmdbuf[3] = srcArchive.handleHigh;
+	cmdbuf[4] = srcDirLowPath.type;
+	cmdbuf[5] = srcDirLowPath.size;
+	cmdbuf[6] = destArchive.handleLow;
+	cmdbuf[7] = destArchive.handleHigh;
+	cmdbuf[8] = destDirLowPath.type;
+	cmdbuf[9] = destDirLowPath.size;
+	cmdbuf[10] = (srcDirLowPath.size << 14) | 0x402;
+	cmdbuf[11] = (u32)srcDirLowPath.data;
+	cmdbuf[12] = (destDirLowPath.size << 14) | 0x802;
+	cmdbuf[13] = (u32)destDirLowPath.data;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	return cmdbuf[1];
 }
 
 /*! Open a directory
