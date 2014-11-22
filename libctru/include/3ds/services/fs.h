@@ -156,6 +156,8 @@ Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
 Result FSUSER_CreateDirectory(Handle* handle, FS_archive archive, FS_path dirLowPath);
 Result FSUSER_DeleteFile(Handle *handle, FS_archive archive, FS_path fileLowPath);
 Result FSUSER_DeleteDirectory(Handle *handle, FS_archive archive, FS_path dirLowPath);
+Result FSUSER_RenameFile(Handle *handle, FS_archive srcArchive, FS_path srcFileLowPath, FS_archive destArchive, FS_path destFileLowPath);
+Result FSUSER_RenameDirectory(Handle *handle, FS_archive srcArchive, FS_path srcDirLowPath, FS_archive destArchive, FS_path destDirLowPath);
 Result FSUSER_GetSdmcArchiveResource(Handle *handle, u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
 Result FSUSER_IsSdmcDetected(Handle *handle, u32 *detected);
 Result FSUSER_IsSdmcWritable(Handle *handle, u32 *writable);
