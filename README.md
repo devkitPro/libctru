@@ -13,9 +13,9 @@ setup
 
 ctrulib is just a library and needs a toolchain to function. we built ctrulib to be used in conjunction with devkitARM. you may find instructions on how to install devkitARM here : http://devkitpro.org/wiki/Getting_Started
 
-once devkitARM is installed, you will need to manually patch it with the following : http://mtheall.com/~fincs/3dsdkA/
+The most recent devkitARM (r43) includes 3DS support and a prebuilt libctru.
 
-that done, just checkout ctrulib, build it, set your CTRULIB path and you should be good to go !
+To keep up to date with the most recent changes you'll want to checkout ctrulib, build it and install it.
 
 license
 =======
