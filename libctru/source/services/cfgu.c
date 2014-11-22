@@ -1,14 +1,14 @@
 #include <stdlib.h>
 #include <3ds.h>
 
-Handle CFGU_handle = 0;
+static Handle CFGU_handle = 0;
 
-Result CFGU_Initialize()
+Result initCfgu()
 {
     return srvGetServiceHandle(&CFGU_handle, "cfg:u");
 }
 
-Result CFGU_Shutdown()
+Result exitCfgu()
 {
     Result ret = svcCloseHandle(CFGU_handle);
     CFGU_handle = 0;
