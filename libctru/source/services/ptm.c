@@ -42,3 +42,18 @@ Result PTMU_GetBatteryChargeState(Handle* servhandle, u8 *out)
 
 	return (Result)cmdbuf[1];
 }
+
+Result PTMU_GetTotalStepCount(Handle* servhandle, u32 *out)
+{
+	if(!servhandle)servhandle=&ptmHandle;
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x000C0000;
+
+	if((ret = svcSendSyncRequest(*servhandle))!=0) return ret;
+
+	*out = (u32)cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
