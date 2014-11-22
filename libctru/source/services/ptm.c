@@ -13,6 +13,21 @@ Result ptmExit()
 	return svcCloseHandle(ptmHandle);
 }
 
+Result PTMU_GetShellState(Handle* servhandle, u8 *out)
+{
+	if(!servhandle)servhandle=&ptmHandle;
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00060000;
+
+	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
+
+	*out = (u8)cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
 Result PTMU_GetBatteryLevel(Handle* servhandle, u8 *out)
 {
 	if(!servhandle)servhandle=&ptmHandle;
@@ -35,6 +50,21 @@ Result PTMU_GetBatteryChargeState(Handle* servhandle, u8 *out)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x00080000;
+
+	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
+
+	*out = (u8)cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result PTMU_GetPedometerState(Handle* servhandle, u8 *out)
+{
+	if(!servhandle)servhandle=&ptmHandle;
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00090000;
 
 	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
 
