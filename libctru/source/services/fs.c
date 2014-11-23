@@ -324,9 +324,9 @@ FSUSER_DeleteFile(Handle     *handle,
  *  7          | destArchive.handleHigh
  *  8          | destFileLowPath.type
  *  9          | destFileLowPath.size
- *  10         | (srcFileLowPath.size << 14) \| 0x2
+ *  10         | (srcFileLowPath.size << 14) \| 0x402
  *  11         | srcFileLowPath.data
- *  12         | (destFileLowPath.size << 14) \| 0x2
+ *  12         | (destFileLowPath.size << 14) \| 0x802
  *  13         | destFileLowPath.data
  *
  *  #### Response
@@ -514,7 +514,7 @@ FSUSER_CreateDirectory(Handle     *handle,
  *
  *  Index Word | Description
  *  -----------|-------------------------
- *  0          | Header code [0x08050244]
+ *  0          | Header code [0x080A0244]
  *  1          | 0
  *  2          | srcArchive.handleLow
  *  3          | srcArchive.handleHigh
@@ -524,9 +524,9 @@ FSUSER_CreateDirectory(Handle     *handle,
  *  7          | destArchive.handleHigh
  *  8          | destDirLowPath.type
  *  9          | destDirLowPath.size
- *  10         | (srcDirLowPath.size << 14) \| 0x2
+ *  10         | (srcDirLowPath.size << 14) \| 0x402
  *  11         | srcDirLowPath.data
- *  12         | (destDirLowPath.size << 14) \| 0x2
+ *  12         | (destDirLowPath.size << 14) \| 0x802
  *  13         | destDirLowPath.data
  *
  *  #### Response
