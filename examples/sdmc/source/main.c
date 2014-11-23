@@ -100,6 +100,7 @@ int main(int argc, char** argv)
 	//closing all handles is super important
 	svcCloseHandle(fileHandle);
 	//closing all services even more so
+	fsExit();
 	gfxExit();
 	hidExit();
 	aptExit();
