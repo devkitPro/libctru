@@ -17,11 +17,20 @@ bool enable3d;
 
 Handle gspEvent, gspSharedMemHandle;
 
+/**
+ * Enable / disable 3D on upper screen.
+ * @param enable (bool): true enables 3D, false disables it.
+ */
 void gfxSet3D(bool enable)
 {
 	enable3d=enable;
 }
 
+/**
+ * Set framebuffer information for a screen
+ * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
+ * @param id: framebuffer to use
+ */
 void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 {
 	if(screen==GFX_TOP)
@@ -46,6 +55,11 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 	}
 }
 
+/**
+ * Write a screen's framebuffer information
+ * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
+ * @param id: framebuffer to use
+ */
 void gfxWriteFramebufferInfo(gfxScreen_t screen)
 {
 	u8* framebufferInfoHeader=gfxSharedMemory+0x200+gfxThreadID*0x80;
@@ -56,6 +70,9 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	framebufferInfoHeader[0x1]=1;
 }
 
+/**
+ * Initialize the console's graphics system
+ */
 void gfxInit()
 {
 	gspInit();
@@ -101,6 +118,9 @@ void gfxInit()
 	gspWaitForVBlank();
 }
 
+/**
+ * Stop the console's graphics system
+ */
 void gfxExit()
 {
 	// Exit event handler
@@ -127,6 +147,14 @@ void gfxExit()
 	gspExit();
 }
 
+/**
+ * Get a screen's framebuffer
+ * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
+ * @param side: 0 (GFX_LEFT) / 1 (GFX_RIGHT)
+ * @param width: pointer to store screen's width
+ * @param width: pointer to store screen's height
+ * @return given screen's framebuffer
+ */
 u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* height)
 {
 	if(width)*width=240;
@@ -141,6 +169,9 @@ u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* hei
 	}
 }
 
+/**
+ * Flush (empty) current screen buffers
+ */
 void gfxFlushBuffers()
 {
 	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x46500);
@@ -148,6 +179,9 @@ void gfxFlushBuffers()
 	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), 0x38400);
 }
 
+/**
+ * Swap screen buffers (buffer 0 <=> buffer 1)
+ */
 void gfxSwapBuffers()
 {
 	currentBuffer^=1;
@@ -157,6 +191,9 @@ void gfxSwapBuffers()
 	GSPGPU_SetBufferSwap(NULL, GFX_BOTTOM, &bottomFramebufferInfo);
 }
 
+/**
+ * Swap screen buffers (buffer 0 <=> buffer 1) using GPU
+ */
 void gfxSwapBuffersGpu()
 {
 	currentBuffer^=1;
