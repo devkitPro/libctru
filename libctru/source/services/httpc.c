@@ -7,12 +7,12 @@ Result httpcInit()
 	Result ret=0;
 
 	if(__httpc_servhandle)return 0;
-	if((ret=srvGetServiceHandle(&__httpc_servhandle, "http:C")))*((u32*)0x500) = ret;//return ret;
+	if((ret=srvGetServiceHandle(&__httpc_servhandle, "http:C")))return ret;
 
 	//*((u32*)0x600) = __httpc_servhandle;
 
 	ret = HTTPC_Initialize(__httpc_servhandle);
-	if(ret!=0)*((u32*)0x400) = ret;//return ret;
+	if(ret!=0)return ret;
 
 	return 0;
 }
@@ -29,18 +29,18 @@ Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
 	Result ret=0;
 
 	ret = HTTPC_CreateContext(__httpc_servhandle, url, &context->httphandle);
-	if(ret!=0)*((u32*)0x100) = ret;//return ret;
+	if(ret!=0)return ret;
 
 	ret = srvGetServiceHandle(&context->servhandle, "http:C");
-	if(ret!=0)*((u32*)0x104) = ret;//return ret;
+	if(ret!=0)return ret;
 
 	ret = HTTPC_InitializeConnectionSession(context->servhandle, context->httphandle);
-	if(ret!=0)*((u32*)0x108) = ret;//return ret;
+	if(ret!=0)return ret;
 
 	if(use_defaultproxy==0)return 0;
 
 	ret = HTTPC_SetProxyDefault(context->servhandle, context->httphandle);
-	if(ret!=0)*((u32*)0x10c) = ret;//return ret;
+	if(ret!=0)return ret;
 
 	return 0;
 }

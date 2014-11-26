@@ -24,6 +24,7 @@ int ioctl(int fd, int request, ...)
 		flags = fcntl(fd, F_GETFL, 0);
 		if(flags == -1) {
 			errno = SOC_GetErrno();
+			va_end(ap);
 			return -1;
 		}
 
