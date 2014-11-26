@@ -29,7 +29,7 @@ void gfxSet3D(bool enable)
 /**
  * Set framebuffer information for a screen
  * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
- * @param id: framebuffer to use
+ * @param id: id of the framebuffer to use (0 / 1)
  */
 void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 {
@@ -58,7 +58,7 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 /**
  * Write a screen's framebuffer information
  * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
- * @param id: framebuffer to use
+ * @param id: id of the framebuffer to use (0 / 1)
  */
 void gfxWriteFramebufferInfo(gfxScreen_t screen)
 {
