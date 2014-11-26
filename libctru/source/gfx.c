@@ -17,9 +17,34 @@ bool enable3d;
 
 Handle gspEvent, gspSharedMemHandle;
 
+GSP_FramebufferFormats topFormat = GSP_BGR8_OES;
+GSP_FramebufferFormats botFormat = GSP_BGR8_OES;
+
 void gfxSet3D(bool enable)
 {
 	enable3d=enable;
+}
+
+void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format) {
+    if(screen==GFX_TOP)
+        topFormat = format;
+    else
+        botFormat = format;
+}
+
+static u32 __get_bytes_per_pixel(GSP_FramebufferFormats format) {
+    switch(format) {
+    case GSP_RGBA8_OES:
+        return 4;
+    case GSP_BGR8_OES:
+        return 3;
+    case GSP_RGB565_OES:
+    case GSP_RGB5_A1_OES:
+    case GSP_RGBA4_OES:
+        return 2;
+    }
+
+    return 3;
 }
 
 void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
@@ -30,17 +55,17 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 		topFramebufferInfo.framebuf0_vaddr=(u32*)gfxTopLeftFramebuffers[id];
 		if(enable3d)topFramebufferInfo.framebuf1_vaddr=(u32*)gfxTopRightFramebuffers[id];
 		else topFramebufferInfo.framebuf1_vaddr=topFramebufferInfo.framebuf0_vaddr;
-		topFramebufferInfo.framebuf_widthbytesize=240*3;
+		topFramebufferInfo.framebuf_widthbytesize=240*__get_bytes_per_pixel(topFormat);
 		u8 bit5=(enable3d!=0);
-		topFramebufferInfo.format=((1)<<8)|((1^bit5)<<6)|((bit5)<<5)|GSP_BGR8_OES;
+		topFramebufferInfo.format=((1)<<8)|((1^bit5)<<6)|((bit5)<<5)|topFormat;
 		topFramebufferInfo.framebuf_dispselect=id;
 		topFramebufferInfo.unk=0x00000000;
 	}else{
 		bottomFramebufferInfo.active_framebuf=id;
 		bottomFramebufferInfo.framebuf0_vaddr=(u32*)gfxBottomFramebuffers[id];
 		bottomFramebufferInfo.framebuf1_vaddr=0x00000000;
-		bottomFramebufferInfo.framebuf_widthbytesize=240*3;
-		bottomFramebufferInfo.format=GSP_BGR8_OES;
+		bottomFramebufferInfo.framebuf_widthbytesize=240*__get_bytes_per_pixel(botFormat);
+		bottomFramebufferInfo.format=botFormat;
 		bottomFramebufferInfo.framebuf_dispselect=id;
 		bottomFramebufferInfo.unk=0x00000000;
 	}
