@@ -28,7 +28,7 @@ void gfxSet3D(bool enable)
 
 /**
  * Set framebuffer information for a screen
- * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
+ * @param screen: GFX_TOP / GFX_BOTTOM
  * @param id: id of the framebuffer to use (0 / 1)
  */
 void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
@@ -57,7 +57,7 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 
 /**
  * Write a screen's framebuffer information
- * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
+ * @param screen: GFX_TOP / GFX_BOTTOM
  * @param id: id of the framebuffer to use (0 / 1)
  */
 void gfxWriteFramebufferInfo(gfxScreen_t screen)
@@ -149,11 +149,11 @@ void gfxExit()
 
 /**
  * Get a screen's framebuffer
- * @param screen: 0 (GFX_TOP) / 1 (GFX_BOTTOM)
- * @param side: 0 (GFX_LEFT) / 1 (GFX_RIGHT)
+ * @param screen: GFX_TOP / GFX_BOTTOM
+ * @param side: GFX_LEFT / GFX_RIGHT
  * @param width: pointer to store screen's width
  * @param width: pointer to store screen's height
- * @return given screen's framebuffer
+ * @return a framebuffer fot that sreen, in the form of a (width * height * 3) u8 array.
  */
 u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* height)
 {
