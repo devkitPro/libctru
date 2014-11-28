@@ -81,5 +81,5 @@ Result APT_PrepareToDoAppJump(Handle* handle, u8 flags, u64 programID, u8 mediat
 Result APT_DoAppJump(Handle* handle, u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Ptr);
 Result APT_PrepareToStartLibraryApplet(Handle* handle, NS_APPID appID);
 Result APT_StartLibraryApplet(Handle* handle, NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
-Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);//This should be used for launching library applets, this uses the above APT_StartLibraryApplet/APT_PrepareToStartLibraryApplet funcs + apt*Session(). parambuf is used for APT params input, when the applet closes the output param block is copied here. This is not usable from the homebrew launcher.
+Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);//This should be used for launching library applets, this uses the above APT_StartLibraryApplet/APT_PrepareToStartLibraryApplet funcs + apt*Session(). parambuf is used for APT params input, when the applet closes the output param block is copied here. This is not usable from the homebrew launcher. This is broken: when the applet does get launched at all, the applet process doesn't actually get terminated when the applet gets closed.
 
