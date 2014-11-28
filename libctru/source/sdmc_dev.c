@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/iosupport.h>
+#include <string.h>
 #include <3ds.h>
 
 /*! @internal

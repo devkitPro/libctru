@@ -14,6 +14,22 @@ static Handle fsuHandle;
 // used to determine whether or not we should do FSUSER_Initialize on fsuHandle
 Handle __get_handle_from_list(char* name);
 
+/*! Create an FS_path from a type and data pointer.
+ *
+ *  @param[in] type Path type.
+ *  @param[in] path Pointer to path data.
+ *
+ *  @returns FS_path
+ *
+ *  @sa FS_pathType
+ */
+FS_path
+FS_makePath(FS_pathType type,
+            const char  *path)
+{
+	return (FS_path){type, strlen(path)+1, (const u8*)path};
+}
+
 /*! Initialize FS service
  *
  *  @returns error

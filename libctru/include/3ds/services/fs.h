@@ -1,5 +1,4 @@
 #pragma once
-#include <string.h>
 #include <3ds/types.h>
 
 /*! @file FS.h
@@ -128,24 +127,10 @@ typedef struct
   u64 fileSize;        //!< file size
 } FS_dirent;
 
-/*! Create an FS_path from a type and data pointer.
- *
- *  @param[in] type Path type.
- *  @param[in] path Pointer to path data.
- *
- *  @returns FS_path
- *
- *  @sa FS_pathType
- */
-static inline FS_path
-FS_makePath(FS_pathType type,
-            const char  *path)
-{
-	return (FS_path){type, strlen(path)+1, (const u8*)path};
-}
-
 Result fsInit(void);
 Result fsExit(void);
+
+FS_path FS_makePath(FS_pathType type, const char  *path);
 
 Result FSUSER_Initialize(Handle* handle);
 Result FSUSER_OpenArchive(Handle* handle, FS_archive* archive);

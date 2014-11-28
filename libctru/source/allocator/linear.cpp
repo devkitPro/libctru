@@ -1,5 +1,6 @@
 #include <3ds.h>
 #include <3ds/util/rbtree.h>
+
 #include "mem_pool.h"
 
 extern u32 __linear_heap, __linear_heap_size;

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <3ds.h>
 
 Handle __httpc_servhandle = 0;

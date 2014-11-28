@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <3ds.h>
 
 static Handle pmHandle;
