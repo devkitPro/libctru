@@ -53,6 +53,10 @@ u64 osGetTime() {
 	return dt->date_time + offset;
 }
 
+u64 osGetMicros() {
+	return svcGetSystemTick() / (int)(TICKS_PER_MSEC / 1000);
+}
+
 u32 osGetFirmVersion() {
 	return (*(u32*)0x1FF80000) & ~0xFF;
 }

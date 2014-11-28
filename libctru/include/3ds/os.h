@@ -9,3 +9,4 @@ const char* osStrError(u32 error);
 u32 osGetFirmVersion();
 u32 osGetKernelVersion();
 u64 osGetTime();
+u64 osGetMicros();
