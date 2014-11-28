@@ -103,7 +103,7 @@ void aptWaitStatusEvent()
 	svcClearEvent(aptStatusEvent);
 }
 
-void aptAppletUtility_Exit_RetToApp()
+void aptAppletUtility_Exit_RetToApp(u32 type)
 {
 	u8 buf1[4], buf2[4];
 
@@ -132,6 +132,13 @@ void aptAppletUtility_Exit_RetToApp()
 	aptOpenSession();
 	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
 	aptCloseSession();
+
+	if(type)
+	{
+		aptOpenSession();
+		APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
+		aptCloseSession();
+	}
 }
 
 NS_APPID aptGetMenuAppID()
@@ -257,7 +264,7 @@ void aptAppletStarted()
 
 void aptAppletClosed()
 {
-	aptAppletUtility_Exit_RetToApp();
+	aptAppletUtility_Exit_RetToApp(1);
 
 	GSPGPU_AcquireRight(NULL, 0x0);
 	GSPGPU_RestoreVramSysArea(NULL);
@@ -354,7 +361,7 @@ static bool __handle_incoming_parameter() {
 	case 0xB: // Just returned from menu.
 		GSPGPU_AcquireRight(NULL, 0x0);
 		GSPGPU_RestoreVramSysArea(NULL);
-		aptAppletUtility_Exit_RetToApp();
+		aptAppletUtility_Exit_RetToApp(0);
 		aptSetStatus(APP_RUNNING);
 		return true;
 
@@ -436,7 +443,7 @@ Result aptInit(void)
 
 void aptExit()
 {
-	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))aptAppletUtility_Exit_RetToApp();
+	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))aptAppletUtility_Exit_RetToApp(0);
 
 	// This is only executed when application-termination was triggered via the home-menu power-off screen.
 	if(aptGetStatusPower() == 1)
