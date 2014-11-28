@@ -5,6 +5,7 @@
 //this example shows you how to load a binary image file from the SD card and display it on the lower screen
 //for this to work you should copy test.bin to the root of your SD card
 //this file was generated with GIMP by saving a 240x320 image to raw RGB
+#include <string.h>
 
 #include <3ds.h>
 #include "costable.h"

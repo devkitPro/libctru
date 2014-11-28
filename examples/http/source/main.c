@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include <3ds.h>
 
 Result http_download(httpcContext *context)//This error handling needs updated with proper text printing once ctrulib itself supports that.

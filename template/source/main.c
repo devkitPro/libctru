@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <3ds.h>
 
 int main()
