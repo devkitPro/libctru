@@ -486,15 +486,15 @@ bool aptMainLoop()
 			case APP_SUSPENDING:
 				aptReturnToMenu();
 				break;
-			case APP_PREPARE_SLEEPMODE:
-				aptSignalReadyForSleep();
-				// Fall through
 			case APP_APPLETSTARTED:
 				aptAppletStarted();
 				break;
 			case APP_APPLETCLOSED:
 				aptAppletClosed();
 				break;
+			case APP_PREPARE_SLEEPMODE:
+				aptSignalReadyForSleep();
+				// Fall through
 			default:
 			//case APP_NOTINITIALIZED:
 			//case APP_SLEEPMODE:
@@ -551,7 +551,7 @@ void aptSetStatus(APP_STATUS status)
 
 	//if(prevstatus != APP_NOTINITIALIZED)
 	//{
-		if(status == APP_RUNNING || status == APP_EXITING || status == APP_SLEEPMODE || status == APP_APPLETSTARTED || status == APP_APPLETCLOSED)
+		if(status == APP_RUNNING || status == APP_EXITING || status == APP_APPLETSTARTED || status == APP_APPLETCLOSED)
 			svcSignalEvent(aptStatusEvent);
 	//}
 
