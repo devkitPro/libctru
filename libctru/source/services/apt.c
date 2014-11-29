@@ -352,9 +352,11 @@ static bool __handle_incoming_parameter() {
 		return true;
 
 	case 0x3: // "Launched library applet finished loading"
+		if (aptGetStatus() == APP_SUSPENDED) return true;
 		aptSetStatus(APP_APPLETSTARTED);
 		return true;
 	case 0xA: // "Launched library applet closed"
+		if (aptGetStatus() == APP_SUSPENDED) return true;
 		if(__apt_launchapplet_parambuf && __apt_launchapplet_parambufsize)memcpy(__apt_launchapplet_parambuf, aptParameters, __apt_launchapplet_parambufsize);
 		aptSetStatus(APP_APPLETCLOSED);
 		return true;
