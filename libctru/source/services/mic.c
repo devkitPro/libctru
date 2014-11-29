@@ -63,9 +63,6 @@ Result MIC_Shutdown()
 
 	MIC_cmd5();
 
-	ret = svcUnmapMemoryBlock(MIC_sharedmem_handle, (u32)MIC_sharedmem);
-	if(ret!=0)return ret;
-
 	ret = svcCloseHandle(MIC_sharedmem_handle);
 	if(ret!=0)return ret;
 
