@@ -43,8 +43,8 @@ void rotateMatrixX(float* tm, float x, bool r)
 	rm[0]=1.0f;
 	rm[5]=cos(x);
 	rm[6]=sin(x);
-	rm[9]=-sin(x);
-	rm[10]=cos(x);
+	rm[9]=-rm[6];
+	rm[10]=rm[5];
 	rm[15]=1.0f;
 	if(!r)multMatrix44(tm,rm,m);
 	else multMatrix44(rm,tm,m);
@@ -58,8 +58,8 @@ void rotateMatrixY(float* tm, float x, bool r)
 	rm[0]=cos(x);
 	rm[2]=sin(x);
 	rm[5]=1.0f;
-	rm[8]=-sin(x);
-	rm[10]=cos(x);
+	rm[8]=-rm[2];
+	rm[10]=rm[0];
 	rm[15]=1.0f;
 	if(!r)multMatrix44(tm,rm,m);
 	else multMatrix44(rm,tm,m);
@@ -72,8 +72,8 @@ void rotateMatrixZ(float* tm, float x, bool r)
 	memset(rm, 0x00, 16*4);
 	rm[0]=cos(x);
 	rm[1]=sin(x);
-	rm[4]=-sin(x);
-	rm[5]=cos(x);
+	rm[4]=-rm[1];
+	rm[5]=rm[0];
 	rm[10]=1.0f;
 	rm[15]=1.0f;
 	if(!r)multMatrix44(tm,rm,m);
@@ -108,7 +108,7 @@ void initProjectionMatrix(float* m, float fovy, float aspect, float near, float 
 	mp[0x8] = 0.0f;
 	mp[0x9] = 0.0f;
 	mp[0xA] = -(far+near)/(far-near);
-	mp[0xB] = -2.0f*(far*near)/(far-near);
+	mp[0xB] = -2.0f*-mp[0xA];
 
 	mp[0xC] = 0.0f;
 	mp[0xD] = 0.0f;
