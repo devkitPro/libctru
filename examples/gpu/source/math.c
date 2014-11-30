@@ -108,8 +108,7 @@ void initProjectionMatrix(float* m, float fovy, float aspect, float near, float 
 	mp[0x8] = 0.0f;
 	mp[0x9] = 0.0f;
 	mp[0xA] = -(far+near)/(far-near);
-	mp[0xB] = -2.0f*-mp[0xA];
-
+	mp[0xB] = -2.0f*(far*near)/(far-near);
 	mp[0xC] = 0.0f;
 	mp[0xD] = 0.0f;
 	mp[0xE] = -1.0f;
