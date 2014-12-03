@@ -839,7 +839,7 @@ FSUSER_GetSdmcArchiveResource(Handle *handle,
  */
 Result
 FSUSER_IsSdmcDetected(Handle *handle,
-                      u32    *detected)
+                      u8    *detected)
 {
 	if(!handle)
 		handle = &fsuHandle;
@@ -883,7 +883,7 @@ FSUSER_IsSdmcDetected(Handle *handle,
  */
 Result
 FSUSER_IsSdmcWritable(Handle *handle,
-                      u32    *writable)
+                      u8    *writable)
 {
 	if(!handle)
 		handle = &fsuHandle;
