@@ -123,8 +123,8 @@ static const char *sdmc_fixpath(const char *path)
 
 }
 
-int __system_argc;
-char** __system_argv;
+extern int __system_argc;
+extern char** __system_argv;
 
 /*! Initialize SDMC device */
 Result sdmcInit(void)
