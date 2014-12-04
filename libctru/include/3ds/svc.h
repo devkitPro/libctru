@@ -62,6 +62,8 @@ void svcSleepThread(s64 ns);
 s32  svcSetThreadPriority(Handle thread, s32 prio);
 s32  svcCreateMutex(Handle* mutex, bool initially_locked);
 s32  svcReleaseMutex(Handle handle);
+s32  svcCreateSemaphore(Handle* semaphore, s32 initial_count, s32 max_count);
+s32  svcReleaseSemaphore(s32* count, Handle semaphore, s32 release_count);
 s32  svcCreateEvent(Handle* event, u8 reset_type);
 s32  svcSignalEvent(Handle handle);
 s32  svcClearEvent(Handle handle);

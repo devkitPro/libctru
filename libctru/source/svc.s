@@ -264,3 +264,21 @@ svcOutputDebugString:
 	ldr r2, [sp], #4
 	str r1, [r2]
 	bx  lr
+
+.global svcCreateSemaphore
+.type svcCreateSemaphore, %function
+svcCreateSemaphore:
+    push {r0}
+    svc 0x15
+    pop {r3}
+    str r1, [r3]
+    bx  lr
+    
+.global svcReleaseSemaphore
+.type svcReleaseSemaphore, %function
+svcReleaseSemaphore:
+    push {r0}
+    svc 0x16
+    pop {r3}
+    str r1, [r3]
+    bx  lr
