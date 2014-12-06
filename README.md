@@ -1,4 +1,4 @@
-ctrulib
+ctrulib [![Build Status](http://build.filfatstudios.com:8080/buildStatus/icon?job=CTRULIB)](http://build.filfatstudios.com:8080/job/CTRULIB/)
 =======
 
 CTR User Library
