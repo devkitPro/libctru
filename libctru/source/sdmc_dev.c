@@ -140,15 +140,18 @@ Result sdmcInit(void)
 
     int dev = AddDevice(&sdmc_devoptab);
 
-    if (__system_argc != 0 && __system_argv[0] != NULL)
-    {
-      if (FindDevice(__system_argv[0]) == dev)
+    if (dev != -1) {
+      setDefaultDevice(dev);
+      if (__system_argc != 0 && __system_argv[0] != NULL)
       {
-        strncpy(__fixedpath,__system_argv[0],PATH_MAX);
-        char *last_slash = strrchr(__fixedpath,'/');
-        if (last_slash != NULL) {
-          last_slash[0] = 0;
-          chdir(__fixedpath);
+        if (FindDevice(__system_argv[0]) == dev)
+        {
+          strncpy(__fixedpath,__system_argv[0],PATH_MAX);
+          char *last_slash = strrchr(__fixedpath,'/');
+          if (last_slash != NULL) {
+            last_slash[0] = 0;
+            chdir(__fixedpath);
+          }
         }
       }
     }
