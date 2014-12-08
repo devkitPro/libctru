@@ -268,26 +268,26 @@ svcOutputDebugString:
 .global svcCreateSemaphore
 .type svcCreateSemaphore, %function
 svcCreateSemaphore:
-    push {r0}
-    svc 0x15
-    pop {r3}
-    str r1, [r3]
-    bx  lr
-    
+	push {r0}
+	svc 0x15
+	pop {r3}
+	str r1, [r3]
+	bx  lr
+
 .global svcReleaseSemaphore
 .type svcReleaseSemaphore, %function
 svcReleaseSemaphore:
-    push {r0}
-    svc 0x16
-    pop {r3}
-    str r1, [r3]
-    bx  lr
+	push {r0}
+	svc  0x16
+	pop  {r3}
+	str  r1, [r3]
+	bx   lr
 
 .global svcGetThreadId
 .type svcGetThreadId, %function
 svcGetThreadId:
-    str r0, [sp,#-0x4]!
-    svc 0x37
-    ldr r3, [sp], #4
-    str r1, [r3]
-    bx  lr
+	str r0, [sp, #-0x4]!
+	svc 0x37
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
