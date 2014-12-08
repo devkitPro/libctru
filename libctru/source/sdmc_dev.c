@@ -5,6 +5,8 @@
 #include <sys/iosupport.h>
 #include <sys/param.h>
 
+#include <stdio.h>
+#include <dirent.h>
 #include <string.h>
 #include <3ds.h>
 
@@ -39,12 +41,25 @@ static int       sdmc_fchmod(struct _reent *r, int fd, mode_t mode);
 
 /*! @cond INTERNAL */
 
+#define SDMC_FILEBUFFSIZE   0x4000               /* Size of file data buffer */
+#define SDMC_FILEBUFFMASK (-SDMC_FILEBUFFSIZE)   /* For calculating the start of the buffer's current chunk */
+#define SDMC_FILEOFFMASK   (SDMC_FILEBUFFSIZE-1) /* For calculating the start offset within the buffer */
+
+#define SDMC_BUFFINVALID   0xFFFFFFFF          /* To indicate that a buffer has not actually been loaded yet */
+
 /*! Open file struct */
 typedef struct
 {
   Handle fd;     /*! CTRU handle */
   int    flags;  /*! Flags used in open(2) */
   u64    offset; /*! Current file offset */
+
+  u8     buffer[SDMC_FILEBUFFSIZE]; /* File data buffer for speed-of-access */
+  u64    boffset;                   /* File start offset of the current buffered chunk */
+  u32    bsize;                     /* Amount of valid data in the buffer before EOF */
+
+  u64    size;                      /* Size of the file in bytes*/
+
 } sdmc_file_t;
 
 /*! Open directory struct */
@@ -251,6 +266,19 @@ sdmc_open(struct _reent *r,
     file->fd     = fd;
     file->flags  = (flags & (O_ACCMODE|O_APPEND|O_SYNC));
     file->offset = 0;
+
+    /* initialize buffer offset to buffer on first-read/write */
+    file->boffset = SDMC_BUFFINVALID;
+    file->bsize   = 0;
+
+    /* record the file's size */
+    rc = FSFILE_GetSize(file->fd, &file->size);
+    if(rc != 0)
+    {
+      r->_errno = rc;
+      return -1;
+    }
+
     return 0;
   }
 
@@ -272,8 +300,21 @@ sdmc_close(struct _reent *r,
 {
   Result      rc;
 
+  u32 bytes;
+
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fd;
+
+  /* check if the file was opened with write access */
+  if((file->flags & O_ACCMODE) != O_RDONLY)
+  {
+   /* flush the current buffer */
+   if((rc = FSFILE_Write(file->fd, &bytes, file->boffset, file->buffer, file->bsize, FS_WRITE_FLUSH)) != 0)
+   {
+    r->_errno = rc;
+    return -1;
+   }
+  }
 
   rc = FSFILE_Close(file->fd);
   if(rc == 0)
@@ -304,6 +345,10 @@ sdmc_write(struct _reent *r,
   u32         sync = 0;
   u64         offset;
 
+  u32         start;
+  u32         curlen;
+  u32         total;
+
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fd;
 
@@ -316,7 +361,7 @@ sdmc_write(struct _reent *r,
 
   /* check if this is synchronous or not */
   if(file->flags & O_SYNC)
-    sync = 0x10001;
+    sync = FS_WRITE_FLUSH;
 
   /* initialize offset */
   offset = file->offset;
@@ -331,23 +376,62 @@ sdmc_write(struct _reent *r,
     }
   }
 
-  /* TODO: Copy to internal buffer and write in chunks.
-   *       You cannot write from read-only memory.
-   */
+  /* initialize buffer start position, copy length, and total copied count */
+  start  = offset & SDMC_FILEOFFMASK;
+  curlen = SDMC_FILEBUFFSIZE-start;
+  total  = 0;
 
-  /* write the data */
-  rc = FSFILE_Write(file->fd, &bytes, offset, (u32*)ptr, (u32)len, sync);
-  if(rc == 0)
+  /* if the target location is not in the currently-buffered chunk, save the current buffer and load the target chunk */
+  if(file->boffset != (offset & SDMC_FILEBUFFMASK))
   {
-    /* update current file offset; if O_APPEND, this moves it to the
-     * new end-of-file
-     */
-    file->offset = offset + bytes;
-    return (ssize_t)bytes;
+
+   /* if there is a valid buffer */
+   if(file->boffset != SDMC_BUFFINVALID)
+   {
+buffernext:
+
+    /* flush the current buffer */
+    if((rc = FSFILE_Write(file->fd, &bytes, file->boffset, file->buffer, file->bsize, sync)) != 0)
+    {
+     r->_errno = rc;
+     return -1;
+    }
+   }
+
+   /* buffer the target chunk */
+   file->boffset = offset & SDMC_FILEBUFFMASK;
+   if((rc = FSFILE_Read(file->fd, &file->bsize, file->boffset, file->buffer, SDMC_FILEBUFFSIZE)) != 0)
+   {
+    r->_errno = rc;
+    return -1;
+   }
+  }
+//   else
+//    bytes = file->boffset + start;
+
+  if(curlen > len)
+   curlen = len;
+
+  memcpy(file->buffer+start, ptr, curlen);
+  total += curlen;
+  offset += curlen;
+  if((offset - file->boffset) > file->bsize)
+   file->bsize = offset - file->boffset;
+  if((len -= curlen) > 0)
+  {
+   ptr += curlen;
+   start = 0;
+   if(len > SDMC_FILEBUFFSIZE)
+    curlen = SDMC_FILEBUFFSIZE;
+   else
+    curlen = len;
+   goto buffernext;
   }
 
-  r->_errno = rc;
-  return -1;
+  file->offset = offset;
+
+  /* return the total number of bytes that were actually copied */
+  return (ssize_t)total;
 }
 
 /*! Read from an open file
@@ -367,7 +451,11 @@ sdmc_read(struct _reent *r,
           size_t         len)
 {
   Result      rc;
-  u32         bytes;
+//   u32         bytes;
+
+  u32         start;
+  u32         curlen;
+  u32         total;
 
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fd;
@@ -379,17 +467,55 @@ sdmc_read(struct _reent *r,
     return -1;
   }
 
-  /* read the data */
-  rc = FSFILE_Read(file->fd, &bytes, file->offset, (u32*)ptr, (u32)len);
-  if(rc == 0)
+  if((file->offset + len) > file->size)
+   if((len = (file->size - file->offset)) <= 0)
+    return(0);
+
+  /* initialize buffer start position, copy length, and total copied count */
+  start  = file->offset & SDMC_FILEOFFMASK;
+  curlen = SDMC_FILEBUFFSIZE-start;
+  total  = 0;
+
+  /* if the requested data does not reside in the currently-buffered chunk, load the buffer */
+  if(file->boffset != (file->offset & SDMC_FILEBUFFMASK))
   {
-    /* update current file offset */
-    file->offset += bytes;
-    return (ssize_t)bytes;
+buffernext:
+   file->boffset = file->offset & SDMC_FILEBUFFMASK;
+   /* read the data */
+   if((rc = FSFILE_Read(file->fd, &file->bsize, file->boffset, file->buffer, SDMC_FILEBUFFSIZE)) != 0)
+   {
+    r->_errno = rc;
+    return -1;
+   }
+  }
+//   else
+//    bytes = file->boffset + start;
+
+  if(curlen > len)
+   curlen = len;
+  if(curlen > file->bsize)
+   curlen = file->bsize;
+
+  memcpy(ptr, file->buffer+start, curlen);
+  total += curlen;
+  file->offset += curlen;
+  if((len -= curlen) > 0)
+  {
+   if(curlen + start == SDMC_FILEBUFFSIZE)
+   {
+    ptr += curlen;
+    start = 0;
+    if(len > SDMC_FILEBUFFSIZE)
+     curlen = SDMC_FILEBUFFSIZE;
+    else
+     curlen = len;
+    goto buffernext;
+   }
   }
 
-  r->_errno = rc;
-  return -1;
+  /* return the total number of bytes that were actually copied */
+  return (ssize_t)total;
+
 }
 
 /*! Update an open file's current offset
@@ -855,8 +981,17 @@ sdmc_fsync(struct _reent *r,
 {
   Result rc;
 
+  u32 bytes;
+
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fd;
+
+  /* flush the current buffer */
+  if((rc = FSFILE_Write(file->fd, &bytes, file->boffset, file->buffer, file->bsize, FS_WRITE_FLUSH)) != 0)
+  {
+   r->_errno = rc;
+   return -1;
+  }
 
   rc = FSFILE_Flush(file->fd);
   if(rc == 0)
