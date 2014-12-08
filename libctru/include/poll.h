@@ -4,9 +4,9 @@
 
 #define POLLIN		0x01
 #define POLLPRI		0x02
+#define POLLHUP		0x04 // unknown ???
+#define POLLERR		0x08 // probably
 #define POLLOUT		0x10
-#define POLLERR		0x00 // unknown ???
-#define POLLHUP		0x00 // unknown ???
 #define POLLNVAL	0x20
 
 typedef u32 nfds_t;
