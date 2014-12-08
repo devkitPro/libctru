@@ -86,4 +86,5 @@ s32  svcGetProcessInfo(s64* out, Handle process, u32 type);
 s32  svcConnectToPort(volatile Handle* out, const char* portName);
 s32  svcSendSyncRequest(Handle session);
 s32  svcGetProcessId(u32 *out, Handle handle);
+s32  svcGetThreadId(u32 *out, Handle handle);
 s32  svcOutputDebugString(const char* str, int length);
