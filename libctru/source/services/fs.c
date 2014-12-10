@@ -489,28 +489,28 @@ FSUSER_CreateFile(Handle*    handle,
                   FS_path    fileLowPath, 
                   u32        fileSize)
 {
-    if(!handle)
-        handle = &fsuHandle;
+	if(!handle)
+		handle = &fsuHandle;
 
-    u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *cmdbuf = getThreadCommandBuffer();
 
-    cmdbuf[0]  = 0x08080202;
-    cmdbuf[1]  = 0;
-    cmdbuf[2]  = archive.handleLow;
-    cmdbuf[3]  = archive.handleHigh;
-    cmdbuf[4]  = fileLowPath.type;
-    cmdbuf[5]  = fileLowPath.size;
-    cmdbuf[6]  = 0;
-    cmdbuf[7]  = fileSize;
-    cmdbuf[8]  = 0;
-    cmdbuf[9]  = (fileLowPath.size << 14) | 0x2;
-    cmdbuf[10] = (u32)fileLowPath.data;
+	cmdbuf[0]  = 0x08080202;
+	cmdbuf[1]  = 0;
+	cmdbuf[2]  = archive.handleLow;
+	cmdbuf[3]  = archive.handleHigh;
+	cmdbuf[4]  = fileLowPath.type;
+	cmdbuf[5]  = fileLowPath.size;
+	cmdbuf[6]  = 0;
+	cmdbuf[7]  = fileSize;
+	cmdbuf[8]  = 0;
+	cmdbuf[9]  = (fileLowPath.size << 14) | 0x2;
+	cmdbuf[10] = (u32)fileLowPath.data;
 
-    Result ret = 0;
-    if((ret = svcSendSyncRequest(*handle)))
-        return ret;
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
 
-    return cmdbuf[1];
+	return cmdbuf[1];
 }
 
 /*! Create a directory

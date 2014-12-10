@@ -10,7 +10,7 @@
 
 Handle gspGpuHandle=0;
 Handle gspEvents[GSPEVENT_MAX];
-u32 gspEventCounts[GSPEVENT_MAX];
+vu32 gspEventCounts[GSPEVENT_MAX];
 u64 gspEventStack[GSP_EVENT_STACK_SIZE/sizeof(u64)]; //u64 so that it's 8-byte aligned
 volatile bool gspRunEvents;
 Handle gspEventThread;
