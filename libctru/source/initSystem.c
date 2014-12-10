@@ -26,16 +26,18 @@ void __destroy_handle_list(void);
 
 void __attribute__((noreturn)) __ctru_exit(int rc)
 {
+	u32 tmp=0;
+
 	// Run the global destructors
 	__libc_fini_array();
 
 	// TODO: APT exit goes here
 
 	// Unmap the linear heap
-	svcControlMemory(&__linear_heap, __linear_heap, 0x0, __linear_heap_size, MEMOP_FREE, 0x0);
+	svcControlMemory(&tmp, __linear_heap, 0x0, __linear_heap_size, MEMOP_FREE, 0x0);
 
 	// Unmap the application heap
-	svcControlMemory(&heapBase, heapBase, 0x0, __heap_size, MEMOP_FREE, 0x0);
+	svcControlMemory(&tmp, heapBase, 0x0, __heap_size, MEMOP_FREE, 0x0);
 
 	// Close some handles
 	__destroy_handle_list();
@@ -50,13 +52,15 @@ void __attribute__((noreturn)) __ctru_exit(int rc)
 
 void initSystem(void (*retAddr)(void))
 {
+	u32 tmp=0;
+
 	// Register newlib exit() syscall
 	__syscalls.exit = __ctru_exit;
 	__system_retAddr = __service_ptr ? retAddr : NULL;
 
 	// Allocate the application heap
 	heapBase = 0x08000000;
-	svcControlMemory(&heapBase, heapBase, 0x0, __heap_size, MEMOP_ALLOC, 0x3);
+	svcControlMemory(&tmp, heapBase, 0x0, __heap_size, MEMOP_ALLOC, 0x3);
 
 	// Allocate the linear heap
 	svcControlMemory(&__linear_heap, 0x0, 0x0, __linear_heap_size, MEMOP_ALLOC_LINEAR, 0x3);

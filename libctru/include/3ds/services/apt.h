@@ -17,7 +17,9 @@ typedef enum{
 	APP_EXITING,
 	APP_SUSPENDING,
 	APP_SLEEPMODE,
-	APP_PREPARE_SLEEPMODE
+	APP_PREPARE_SLEEPMODE,
+	APP_APPLETSTARTED,
+	APP_APPLETCLOSED
 }APP_STATUS;
 
 enum {
@@ -58,6 +60,7 @@ Result APT_Enable(Handle* handle, u32 a);
 Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid);
 Result APT_PrepareToJumpToHomeMenu(Handle* handle);
 Result APT_JumpToHomeMenu(Handle* handle, u32 a, u32 b, u32 c);
+Result APT_IsRegistered(Handle* handle, NS_APPID appID, u8* out);
 Result APT_InquireNotification(Handle* handle, u32 appID, u8* signalType);
 Result APT_NotifyToWait(Handle* handle, NS_APPID appID);
 Result APT_AppletUtility(Handle* handle, u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2);
@@ -76,4 +79,7 @@ Result APT_CheckNew3DS_System(Handle* handle, u8 *out);
 Result APT_CheckNew3DS(Handle* handle, u8 *out);
 Result APT_PrepareToDoAppJump(Handle* handle, u8 flags, u64 programID, u8 mediatype);
 Result APT_DoAppJump(Handle* handle, u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Ptr);
+Result APT_PrepareToStartLibraryApplet(Handle* handle, NS_APPID appID);
+Result APT_StartLibraryApplet(Handle* handle, NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
+Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);//This should be used for launching library applets, this uses the above APT_StartLibraryApplet/APT_PrepareToStartLibraryApplet funcs + apt*Session(). parambuf is used for APT params input, when the applet closes the output param block is copied here. This is not usable from the homebrew launcher. This is broken: when the applet does get launched at all, the applet process doesn't actually get terminated when the applet gets closed.
 

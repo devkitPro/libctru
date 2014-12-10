@@ -1,7 +1,11 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
+#include <limits.h>
 #include <sys/iosupport.h>
+#include <sys/param.h>
+
+#include <string.h>
 #include <3ds.h>
 
 /*! @internal
@@ -95,14 +99,63 @@ static FS_archive sdmcArchive =
 
 /*! @endcond */
 
+static char __cwd[PATH_MAX+1] = "/";
+static char __fixedpath[PATH_MAX+1];
+
+static const char *sdmc_fixpath(const char *path)
+{
+  // Move the path pointer to the start of the actual path
+  if (strchr (path, ':') != NULL)
+  {
+    path = strchr (path, ':') + 1;
+  }
+
+  if (strchr (path, ':') != NULL) return NULL;
+
+
+  if (path[0]=='/') return path;
+
+  strncpy(__fixedpath,__cwd,PATH_MAX);
+  strncat(__fixedpath,path,PATH_MAX);
+  __fixedpath[PATH_MAX] = 0;
+
+  return __fixedpath;
+
+}
+
+extern int __system_argc;
+extern char** __system_argv;
+
 /*! Initialize SDMC device */
 Result sdmcInit(void)
 {
   Result rc;
 
+
   rc = FSUSER_OpenArchive(NULL, &sdmcArchive);
+
+
   if(rc == 0)
-    AddDevice(&sdmc_devoptab);
+  {
+
+    int dev = AddDevice(&sdmc_devoptab);
+
+    if (dev != -1) {
+      setDefaultDevice(dev);
+      if (__system_argc != 0 && __system_argv[0] != NULL)
+      {
+        if (FindDevice(__system_argv[0]) == dev)
+        {
+          strncpy(__fixedpath,__system_argv[0],PATH_MAX);
+          char *last_slash = strrchr(__fixedpath,'/');
+          if (last_slash != NULL) {
+            last_slash[0] = 0;
+            chdir(__fixedpath);
+          }
+        }
+      }
+    }
+  }
 
   return rc;
 }
@@ -141,10 +194,15 @@ sdmc_open(struct _reent *r,
   Result      rc;
   u32         sdmc_flags = 0;
   u32         attributes = FS_ATTRIBUTE_NONE;
-  char        *pathptr = NULL;
+  const char  *pathptr = NULL;
 
-  pathptr = strchr(path, '/');
-  if(pathptr==NULL)pathptr = (char*)path;
+  pathptr = sdmc_fixpath(path);
+
+  if(pathptr==NULL)
+  {
+    r->_errno=EINVAL;
+    return -1;
+  }
 
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fileStruct;
@@ -483,8 +541,32 @@ static int
 sdmc_chdir(struct _reent *r,
            const char    *name)
 {
-  r->_errno = ENOSYS;
-  return -1;
+  Handle fd;
+  Result rc;
+  const char     *pathptr = NULL;
+
+  pathptr = sdmc_fixpath(name);
+
+  if(pathptr==NULL)
+  {
+    r->_errno=EINVAL;
+    return -1;
+  }
+
+  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr));
+  if(rc == 0)
+  {
+    FSDIR_Close(fd);
+    strncpy(__cwd,pathptr,PATH_MAX);
+  }
+  else
+  {
+    r->_errno=EINVAL;
+    return -1;
+  }
+
+  return 0;
+
 }
 
 /*! Rename a file
@@ -520,10 +602,15 @@ sdmc_mkdir(struct _reent *r,
            int           mode)
 {
   Result rc;
-  char        *pathptr = NULL;
+  const char *pathptr = NULL;
 
-  pathptr = strchr(path, '/');
-  if(pathptr==NULL)pathptr = (char*)path;
+  pathptr = sdmc_fixpath(path);
+
+  if(pathptr==NULL)
+  {
+    r->_errno=EINVAL;
+    return -1;
+  }
 
   /* TODO: Use mode to set directory attributes. */
 
@@ -551,10 +638,15 @@ sdmc_diropen(struct _reent *r,
 {
   Handle         fd;
   Result         rc;
-  char        *pathptr = NULL;
+  const char     *pathptr = NULL;
 
-  pathptr = strchr(path, '/');
-  if(pathptr==NULL)pathptr = (char*)path;
+  pathptr = sdmc_fixpath(path);
+
+  if(pathptr==NULL)
+  {
+    r->_errno=EINVAL;
+    return NULL;
+  }
 
   /* get pointer to our data */
   sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
@@ -684,7 +776,7 @@ sdmc_statvfs(struct _reent  *r,
 {
   Result rc;
   u32    clusterSize, numClusters, freeClusters;
-  u32    writable = 0;
+  u8    writable = 0;
 
   rc = FSUSER_GetSdmcArchiveResource(NULL,
                                      NULL,
@@ -786,7 +878,7 @@ sdmc_fsync(struct _reent *r,
  *  @returns 0 for success
  *  @returns -1 for error
  */
-static int 
+static int
 sdmc_chmod(struct _reent *r,
           const char    *path,
           mode_t        mode)

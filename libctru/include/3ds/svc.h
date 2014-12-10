@@ -2,8 +2,7 @@
   svc.h _ Syscall wrappers.
 */
 
-#ifndef SVC_H
-#define SVC_H
+#pragma once
 
 typedef enum {
 	MEMOP_FREE =1, // Free heap
@@ -42,8 +41,17 @@ typedef enum {
 	ARBITER_KERNEL4        =4,
 } ArbitrationType;
 
+static inline void* getThreadLocalStorage(void)
+{
+	void* ret;
+	asm volatile("mrc p15, 0, %[data], c13, c0, 3" : [data] "=r" (ret));
+	return ret;
+}
 
-u32* getThreadCommandBuffer(void);
+static inline u32* getThreadCommandBuffer(void)
+{
+	return (u32*)((u8*)getThreadLocalStorage() + 0x80);
+}
 
 s32  svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op, MemPerm perm);
 s32  svcQueryMemory(MemInfo* info, PageInfo* out, u32 addr);
@@ -51,8 +59,11 @@ void __attribute__((noreturn)) svcExitProcess();
 s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_top, s32 thread_priority, s32 processor_id);
 void __attribute__((noreturn)) svcExitThread();
 void svcSleepThread(s64 ns);
+s32  svcSetThreadPriority(Handle thread, s32 prio);
 s32  svcCreateMutex(Handle* mutex, bool initially_locked);
 s32  svcReleaseMutex(Handle handle);
+s32  svcCreateSemaphore(Handle* semaphore, s32 initial_count, s32 max_count);
+s32  svcReleaseSemaphore(s32* count, Handle semaphore, s32 release_count);
 s32  svcCreateEvent(Handle* event, u8 reset_type);
 s32  svcSignalEvent(Handle handle);
 s32  svcClearEvent(Handle handle);
@@ -75,6 +86,5 @@ s32  svcGetProcessInfo(s64* out, Handle process, u32 type);
 s32  svcConnectToPort(volatile Handle* out, const char* portName);
 s32  svcSendSyncRequest(Handle session);
 s32  svcGetProcessId(u32 *out, Handle handle);
+s32  svcGetThreadId(u32 *out, Handle handle);
 s32  svcOutputDebugString(const char* str, int length);
-
-#endif

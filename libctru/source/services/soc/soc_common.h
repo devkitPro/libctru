@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string.h>
 #include <3ds.h>
 
 extern Handle	SOCU_handle;

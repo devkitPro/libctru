@@ -1,5 +1,6 @@
 #pragma once
 #include <3ds/types.h>
+#include <3ds/services/gsp.h>
 
 typedef enum
 {
@@ -20,6 +21,8 @@ void gfxExit();
 
 //control stuff
 void gfxSet3D(bool enable);
+void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format);
+void gfxSetDoubleBuffering(bool doubleBuffering);
 void gfxFlushBuffers();
 void gfxSwapBuffers();
 void gfxSwapBuffersGpu();

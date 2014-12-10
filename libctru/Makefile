@@ -9,7 +9,7 @@ endif
 include $(DEVKITARM)/base_rules
 
 export LIBCTRU_MAJOR	:= 0
-export LIBCTRU_MINOR	:= 1
+export LIBCTRU_MINOR	:= 2
 export LIBCTRU_PATCH	:= 0
 
 
@@ -104,6 +104,8 @@ dist-bin: all
 
 dist-src:
 	@tar -cjf libctru-src-$(VERSION).tar.bz2 include source Makefile Doxyfile Doxyfile.internal default_icon.png
+
+dist: dist-src dist-bin
 
 install: dist-bin
 	mkdir -p $(DEVKITPRO)/libctru

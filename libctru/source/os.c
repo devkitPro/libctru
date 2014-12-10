@@ -49,7 +49,7 @@ u64 osGetTime() {
 		break;
 	}
 
-	u64 offset = (svcGetSystemTick() - dt->update_tick) / TICKS_PER_MSEC;
+	u64 offset = (u32)((u32)(svcGetSystemTick() - dt->update_tick) / TICKS_PER_MSEC);
 	return dt->date_time + offset;
 }
 

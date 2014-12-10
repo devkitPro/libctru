@@ -1,5 +1,4 @@
 #pragma once
-#include <string.h>
 #include <3ds/types.h>
 
 /*! @file FS.h
@@ -128,24 +127,10 @@ typedef struct
   u64 fileSize;        //!< file size
 } FS_dirent;
 
-/*! Create an FS_path from a type and data pointer.
- *
- *  @param[in] type Path type.
- *  @param[in] path Pointer to path data.
- *
- *  @returns FS_path
- *
- *  @sa FS_pathType
- */
-static inline FS_path
-FS_makePath(FS_pathType type,
-            const char  *path)
-{
-	return (FS_path){type, strlen(path)+1, (const u8*)path};
-}
-
 Result fsInit(void);
 Result fsExit(void);
+
+FS_path FS_makePath(FS_pathType type, const char  *path);
 
 Result FSUSER_Initialize(Handle* handle);
 Result FSUSER_OpenArchive(Handle* handle, FS_archive* archive);
@@ -156,9 +141,11 @@ Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
 Result FSUSER_CreateDirectory(Handle* handle, FS_archive archive, FS_path dirLowPath);
 Result FSUSER_DeleteFile(Handle *handle, FS_archive archive, FS_path fileLowPath);
 Result FSUSER_DeleteDirectory(Handle *handle, FS_archive archive, FS_path dirLowPath);
+Result FSUSER_RenameFile(Handle *handle, FS_archive srcArchive, FS_path srcFileLowPath, FS_archive destArchive, FS_path destFileLowPath);
+Result FSUSER_RenameDirectory(Handle *handle, FS_archive srcArchive, FS_path srcDirLowPath, FS_archive destArchive, FS_path destDirLowPath);
 Result FSUSER_GetSdmcArchiveResource(Handle *handle, u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
-Result FSUSER_IsSdmcDetected(Handle *handle, u32 *detected);
-Result FSUSER_IsSdmcWritable(Handle *handle, u32 *writable);
+Result FSUSER_IsSdmcDetected(Handle *handle, u8 *detected);
+Result FSUSER_IsSdmcWritable(Handle *handle, u8 *writable);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, void *buffer, u32 size);

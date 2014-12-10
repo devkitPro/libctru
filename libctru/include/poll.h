@@ -2,17 +2,12 @@
 
 #include <3ds/types.h>
 
-/* only POLLIN confirmed to work so far */
-#define POLLIN		0x001
-#define POLLPRI		0x002
-#define POLLOUT		0x004
-#define POLLERR		0x008
-#define POLLHUP		0x010
-#define POLLNVAL	0x020
-#define POLLRDNORM	0x040
-#define POLLRDBAND	0x080
-#define POLLWRNORM	0x100
-#define POLLWRBAND	0x200
+#define POLLIN		0x01
+#define POLLPRI		0x02
+#define POLLHUP		0x04 // unknown ???
+#define POLLERR		0x08 // probably
+#define POLLOUT		0x10
+#define POLLNVAL	0x20
 
 typedef u32 nfds_t;
 
