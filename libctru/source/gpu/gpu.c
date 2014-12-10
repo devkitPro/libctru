@@ -96,6 +96,7 @@ void GPUCMD_Finalize()
 	GPUCMD_AddSingleParam(0x000F0111, 0x00000001);
 	GPUCMD_AddSingleParam(0x000F0110, 0x00000001);
 	GPUCMD_AddSingleParam(0x000F0010, 0x12345678);
+	GPUCMD_AddSingleParam(0x000F0010, 0x12345678); //not the cleanest way of guaranteeing 0x10-byte size but whatever good enough for now
 }
 
 extern u32 gpuResetSequence[];

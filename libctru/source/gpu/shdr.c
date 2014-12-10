@@ -71,18 +71,6 @@ s8 SHDR_GetUniformRegister(DVLB_s* dvlb, char* name, u8 programID)
 	return -1;
 }
 
-//hm
-static inline u8 minu8(u8 a, u8 b)
-{
-	if(a<b)return a;
-	return b;
-}
-static inline u8 maxu8(u8 a, u8 b)
-{
-	if(a<b)return b;
-	return a;
-}
-
 void DVLP_SendCode(DVLP_s* dvlp)
 {
 	if(!dvlp)return;
@@ -90,8 +78,7 @@ void DVLP_SendCode(DVLP_s* dvlp)
 	GPUCMD_AddSingleParam(0x000F02CB, 0x00000000);
 
 	int i;
-	// for(i=0;i<dvlp->codeSize;i+=0x80)GPUCMD_Add(0x000F02CC, &dvlp->codeData[i], ((dvlp->codeSize-i)<0x80)?(dvlp->codeSize-i):0x80);
-	for(i=0;i<dvlp->codeSize;i+=0x80)GPUCMD_Add(0x000F02CC, &dvlp->codeData[i], maxu8(minu8(dvlp->codeSize-i,0x80),0x37)); //not sure why, but anything smaller than 0x37 seems to break stuff atm...
+	for(i=0;i<dvlp->codeSize;i+=0x80)GPUCMD_Add(0x000F02CC, &dvlp->codeData[i], ((dvlp->codeSize-i)<0x80)?(dvlp->codeSize-i):0x80);
 
 	GPUCMD_AddSingleParam(0x000F02BF, 0x00000001);
 }

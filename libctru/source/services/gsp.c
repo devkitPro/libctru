@@ -10,6 +10,7 @@
 
 Handle gspGpuHandle=0;
 Handle gspEvents[GSPEVENT_MAX];
+u32 gspEventCounts[GSPEVENT_MAX];
 u64 gspEventStack[GSP_EVENT_STACK_SIZE/sizeof(u64)]; //u64 so that it's 8-byte aligned
 volatile bool gspRunEvents;
 Handle gspEventThread;
@@ -97,6 +98,7 @@ void gspEventThreadMain(u32 arg)
 			if (cur >= 0x34) cur -= 0x34;
 			if (curEvt >= GSPEVENT_MAX) continue;
 			svcSignalEvent(gspEvents[curEvt]);
+			gspEventCounts[curEvt]++;
 		}
 
 		gspEventData[0] = last;
