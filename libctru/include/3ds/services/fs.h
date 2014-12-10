@@ -138,6 +138,7 @@ Result FSUSER_OpenDirectory(Handle* handle, Handle* out, FS_archive archive, FS_
 Result FSUSER_OpenFile(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
 Result FSUSER_OpenFileDirectly(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
 Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
+Result FSUSER_CreateFile(Handle* handle, FS_archive archive, FS_path fileLowPath, u32 fileSize);
 Result FSUSER_CreateDirectory(Handle* handle, FS_archive archive, FS_path dirLowPath);
 Result FSUSER_DeleteFile(Handle *handle, FS_archive archive, FS_path fileLowPath);
 Result FSUSER_DeleteDirectory(Handle *handle, FS_archive archive, FS_path dirLowPath);
