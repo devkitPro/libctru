@@ -1000,7 +1000,7 @@ FSFILE_Read(Handle handle,
 /*! Write data to an open file
  *
  *  @param[in]  handle       Open file handle
- *  @param[out] bytesWritten Number of bytes read
+ *  @param[out] bytesWritten Number of bytes written
  *  @param[in]  offset       File offset to write to
  *  @param[in]  buffer       Buffer to write from
  *  @param[in]  size         Number of bytes to write
