@@ -449,11 +449,68 @@ FSUSER_DeleteDirectoryRecursively(void)
 	return -1;
 }
 
-/* stub */
+/*! Create a File
+ *
+ *  @param[in] handle      fs:USER handle
+ *  @param[in] archive     Open archive
+ *  @param[in] fileLowPath File path
+ *  @param[in] fileSize    Size of new file in bytes
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08060142]
+ *  1          | 0
+ *  2          | archive.handleLow
+ *  3          | archive.handleHigh
+ *  4          | fileLowPath.type
+ *  5          | fileLowPath.size
+ *  6          | 0
+ *  7          | fileSize
+ *  8          | 0
+ *  9          | (fileLowPath.size << 14) \| 0x2
+ *  10         | fileLowPath.data
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ */
 Result
-FSUSER_CreateFile(void)
+FSUSER_CreateFile(Handle*    handle, 
+                  FS_archive archive, 
+                  FS_path    fileLowPath, 
+                  u32        fileSize)
 {
-	return -1;
+    if(!handle)
+        handle = &fsuHandle;
+
+    u32 *cmdbuf = getThreadCommandBuffer();
+
+    cmdbuf[0]  = 0x08080202;
+    cmdbuf[1]  = 0;
+    cmdbuf[2]  = archive.handleLow;
+    cmdbuf[3]  = archive.handleHigh;
+    cmdbuf[4]  = fileLowPath.type;
+    cmdbuf[5]  = fileLowPath.size;
+    cmdbuf[6]  = 0;
+    cmdbuf[7]  = fileSize;
+    cmdbuf[8]  = 0;
+    cmdbuf[9]  = (fileLowPath.size << 14) | 0x2;
+    cmdbuf[10] = (u32)fileLowPath.data;
+
+    Result ret = 0;
+    if((ret = svcSendSyncRequest(*handle)))
+        return ret;
+
+    return cmdbuf[1];
 }
 
 /*! Create a directory
