@@ -123,10 +123,11 @@ PrintConsole* consoleGetDefault(void);
 PrintConsole *consoleSelect(PrintConsole* console);
 
 /*!	\brief Initialise the console.
+	\param screen The screen to use for the console
 	\param console A pointer to the console data to initialze (if it's NULL, the default console will be used)
 	\return A pointer to the current console.
 */
-PrintConsole* consoleInit(PrintConsole* console);
+PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console);
 
 //! Clears the screan by using iprintf("\x1b[2J");
 void consoleClear(void);

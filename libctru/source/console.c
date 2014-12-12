@@ -342,7 +342,7 @@ static const devoptab_t dotab_null = {
 };
 
 //---------------------------------------------------------------------------------
-PrintConsole* consoleInit(PrintConsole* console) {
+PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console) {
 //---------------------------------------------------------------------------------
 
 	static bool firstConsoleInit = true;
@@ -367,9 +367,14 @@ PrintConsole* consoleInit(PrintConsole* console) {
 
 	console->consoleInitialised = 1;
 
-	gfxSetScreenFormat(GFX_BOTTOM,GSP_RGB565_OES);
-	gfxSetDoubleBuffering(GFX_BOTTOM,false);
-	console->frameBuffer = (u16*)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+	gfxSetScreenFormat(screen,GSP_RGB565_OES);
+	gfxSetDoubleBuffering(screen,false);
+	console->frameBuffer = (u16*)gfxGetFramebuffer(screen, GFX_LEFT, NULL, NULL);
+
+	if(screen==GFX_TOP) {
+		console->consoleWidth = 50;
+		console->windowWidth = 50;
+	}
 
 
 	consoleCls('2');
