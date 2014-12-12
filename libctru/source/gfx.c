@@ -81,7 +81,7 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	u8* framebufferInfoHeader=gfxSharedMemory+0x200+gfxThreadID*0x80;
 	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x40;
 	GSP_FramebufferInfo* framebufferInfo=(GSP_FramebufferInfo*)&framebufferInfoHeader[0x4];
-	framebufferInfoHeader[0x0]^=doubleBuf[0x0];
+	framebufferInfoHeader[0x0]^=doubleBuf[screen];
 	framebufferInfo[framebufferInfoHeader[0x0]]=(screen==GFX_TOP)?(topFramebufferInfo):(bottomFramebufferInfo);
 	framebufferInfoHeader[0x1]=1;
 }

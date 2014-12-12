@@ -16,10 +16,11 @@ typedef enum {
 } MemOp;
 
 typedef enum {
-	MEMPERM_READ   =1,
-	MEMPERM_WRITE  =2,
-	MEMPERM_EXECUTE=4,
-	MEMPERM_MAX    =0xFFFFFFFF //force 4-byte
+	MEMPERM_READ     = 1,
+	MEMPERM_WRITE    = 2,
+	MEMPERM_EXECUTE  = 4,
+	MEMPERM_DONTCARE = 0x10000000,
+	MEMPERM_MAX      = 0xFFFFFFFF //force 4-byte
 } MemPerm;
 
 typedef struct {

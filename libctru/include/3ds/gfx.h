@@ -2,6 +2,8 @@
 #include <3ds/types.h>
 #include <3ds/services/gsp.h>
 
+#define RGB565(r,g,b)  (((b)&0x1f)|(((g)&0x3f)<<5)|(((r)&0x1f)<<11))
+
 typedef enum
 {
 	GFX_TOP = 0,
