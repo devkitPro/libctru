@@ -102,4 +102,6 @@ Result HIDUSER_EnableAccelerometer();
 Result HIDUSER_DisableAccelerometer();
 Result HIDUSER_EnableGyroscope();
 Result HIDUSER_DisableGyroscope();
+Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff);
+Result HIDUSER_GetSoundVolume(u8 *volume); //Return the volume slider value (0-63)
 
