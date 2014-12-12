@@ -413,7 +413,7 @@ static void newRow() {
 		for (i=0; i<currentConsole->windowWidth*8; i++) {
 			u32 *from = (u32*)((int)src & ~3);
 			u32 *to = (u32*)((int)dst & ~3);
-			for (j=0; j<((currentConsole->windowHeight*8)/2);j++) *(to--) = *(from--);
+			for (j=0;j<(((currentConsole->windowHeight-1)*8)/2);j++) *(to--) = *(from--);
 			dst += 240;
 			src += 240;
 		}
