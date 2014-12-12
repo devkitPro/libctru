@@ -203,8 +203,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 			do {
 				chr = *(tmp++);
 				i++; count++; escapelen++;
-				int parameter, consumed, assigned;
-				bool scanning;
+				int parameter, assigned, consumed;
 
 				switch (chr) {
 					//---------------------------------------
@@ -274,12 +273,22 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 					//---------------------------------------
 					case 'm':
 						escapeseq++;
-						scanning = true;
+						escapelen--;
 
-// do while doesn't work at -O2
-//						do {
-							sscanf(escapeseq,"%d;%n", &parameter, &consumed);
+						if (escapelen == 1) {
+							escaping = false;
+							break;
+						}
+
+						do {
+							if (strchr(escapeseq,';')) {
+								sscanf(escapeseq,"%d;%n", &parameter, &consumed);
+							} else {
+								sscanf(escapeseq,"%dm%n", &parameter, &consumed);
+							}
+
 							escapeseq += consumed;
+							escapelen -= consumed;
 
 							if (parameter == 0 ) {
 								currentConsole->flags |= CONSOLE_COLOR_BRIGHT;
@@ -295,8 +304,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							} else if (parameter >= 40 && parameter <= 47) { // screen color
 								currentConsole->bg = parameter - 40;
 							}
-							if(escapeseq >= tmp) scanning = false;
-//						} while(scanning);
+						} while (escapelen > 0);
 
 						escaping = false;
 						break;
