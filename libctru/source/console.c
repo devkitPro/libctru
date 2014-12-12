@@ -10,7 +10,7 @@
 static u16 colorTable[] = {
 	RGB565( 0, 0, 0),	// normal black
 	RGB565(17, 0, 0),	// normal red
-	RGB565( 0,15, 0),	// normal green
+	RGB565( 0,34, 0),	// normal green
 	RGB565(17,34, 0),	// normal yellow
 	RGB565( 0, 0,17),	// normal blue
 	RGB565(17, 0,17),	// normal magenta
