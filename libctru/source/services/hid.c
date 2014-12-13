@@ -245,3 +245,28 @@ Result HIDUSER_DisableGyroscope()
 	return cmdbuf[1];
 }
 
+Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x150000; //request header code
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+
+	*coeff = (float)cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+Result HIDUSER_GetSoundVolume(u8 *volume)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x170000; //request header code
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+
+	*volume = (u8)cmdbuf[2];
+
+	return cmdbuf[1];
+}
