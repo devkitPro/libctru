@@ -296,7 +296,10 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 						}
 
 						do {
-							if (strchr(escapeseq,';')) {
+							parameter = 0;
+							if (escapelen == 1) {
+								consumed = 1;
+							} else if (strchr(escapeseq,';')) {
 								sscanf(escapeseq,"%d;%n", &parameter, &consumed);
 							} else {
 								sscanf(escapeseq,"%dm%n", &parameter, &consumed);
@@ -345,6 +348,11 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							}
 						} while (escapelen > 0);
 
+						escaping = false;
+						break;
+
+					default:
+						// some sort of unsupported escape; just gloss over it
 						escaping = false;
 						break;
 				}
