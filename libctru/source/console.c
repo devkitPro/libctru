@@ -207,13 +207,18 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 
 		if ( chr == 0x1b && *tmp == '[' ) {
 			bool escaping = true;
-			char *escapeseq	= tmp;
-			int escapelen = 0;
+			char *escapeseq	= tmp++;
+			int escapelen = 1;
+			i++; count++;
 
 			do {
 				chr = *(tmp++);
 				i++; count++; escapelen++;
 				int parameter, assigned, consumed;
+
+				// make sure parameters are positive values and delimited by semicolon
+				if((chr >= '0' && chr <= '9') || chr == ';')
+					continue;
 
 				switch (chr) {
 					//---------------------------------------
