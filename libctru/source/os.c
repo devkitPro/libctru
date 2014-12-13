@@ -1,4 +1,7 @@
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/os.h>
+#include <3ds/svc.h>
+
 
 #define TICKS_PER_MSEC 268123.480
 

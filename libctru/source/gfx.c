@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/gfx.h>
+#include <3ds/svc.h>
+#include <3ds/linear.h>
 
 GSP_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
 

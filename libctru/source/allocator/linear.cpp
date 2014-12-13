@@ -1,4 +1,4 @@
-#include <3ds.h>
+#include <3ds/types.h>
 #include <3ds/util/rbtree.h>
 
 #include "mem_pool.h"

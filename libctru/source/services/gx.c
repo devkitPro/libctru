@@ -3,7 +3,11 @@
 */
 
 #include <stdlib.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/gpu/gx.h>
+#include <3ds/services/gsp.h>
 
 u32* gxCmdBuf;
 

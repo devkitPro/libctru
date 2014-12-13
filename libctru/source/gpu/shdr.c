@@ -4,8 +4,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <3ds.h>
-
+#include <3ds/types.h>
+#include <3ds/gpu/gpu.h>
+#include <3ds/gpu/shdr.h>
 
 //please don't feed this an invalid SHBIN
 DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)

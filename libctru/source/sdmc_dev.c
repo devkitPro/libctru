@@ -6,7 +6,11 @@
 #include <sys/param.h>
 
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/sdmc.h>
+#include <3ds/services/fs.h>
+
+
 
 /*! @internal
  *

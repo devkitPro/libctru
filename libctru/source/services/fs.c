@@ -1,5 +1,8 @@
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/services/fs.h>
 
 /*! @internal
  *
