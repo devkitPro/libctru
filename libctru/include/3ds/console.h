@@ -102,6 +102,13 @@ typedef struct PrintConsole
 #define CONSOLE_CONCEAL		(1<<7)
 #define CONSOLE_CROSSED_OUT	(1<<8)
 
+//! Console debug devices supported by libnds.
+typedef enum {
+	debugDevice_NULL,	//!< swallows prints to stderr
+	debugDevice_3DMOO,	//!< Directs stderr debug statements to 3dmoo
+	debugDevice_CONSOLE,	//!< Directs stderr debug statements to 3DS console window
+} debugDevice;
+
 /*!	\brief Loads the font into the console
 	\param console pointer to the console to update, if NULL it will update the current console
 	\param font the font to load
@@ -135,6 +142,12 @@ PrintConsole *consoleSelect(PrintConsole* console);
 	\return A pointer to the current console.
 */
 PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console);
+
+/*!	\brief Initializes debug console output on stderr to the specified device
+	\param device The debug device (or devices) to output debug print statements to
+*/
+void consoleDebugInit(debugDevice device);
+
 
 //! Clears the screan by using iprintf("\x1b[2J");
 void consoleClear(void);

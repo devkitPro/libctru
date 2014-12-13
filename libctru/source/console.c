@@ -3,6 +3,7 @@
 #include <sys/iosupport.h>
 #include <3ds/gfx.h>
 #include <3ds/console.h>
+#include <3ds/svc.h>
 
 #include "default_font_bin.h"
 
@@ -467,6 +468,25 @@ static const devoptab_t dotab_stdout = {
 	NULL
 };
 
+//---------------------------------------------------------------------------------
+ssize_t debug_write(struct _reent *r, int fd, const char *ptr, size_t len) {
+//---------------------------------------------------------------------------------
+	svcOutputDebugString(ptr,len);
+	return len;
+}
+
+static const devoptab_t dotab_3dmoo = {
+	"3dmoo",
+	0,
+	NULL,
+	NULL,
+	debug_write,
+	NULL,
+	NULL,
+	NULL
+};
+
+
 static const devoptab_t dotab_null = {
 	"null",
 	0,
@@ -519,6 +539,30 @@ PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console) {
 	return currentConsole;
 
 }
+
+//---------------------------------------------------------------------------------
+void consoleDebugInit(debugDevice device){
+//---------------------------------------------------------------------------------
+
+	int buffertype = _IONBF;
+
+	switch(device) {
+
+	case debugDevice_3DMOO:
+		devoptab_list[STD_ERR] = &dotab_3dmoo;
+		buffertype = _IOLBF;
+		break;
+	case debugDevice_CONSOLE:
+		devoptab_list[STD_ERR] = &dotab_stdout;
+		break;
+	case debugDevice_NULL:
+		devoptab_list[STD_ERR] = &dotab_null;
+		break;
+	}
+	setvbuf(stderr, NULL , buffertype, 0);
+
+}
+
 //---------------------------------------------------------------------------------
 PrintConsole *consoleSelect(PrintConsole* console){
 //---------------------------------------------------------------------------------
