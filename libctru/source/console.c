@@ -45,19 +45,19 @@ PrintConsole defaultConsole =
 		128 //number of characters in the font set
 	},
 	(u16*)NULL,
-	0,0, 	//cursorX cursorY
+	0,0,	//cursorX cursorY
 	0,0,	//prevcursorX prevcursorY
-	40, 	//console width
-	30, 	//console height
-	0,  	//window x
-	0,  	//window y
-	40, 	//window width
-	30, 	//window height
+	40,		//console width
+	30		//console height
+	0,		//window x
+	0,		//window y
+	40,		//window width
+	30,		//window height
 	3,		//tab size
 	7,		// foreground color
 	0,		// background color
 	0,		// flags
-	0, 		//print callback
+	0,		//print callback
 	false	//console initialized
 };
 
