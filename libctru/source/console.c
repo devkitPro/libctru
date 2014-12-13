@@ -326,8 +326,64 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 								currentConsole->flags |= CONSOLE_COLOR_FAINT;
 								break;
 
-							case 7: // reverse video
-								currentConsole->flags |= CONSOLE_COLOR_REVERSE;
+							case 3: // italic
+								currentConsole->flags |= CONSOLE_ITALIC;
+								break;
+
+							case 4: // underline
+								currentConsole->flags |= CONSOLE_UNDERLINE;
+								break;
+
+							case 5: // blink slow
+								currentConsole->flags &= ~CONSOLE_BLINK_FAST;
+								currentConsole->flags |= CONSOLE_BLINK_SLOW;
+								break;
+
+							case 6: // blink fast
+								currentConsole->flags &= ~CONSOLE_BLINK_SLOW;
+								currentConsole->flags |= CONSOLE_BLINK_FAST;
+								break;
+
+ 							case 7: // reverse video
+ 								currentConsole->flags |= CONSOLE_COLOR_REVERSE;
+ 								break;
+ 
+							case 8: // conceal
+								currentConsole->flags |= CONSOLE_CONCEAL;
+								break;
+
+							case 9: // crossed-out
+								currentConsole->flags |= CONSOLE_CROSSED_OUT;
+								break;
+
+							case 21: // bold off
+								currentConsole->flags &= ~CONSOLE_COLOR_BOLD;
+								break;
+
+							case 22: // normal color
+								currentConsole->flags &= ~CONSOLE_COLOR_BOLD;
+								currentConsole->flags &= ~CONSOLE_COLOR_FAINT;
+								break;
+
+							case 23: // italic off
+								currentConsole->flags &= ~CONSOLE_ITALIC;
+								break;
+
+							case 24: // underline off
+								currentConsole->flags &= ~CONSOLE_UNDERLINE;
+								break;
+
+							case 25: // blink off
+								currentConsole->flags &= ~CONSOLE_BLINK_SLOW;
+								currentConsole->flags &= ~CONSOLE_BLINK_FAST;
+								break;
+
+							case 27: // reverse off
+								currentConsole->flags &= ~CONSOLE_COLOR_REVERSE;
+								break;
+
+							case 29: // crossed-out off
+								currentConsole->flags &= ~CONSOLE_CROSSED_OUT;
 								break;
 
 							case 30 ... 37: // writing color

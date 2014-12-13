@@ -94,7 +94,13 @@ typedef struct PrintConsole
 
 #define CONSOLE_COLOR_BOLD	(1<<0)
 #define CONSOLE_COLOR_FAINT	(1<<1)
-#define CONSOLE_COLOR_REVERSE	(1<<2)
+#define CONSOLE_ITALIC		(1<<2)
+#define CONSOLE_UNDERLINE	(1<<3)
+#define CONSOLE_BLINK_SLOW	(1<<4)
+#define CONSOLE_BLINK_FAST	(1<<5)
+#define CONSOLE_COLOR_REVERSE	(1<<6)
+#define CONSOLE_CONCEAL		(1<<7)
+#define CONSOLE_CROSSED_OUT	(1<<8)
 
 /*!	\brief Loads the font into the console
 	\param console pointer to the console to update, if NULL it will update the current console
