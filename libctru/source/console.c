@@ -300,22 +300,43 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							escapeseq += consumed;
 							escapelen -= consumed;
 
-							if (parameter == 0 ) { //reset
+							switch (parameter) {
+
+							case 0: // reset
 								currentConsole->flags = 0;
 								currentConsole->bg    = 0;
 								currentConsole->fg    = 7;
-							} else if (parameter == 7) { // reverse video
-								currentConsole->flags |= CONSOLE_COLOR_REVERSE;
-							} else if (parameter == 1) { // bright
-								currentConsole->flags |= CONSOLE_COLOR_BOLD;
+								break;
+
+							case 1: // bold
 								currentConsole->flags &= ~CONSOLE_COLOR_FAINT;
-							} else if (parameter == 2) { // half bright
+								currentConsole->flags |= CONSOLE_COLOR_BOLD;
+								break;
+
+							case 2: // faint
 								currentConsole->flags &= ~CONSOLE_COLOR_BOLD;
 								currentConsole->flags |= CONSOLE_COLOR_FAINT;
-							} else if (parameter >= 30 && parameter <= 37) { // writing color
+								break;
+
+							case 7: // reverse video
+								currentConsole->flags |= CONSOLE_COLOR_REVERSE;
+								break;
+
+							case 30 ... 37: // writing color
 								currentConsole->fg = parameter - 30;
-							} else if (parameter >= 40 && parameter <= 47) { // screen color
+								break;
+
+							case 39: // reset foreground color
+								currentConsole->fg = 7;
+								break;
+
+							case 40 ... 47: // screen color
 								currentConsole->bg = parameter - 40;
+								break;
+
+							case 49: // reset background color
+								currentConsole->fg = 0;
+								break;
 							}
 						} while (escapelen > 0);
 
