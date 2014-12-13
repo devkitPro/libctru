@@ -96,7 +96,6 @@ void gfxInit()
 	gfxSharedMemory=(u8*)0x10002000;
 
 	GSPGPU_AcquireRight(NULL, 0x0);
-	GSPGPU_SetLcdForceBlack(NULL, 0x0);
 
 	//setup our gsp shared mem section
 	svcCreateEvent(&gspEvent, 0x0);
@@ -133,6 +132,8 @@ void gfxInit()
 	// Initialize event handler and wait for VBlank
 	gspInitEventHandler(gspEvent, (vu8*)gfxSharedMemory, gfxThreadID);
 	gspWaitForVBlank();
+
+	GSPGPU_SetLcdForceBlack(NULL, 0x0);
 }
 
 void gfxExit()
