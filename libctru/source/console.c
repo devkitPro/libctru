@@ -48,7 +48,7 @@ PrintConsole defaultConsole =
 	0,0,	//cursorX cursorY
 	0,0,	//prevcursorX prevcursorY
 	40,		//console width
-	30		//console height
+	30,		//console height
 	0,		//window x
 	0,		//window y
 	40,		//window width
