@@ -171,18 +171,6 @@ static void consoleClearLine(char mode) {
 
 			break;
 		}
-	default:
-		{
-			colTemp = currentConsole->cursorX ;
-
-			while(i++ < (currentConsole->windowWidth - colTemp)) {
-				consolePrintChar(' ');
-			}
-
-			currentConsole->cursorX  = colTemp;
-
-			break;
-		}
 	}
 }
 
