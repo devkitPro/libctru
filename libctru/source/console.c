@@ -225,24 +225,35 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 					// Cursor directional movement
 					//---------------------------------------
 					case 'A':
-						assigned = sscanf(escapeseq,"[%dA", &parameter);
+						consumed = 0;
+						assigned = sscanf(escapeseq,"[%dA%n", &parameter, &consumed);
 						if (assigned==0) parameter = 1;
-						currentConsole->cursorY  =  (currentConsole->cursorY  - parameter) < 0 ? 0 : currentConsole->cursorY  - parameter;
+						if (consumed)
+							currentConsole->cursorY  =  (currentConsole->cursorY  - parameter) < 0 ? 0 : currentConsole->cursorY  - parameter;
 						escaping = false;
 						break;
 					case 'B':
-						sscanf(escapeseq,"[%dB", &parameter);
-						currentConsole->cursorY  =  (currentConsole->cursorY  + parameter) > currentConsole->windowHeight - 1 ? currentConsole->windowHeight - 1 : currentConsole->cursorY  + parameter;
+						consumed = 0;
+						assigned = sscanf(escapeseq,"[%dB%n", &parameter, &consumed);
+						if (assigned==0) parameter = 1;
+						if (consumed)
+							currentConsole->cursorY  =  (currentConsole->cursorY  + parameter) > currentConsole->windowHeight - 1 ? currentConsole->windowHeight - 1 : currentConsole->cursorY  + parameter;
 						escaping = false;
 						break;
 					case 'C':
-						sscanf(escapeseq,"[%dC", &parameter);
-						currentConsole->cursorX  =  (currentConsole->cursorX  + parameter) > currentConsole->windowWidth - 1 ? currentConsole->windowWidth - 1 : currentConsole->cursorX  + parameter;
+						consumed = 0;
+						assigned = sscanf(escapeseq,"[%dC%n", &parameter, &consumed);
+						if (assigned==0) parameter = 1;
+						if (consumed)
+							currentConsole->cursorX  =  (currentConsole->cursorX  + parameter) > currentConsole->windowWidth - 1 ? currentConsole->windowWidth - 1 : currentConsole->cursorX  + parameter;
 						escaping = false;
 						break;
 					case 'D':
-						sscanf(escapeseq,"[%dD", &parameter);
-						currentConsole->cursorX  =  (currentConsole->cursorX  - parameter) < 0 ? 0 : currentConsole->cursorX  - parameter;
+						consumed = 0;
+						assigned = sscanf(escapeseq,"[%dD%n", &parameter, &consumed);
+						if (assigned==0) parameter = 1;
+						if (consumed)
+							currentConsole->cursorX  =  (currentConsole->cursorX  - parameter) < 0 ? 0 : currentConsole->cursorX  - parameter;
 						escaping = false;
 						break;
 					//---------------------------------------
@@ -250,37 +261,78 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 					//---------------------------------------
 					case 'H':
 					case 'f':
-						sscanf(escapeseq,"[%d;%df", &currentConsole->cursorY , &currentConsole->cursorX );
+					{
+						int  x, y;
+						char c;
+						if(sscanf(escapeseq,"[%d;%d%c", &y, &x, &c) == 3 && (c == 'f' || c == 'H')) {
+							currentConsole->cursorX = x;
+							currentConsole->cursorY = y;
+							escaping = false;
+							break;
+						}
+
+						x = y = 1;
+						if(sscanf(escapeseq,"[%d;%c", &y, &c) == 2 && (c == 'f' || c == 'H')) {
+							currentConsole->cursorX = x;
+							currentConsole->cursorY = y;
+							escaping = false;
+							break;
+						}
+
+						x = y = 1;
+						if(sscanf(escapeseq,"[;%d%c", &x, &c) == 2 && (c == 'f' || c == 'H')) {
+							currentConsole->cursorX = x;
+							currentConsole->cursorY = y;
+							escaping = false;
+							break;
+						}
+
+						x = y = 1;
+						if(sscanf(escapeseq,"[;%c", &c) == 1 && (c == 'f' || c == 'H')) {
+							currentConsole->cursorX = x;
+							currentConsole->cursorY = y;
+							escaping = false;
+							break;
+						}
+
+						// invalid format
 						escaping = false;
 						break;
+					}
 					//---------------------------------------
 					// Screen clear
 					//---------------------------------------
 					case 'J':
-						consoleCls(escapeseq[escapelen-2]);
+						if(escapelen <= 3)
+							consoleCls(escapeseq[escapelen-2]);
 						escaping = false;
 						break;
 					//---------------------------------------
 					// Line clear
 					//---------------------------------------
 					case 'K':
-						consoleClearLine(escapeseq[escapelen-2]);
+						if(escapelen <= 3)
+							consoleClearLine(escapeseq[escapelen-2]);
 						escaping = false;
 						break;
 					//---------------------------------------
 					// Save cursor position
 					//---------------------------------------
 					case 's':
-						currentConsole->prevCursorX  = currentConsole->cursorX ;
-						currentConsole->prevCursorY  = currentConsole->cursorY ;
+						if(escapelen == 2) {
+							currentConsole->prevCursorX  = currentConsole->cursorX ;
+							currentConsole->prevCursorY  = currentConsole->cursorY ;
+						}
 						escaping = false;
 						break;
 					//---------------------------------------
 					// Load cursor position
 					//---------------------------------------
 					case 'u':
-						currentConsole->cursorX  = currentConsole->prevCursorX ;
-						currentConsole->cursorY  = currentConsole->prevCursorY ;
+						if(escapelen == 2) {
+							currentConsole->cursorX  = currentConsole->prevCursorX ;
+							currentConsole->cursorY  = currentConsole->prevCursorY ;
+						}
 						escaping = false;
 						break;
 					//---------------------------------------
@@ -289,11 +341,6 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 					case 'm':
 						escapeseq++;
 						escapelen--;
-
-						if (escapelen == 1) {
-							escaping = false;
-							break;
-						}
 
 						do {
 							parameter = 0;
@@ -308,8 +355,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							escapeseq += consumed;
 							escapelen -= consumed;
 
-							switch (parameter) {
-
+							switch(parameter) {
 							case 0: // reset
 								currentConsole->flags = 0;
 								currentConsole->bg    = 0;
@@ -344,10 +390,10 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 								currentConsole->flags |= CONSOLE_BLINK_FAST;
 								break;
 
- 							case 7: // reverse video
- 								currentConsole->flags |= CONSOLE_COLOR_REVERSE;
- 								break;
- 
+							case 7: // reverse video
+								currentConsole->flags |= CONSOLE_COLOR_REVERSE;
+								break;
+
 							case 8: // conceal
 								currentConsole->flags |= CONSOLE_CONCEAL;
 								break;
