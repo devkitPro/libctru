@@ -92,8 +92,9 @@ typedef struct PrintConsole
 	bool consoleInitialised;	/*!< True if the console is initialized */
 }PrintConsole;
 
-#define CONSOLE_COLOR_BRIGHT	(1<<0)
-#define CONSOLE_COLOR_REVERSE	(1<<1)
+#define CONSOLE_COLOR_BOLD	(1<<0)
+#define CONSOLE_COLOR_FAINT	(1<<1)
+#define CONSOLE_COLOR_REVERSE	(1<<2)
 
 /*!	\brief Loads the font into the console
 	\param console pointer to the console to update, if NULL it will update the current console

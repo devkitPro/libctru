@@ -8,22 +8,32 @@
 
 //set up the palette for color printing
 static u16 colorTable[] = {
-	RGB565( 0, 0, 0),	// normal black
-	RGB565(17, 0, 0),	// normal red
-	RGB565( 0,34, 0),	// normal green
-	RGB565(17,34, 0),	// normal yellow
-	RGB565( 0, 0,17),	// normal blue
-	RGB565(17, 0,17),	// normal magenta
-	RGB565( 0,34,17),	// normal cyan
-	RGB565(17,34,17),	// normal white
-	RGB565( 0, 0, 0),	// bright black
-	RGB565(25, 0, 0),	// bright red
-	RGB565( 0,52, 0),	// bright green
-	RGB565(25,52, 0),	// bright yellow
-	RGB565( 4,18,31),	// bright blue
-	RGB565(25, 0,25),	// bright magenta
-	RGB565( 0,52,25),	// bright cyan
-	RGB565(28,57,28)	// bright white
+	RGB8_to_565(  0,  0,  0),	// black
+	RGB8_to_565(128,  0,  0),	// red
+	RGB8_to_565(  0,128,  0),	// green
+	RGB8_to_565(128,128,  0),	// yellow
+	RGB8_to_565(  0,  0,128),	// blue
+	RGB8_to_565(128,  0,128),	// magenta
+	RGB8_to_565(  0,128,128),	// cyan
+	RGB8_to_565(192,192,192),	// white
+
+	RGB8_to_565(128,128,128),	// bright black
+	RGB8_to_565(255,  0,  0),	// bright red
+	RGB8_to_565(  0,255,  0),	// bright green
+	RGB8_to_565(255,255,  0),	// bright yellow
+	RGB8_to_565(  0,  0,255),	// bright blue
+	RGB8_to_565(255,  0,255),	// bright magenta
+	RGB8_to_565(  0,255,255),	// bright cyan
+	RGB8_to_565(255,255,255),	// bright white
+
+	RGB8_to_565(  0,  0,  0),	// faint black
+	RGB8_to_565( 64,  0,  0),	// faint red
+	RGB8_to_565(  0, 64,  0),	// faint green
+	RGB8_to_565( 64, 64,  0),	// faint yellow
+	RGB8_to_565(  0,  0, 64),	// faint blue
+	RGB8_to_565( 64,  0, 64),	// faint magenta
+	RGB8_to_565(  0, 64, 64),	// faint cyan
+	RGB8_to_565( 96, 96, 96),	// faint white
 };
 
 PrintConsole defaultConsole =
@@ -36,7 +46,7 @@ PrintConsole defaultConsole =
 	},
 	(u16*)NULL,
 	0,0, 	//cursorX cursorY
-	0,0,	 //prevcursorX prevcursorY
+	0,0,	//prevcursorX prevcursorY
 	40, 	//console width
 	30, 	//console height
 	0,  	//window x
@@ -46,7 +56,7 @@ PrintConsole defaultConsole =
 	3,		//tab size
 	7,		// foreground color
 	0,		// background color
-	CONSOLE_COLOR_BRIGHT,	// flags
+	0,		// flags
 	0, 		//print callback
 	false	//console initialized
 };
@@ -290,15 +300,18 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							escapeseq += consumed;
 							escapelen -= consumed;
 
-							if (parameter == 0 ) {
-								currentConsole->flags |= CONSOLE_COLOR_BRIGHT;
-								currentConsole->flags &= ~CONSOLE_COLOR_REVERSE;
-								currentConsole->bg = 0;
-								currentConsole->fg = 7;
+							if (parameter == 0 ) { //reset
+								currentConsole->flags = 0;
+								currentConsole->bg    = 0;
+								currentConsole->fg    = 7;
 							} else if (parameter == 7) { // reverse video
 								currentConsole->flags |= CONSOLE_COLOR_REVERSE;
+							} else if (parameter == 1) { // bright
+								currentConsole->flags |= CONSOLE_COLOR_BOLD;
+								currentConsole->flags &= ~CONSOLE_COLOR_FAINT;
 							} else if (parameter == 2) { // half bright
-								currentConsole->flags &= ~CONSOLE_COLOR_BRIGHT;
+								currentConsole->flags &= ~CONSOLE_COLOR_BOLD;
+								currentConsole->flags |= CONSOLE_COLOR_FAINT;
 							} else if (parameter >= 30 && parameter <= 37) { // writing color
 								currentConsole->fg = parameter - 30;
 							} else if (parameter >= 40 && parameter <= 47) { // screen color
@@ -437,9 +450,10 @@ void consoleDrawChar(int c) {
 	int writingColor = currentConsole->fg;
 	int screenColor = currentConsole->bg;
 
-	if (currentConsole->flags & CONSOLE_COLOR_BRIGHT) {
-		writingColor |= 8;
-		screenColor |=8;
+	if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
+		writingColor += 8;
+	} else if (currentConsole->flags & CONSOLE_COLOR_FAINT) {
+		writingColor += 16;
 	}
 
 	if (currentConsole->flags & CONSOLE_COLOR_REVERSE) {
