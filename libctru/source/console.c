@@ -598,6 +598,10 @@ void consoleDrawChar(int c) {
 	u8 b7 = *(fontdata++);
 	u8 b8 = *(fontdata++);
 
+	if (currentConsole->flags & CONSOLE_UNDERLINE) b8 = 0xff;
+
+	if (currentConsole->flags & CONSOLE_CROSSED_OUT) b4 = 0xff;
+
 	u8 mask = 0x80;
 
 
