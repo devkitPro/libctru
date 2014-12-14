@@ -1,30 +1,28 @@
 extern "C"
 {
 	#include <3ds/types.h>
-	#include <3ds/linear.h>
+	#include <3ds/vram.h>
 	#include <3ds/util/rbtree.h>
 }
 
 #include "mem_pool.h"
 #include "addrmap.h"
 
-extern u32 __linear_heap, __linear_heap_size;
+static MemPool sVramPool;
 
-static MemPool sLinearPool;
-
-static bool linearInit()
+static bool vramInit()
 {
-	auto blk = MemBlock::Create((u8*)__linear_heap, __linear_heap_size);
+	auto blk = MemBlock::Create((u8*)0x1F000000, 0x00600000);
 	if (blk)
 	{
-		sLinearPool.AddBlock(blk);
+		sVramPool.AddBlock(blk);
 		rbtree_init(&sAddrMap, addrMapNodeComparator);
 		return true;
 	}
 	return false;
 }
 
-void* linearMemAlign(size_t size, size_t alignment)
+void* vramMemAlign(size_t size, size_t alignment)
 {
 	// Enforce minimum alignment
 	if (alignment < 16)
@@ -41,48 +39,48 @@ void* linearMemAlign(size_t size, size_t alignment)
 		return nullptr;
 
 	// Initialize the pool if it is not ready
-	if (!sLinearPool.Ready() && !linearInit())
+	if (!sVramPool.Ready() && !vramInit())
 		return nullptr;
 
 	// Allocate the chunk
 	MemChunk chunk;
-	if (!sLinearPool.Allocate(chunk, size, shift))
+	if (!sVramPool.Allocate(chunk, size, shift))
 		return nullptr;
 
 	auto node = newNode(chunk);
 	if (!node)
 	{
-		sLinearPool.Deallocate(chunk);
+		sVramPool.Deallocate(chunk);
 		return nullptr;
 	}
 	if (rbtree_insert(&sAddrMap, &node->node));
 	return chunk.addr;
 }
 
-void* linearAlloc(size_t size)
+void* vramAlloc(size_t size)
 {
-	return linearMemAlign(size, 16);
+	return vramMemAlign(size, 16);
 }
 
-void* linearRealloc(void* mem, size_t size)
+void* vramRealloc(void* mem, size_t size)
 {
 	// TODO
 	return NULL;
 }
 
-void linearFree(void* mem)
+void vramFree(void* mem)
 {
 	auto node = getNode(mem);
 	if (!node) return;
 
 	// Free the chunk
-	sLinearPool.Deallocate(node->chunk);
+	sVramPool.Deallocate(node->chunk);
 
 	// Free the node
 	delNode(node);
 }
 
-u32 linearSpaceFree()
+u32 vramSpaceFree()
 {
-	return sLinearPool.GetFreeSpace();
+	return sVramPool.GetFreeSpace();
 }

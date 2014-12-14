@@ -9,6 +9,7 @@ extern "C" {
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/linear.h>
+#include <3ds/vram.h>
 #include <3ds/os.h>
 #include <3ds/gfx.h>
 #include <3ds/console.h>
