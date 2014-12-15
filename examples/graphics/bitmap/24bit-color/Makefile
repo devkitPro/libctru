@@ -117,11 +117,26 @@ else
 	export APP_ICON := $(TOPDIR)/$(ICON)
 endif
 
+IMAGEMAGICK	:=	$(shell which convert)
+
+
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
+ifeq ($(strip $(IMAGEMAGICK)),)
+
+all:
+	@echo "Image Magick not found!"
+	@echo
+	@echo "Please install Image Magick from http://www.imagemagick.org/ to build this example"
+
+else
+
 all: $(BUILD)
 
+endif
+
+#---------------------------------------------------------------------------------
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
