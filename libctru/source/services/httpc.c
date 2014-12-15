@@ -59,7 +59,7 @@ Result httpcCloseContext(httpcContext *context)
 {
 	Result ret=0;
 
-	ret = HTTPC_CloseContext(context->servhandle, context->httphandle);
+	ret = HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 	svcCloseHandle(context->servhandle);
 
 	return ret;
