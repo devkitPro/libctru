@@ -67,7 +67,8 @@ int main(int argc, char **argv)
 			printf("\x1b[0;0HPress Start to exit.\n");
 
 			//Check if some of the keys are down, held or up
-			for (int i = 0; i < 32; i++)
+			int i;
+			for (i = 0; i < 32; i++)
 			{
 				if (kDown & BIT(i)) printf("%s down\n", keysNames[i]);
 				if (kHeld & BIT(i)) printf("%s held\n", keysNames[i]);
