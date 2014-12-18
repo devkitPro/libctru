@@ -1,7 +1,13 @@
 #pragma once
 
+#include "3ds/gpu/registers.h"
+
+//GPU
 void GPU_Init(Handle *gsphandle);
 void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize);
+
+//GPUCMD
+#define GPUCMD_HEADER(consec, mask, reg) (((consec)<<31)|(((mask)&0xF)<<16)|((reg)&0x3FF))
 
 void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset);
 void GPUCMD_SetBufferOffset(u32 offset);

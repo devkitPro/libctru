@@ -71,23 +71,27 @@ s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
 	return -1;
 }
 
-void DVLP_SendCode(DVLP_s* dvlp)
+void DVLP_SendCode(DVLP_s* dvlp, SHDR_type type)
 {
 	if(!dvlp)return;
 
-	GPUCMD_AddSingleParam(0x000F02CB, 0x00000000);
+	u32 regOffset=(type==GEOMETRY_SHDR)?(-0x30):(0x0);
+
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_CODETRANSFER_CONFIG)+regOffset, 0x00000000);
 
 	int i;
-	for(i=0;i<dvlp->codeSize;i+=0x80)GPUCMD_Add(0x000F02CC, &dvlp->codeData[i], ((dvlp->codeSize-i)<0x80)?(dvlp->codeSize-i):0x80);
+	for(i=0;i<dvlp->codeSize;i+=0x80)GPUCMD_Add(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_CODETRANSFER_DATA)+regOffset, &dvlp->codeData[i], ((dvlp->codeSize-i)<0x80)?(dvlp->codeSize-i):0x80);
 
-	GPUCMD_AddSingleParam(0x000F02BF, 0x00000001);
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_CODETRANSFER_END)+regOffset, 0x00000001);
 }
 
-void DVLP_SendOpDesc(DVLP_s* dvlp)
+void DVLP_SendOpDesc(DVLP_s* dvlp, SHDR_type type)
 {
 	if(!dvlp)return;
 
-	GPUCMD_AddSingleParam(0x000F02D5, 0x00000000);
+	u32 regOffset=(type==GEOMETRY_SHDR)?(-0x30):(0x0);
+
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_OPDESCS_CONFIG)+regOffset, 0x00000000);
 
 	u32 param[0x20];
 
@@ -95,12 +99,14 @@ void DVLP_SendOpDesc(DVLP_s* dvlp)
 	//TODO : should probably preprocess this
 	for(i=0;i<dvlp->opdescSize;i++)param[i]=dvlp->opcdescData[i*2];
 
-	GPUCMD_Add(0x000F02D6, param, dvlp->opdescSize);
+	GPUCMD_Add(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_OPDESCS_DATA)+regOffset, param, dvlp->opdescSize);
 }
 
 void DVLE_SendOutmap(DVLE_s* dvle)
 {
 	if(!dvle)return;
+
+	u32 regOffset=(dvle->type==GEOMETRY_SHDR)?(-0x30):(0x0);
 
 	u32 param[0x7]={0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,
 					0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F};
@@ -131,17 +137,19 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 		if(dvle->outTableData[i].regID+1>maxAttr)maxAttr=dvle->outTableData[i].regID+1;
 	}
 
-	GPUCMD_AddSingleParam(0x000F0251, numAttr-1); //?
-	GPUCMD_AddSingleParam(0x000F024A, numAttr-1); //?
-	GPUCMD_AddSingleParam(0x000F02BD, attrMask); //?
-	GPUCMD_AddSingleParam(0x0001025E, numAttr-1); //?
-	GPUCMD_AddSingleParam(0x000F004F, numAttr); //?
-	GPUCMD_Add(0x800F0050, param, 0x00000007);
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_0251), numAttr-1); //?
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_024A), numAttr-1); //?
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_OUTMAP_MASK)+regOffset, attrMask);
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0x1, GPUREG_PRIMITIVE_CONFIG), numAttr-1);
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_SH_OUTMAP_TOTAL), numAttr);
+	GPUCMD_Add(GPUCMD_HEADER(1, 0xF, GPUREG_SH_OUTMAP_O0), param, 0x00000007);
 }
 
 void DVLE_SendConstants(DVLE_s* dvle)
 {
 	if(!dvle)return;
+
+	u32 regOffset=(dvle->type==GEOMETRY_SHDR)?(-0x30):(0x0);
 
 	u32 param[4];
 	u32 rev[3];
@@ -161,7 +169,7 @@ void DVLE_SendConstants(DVLE_s* dvle)
 		param[0x2]=rev[1];
 		param[0x3]=rev[0];
 
-		GPUCMD_Add(0x800F02C0, param, 0x00000004);
+		GPUCMD_Add(GPUCMD_HEADER(1, 0xF, GPUREG_VSH_FLOATUNIFORM_CONFIG)+regOffset, param, 0x00000004);
 	}
 }
 
@@ -170,24 +178,26 @@ void SHDR_UseProgram(DVLB_s* dvlb, u8 id)
 	if(!dvlb || id>dvlb->numDVLE)return;
 	DVLE_s* dvle=&dvlb->DVLE[id];
 
-	//?
-		GPUCMD_AddSingleParam(0x00010229, 0x00000000);
-		GPUCMD_AddSingleParam(0x00010244, 0x00000000);
+	u32 regOffset=(dvlb->DVLE[id].type==GEOMETRY_SHDR)?(-0x30):(0x0);
 
-	DVLP_SendCode(&dvlb->DVLP);
-	DVLP_SendOpDesc(&dvlb->DVLP);
+
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0x1, GPUREG_GEOSTAGE_CONFIG), 0x00000000);
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0x1, GPUREG_0244), (dvlb->DVLE[id].type==GEOMETRY_SHDR)?0x1:0x0);
+
+	DVLP_SendCode(&dvlb->DVLP, dvlb->DVLE[id].type);
+	DVLP_SendOpDesc(&dvlb->DVLP, dvlb->DVLE[id].type);
 	DVLE_SendConstants(dvle);
 
-	GPUCMD_AddSingleParam(0x00080229, 0x00000000);
-	GPUCMD_AddSingleParam(0x000F02BA, 0x7FFF0000|(dvle->mainOffset&0xFFFF)); //set entrypoint
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0x8, GPUREG_GEOSTAGE_CONFIG), 0x00000000);
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_ENTRYPOINT)-regOffset, 0x7FFF0000|(dvle->mainOffset&0xFFFF)); //set entrypoint
 
-	GPUCMD_AddSingleParam(0x000F0252, 0x00000000); // should all be part of DVLE_SendOutmap ?
+	GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_0252), 0x00000000); // should all be part of DVLE_SendOutmap ?
 
 	DVLE_SendOutmap(dvle);
 
 	//?
-		GPUCMD_AddSingleParam(0x000F0064, 0x00000001);
-		GPUCMD_AddSingleParam(0x000F006F, 0x00000703);
+		GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_0064), 0x00000001);
+		GPUCMD_AddSingleParam(GPUCMD_HEADER(0, 0xF, GPUREG_006F), 0x00000703);
 }
 
 //TODO
