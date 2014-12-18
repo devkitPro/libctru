@@ -6,7 +6,11 @@
 #include <sys/param.h>
 
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/sdmc.h>
+#include <3ds/services/fs.h>
+
+
 
 /*! @internal
  *
@@ -240,7 +244,18 @@ sdmc_open(struct _reent *r,
   if(flags & O_CREAT)
     sdmc_flags |= FS_OPEN_CREATE;
 
-  /* TODO: Test O_EXCL. */
+  /* Test O_EXCL. */
+  if((flags & O_CREAT) && (flags & O_EXCL))
+  {
+    rc = FSUSER_CreateFile(NULL, sdmcArchive, FS_makePath(PATH_CHAR, pathptr), 0);
+    if(rc != 0)
+    {
+      r->_errno = rc;
+      if(rc == 0x82044BE)
+        r->_errno = EEXIST;
+      return -1;
+    }
+  }
 
   /* set attributes */
   /*if(!(mode & S_IWUSR))
@@ -251,6 +266,16 @@ sdmc_open(struct _reent *r,
                        sdmc_flags, attributes);
   if(rc == 0)
   {
+    if((flags & O_ACCMODE) != O_RDONLY && (flags & O_TRUNC))
+    {
+      rc = FSFILE_SetSize(fd, 0);
+      if(rc != 0)
+      {
+        FSFILE_Close(fd);
+        r->_errno = rc;
+        return -1;
+      }
+    }
     file->fd     = fd;
     file->flags  = (flags & (O_ACCMODE|O_APPEND|O_SYNC));
     file->offset = 0;

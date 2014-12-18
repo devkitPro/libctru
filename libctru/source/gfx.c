@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/gfx.h>
+#include <3ds/svc.h>
+#include <3ds/linear.h>
 
 GSP_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
 
@@ -12,9 +15,9 @@ u8* gfxTopLeftFramebuffers[2];
 u8* gfxTopRightFramebuffers[2];
 u8* gfxBottomFramebuffers[2];
 
-static u8 currentBuffer;
 static bool enable3d;
-static int doubleBuf = 1;
+static u8 currentBuffer[2];
+static int doubleBuf[2] = {1,1};
 
 Handle gspEvent, gspSharedMemHandle;
 
@@ -33,8 +36,8 @@ void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format) {
         botFormat = format;
 }
 
-void gfxSetDoubleBuffering(bool doubleBuffering) {
-	doubleBuf = doubleBuffering ? 1 : 0; // make sure they're the integer values '1' and '0'
+void gfxSetDoubleBuffering( gfxScreen_t screen, bool doubleBuffering) {
+	doubleBuf[screen] = doubleBuffering ? 1 : 0; // make sure they're the integer values '1' and '0'
 }
 
 static u32 __get_bytes_per_pixel(GSP_FramebufferFormats format) {
@@ -81,7 +84,7 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	u8* framebufferInfoHeader=gfxSharedMemory+0x200+gfxThreadID*0x80;
 	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x40;
 	GSP_FramebufferInfo* framebufferInfo=(GSP_FramebufferInfo*)&framebufferInfoHeader[0x4];
-	framebufferInfoHeader[0x0]^=doubleBuf;
+	framebufferInfoHeader[0x0]^=doubleBuf[screen];
 	framebufferInfo[framebufferInfoHeader[0x0]]=(screen==GFX_TOP)?(topFramebufferInfo):(bottomFramebufferInfo);
 	framebufferInfoHeader[0x1]=1;
 }
@@ -93,7 +96,6 @@ void gfxInit()
 	gfxSharedMemory=(u8*)0x10002000;
 
 	GSPGPU_AcquireRight(NULL, 0x0);
-	GSPGPU_SetLcdForceBlack(NULL, 0x0);
 
 	//setup our gsp shared mem section
 	svcCreateEvent(&gspEvent, 0x0);
@@ -124,11 +126,14 @@ void gfxInit()
 	//GSP shared mem : 0x2779F000
 	gxCmdBuf=(u32*)(gfxSharedMemory+0x800+gfxThreadID*0x200);
 
-	currentBuffer=0;
+	currentBuffer[0]=0;
+	currentBuffer[1]=0;
 
 	// Initialize event handler and wait for VBlank
 	gspInitEventHandler(gspEvent, (vu8*)gfxSharedMemory, gfxThreadID);
 	gspWaitForVBlank();
+
+	GSPGPU_SetLcdForceBlack(NULL, 0x0);
 }
 
 void gfxExit()
@@ -153,7 +158,7 @@ void gfxExit()
 	svcCloseHandle(gspEvent);
 
 	GSPGPU_ReleaseRight(NULL);
-	
+
 	gspExit();
 }
 
@@ -164,10 +169,10 @@ u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* hei
 	if(screen==GFX_TOP)
 	{
 		if(height)*height=400;
-		return (side==GFX_LEFT || !enable3d)?(gfxTopLeftFramebuffers[currentBuffer^doubleBuf]):(gfxTopRightFramebuffers[currentBuffer^doubleBuf]);
+		return (side==GFX_LEFT || !enable3d)?(gfxTopLeftFramebuffers[currentBuffer[0]^doubleBuf[0]]):(gfxTopRightFramebuffers[currentBuffer[0]^doubleBuf[0]]);
 	}else{
 		if(height)*height=320;
-		return gfxBottomFramebuffers[currentBuffer^doubleBuf];
+		return gfxBottomFramebuffers[currentBuffer[1]^doubleBuf[1]];
 	}
 }
 
@@ -180,18 +185,20 @@ void gfxFlushBuffers()
 
 void gfxSwapBuffers()
 {
-	currentBuffer^=doubleBuf;
-	gfxSetFramebufferInfo(GFX_TOP, currentBuffer);
-	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer);
+	currentBuffer[0]^=doubleBuf[0];
+	currentBuffer[1]^=doubleBuf[1];
+	gfxSetFramebufferInfo(GFX_TOP, currentBuffer[0]);
+	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer[1]);
 	GSPGPU_SetBufferSwap(NULL, GFX_TOP, &topFramebufferInfo);
 	GSPGPU_SetBufferSwap(NULL, GFX_BOTTOM, &bottomFramebufferInfo);
 }
 
 void gfxSwapBuffersGpu()
 {
-	currentBuffer^=doubleBuf;
-	gfxSetFramebufferInfo(GFX_TOP, currentBuffer);
-	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer);
+	currentBuffer[0]^=doubleBuf[0];
+	currentBuffer[1]^=doubleBuf[1];
+	gfxSetFramebufferInfo(GFX_TOP, currentBuffer[0]);
+	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer[1]);
 	gfxWriteFramebufferInfo(GFX_TOP);
 	gfxWriteFramebufferInfo(GFX_BOTTOM);
 }

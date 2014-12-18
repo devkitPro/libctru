@@ -1,6 +1,7 @@
 #include <sys/iosupport.h>
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
 
 // System globals we define here
 int __system_argc;
