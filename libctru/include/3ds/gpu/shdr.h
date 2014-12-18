@@ -61,8 +61,8 @@ void SHDR_UseProgram(DVLB_s* dvlb, u8 id);
 void SHDR_FreeDVLB(DVLB_s* dvlb);
 s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID);
 
-void DVLP_SendCode(DVLP_s* dvlp);
-void DVLP_SendOpDesc(DVLP_s* dvlp);
+void DVLP_SendCode(DVLP_s* dvlp, SHDR_type type);
+void DVLP_SendOpDesc(DVLP_s* dvlp, SHDR_type type);
 
 void DVLE_SendOutmap(DVLE_s* dvle);
 void DVLE_SendConstants(DVLE_s* dvle);
