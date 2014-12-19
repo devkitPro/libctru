@@ -60,7 +60,7 @@ void GPUCMD_FlushAndRun(u32* gxbuf)
 	GX_SetCommandList_Last(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
 }
 
-void GPUCMD_Add(u32 cmd, u32* param, u32 paramlength)
+void GPUCMD_Add(u32 header, u32* param, u32 paramlength)
 {
 	u32 zero=0x0;
 
@@ -73,21 +73,16 @@ void GPUCMD_Add(u32 cmd, u32* param, u32 paramlength)
 	if(!gpuCmdBuf || gpuCmdBufOffset+paramlength+1>gpuCmdBufSize)return;
 
 	paramlength--;
-	cmd|=(paramlength&0x7ff)<<20;
+	header|=(paramlength&0x7ff)<<20;
 
 	gpuCmdBuf[gpuCmdBufOffset]=param[0];
-	gpuCmdBuf[gpuCmdBufOffset+1]=cmd;
+	gpuCmdBuf[gpuCmdBufOffset+1]=header;
 
 	if(paramlength)memcpy(&gpuCmdBuf[gpuCmdBufOffset+2], &param[1], paramlength*4);
 
 	gpuCmdBufOffset+=paramlength+2;
 
 	if(paramlength&1)gpuCmdBuf[gpuCmdBufOffset++]=0x00000000; //alignment
-}
-
-void GPUCMD_AddSingleParam(u32 cmd, u32 param)
-{
-	GPUCMD_Add(cmd, &param, 1);
 }
 
 void GPUCMD_Finalize()
