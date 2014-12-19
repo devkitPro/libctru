@@ -13,9 +13,9 @@ typedef struct {
 
 static volatile u32* __datetime_selector =
 	(u32*) 0x1FF81000;
-static volatile datetime_t* __datetime1 =
+static volatile datetime_t* __datetime0 =
 	(datetime_t*) 0x1FF81020;
-static volatile datetime_t* __datetime2 =
+static volatile datetime_t* __datetime1 =
 	(datetime_t*) 0x1FF81040;
 
 
@@ -41,19 +41,27 @@ u32 osConvertOldLINEARMemToNew(u32 vaddr)
 
 // Returns number of milliseconds since 1st Jan 1900 00:00.
 u64 osGetTime() {
-	volatile datetime_t* dt;
+	u32 s1, s2 = *__datetime_selector & 1;
+	datetime_t dt;
 
-	switch(*__datetime_selector & 1) {
-	case 0:
-		dt = __datetime1;
-		break;
-	case 1:
-		dt = __datetime2;
-		break;
-	}
+	do {
+		s1 = s2;
+		if(!s1)
+			dt = *__datetime0;
+		else
+			dt = *__datetime1;
+		s2 = *__datetime_selector & 1;
+	} while(s2 != s1);
 
-	u64 offset = (u32)((u32)(svcGetSystemTick() - dt->update_tick) / TICKS_PER_MSEC);
-	return dt->date_time + offset;
+	u64 delta = svcGetSystemTick() - dt.update_tick;
+
+	// Work around the VFP not supporting 64-bit integer <--> floating point conversion
+	double temp = (u32)(delta >> 32);
+	temp *= 0x100000000ULL;
+	temp += (u32)delta;
+
+	u32 offset = temp / TICKS_PER_MSEC;
+	return dt.date_time + offset;
 }
 
 u32 osGetFirmVersion() {
