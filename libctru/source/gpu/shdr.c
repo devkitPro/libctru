@@ -93,7 +93,7 @@ void DVLP_SendOpDesc(DVLP_s* dvlp, SHDR_type type)
 
 	GPUCMD_AddWrite(GPUREG_VSH_OPDESCS_CONFIG+regOffset, 0x00000000);
 
-	u32 param[0x20];
+	u32 param[0x80];
 
 	int i;
 	//TODO : should probably preprocess this
@@ -108,8 +108,8 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 
 	u32 regOffset=(dvle->type==GEOMETRY_SHDR)?(-0x30):(0x0);
 
-	u32 param[0x7]={0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,
-					0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F};
+	u32 param[0x8]={0x00000000,0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,
+					0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F};
 
 	int i;
 	u8 numAttr=0;
@@ -118,7 +118,7 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 	//TODO : should probably preprocess this
 	for(i=0;i<dvle->outTableSize;i++)
 	{
-		u32* out=&param[dvle->outTableData[i].regID];
+		u32* out=&param[dvle->outTableData[i].regID+1];
 		
 		if(*out==0x1F1F1F1F)numAttr++;
 
@@ -137,12 +137,17 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 		if(dvle->outTableData[i].regID+1>maxAttr)maxAttr=dvle->outTableData[i].regID+1;
 	}
 
-	GPUCMD_AddWrite(GPUREG_0251, numAttr-1); //?
-	GPUCMD_AddWrite(GPUREG_024A, numAttr-1); //?
+	param[0]=numAttr;
+
+	if(dvle->type==VERTEX_SHDR)
+	{
+		GPUCMD_AddWrite(GPUREG_024A, numAttr-1); //?
+		GPUCMD_AddWrite(GPUREG_0251, numAttr-1); //?
+	}
+	
 	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_MASK+regOffset, attrMask);
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x1, numAttr-1);
-	GPUCMD_AddWrite(GPUREG_SH_OUTMAP_TOTAL, numAttr);
-	GPUCMD_AddIncrementalWrites(GPUREG_SH_OUTMAP_O0, param, 0x00000007);
+	GPUCMD_AddIncrementalWrites(GPUREG_SH_OUTMAP_TOTAL, param, 8);
 }
 
 void DVLE_SendConstants(DVLE_s* dvle)
@@ -169,7 +174,7 @@ void DVLE_SendConstants(DVLE_s* dvle)
 		param[0x2]=rev[1];
 		param[0x3]=rev[0];
 
-		GPUCMD_AddIncrementalWrites(GPUREG_VSH_FLOATUNIFORM_CONFIG+regOffset, param, 0x00000004);
+		GPUCMD_AddIncrementalWrites(GPUREG_VSH_FLOATUNIFORM_CONFIG+regOffset, param, 4);
 	}
 }
 
@@ -191,7 +196,7 @@ void SHDR_UseProgram(DVLB_s* dvlb, u8 id)
 	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x8, 0x00000000);
 	GPUCMD_AddWrite(GPUREG_VSH_ENTRYPOINT-regOffset, 0x7FFF0000|(dvle->mainOffset&0xFFFF)); //set entrypoint
 
-	GPUCMD_AddWrite(GPUREG_0252, 0x00000000); // should all be part of DVLE_SendOutmap ?
+	GPUCMD_AddWrite(GPUREG_0252, 0x00000000); // gsh related ?
 
 	DVLE_SendOutmap(dvle);
 
