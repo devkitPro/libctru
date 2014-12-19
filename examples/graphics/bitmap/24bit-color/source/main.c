@@ -17,7 +17,7 @@
 #include <string.h>
 
 //This include a header containing definitions of our image
-#include "drunkenlogo_rgb.h"
+#include "brew_rgb.h"
 
 int main(int argc, char **argv)
 {
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	u8* fb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 	
 	//Copy our image in the bottom screen's frame buffer
-	memcpy(fb, drunkenlogo_rgb, drunkenlogo_rgb_size);
+	memcpy(fb, brew_rgb, brew_rgb_size);
 
 	// Main loop
 	while (aptMainLoop())
