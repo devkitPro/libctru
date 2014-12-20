@@ -36,6 +36,13 @@ void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format) {
         botFormat = format;
 }
 
+GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen) {
+    if(screen==GFX_TOP)
+        return topFormat;
+    else
+        return botFormat;
+}
+
 void gfxSetDoubleBuffering( gfxScreen_t screen, bool doubleBuffering) {
 	doubleBuf[screen] = doubleBuffering ? 1 : 0; // make sure they're the integer values '1' and '0'
 }

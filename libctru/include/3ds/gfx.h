@@ -25,6 +25,7 @@ void gfxExit();
 //control stuff
 void gfxSet3D(bool enable);
 void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format);
+GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen);
 void gfxSetDoubleBuffering(gfxScreen_t screen, bool doubleBuffering);
 void gfxFlushBuffers();
 void gfxSwapBuffers();
