@@ -253,6 +253,8 @@ sdmc_open(struct _reent *r,
       r->_errno = rc;
       if(rc == 0x82044BE)
         r->_errno = EEXIST;
+      if(rc == 0x86044D2)
+        r->_errno = ENOSPC;
       return -1;
     }
   }
