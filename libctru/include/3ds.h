@@ -30,6 +30,7 @@ extern "C" {
 #include <3ds/services/mic.h>
 #include <3ds/services/mvd.h>
 #include <3ds/services/qtm.h>
+#include <3ds/services/hb.h>
 
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
