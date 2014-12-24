@@ -15,6 +15,21 @@ void exitHb()
 	svcCloseHandle(hbHandle);
 }
 
+Result HB_FlushInvalidateCache(void)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00010042;
+	cmdbuf[1] = 0x00000000;
+	cmdbuf[2] = 0x00000000;
+	cmdbuf[3] = 0xFFFF8001;
+
+	if((ret = svcSendSyncRequest(hbHandle))!=0) return ret;
+	
+	return (Result)cmdbuf[1];
+}
+
 Result HB_GetBootloaderAddresses(void** load3dsx, void** setArgv)
 {
 	Result ret = 0;
