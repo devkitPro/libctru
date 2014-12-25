@@ -7,8 +7,8 @@
 
 #include <3ds/types.h>
 
-Result initHb();
-void exitHb();
+Result hbInit();
+void hbExit();
 
 // flushes/invalidates entire data/instruction cache
 // can be useful when writing code to executable pages

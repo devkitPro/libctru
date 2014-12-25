@@ -5,12 +5,12 @@
 
 static Handle hbHandle;
 
-Result initHb()
+Result hbInit()
 {
 	return srvGetServiceHandle(&hbHandle, "hb:HB");
 }
 
-void exitHb()
+void hbExit()
 {
 	svcCloseHandle(hbHandle);
 }
@@ -57,7 +57,11 @@ Result HB_ReprotectMemory(u32* addr, u32 pages, u32 mode, u32* reprotectedPages)
 
 	if((ret = svcSendSyncRequest(hbHandle))!=0) return ret;
 
-	if(reprotectedPages)*reprotectedPages=(u32)cmdbuf[2];
+	if(reprotectedPages)
+	{
+		if(!ret)*reprotectedPages=(u32)cmdbuf[2];
+		else *reprotectedPages=0;
+	}
 	
 	return (Result)cmdbuf[1];
 }
