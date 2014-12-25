@@ -8,7 +8,7 @@ u32 __heapBase;
 extern u32 __heap_size, __linear_heap_size;
 
 
-void __attribute__((weak)) __allocateHeaps() {
+void __attribute__((weak)) __system_allocateHeaps() {
 	u32 tmp=0;
 
 	// Allocate the application heap
