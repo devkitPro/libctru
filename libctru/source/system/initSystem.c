@@ -10,6 +10,7 @@ extern void* __service_ptr; // used to detect if we're run from a homebrew launc
 
 void __system_allocateHeaps();
 void __system_initArgv();
+void __appInit();
 
 // newlib definitions we need
 void __libc_init_array(void);
@@ -29,7 +30,7 @@ void __attribute__((weak)) initSystem(void (*retAddr)(void))
 	// Build argc/argv if present
 	__system_initArgv();
 
-	// TODO: APT init goes here
+	__appInit();
 
 	// Run the global constructors
 	__libc_init_array();

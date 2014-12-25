@@ -23,13 +23,16 @@ static circlePosition cPos;
 static accelVector aVec;
 static angularRate gRate;
 
+static bool hidInitialised;
 
 Result hidInit(u32* sharedMem)
 {
 	u8 val=0;
+	Result ret=0;
+
+	if(hidInitialised) return ret;
 
 	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
-	Result ret=0;
 
 	// Request service.
 	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")))return ret;
@@ -61,6 +64,8 @@ cleanup1:
 
 void hidExit()
 {
+	if(!hidInitialised) return;
+
 	// Unmap HID sharedmem and close handles.
 	u8 val=0;
 	int i; for(i=0; i<5; i++)svcCloseHandle(hidEvents[i]);

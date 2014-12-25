@@ -410,9 +410,13 @@ void aptEventHandler(u32 arg)
 	svcExitThread();
 }
 
+static bool aptInitialised = false;
+
 Result aptInit(void)
 {
 	Result ret=0;
+
+	if (aptInitialised) return ret;
 
 	// Initialize APT stuff, escape load screen.
 	ret = __apt_initservicehandle();
@@ -445,11 +449,15 @@ Result aptInit(void)
 	} else
 		aptAppStarted();
 
+	aptInitialised = true;
+
 	return 0;
 }
 
 void aptExit()
 {
+	if (!aptInitialised) return;
+
 	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))aptAppletUtility_Exit_RetToApp(0);
 
 	// This is only executed when application-termination was triggered via the home-menu power-off screen.

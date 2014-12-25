@@ -130,11 +130,14 @@ static const char *sdmc_fixpath(const char *path)
 extern int __system_argc;
 extern char** __system_argv;
 
+static bool sdmcInitialised = false;
+
 /*! Initialize SDMC device */
 Result sdmcInit(void)
 {
-  Result rc;
+  Result rc = 0;
 
+  if (sdmcInitialised) return rc;
 
   rc = FSUSER_OpenArchive(NULL, &sdmcArchive);
 
@@ -161,13 +164,17 @@ Result sdmcInit(void)
     }
   }
 
+  sdmcInitialised = true;
+
   return rc;
 }
 
 /*! Clean up SDMC device */
 Result sdmcExit(void)
 {
-  Result rc;
+  Result rc = 0;
+
+  if (!sdmcInitialised) return rc;
 
   rc = FSUSER_CloseArchive(NULL, &sdmcArchive);
   if(rc == 0)

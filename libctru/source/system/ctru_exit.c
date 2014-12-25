@@ -7,6 +7,7 @@ extern u32 __heap_size, __linear_heap_size;
 extern void (*__system_retAddr)(void);
 
 void __destroy_handle_list(void);
+void __appExit();
 
 void __libc_fini_array(void);
 
@@ -17,7 +18,7 @@ void __attribute__((weak)) __attribute__((noreturn)) __ctru_exit(int rc)
 	// Run the global destructors
 	__libc_fini_array();
 
-	// TODO: APT exit goes here
+	__appExit();
 
 	// Unmap the linear heap
 	svcControlMemory(&tmp, __linear_heap, 0x0, __linear_heap_size, MEMOP_FREE, 0x0);

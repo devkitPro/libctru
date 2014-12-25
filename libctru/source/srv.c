@@ -72,9 +72,12 @@ void __destroy_handle_list(void) {
 	__service_ptr->num = 0;
 }
 
+
 Result srvInit()
 {
 	Result rc = 0;
+
+	if(g_srv_handle != 0) return rc;
 
 	if((rc = svcConnectToPort(&g_srv_handle, "srv:")))return rc;
 
