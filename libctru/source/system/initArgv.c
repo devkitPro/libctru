@@ -1,5 +1,7 @@
 #include <3ds/types.h>
 
+#include <string.h>
+
 // System globals we define here
 int __system_argc;
 char** __system_argv;
