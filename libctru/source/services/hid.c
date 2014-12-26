@@ -80,6 +80,8 @@ void hidExit()
 	{
 		irrstExit();
 	}
+	
+	hidInitialised = false;
 }
 
 void hidWaitForEvent(HID_Event id, bool nextEvent)
