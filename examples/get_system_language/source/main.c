@@ -11,6 +11,7 @@ int main(int argc, char** argv)
 
 
 	u8 language = 0;
+	Result res;
 
 	// Init console for text output
 	consoleInit(GFX_BOTTOM, NULL);
@@ -18,7 +19,7 @@ int main(int argc, char** argv)
 	// Read the language field from the config savegame.
 	// See here for more block IDs:
 	// http://3dbrew.org/wiki/Config_Savegame#Configuration_blocks
-	CFGU_GetConfigInfoBlk2(1, 0xA0002, &language);
+	res = CFGU_GetConfigInfoBlk2(1, 0xA0002, &language);
 
 
 	// Main loop
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
 	{
 		hidScanInput();
 
-		// Print language code
+		// Print return value and language code
 		printf("\x1b[0;0HLanguage code: %d", (int)language);
 
 		u32 kDown = hidKeysDown();
