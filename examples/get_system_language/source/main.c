@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 		hidScanInput();
 
 		// Print return value and language code
-		printf("\x1b[0;0Hresult: %d", (int)res);
+		printf("\x1b[0;0Hresult: 0x%x", (int)res);
 		printf("\x1b[1;0HLanguage code: %d", (int)language);
 
 		u32 kDown = hidKeysDown();
