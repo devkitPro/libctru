@@ -484,6 +484,8 @@ void aptExit()
 	svcCloseHandle(aptStatusMutex);
 	svcCloseHandle(aptLockHandle);
 	svcCloseHandle(aptStatusEvent);
+	
+	aptInitialised = false;
 }
 
 bool aptMainLoop()
