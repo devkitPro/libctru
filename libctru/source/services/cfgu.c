@@ -90,3 +90,19 @@ Result CFGU_GetCountryCodeID(u16 string, u16* code)
 
     return (Result)cmdbuf[1];
 }
+
+Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
+{
+    Result ret = 0;
+    u32 *cmdbuf = getThreadCommandBuffer();
+
+    cmdbuf[0] = 0x00010082;
+    cmdbuf[1] = size;
+		cmdbuf[2] = blkID;
+		cmdbuf[3] = (size<<4)|12;
+		cmdbuf[4] = (u32)outData;
+
+    if((ret = svcSendSyncRequest(CFGU_handle))!=0)return ret;
+
+    return (Result)cmdbuf[1];
+}
