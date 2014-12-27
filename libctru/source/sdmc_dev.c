@@ -180,6 +180,8 @@ Result sdmcExit(void)
   if(rc == 0)
     RemoveDevice("sdmc");
 
+  sdmcInitialised = false;
+  
   return rc;
 }
 

@@ -63,6 +63,8 @@ Result
 fsExit(void)
 {
 	if (!fsInitialised) return 0;
+	
+	fsInitialised = false;
 
 	return svcCloseHandle(fsuHandle);
 }

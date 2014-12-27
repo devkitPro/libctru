@@ -52,6 +52,7 @@ Result hidInit(u32* sharedMem)
 	}
 
 	// Reset internal state.
+	hidInitialised = true;
 	kOld = kHeld = kDown = kUp = 0;
 	return ret;
 
@@ -79,6 +80,8 @@ void hidExit()
 	{
 		irrstExit();
 	}
+	
+	hidInitialised = false;
 }
 
 void hidWaitForEvent(HID_Event id, bool nextEvent)
