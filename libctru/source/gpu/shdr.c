@@ -119,19 +119,28 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 	for(i=0;i<dvle->outTableSize;i++)
 	{
 		u32* out=&param[dvle->outTableData[i].regID+1];
+		u32 mask=0x00000000;
+		u8 tmpmask=dvle->outTableData[i].mask;
+		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
+		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
+		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
+		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
 		
 		if(*out==0x1F1F1F1F)numAttr++;
 
-		//desc could include masking/swizzling info not currently taken into account
-		//also TODO : map out other output register values
+		u32 val=0x1F1F1F1F;
 		switch(dvle->outTableData[i].type)
 		{
-			case RESULT_POSITION: *out=0x03020100; break;
-			case RESULT_COLOR: *out=0x0B0A0908; break;
-			case RESULT_TEXCOORD0: *out=0x1F1F0D0C; break;
-			case RESULT_TEXCOORD1: *out=0x1F1F0F0E; break;
-			case RESULT_TEXCOORD2: *out=0x1F1F1716; break;
+			case RESULT_POSITION: val=0x03020100; break;
+			case RESULT_NORMALQUAT: val=0x07060504; break;
+			case RESULT_COLOR: val=0x0B0A0908; break;
+			case RESULT_TEXCOORD0: val=0x1F1F0D0C; break;
+			case RESULT_TEXCOORD0W: val=0x10101010; break;
+			case RESULT_TEXCOORD1: val=0x1F1F0F0E; break;
+			case RESULT_TEXCOORD2: val=0x1F1F1716; break;
+			case RESULT_VIEW: val=0x1F141312; break;
 		}
+		*out=((*out)&~mask)|(val&mask);
 
 		attrMask|=1<<dvle->outTableData[i].regID;
 		if(dvle->outTableData[i].regID+1>maxAttr)maxAttr=dvle->outTableData[i].regID+1;

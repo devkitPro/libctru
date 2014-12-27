@@ -7,10 +7,13 @@ typedef enum{
 
 typedef enum{
 	RESULT_POSITION = 0x0,
+	RESULT_NORMALQUAT = 0x1,
 	RESULT_COLOR = 0x2,
 	RESULT_TEXCOORD0 = 0x3,
+	RESULT_TEXCOORD0W = 0x4,
 	RESULT_TEXCOORD1 = 0x5,
-	RESULT_TEXCOORD2 = 0x6
+	RESULT_TEXCOORD2 = 0x6,
+	RESULT_VIEW = 0x8
 }SHDR_outType;
 
 typedef struct{
@@ -28,7 +31,8 @@ typedef struct{
 typedef struct{
 	u16 type;
 	u16 regID;
-	u32 header;
+	u8 mask;
+	u8 unk[3];
 }DVLE_outEntry_s;
 
 typedef struct{
