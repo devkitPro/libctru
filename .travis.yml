@@ -1,0 +1,11 @@
+language: cpp
+
+before_install:
+  - wget http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl/download
+
+install:
+  - perl devkitARMupdate.pl
+
+script:
+  - cd libctru
+  - make
