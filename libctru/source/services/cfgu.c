@@ -91,6 +91,8 @@ Result CFGU_GetCountryCodeID(u16 string, u16* code)
 	return (Result)cmdbuf[1];
 }
 
+// See here for block IDs:
+// http://3dbrew.org/wiki/Config_Savegame#Configuration_blocks
 Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
 {
 	Result ret = 0;
@@ -105,4 +107,9 @@ Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
 	if((ret = svcSendSyncRequest(CFGU_handle))!=0)return ret;
 
 	return (Result)cmdbuf[1];
+}
+
+Result CFGU_GetSystemLanguage(u8* language)
+{
+	return CFGU_GetConfigInfoBlk2(1, 0xA0002, language);
 }
