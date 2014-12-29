@@ -18,7 +18,7 @@ void __libc_init_array(void);
 
 void __ctru_exit(int rc);
 
-void __attribute__((weak)) initSystem(void (*retAddr)(void))
+void __attribute__((weak)) __ctru_initSystem(void (*retAddr)(void))
 {
 
 	// Register newlib exit() syscall

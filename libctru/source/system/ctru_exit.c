@@ -11,7 +11,7 @@ void __appExit();
 
 void __libc_fini_array(void);
 
-void __attribute__((weak)) __attribute__((noreturn)) __ctru_exit(int rc)
+void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 {
 	u32 tmp=0;
 
