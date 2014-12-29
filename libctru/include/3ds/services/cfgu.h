@@ -3,6 +3,8 @@
 Result initCfgu(void);
 Result exitCfgu(void);
 
+Result CFGU_SecureInfoGetRegion(u8* region);
+Result CFGU_GenHashConsoleUnique(u32 appIDSalt, u64* hash);
 Result CFGU_GetRegionCanadaUSA(u8* value);
 Result CFGU_GetSystemModel(u8* model);
 Result CFGU_GetModelNintendo2DS(u8* value);
