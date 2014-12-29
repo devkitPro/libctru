@@ -19,6 +19,36 @@ Result exitCfgu()
 	return ret;
 }
 
+Result CFGU_SecureInfoGetRegion(u8* region)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00020000;
+
+	if((ret = svcSendSyncRequest(CFGU_handle))!=0)return ret;
+
+	*region = (u8)cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGU_GenHashConsoleUnique(u32 appIDSalt, u64* hash)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00030000;
+	cmdbuf[1] = appIDSalt;
+
+	if((ret = svcSendSyncRequest(CFGU_handle))!=0)return ret;
+
+	*hash = (u64)cmdbuf[2];
+	*hash |= ((u64)cmdbuf[3])<<32;
+
+	return (Result)cmdbuf[1];
+}
+
 Result CFGU_GetRegionCanadaUSA(u8* value)
 {
 	Result ret = 0;
