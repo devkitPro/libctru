@@ -7,24 +7,26 @@
 @---------------------------------------------------------------------------------
 initSystem:
 @---------------------------------------------------------------------------------
-	adr	r0, saved_lr
+	ldr	r0, =saved_lr
 	str	lr, [r0]
 	str	sp, [r0,#4]
 	bl	__ctru_initSystem
 	ldr	r0,=fake_heap_start
 	ldr	sp, [r0]
-	ldr	pc, saved_lr
-
-saved_lr:
-	.word	0
-saved_stack:
-	.word	0
-
+	ldr	r0, =saved_lr
+	ldr	pc, [r0]
 
 	.global	__ctru_exit
 	.type	__ctru_exit STT_FUNC
 @---------------------------------------------------------------------------------
 __ctru_exit:
 @---------------------------------------------------------------------------------
-	ldr	sp, saved_stack
+	ldr	r1, =saved_stack
+	ldr	sp, [r1]
 	b	__libctru_exit
+
+	.data
+saved_lr:
+	.word	0
+saved_stack:
+	.word	0
