@@ -17,7 +17,8 @@ initSystem:
 
 	ldr	r3, =__stacksize__
 	ldr	r3, [r3]
-	add	sp, r3, #7
+	add sp, sp, r3
+	add	sp, sp, #7
 	bics	sp, sp, #7
 	str	sp, [r2]
 
