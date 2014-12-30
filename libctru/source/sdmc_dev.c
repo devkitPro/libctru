@@ -527,7 +527,38 @@ sdmc_stat(struct _reent *r,
           const char    *file,
           struct stat   *st)
 {
-  r->_errno = ENOSYS;
+  Handle fd;
+  Result rc;
+  const char  *pathptr = NULL;
+  u64 tmpsize = 0;
+
+  pathptr = sdmc_fixpath(file);
+
+  if(pathptr==NULL)
+  {
+    r->_errno=EINVAL;
+    return -1;
+  }
+
+  rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr),
+                       FS_OPEN_READ, FS_ATTRIBUTE_NONE);
+
+  if(rc==0)
+  {
+    rc = FSFILE_GetSize(fd, &tmpsize);
+
+    FSFILE_Close(fd);
+
+    if(rc==0)
+    {
+      memset(st, 0, sizeof(struct stat));
+      st->st_size = (off_t)tmpsize;
+    }
+  }
+
+  if(rc==0)return 0;
+
+  r->_errno = rc;
   return -1;
 }
 
