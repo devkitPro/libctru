@@ -25,8 +25,9 @@ __ctru_exit:
 	ldr	sp, [r1]
 	b	__libctru_exit
 
-	.data
+	.bss
+	.align 2
 saved_lr:
-	.word	0
+	.space	4
 saved_stack:
-	.word	0
+	.space	4
