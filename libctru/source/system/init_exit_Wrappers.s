@@ -25,6 +25,8 @@ __ctru_exit:
 	ldr	sp, [r1]
 	b	__libctru_exit
 
+	.pool
+
 	.bss
 	.align 2
 saved_lr:
