@@ -7,7 +7,6 @@ u32 __linear_heap;
 u32 __heapBase;
 extern u32 __heap_size, __linear_heap_size;
 
-u32 __attribute__((weak)) __stacksize__ = 32 * 1024;
 
 void __attribute__((weak)) __system_allocateHeaps() {
 	u32 tmp=0;
@@ -19,7 +18,7 @@ void __attribute__((weak)) __system_allocateHeaps() {
 	// Allocate the linear heap
 	svcControlMemory(&__linear_heap, 0x0, 0x0, __linear_heap_size, MEMOP_ALLOC_LINEAR, 0x3);
 	// Set up newlib heap
-	fake_heap_start = (char*)__heapBase + __stacksize__;
-	fake_heap_end = fake_heap_start + __heap_size - __stacksize__;
+	fake_heap_start = (char*)__heapBase;
+	fake_heap_end = fake_heap_start + __heap_size;
 
 }
