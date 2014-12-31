@@ -3,9 +3,11 @@
 ///////////////////////////////////////
 
 //this example shows you how to load a binary image file from the SD card and display it on the lower screen
-//for this to work you should copy test.bin to the root of your SD card
+//for this to work you should copy test.bin to same folder as your .3dsx
 //this file was generated with GIMP by saving a 240x320 image to raw RGB
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <3ds.h>
 #include "costable.h"
@@ -42,42 +44,33 @@ void renderEffect()
 
 int main(int argc, char** argv)
 {
-	//initialize the services we're going to be using
-	srvInit(); //needed for everything
-	aptInit(); //needed for everything
-	hidInit(NULL); //needed for input
+
 	gfxInit(); //makes displaying to screen easier
-	fsInit(); //needed for filesystem stuff
 
-	u64 size;
-	u32 bytesRead;
-	Handle fileHandle;
-	//setup SDMC archive
-	FS_archive sdmcArchive=(FS_archive){ARCH_SDMC, (FS_path){PATH_EMPTY, 1, (u8*)""}};
-	//create file path struct (note : FS_makePath actually only supports PATH_CHAR, it will change in the future)
-	FS_path filePath=FS_makePath(PATH_CHAR, "/test.bin");
+	FILE *file = fopen("test.bin","rb");
+	if (file == NULL) goto exit;
 
-	//open file
-	Result ret=FSUSER_OpenFileDirectly(NULL, &fileHandle, sdmcArchive, filePath, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
-	//check for errors : exit if there is one
-	if(ret)goto exit;
+	// seek to end of file
+	fseek(file,0,SEEK_END);
 
-	//get file size
-	ret=FSFILE_GetSize(fileHandle, &size);
-	if(ret)goto exit;
+	// file pointer tells us the size
+	off_t size = ftell(file);
 
-	//allocate a buffer on linear heap (could just be a malloc fwiw)
-	buffer=linearAlloc(size);
+	// seek back to start
+	fseek(file,0,SEEK_SET);
+
+	//allocate a buffer
+	buffer=malloc(size);
 	if(!buffer)goto exit;
 
 	//read contents !
-	ret=FSFILE_Read(fileHandle, &bytesRead, 0x0, buffer, size);
-	if(ret || size!=bytesRead)goto exit;
+	off_t bytesRead = fread(buffer,1,size,file);
 
 	//close the file because we like being nice and tidy
-	ret=FSFILE_Close(fileHandle);
-	if(ret)goto exit;
-	
+	fclose(file);
+
+	if(size!=bytesRead)goto exit;
+
 	while(aptMainLoop())
 	{
 		//exit when user hits B
@@ -98,13 +91,8 @@ int main(int argc, char** argv)
 	//cleanup and return
 	//returning from main() returns to hbmenu when run under ninjhax
 	exit:
-	//closing all handles is super important
-	svcCloseHandle(fileHandle);
+
 	//closing all services even more so
-	fsExit();
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }

@@ -1,5 +1,8 @@
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/services/httpc.h>
 
 Handle __httpc_servhandle = 0;
 
@@ -33,15 +36,26 @@ Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
 	if(ret!=0)return ret;
 
 	ret = srvGetServiceHandle(&context->servhandle, "http:C");
-	if(ret!=0)return ret;
+	if(ret!=0) {
+		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
+		return ret;
+        }
 
 	ret = HTTPC_InitializeConnectionSession(context->servhandle, context->httphandle);
-	if(ret!=0)return ret;
+	if(ret!=0) {
+		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
+		svcCloseHandle(context->servhandle);
+		return ret;
+        }
 
 	if(use_defaultproxy==0)return 0;
 
 	ret = HTTPC_SetProxyDefault(context->servhandle, context->httphandle);
-	if(ret!=0)return ret;
+	if(ret!=0) {
+		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
+		svcCloseHandle(context->servhandle);
+		return ret;
+        }
 
 	return 0;
 }
@@ -51,7 +65,6 @@ Result httpcCloseContext(httpcContext *context)
 	Result ret=0;
 
 	ret = HTTPC_CloseContext(context->servhandle, context->httphandle);
-
 	svcCloseHandle(context->servhandle);
 
 	return ret;

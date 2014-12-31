@@ -2,6 +2,9 @@
 #include <3ds/types.h>
 #include <3ds/services/gsp.h>
 
+#define RGB565(r,g,b)  (((b)&0x1f)|(((g)&0x3f)<<5)|(((r)&0x1f)<<11))
+#define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
+
 typedef enum
 {
 	GFX_TOP = 0,
@@ -22,7 +25,8 @@ void gfxExit();
 //control stuff
 void gfxSet3D(bool enable);
 void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format);
-void gfxSetDoubleBuffering(bool doubleBuffering);
+GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen);
+void gfxSetDoubleBuffering(gfxScreen_t screen, bool doubleBuffering);
 void gfxFlushBuffers();
 void gfxSwapBuffers();
 void gfxSwapBuffersGpu();

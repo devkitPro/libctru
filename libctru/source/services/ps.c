@@ -1,11 +1,14 @@
 #include <stdlib.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/services/ps.h>
 
 static Handle psHandle;
 
 Result psInit()
 {
-	return srvGetServiceHandle(&psHandle, "ps:ps");	
+	return srvGetServiceHandle(&psHandle, "ps:ps");
 }
 
 Result psExit()
@@ -17,7 +20,7 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_typ
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	u32 *_iv = (u32*)iv;
 
 	cmdbuf[0] = 0x000401C4;
@@ -32,14 +35,14 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_typ
 	cmdbuf[9] = (u32)in;
 	cmdbuf[10] = (size << 0x8) | 0x14;
 	cmdbuf[11] = (u32)out;
-	
+
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
 
 	_iv[0] = cmdbuf[2];
 	_iv[1] = cmdbuf[3];
 	_iv[2] = cmdbuf[4];
 	_iv[3] = cmdbuf[5];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -47,7 +50,7 @@ Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_s
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	u32 *_nonce = (u32*)nonce;
 
 	cmdbuf[0] = 0x00050284;
@@ -65,9 +68,9 @@ Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_s
 	cmdbuf[9] = (u32)in;
 	cmdbuf[10] = (out_size << 0x8) | 0x14;
 	cmdbuf[11] = (u32)out;
-	
+
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -75,13 +78,13 @@ Result PS_GetLocalFriendCodeSeed(u64* seed)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = 0x000A0000;
-	
+
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
 
 	*seed = (u64)cmdbuf[2] | (u64)cmdbuf[3] << 32;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -89,12 +92,12 @@ Result PS_GetDeviceId(u32* device_id)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = 0x000B0000;
-	
+
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
 
 	*device_id = cmdbuf[2];
-	
+
 	return (Result)cmdbuf[1];
 }

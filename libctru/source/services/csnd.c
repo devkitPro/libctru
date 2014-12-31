@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/os.h>
+#include <3ds/services/csnd.h>
 
 //See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 

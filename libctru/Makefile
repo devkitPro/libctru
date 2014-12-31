@@ -29,7 +29,9 @@ SOURCES		:=	source \
 			source/gpu \
 			source/services \
 			source/services/soc \
-			source/util
+			source/util \
+			source/system
+
 DATA		:=	data
 INCLUDES	:=	include
 

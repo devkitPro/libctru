@@ -6,7 +6,11 @@
 #include <sys/param.h>
 
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/sdmc.h>
+#include <3ds/services/fs.h>
+
+
 
 /*! @internal
  *
@@ -126,11 +130,14 @@ static const char *sdmc_fixpath(const char *path)
 extern int __system_argc;
 extern char** __system_argv;
 
+static bool sdmcInitialised = false;
+
 /*! Initialize SDMC device */
 Result sdmcInit(void)
 {
-  Result rc;
+  Result rc = 0;
 
+  if (sdmcInitialised) return rc;
 
   rc = FSUSER_OpenArchive(NULL, &sdmcArchive);
 
@@ -157,18 +164,24 @@ Result sdmcInit(void)
     }
   }
 
+  sdmcInitialised = true;
+
   return rc;
 }
 
 /*! Clean up SDMC device */
 Result sdmcExit(void)
 {
-  Result rc;
+  Result rc = 0;
+
+  if (!sdmcInitialised) return rc;
 
   rc = FSUSER_CloseArchive(NULL, &sdmcArchive);
   if(rc == 0)
     RemoveDevice("sdmc");
 
+  sdmcInitialised = false;
+  
   return rc;
 }
 
@@ -240,7 +253,20 @@ sdmc_open(struct _reent *r,
   if(flags & O_CREAT)
     sdmc_flags |= FS_OPEN_CREATE;
 
-  /* TODO: Test O_EXCL. */
+  /* Test O_EXCL. */
+  if((flags & O_CREAT) && (flags & O_EXCL))
+  {
+    rc = FSUSER_CreateFile(NULL, sdmcArchive, FS_makePath(PATH_CHAR, pathptr), 0);
+    if(rc != 0)
+    {
+      r->_errno = rc;
+      if(rc == 0x82044BE)
+        r->_errno = EEXIST;
+      if(rc == 0x86044D2)
+        r->_errno = ENOSPC;
+      return -1;
+    }
+  }
 
   /* set attributes */
   /*if(!(mode & S_IWUSR))
@@ -251,6 +277,16 @@ sdmc_open(struct _reent *r,
                        sdmc_flags, attributes);
   if(rc == 0)
   {
+    if((flags & O_ACCMODE) != O_RDONLY && (flags & O_TRUNC))
+    {
+      rc = FSFILE_SetSize(fd, 0);
+      if(rc != 0)
+      {
+        FSFILE_Close(fd);
+        r->_errno = rc;
+        return -1;
+      }
+    }
     file->fd     = fd;
     file->flags  = (flags & (O_ACCMODE|O_APPEND|O_SYNC));
     file->offset = 0;

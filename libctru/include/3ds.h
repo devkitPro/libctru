@@ -9,8 +9,10 @@ extern "C" {
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/linear.h>
+#include <3ds/vram.h>
 #include <3ds/os.h>
 #include <3ds/gfx.h>
+#include <3ds/console.h>
 
 #include <3ds/services/ac.h>
 #include <3ds/services/apt.h>
@@ -27,6 +29,8 @@ extern "C" {
 #include <3ds/services/soc.h>
 #include <3ds/services/mic.h>
 #include <3ds/services/mvd.h>
+#include <3ds/services/qtm.h>
+#include <3ds/services/hb.h>
 
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>

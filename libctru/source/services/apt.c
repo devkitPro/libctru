@@ -4,7 +4,12 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/services/apt.h>
+#include <3ds/services/gsp.h>
+
 
 #define APT_HANDLER_STACKSIZE (0x1000)
 
@@ -405,9 +410,13 @@ void aptEventHandler(u32 arg)
 	svcExitThread();
 }
 
+static bool aptInitialised = false;
+
 Result aptInit(void)
 {
 	Result ret=0;
+
+	if (aptInitialised) return ret;
 
 	// Initialize APT stuff, escape load screen.
 	ret = __apt_initservicehandle();
@@ -440,11 +449,15 @@ Result aptInit(void)
 	} else
 		aptAppStarted();
 
+	aptInitialised = true;
+
 	return 0;
 }
 
 void aptExit()
 {
+	if (!aptInitialised) return;
+
 	if(!(__system_runflags&RUNFLAG_APTWORKAROUND))aptAppletUtility_Exit_RetToApp(0);
 
 	// This is only executed when application-termination was triggered via the home-menu power-off screen.
@@ -471,6 +484,8 @@ void aptExit()
 	svcCloseHandle(aptStatusMutex);
 	svcCloseHandle(aptLockHandle);
 	svcCloseHandle(aptStatusEvent);
+	
+	aptInitialised = false;
 }
 
 bool aptMainLoop()

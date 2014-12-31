@@ -3,7 +3,12 @@
 */
 #include <stdlib.h>
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/services/apt.h>
+#include <3ds/services/hid.h>
+#include <3ds/services/irrst.h>
 
 Handle hidHandle;
 Handle hidMemHandle;
@@ -18,13 +23,16 @@ static circlePosition cPos;
 static accelVector aVec;
 static angularRate gRate;
 
+static bool hidInitialised;
 
 Result hidInit(u32* sharedMem)
 {
 	u8 val=0;
+	Result ret=0;
+
+	if(hidInitialised) return ret;
 
 	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
-	Result ret=0;
 
 	// Request service.
 	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")))return ret;
@@ -44,6 +52,7 @@ Result hidInit(u32* sharedMem)
 	}
 
 	// Reset internal state.
+	hidInitialised = true;
 	kOld = kHeld = kDown = kUp = 0;
 	return ret;
 
@@ -56,6 +65,8 @@ cleanup1:
 
 void hidExit()
 {
+	if(!hidInitialised) return;
+
 	// Unmap HID sharedmem and close handles.
 	u8 val=0;
 	int i; for(i=0; i<5; i++)svcCloseHandle(hidEvents[i]);
@@ -69,6 +80,8 @@ void hidExit()
 	{
 		irrstExit();
 	}
+	
+	hidInitialised = false;
 }
 
 void hidWaitForEvent(HID_Event id, bool nextEvent)
@@ -245,3 +258,28 @@ Result HIDUSER_DisableGyroscope()
 	return cmdbuf[1];
 }
 
+Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x150000; //request header code
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+
+	*coeff = (float)cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+Result HIDUSER_GetSoundVolume(u8 *volume)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x170000; //request header code
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+
+	*volume = (u8)cmdbuf[2];
+
+	return cmdbuf[1];
+}

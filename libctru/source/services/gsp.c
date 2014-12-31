@@ -4,7 +4,10 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/services/gsp.h>
 
 #define GSP_EVENT_STACK_SIZE 0x1000
 

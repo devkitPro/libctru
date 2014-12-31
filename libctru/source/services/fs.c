@@ -1,5 +1,8 @@
 #include <string.h>
-#include <3ds.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/services/fs.h>
 
 /*! @internal
  *
@@ -34,12 +37,21 @@ FS_makePath(FS_pathType type,
  *
  *  @returns error
  */
+
+static bool fsInitialised = false;
+
 Result
 fsInit(void)
 {
-	Result ret;
+	Result ret = 0;
+
+	if (fsInitialised) return ret;
+
 	if((ret=srvGetServiceHandle(&fsuHandle, "fs:USER"))!=0)return ret;
 	if(__get_handle_from_list("fs:USER")==0)ret=FSUSER_Initialize(NULL);
+
+	fsInitialised = true;
+
 	return ret;
 }
 
@@ -50,6 +62,10 @@ fsInit(void)
 Result
 fsExit(void)
 {
+	if (!fsInitialised) return 0;
+	
+	fsInitialised = false;
+
 	return svcCloseHandle(fsuHandle);
 }
 

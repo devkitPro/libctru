@@ -54,23 +54,20 @@ int inet_aton(const char *cp, struct in_addr *inp)
 
 	switch(num_bytes) {
 	case 0:
-		return 0;
-
-	case 1:
 		break;
 
-	case 2:
+	case 1:
 		if(val > 0xFFFFFF) return 0;
 		val |= bytes[0] << 24;
 		break;
 
-	case 3:
+	case 2:
 		if(val > 0xFFFF) return 0;
 		val |= bytes[0] << 24;
 		val |= bytes[1] << 16;
 		break;
 
-	case 4:
+	case 3:
 		if(val > 0xFF) return 0;
 		val |= bytes[0] << 24;
 		val |= bytes[1] << 16;
