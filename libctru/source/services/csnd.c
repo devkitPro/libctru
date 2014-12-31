@@ -102,7 +102,7 @@ Result csndExit(void)
 	return ret;
 }
 
-static Result CSND_ExecCommand20(u32 offset)
+static Result CSND_ExecChnCmds(u32 offset)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -115,7 +115,7 @@ static Result CSND_ExecCommand20(u32 offset)
 	return (Result)cmdbuf[1];
 }
 
-static void csndWriteCmdType0(int cmdid, u8 *cmdparams)
+void csndWriteChnCmd(int cmdid, u8 *cmdparams)
 {
 	u16* ptr;
 	u32 prevoff;
@@ -136,8 +136,8 @@ static void csndWriteCmdType0(int cmdid, u8 *cmdparams)
 
 	ptr = (u16*)&csndSharedMem[csndCmdCurOff>>2];
 
-	ptr[0] = 0xffff;
-	ptr[1] = cmdid;
+	ptr[0] = 0xFFFF;
+	ptr[1] = cmdid & 0xFFFF;
 	ptr[2] = 0;
 	ptr[3] = 0;
 	memcpy(&ptr[8>>1], cmdparams, 0x18);
@@ -149,7 +149,7 @@ static void csndWriteCmdType0(int cmdid, u8 *cmdparams)
 	svcReleaseMutex(csndMutex);
 }
 
-static Result csndExecCmdType0()
+Result csndExecChnCmds(void)
 {
 	Result ret=0;
 
@@ -157,13 +157,13 @@ static Result csndExecCmdType0()
 	if (csndCmdStartOff == csndCmdCurOff)
 		return 0;
 
-	ret = CSND_ExecCommand20(csndCmdStartOff);
+	ret = CSND_ExecChnCmds(csndCmdStartOff);
 	csndCmdStartOff = csndCmdCurOff;
 
 	return ret;
 }
 
-void csndSharedMemtype0_cmd0(u32 channel, u32 value)
+void CSND_ChnSetPlayStateR(u32 channel, u32 value)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -172,10 +172,10 @@ void csndSharedMemtype0_cmd0(u32 channel, u32 value)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = value;
 
-	csndWriteCmdType0(0x0, (u8*)&cmdparams);
+	csndWriteChnCmd(0x0, (u8*)&cmdparams);
 }
 
-void CSND_setchannel_playbackstate(u32 channel, u32 value)
+void CSND_ChnSetPlayState(u32 channel, u32 value)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -184,10 +184,10 @@ void CSND_setchannel_playbackstate(u32 channel, u32 value)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = value;
 
-	csndWriteCmdType0(0x1, (u8*)&cmdparams);
+	csndWriteChnCmd(0x1, (u8*)&cmdparams);
 }
 
-void csndSharedMemtype0_cmd3(u32 channel, u32 physaddr, u32 size)
+void CSND_ChnSetLoop(u32 channel, u32 physaddr, u32 size)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -197,10 +197,10 @@ void csndSharedMemtype0_cmd3(u32 channel, u32 physaddr, u32 size)
 	cmdparams[1] = physaddr;
 	cmdparams[2] = size;
 
-	csndWriteCmdType0(0x3, (u8*)&cmdparams);
+	csndWriteChnCmd(0x3, (u8*)&cmdparams);
 }
 
-void csndSharedMemtype0_cmd9(u32 channel, u16 value)
+void CSND_ChnSetVol(u32 channel, u16 value)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -209,22 +209,22 @@ void csndSharedMemtype0_cmd9(u32 channel, u16 value)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = value | (value<<16);
 
-	csndWriteCmdType0(0x9, (u8*)&cmdparams);
+	csndWriteChnCmd(0x9, (u8*)&cmdparams);
 }
 
-void csndSharedMemtype0_cmd8(u32 channel, u32 samplerate)
+void CSND_ChnSetTimer(u32 channel, u32 timer)
 {
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
 	cmdparams[0] = channel & 0x1f;
-	cmdparams[1] = CSND_TIMER(samplerate);
+	cmdparams[1] = timer;
 
-	csndWriteCmdType0(0x8, (u8*)&cmdparams);
+	csndWriteChnCmd(0x8, (u8*)&cmdparams);
 }
 
-void csndSharedMemtype0_cmde(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
+void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 {
 	u32 val;
 	u32 cmdparams[0x18>>2];
@@ -247,10 +247,10 @@ void csndSharedMemtype0_cmde(u32 channel, u32 looping, u32 encoding, u32 sampler
 	cmdparams[4] = physaddr1;
 	cmdparams[5] = totalbytesize;
 
-	csndWriteCmdType0(0xe, (u8*)&cmdparams);
+	csndWriteChnCmd(0xe, (u8*)&cmdparams);
 }
 
-Result csndSharedMemtype0_cmdupdatestate(int waitdone)
+Result CSND_UpdateChnInfo(bool waitdone)
 {
 	u8 *ptr;
 	int ret=0;
@@ -261,20 +261,18 @@ Result csndSharedMemtype0_cmdupdatestate(int waitdone)
 
 	ptr = (u8*)&csndSharedMem[csndCmdStartOff>>2];
 
-	csndWriteCmdType0(0x300, (u8*)&cmdparams);
+	csndWriteChnCmd(0x300, (u8*)&cmdparams);
 
-	ret = csndExecCmdType0();
-	if(ret!=0)return ret;
+	ret = csndExecChnCmds();
+	if (ret != 0) return ret;
 
-	if(waitdone)
-	{
-		while(*ptr == 0);
-	}
+	// This is bad! Busy loops are bad!
+	while (waitdone && *ptr == 0);
 
 	return 0;
 }
 
-Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1)
+Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1)
 {
 	u32 physaddr0 = 0;
 	u32 physaddr1 = 0;
@@ -282,25 +280,25 @@ Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u3
 	physaddr0 = osConvertVirtToPhys((u32)vaddr0);
 	physaddr1 = osConvertVirtToPhys((u32)vaddr1);
 
-	csndSharedMemtype0_cmde(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
-	csndSharedMemtype0_cmd8(channel, samplerate);
+	CSND_ChnConfig(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
+	CSND_ChnSetTimer(channel, CSND_TIMER(samplerate));
 	if(looping)
 	{
 		if(physaddr1>physaddr0)totalbytesize-= (u32)physaddr1 - (u32)physaddr0;
-		csndSharedMemtype0_cmd3(channel, physaddr1, totalbytesize);
+		CSND_ChnSetLoop(channel, physaddr1, totalbytesize);
 	}
-	csndSharedMemtype0_cmd8(channel, samplerate);
-	csndSharedMemtype0_cmd9(channel, 0xffff);
-	CSND_setchannel_playbackstate(channel, 1);
+	CSND_ChnSetTimer(channel, CSND_TIMER(samplerate));
+	CSND_ChnSetVol(channel, 0xffff);
+	CSND_ChnSetPlayState(channel, 1);
 
-	return csndSharedMemtype0_cmdupdatestate(0);
+	return CSND_UpdateChnInfo(false);
 }
 
-Result CSND_getchannelstate(u32 entryindex, struct CSND_CHANNEL_STATUS *out)
+Result csndChnGetState(u32 entryindex, u32 *out)
 {
-	Result ret=0;
+	Result ret = 0;
 
-	if((ret = csndSharedMemtype0_cmdupdatestate(1))!=0)return ret;
+	if((ret = CSND_UpdateChnInfo(true)) != 0)return ret;
 
 	memcpy(out, &csndSharedMem[(csndCmdBlockSize+8 + entryindex*0xc) >> 2], 0xc);
 	out[2] -= 0x0c000000;
@@ -308,12 +306,12 @@ Result CSND_getchannelstate(u32 entryindex, struct CSND_CHANNEL_STATUS *out)
 	return 0;
 }
 
-Result CSND_getchannelstate_isplaying(u32 entryindex, u8 *status)
+Result csndChnIsPlaying(u32 entryindex, u8 *status)
 {
 	Result ret;
 	struct CSND_CHANNEL_STATUS entry;
 
-	ret = CSND_getchannelstate(entryindex, &entry);
+	ret = csndChnGetState(entryindex, entry);
 	if(ret!=0)return ret;
 
 	*status = entry.state;

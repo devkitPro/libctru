@@ -23,12 +23,19 @@ typedef enum{
 Result csndInit(void);
 Result csndExit(void);
 
-u32 CSND_convertsamplerate(u32 samplerate);
-Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1);
-void CSND_setchannel_playbackstate(u32 channel, u32 value);
-void CSND_sharedmemtype0_cmd0(u32 channel, u32 value);
-void CSND_writesharedmem_cmdtype0(u16 cmdid, u8 *cmdparams);
-Result CSND_sharedmemtype0_cmdupdatestate(int waitdone);
+void csndWriteChnCmd(int cmdid, u8 *cmdparams);
+Result csndExecChnCmds(void);
 
-Result CSND_getchannelstate(u32 entryindex, struct CSND_CHANNEL_STATUS *out);
-Result CSND_getchannelstate_isplaying(u32 entryindex, u8 *status);
+void CSND_ChnSetPlayStateR(u32 channel, u32 value);
+void CSND_ChnSetPlayState(u32 channel, u32 value);
+void CSND_ChnSetLoop(u32 channel, u32 physaddr, u32 size);
+void CSND_ChnSetVol(u32 channel, u16 value);
+void CSND_ChnSetTimer(u32 channel, u32 timer);
+void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
+
+Result CSND_UpdateChnInfo(bool waitdone);
+
+Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1);
+
+Result csndChnGetState(u32 entryindex, u32 *out);
+Result csndChnIsPlaying(u32 entryindex, u8 *status);
