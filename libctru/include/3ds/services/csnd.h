@@ -4,30 +4,24 @@
 
 #define CSND_SHAREDMEM_DEFAULT 0x10004000
 
+#define CSND_TIMER(n) (0x3FEC3FC / ((u32)(n)))
+
 typedef enum{
-	CSND_LOOP_DISABLE,
-	CSND_LOOP_ENABLE
+    CSND_LOOP_DISABLE,
+    CSND_LOOP_ENABLE,
 } CSND_LOOPING;
 
 typedef enum{
-	CSND_ENCODING_PCM8,
-	CSND_ENCODING_PCM16,
-	CSND_ENCODING_IMA_ADPCM,
-	CSND_ENCODING_PSG//"3 = PSG, similar to DS?"
+    CSND_ENCODING_PCM8,
+    CSND_ENCODING_PCM16,
+    CSND_ENCODING_IMA_ADPCM,
+    CSND_ENCODING_PSG, // Similar to DS?
 } CSND_ENCODING;
 
-struct  CSND_CHANNEL_STATUS {
-	u8  state;
-	u8  pad[3];
-	u32 unknown;
-	u32 position;
-} ALIGN(4);
+// See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 
-
-//See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
-
-Result CSND_initialize(u32* sharedMem);
-Result CSND_shutdown();
+Result csndInit(void);
+Result csndExit(void);
 
 u32 CSND_convertsamplerate(u32 samplerate);
 Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1);
