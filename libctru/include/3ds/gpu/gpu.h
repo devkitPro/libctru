@@ -211,6 +211,7 @@ void GPU_SetColorLogicOp(GPU_LOGICOP op);
 void GPU_SetBlendingColor(u8 r, u8 g, u8 b, u8 a);
 
 void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[]);
+void GPU_SetAttributeBuffersAddress(u32* baseAddress);
 
 void GPU_SetTextureEnable(GPU_TEXUNIT units); // GPU_TEXUNITx values can be ORed together to enable multiple texture units
 void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
