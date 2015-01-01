@@ -149,7 +149,7 @@ void csndWriteChnCmd(int cmdid, u8 *cmdparams)
 	svcReleaseMutex(csndMutex);
 }
 
-Result csndExecChnCmds(void)
+Result csndExecChnCmds(bool waitDone)
 {
 	Result ret=0;
 
@@ -157,8 +157,13 @@ Result csndExecChnCmds(void)
 	if (csndCmdStartOff == csndCmdCurOff)
 		return 0;
 
+	vu8* flag = (vu8*)&csndSharedMem[csndCmdStartOff>>2];
+
 	ret = CSND_ExecChnCmds(csndCmdStartOff);
 	csndCmdStartOff = csndCmdCurOff;
+
+	// FIXME: This is a really ugly busy waiting loop!
+	while (waitDone && *flag == 0);
 
 	return ret;
 }
@@ -248,26 +253,14 @@ void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 timer, u32 unk0,
 	csndWriteChnCmd(0xe, (u8*)&cmdparams);
 }
 
-Result CSND_UpdateChnInfo(bool waitdone)
+Result CSND_UpdateChnInfo(bool waitDone)
 {
-	u8 *ptr;
-	int ret=0;
-
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
-	ptr = (u8*)&csndSharedMem[csndCmdStartOff>>2];
-
 	csndWriteChnCmd(0x300, (u8*)&cmdparams);
-
-	ret = csndExecChnCmds();
-	if (ret != 0) return ret;
-
-	// This is bad! Busy loops are bad!
-	while (waitdone && *ptr == 0);
-
-	return 0;
+	return csndExecChnCmds(waitDone);
 }
 
 Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1)
