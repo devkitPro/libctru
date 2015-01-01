@@ -29,9 +29,9 @@ Result csndExecChnCmds(void);
 void CSND_ChnSetPlayStateR(u32 channel, u32 value);
 void CSND_ChnSetPlayState(u32 channel, u32 value);
 void CSND_ChnSetLoop(u32 channel, u32 physaddr, u32 size);
-void CSND_ChnSetVol(u32 channel, u16 value);
+void CSND_ChnSetVol(u32 channel, u16 left, u16 right);
 void CSND_ChnSetTimer(u32 channel, u32 timer);
-void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
+void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 timer, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
 
 Result CSND_UpdateChnInfo(bool waitdone);
 

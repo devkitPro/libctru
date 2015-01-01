@@ -200,14 +200,14 @@ void CSND_ChnSetLoop(u32 channel, u32 physaddr, u32 size)
 	csndWriteChnCmd(0x3, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetVol(u32 channel, u16 value)
+void CSND_ChnSetVol(u32 channel, u16 left, u16 right)
 {
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
 	cmdparams[0] = channel & 0x1f;
-	cmdparams[1] = value | (value<<16);
+	cmdparams[1] = left | (right<<16);
 
 	csndWriteChnCmd(0x9, (u8*)&cmdparams);
 }
@@ -224,9 +224,8 @@ void CSND_ChnSetTimer(u32 channel, u32 timer)
 	csndWriteChnCmd(0x8, (u8*)&cmdparams);
 }
 
-void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
+void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 timer, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 {
-	u32 val;
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
@@ -238,10 +237,9 @@ void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 
 	cmdparams[0] |= (encoding & 3) << 12;
 	cmdparams[0] |= (unk1 & 3) << 14;
 
-	val = CSND_TIMER(samplerate);
-	if(val<0x42)val = 0x42;
-	if(val>0xffff)val = 0xffff;
-	cmdparams[0] |= val<<16;
+	if (timer < 0x42) timer = 0x42;
+	if (timer > 0xffff) timer = 0xffff;
+	cmdparams[0] |= timer<<16;
 
 	cmdparams[3] = physaddr0;
 	cmdparams[4] = physaddr1;
@@ -280,15 +278,13 @@ Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, 
 	physaddr0 = osConvertVirtToPhys((u32)vaddr0);
 	physaddr1 = osConvertVirtToPhys((u32)vaddr1);
 
-	CSND_ChnConfig(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
-	CSND_ChnSetTimer(channel, CSND_TIMER(samplerate));
+	CSND_ChnConfig(channel, looping, encoding, CSND_TIMER(samplerate), unk0, unk1, physaddr0, physaddr1, totalbytesize);
 	if(looping)
 	{
 		if(physaddr1>physaddr0)totalbytesize-= (u32)physaddr1 - (u32)physaddr0;
 		CSND_ChnSetLoop(channel, physaddr1, totalbytesize);
 	}
-	CSND_ChnSetTimer(channel, CSND_TIMER(samplerate));
-	CSND_ChnSetVol(channel, 0xffff);
+	CSND_ChnSetVol(channel, 0xFFFF, 0xFFFF);
 	CSND_ChnSetPlayState(channel, 1);
 
 	return CSND_UpdateChnInfo(false);
