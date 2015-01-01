@@ -1,7 +1,7 @@
 #pragma once
-
 #include <3ds/types.h>
 
+#define CSND_NUM_CHANNELS 32
 #define CSND_SHAREDMEM_DEFAULT 0x10004000
 
 #define CSND_TIMER(n) (0x3FEC3FC / ((u32)(n)))
@@ -18,7 +18,26 @@ typedef enum{
     CSND_ENCODING_PSG, // Similar to DS?
 } CSND_ENCODING;
 
+typedef union
+{
+	u32 value[3];
+	struct
+	{
+		u8 active;
+		u8 _pad1;
+		u16 _pad2;
+		s16 adpcmSample;
+		u8 adpcmIndex;
+		u8 _pad3;
+		u32 samplePAddr;
+	};
+} CSND_ChnInfo;
+
 // See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
+
+extern vu32* csndSharedMem;
+extern u32 csndSharedMemSize;
+extern u32 csndChannels; // Bitmask of channels that are allowed for usage
 
 Result csndInit(void);
 Result csndExit(void);
@@ -37,5 +56,7 @@ Result CSND_UpdateChnInfo(bool waitDone);
 
 Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1);
 
-Result csndChnGetState(u32 entryindex, u32 *out);
-Result csndChnIsPlaying(u32 entryindex, u8 *status);
+CSND_ChnInfo* csndChnGetInfo(u32 channel); // Requires previous CSND_UpdateChnInfo()
+
+Result csndChnGetState(u32 channel, u32 *out);
+Result csndChnIsPlaying(u32 channel, u8 *status);

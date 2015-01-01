@@ -8,12 +8,15 @@
 
 // See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 
+vu32* csndSharedMem = NULL;
+u32 csndSharedMemSize;
+u32 csndChannels = 0;
+
 static Handle csndHandle = 0;
 static Handle csndMutex = 0;
 static Handle csndSharedMemBlock = 0;
-static vu32* csndSharedMem = NULL;
-static u32 csndBitmask = 0;
 
+static u8 csndChnIdx[CSND_NUM_CHANNELS];
 static u32 csndCmdBlockSize = 0x2000;
 static u32 csndCmdStartOff = 0;
 static u32 csndCmdCurOff = 0;
@@ -50,7 +53,7 @@ static Result CSND_Shutdown()
 	return (Result)cmdbuf[1];
 }
 
-static Result CSND_GetBitmask(u32* bitmask)
+static Result CSND_AcquireSoundChannels(u32* channelMask)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -59,7 +62,19 @@ static Result CSND_GetBitmask(u32* bitmask)
 
 	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
-	*bitmask = cmdbuf[2];
+	*channelMask = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+static Result CSND_ReleaseSoundChannels(void)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00060000;
+
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -74,18 +89,31 @@ Result csndInit(void)
 	ret = srvGetServiceHandle(&csndHandle, "csnd:SND");
 	if (ret != 0) return ret;
 
-	u32 sharedMemSize = csndCmdBlockSize+0x114;
+	u32 offset0 = csndCmdBlockSize;
+	u32 offset1 = offset0 + 8;
+	u32 offset2 = offset1 + 32*sizeof(CSND_ChnInfo);
+	u32 offset3 = offset2 + 0x10;
+	csndSharedMemSize = offset3 + 0x3C;
 
-	ret = CSND_Initialize(sharedMemSize, csndCmdBlockSize, csndCmdBlockSize+8, csndCmdBlockSize+0xc8, csndCmdBlockSize+0xd8);
+	ret = CSND_Initialize(csndSharedMemSize, offset0, offset1, offset2, offset3);
 	if (ret != 0) return ret;
 
 	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, 3, 0x10000000);
 	if (ret != 0) return ret;
 
-	memset((void*)csndSharedMem, 0, sharedMemSize);
+	memset((void*)csndSharedMem, 0, csndSharedMemSize);
 
-	ret = CSND_GetBitmask(&csndBitmask);
+	ret = CSND_AcquireSoundChannels(&csndChannels);
 	if (ret != 0) return ret;
+
+	// Build index table
+	int i, j = 0;
+	for (i = 0; i < CSND_NUM_CHANNELS; i ++)
+	{
+		csndChnIdx[i] = j;
+		if (csndChannels & BIT(i))
+			j ++;
+	}
 
 	return 0;
 }
@@ -93,6 +121,9 @@ Result csndInit(void)
 Result csndExit(void)
 {
 	Result ret;
+
+	ret = CSND_ReleaseSoundChannels();
+	if (ret != 0) return ret;
 
 	svcUnmapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem);
 	svcCloseHandle(csndSharedMemBlock);
@@ -265,6 +296,9 @@ Result CSND_UpdateChnInfo(bool waitDone)
 
 Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1)
 {
+	if (!(csndChannels & BIT(channel)))
+		return 1;
+
 	u32 physaddr0 = 0;
 	u32 physaddr1 = 0;
 
@@ -283,28 +317,34 @@ Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, 
 	return CSND_UpdateChnInfo(false);
 }
 
-Result csndChnGetState(u32 entryindex, u32 *out)
+CSND_ChnInfo* csndChnGetInfo(u32 channel)
+{
+	channel = csndChnIdx[channel];
+	return (CSND_ChnInfo*)(&csndSharedMem[(csndCmdBlockSize+8 + channel*0xc) >> 2]);
+}
+
+Result csndChnGetState(u32 channel, u32 *out)
 {
 	Result ret = 0;
+	channel = csndChnIdx[channel];
 
 	if((ret = CSND_UpdateChnInfo(true)) != 0)return ret;
 
-	memcpy(out, (const void*)&csndSharedMem[(csndCmdBlockSize+8 + entryindex*0xc) >> 2], 0xc);
+	memcpy(out, (const void*)&csndSharedMem[(csndCmdBlockSize+8 + channel*0xc) >> 2], 0xc);
 	//out[2] -= 0x0c000000;
 
 	return 0;
 }
 
-Result csndChnIsPlaying(u32 entryindex, u8 *status)
+Result csndChnIsPlaying(u32 channel, u8 *status)
 {
 	Result ret;
 	struct CSND_CHANNEL_STATUS entry;
 
-	ret = csndChnGetState(entryindex, entry);
+	ret = csndChnGetState(channel, entry);
 	if(ret!=0)return ret;
 
 	*status = entry.state;
 
 	return 0;
 }
-
