@@ -181,7 +181,7 @@ Result sdmcExit(void)
     RemoveDevice("sdmc");
 
   sdmcInitialised = false;
-  
+
   return rc;
 }
 
@@ -527,7 +527,48 @@ sdmc_stat(struct _reent *r,
           const char    *file,
           struct stat   *st)
 {
-  r->_errno = ENOSYS;
+  Handle fd;
+  Result rc;
+  const char  *pathptr = NULL;
+
+  pathptr = sdmc_fixpath(file);
+
+  if(pathptr==NULL)
+  {
+    r->_errno=EINVAL;
+    return -1;
+  }
+
+  if( (rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr),
+                       FS_OPEN_READ, FS_ATTRIBUTE_NONE))==0)
+  {
+    u64 tmpsize = 0;
+    rc = FSFILE_GetSize(fd, &tmpsize);
+
+    FSFILE_Close(fd);
+
+    if(rc==0)
+    {
+      memset(st, 0, sizeof(struct stat));
+      st->st_size = (off_t)tmpsize;
+      st->st_nlink = 1;
+      st->st_uid = 1;
+      st->st_gid = 2;
+      st->st_mode = S_IFREG | S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH;
+      return 0;
+    }
+  }
+    if( (rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr))) == 0 )
+    {
+      memset(st, 0, sizeof(struct stat));
+      st->st_nlink = 1;
+      st->st_uid = 1;
+      st->st_gid = 2;
+      st->st_mode = S_IFDIR | S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH;
+      return 0;
+    }
+
+  r->_errno = EBADF;
   return -1;
 }
 
