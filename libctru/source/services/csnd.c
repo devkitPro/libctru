@@ -11,7 +11,7 @@
 static Handle csndHandle = 0;
 static Handle csndMutex = 0;
 static Handle csndSharedMemBlock = 0;
-static u32* csndSharedMem = NULL;
+static vu32* csndSharedMem = NULL;
 static u32 csndBitmask = 0;
 
 static u32 csndCmdBlockSize = 0x2000;
@@ -67,7 +67,7 @@ static Result CSND_GetBitmask(u32* bitmask)
 Result csndInit(void)
 {
 	Result ret=0;
-	csndSharedMem = (u32*)CSND_SHAREDMEM_DEFAULT;
+	csndSharedMem = (vu32*)CSND_SHAREDMEM_DEFAULT;
 
 	// TODO: proper error handling!
 
@@ -82,7 +82,7 @@ Result csndInit(void)
 	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, 3, 0x10000000);
 	if (ret != 0) return ret;
 
-	memset(csndSharedMem, 0, sharedMemSize);
+	memset((void*)csndSharedMem, 0, sharedMemSize);
 
 	ret = CSND_GetBitmask(&csndBitmask);
 	if (ret != 0) return ret;
@@ -117,7 +117,7 @@ static Result CSND_ExecChnCmds(u32 offset)
 
 void csndWriteChnCmd(int cmdid, u8 *cmdparams)
 {
-	u16* ptr;
+	vu16* ptr;
 	u32 prevoff;
 	s32 outindex=0;
 
@@ -130,17 +130,17 @@ void csndWriteChnCmd(int cmdid, u8 *cmdparams)
 		else
 			prevoff = csndCmdBlockSize-0x20;
 
-		ptr = (u16*)&csndSharedMem[prevoff>>2];
+		ptr = (vu16*)&csndSharedMem[prevoff>>2];
 		*ptr = csndCmdCurOff;
 	}
 
-	ptr = (u16*)&csndSharedMem[csndCmdCurOff>>2];
+	ptr = (vu16*)&csndSharedMem[csndCmdCurOff>>2];
 
 	ptr[0] = 0xFFFF;
 	ptr[1] = cmdid & 0xFFFF;
 	ptr[2] = 0;
 	ptr[3] = 0;
-	memcpy(&ptr[8>>1], cmdparams, 0x18);
+	memcpy((void*)&ptr[8>>1], cmdparams, 0x18);
 
 	csndCmdCurOff += 0x20;
 	if (csndCmdCurOff >= csndCmdBlockSize)
@@ -289,8 +289,8 @@ Result csndChnGetState(u32 entryindex, u32 *out)
 
 	if((ret = CSND_UpdateChnInfo(true)) != 0)return ret;
 
-	memcpy(out, &csndSharedMem[(csndCmdBlockSize+8 + entryindex*0xc) >> 2], 0xc);
-	out[2] -= 0x0c000000;
+	memcpy(out, (const void*)&csndSharedMem[(csndCmdBlockSize+8 + entryindex*0xc) >> 2], 0xc);
+	//out[2] -= 0x0c000000;
 
 	return 0;
 }
