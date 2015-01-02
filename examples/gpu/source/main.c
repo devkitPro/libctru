@@ -162,7 +162,7 @@ void renderFrame()
 
 	//texturing stuff
 		GPU_SetTexture(GPU_TEXUNIT0, (u32*)osConvertVirtToPhys((u32)texData),128,128,GPU_TEXTURE_MAG_FILTER(GPU_NEAREST)|GPU_TEXTURE_MIN_FILTER(GPU_NEAREST),GPU_RGBA8);
-		GPU_SetAttributeBuffers(3, (u32*)osConvertVirtToPhys((u32)texData),
+		GPU_SetAttributeBuffers(3, (u32*)osConvertVirtToPhys((u32)vbo.data),
 			GPU_ATTRIBFMT(0, 3, GPU_FLOAT)|GPU_ATTRIBFMT(1, 2, GPU_FLOAT)|GPU_ATTRIBFMT(2, 3, GPU_FLOAT),
 			0xFFC, 0x210, 1, (u32[]){0x00000000}, (u64[]){0x210}, (u8[]){3});
 
