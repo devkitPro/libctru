@@ -187,10 +187,11 @@ Result csndExecChnCmds(bool waitDone)
 	if (csndCmdStartOff == csndCmdCurOff)
 		return 0;
 
-	vu8* flag = (vu8*)&csndSharedMem[csndCmdStartOff>>2];
+	vu8* flag = (vu8*)&csndSharedMem[(csndCmdStartOff + 4) >> 2];
 
 	ret = CSND_ExecChnCmds(csndCmdStartOff);
 	csndCmdStartOff = csndCmdCurOff;
+	if (ret != 0) return ret;
 
 	// FIXME: This is a really ugly busy waiting loop!
 	while (waitDone && *flag == 0);
