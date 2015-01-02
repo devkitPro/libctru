@@ -11,6 +11,7 @@
 vu32* csndSharedMem = NULL;
 u32 csndSharedMemSize;
 u32 csndChannels = 0;
+u32 csndOffsets[4];
 
 static Handle csndHandle = 0;
 static Handle csndMutex = 0;
@@ -21,17 +22,14 @@ static u32 csndCmdBlockSize = 0x2000;
 static u32 csndCmdStartOff = 0;
 static u32 csndCmdCurOff = 0;
 
-static Result CSND_Initialize(u32 sharedmem_size, u32 off0, u32 off1, u32 off2, u32 off3)
+static Result CSND_Initialize(void)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x00010140;
-	cmdbuf[1] = sharedmem_size;
-	cmdbuf[2] = off0;
-	cmdbuf[3] = off1;
-	cmdbuf[4] = off2;
-	cmdbuf[5] = off3;
+	cmdbuf[1] = csndSharedMemSize;
+	memcpy(&cmdbuf[2], &csndOffsets[0], 4*sizeof(u32));
 
 	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
@@ -89,13 +87,14 @@ Result csndInit(void)
 	ret = srvGetServiceHandle(&csndHandle, "csnd:SND");
 	if (ret != 0) return ret;
 
-	u32 offset0 = csndCmdBlockSize;
-	u32 offset1 = offset0 + 8;
-	u32 offset2 = offset1 + 32*sizeof(CSND_ChnInfo);
-	u32 offset3 = offset2 + 0x10;
-	csndSharedMemSize = offset3 + 0x3C;
+	// Calculate offsets and sizes required by the CSND module
+	csndOffsets[0] = csndCmdBlockSize;                         // Offset to some unknown DSP status flags
+	csndOffsets[1] = csndOffsets[0] + 8;                       // Offset to sound channel information
+	csndOffsets[2] = csndOffsets[1] + 32*sizeof(CSND_ChnInfo); // Offset to information for an 'unknown' sort of channels
+	csndOffsets[3] = csndOffsets[2] + 2*8;                     // Offset to more unknown information
+	csndSharedMemSize = csndOffsets[3] + 0x3C;                 // Total size of the CSND shared memory
 
-	ret = CSND_Initialize(csndSharedMemSize, offset0, offset1, offset2, offset3);
+	ret = CSND_Initialize();
 	if (ret != 0) return ret;
 
 	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, 3, 0x10000000);
@@ -106,7 +105,7 @@ Result csndInit(void)
 	ret = CSND_AcquireSoundChannels(&csndChannels);
 	if (ret != 0) return ret;
 
-	// Build index table
+	// Build channel indices for the sound channel information table
 	int i, j = 0;
 	for (i = 0; i < CSND_NUM_CHANNELS; i ++)
 	{
@@ -168,10 +167,10 @@ void csndWriteChnCmd(int cmdid, u8 *cmdparams)
 	ptr = (vu16*)&csndSharedMem[csndCmdCurOff>>2];
 
 	ptr[0] = 0xFFFF;
-	ptr[1] = cmdid & 0xFFFF;
+	ptr[1] = cmdid;
 	ptr[2] = 0;
 	ptr[3] = 0;
-	memcpy((void*)&ptr[8>>1], cmdparams, 0x18);
+	memcpy((void*)&ptr[4], cmdparams, 0x18);
 
 	csndCmdCurOff += 0x20;
 	if (csndCmdCurOff >= csndCmdBlockSize)
@@ -268,8 +267,8 @@ void CSND_ChnConfig(u32 channel, u32 looping, u32 encoding, u32 timer, u32 unk0,
 
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[0] |= (unk0 & 0xf) << 6;
-	if(!looping)cmdparams[0] |= 2 << 10;
-	if(looping)cmdparams[0] |= 1 << 10;
+	if (!looping) cmdparams[0] |= 2 << 10;
+	if (looping) cmdparams[0] |= 1 << 10;
 	cmdparams[0] |= (encoding & 3) << 12;
 	cmdparams[0] |= (unk1 & 3) << 14;
 
@@ -314,13 +313,13 @@ Result csndChnPlaySound(u32 channel, u32 looping, u32 encoding, u32 samplerate, 
 	CSND_ChnSetVol(channel, 0xFFFF, 0xFFFF);
 	CSND_ChnSetPlayState(channel, 1);
 
-	return CSND_UpdateChnInfo(false);
+	return csndExecChnCmds(true);
 }
 
 CSND_ChnInfo* csndChnGetInfo(u32 channel)
 {
 	channel = csndChnIdx[channel];
-	return (CSND_ChnInfo*)(&csndSharedMem[(csndCmdBlockSize+8 + channel*0xc) >> 2]);
+	return (CSND_ChnInfo*)(&csndSharedMem[(csndOffsets[1] + channel*0xc) >> 2]);
 }
 
 Result csndChnGetState(u32 channel, u32 *out)
@@ -328,9 +327,9 @@ Result csndChnGetState(u32 channel, u32 *out)
 	Result ret = 0;
 	channel = csndChnIdx[channel];
 
-	if((ret = CSND_UpdateChnInfo(true)) != 0)return ret;
+	if ((ret = CSND_UpdateChnInfo(true)) != 0)return ret;
 
-	memcpy(out, (const void*)&csndSharedMem[(csndCmdBlockSize+8 + channel*0xc) >> 2], 0xc);
+	memcpy(out, (const void*)&csndSharedMem[(csndOffsets[1] + channel*0xc) >> 2], 0xc);
 	//out[2] -= 0x0c000000;
 
 	return 0;
