@@ -41,7 +41,7 @@ Result shaderInstanceInit(shaderInstance_s* si, DVLE_s* dvle)
 		if(float24cnt)
 		{
 			si->float24Uniforms = malloc(sizeof(float24Uniform_s)*float24cnt);
-			if(!si->float24Uniforms)
+			if(si->float24Uniforms)
 			{
 				float24cnt = 0;
 				u32 rev[3];
@@ -55,7 +55,7 @@ Result shaderInstanceInit(shaderInstance_s* si, DVLE_s* dvle)
 						memcpy(&rev8[6], &cnst[i].data[2], 3);
 						memcpy(&rev8[9], &cnst[i].data[3], 3);
 
-						si->float24Uniforms[float24cnt].id = cnst[i].id;
+						si->float24Uniforms[float24cnt].id = cnst[i].id&0xFF;
 						si->float24Uniforms[float24cnt].data[0] = rev[2];
 						si->float24Uniforms[float24cnt].data[1] = rev[1];
 						si->float24Uniforms[float24cnt].data[2] = rev[0];
