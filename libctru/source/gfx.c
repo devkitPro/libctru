@@ -192,6 +192,8 @@ void gfxExit()
 	GSPGPU_ReleaseRight(NULL);
 
 	gspExit();
+
+	screenFree = NULL;
 }
 
 u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* height)
