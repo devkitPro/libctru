@@ -5,6 +5,7 @@
 #include <3ds/gfx.h>
 #include <3ds/svc.h>
 #include <3ds/linear.h>
+#include <3ds/vram.h>
 
 GSP_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
 
@@ -96,8 +97,20 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	framebufferInfoHeader[0x1]=1;
 }
 
-void gfxInit()
+void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomFormat, bool vrambuffers)
 {
+	void *(*screenAlloc)(size_t);
+
+	if (vrambuffers)
+	{
+		screenAlloc=vramAlloc;
+
+	} else {
+
+		screenAlloc=linearAlloc;
+
+	}
+
 	gspInit();
 
 	gfxSharedMemory=(u8*)0x10002000;
@@ -117,13 +130,16 @@ void gfxInit()
 	//	 if 3d enabled :
 	//		topright1 0x000FD200-0x00143700
 	//		topright2 0x00143700-0x00189C00
+	u32 topSize = 400 * 240 * __get_bytes_per_pixel(topFormat);
+	u32 bottomSize = 320 * 240 * __get_bytes_per_pixel(bottomFormat);
 
-	gfxTopLeftFramebuffers[0]=linearAlloc(0x46500);
-	gfxTopLeftFramebuffers[1]=linearAlloc(0x46500);
-	gfxBottomFramebuffers[0]=linearAlloc(0x38400);
-	gfxBottomFramebuffers[1]=linearAlloc(0x38400);
-	gfxTopRightFramebuffers[0]=linearAlloc(0x46500);
-	gfxTopRightFramebuffers[1]=linearAlloc(0x46500);
+	gfxTopLeftFramebuffers[0]=screenAlloc(topSize);
+	gfxTopLeftFramebuffers[1]=screenAlloc(topSize);
+	gfxBottomFramebuffers[0]=screenAlloc(bottomSize);
+	gfxBottomFramebuffers[1]=screenAlloc(bottomSize);
+	gfxTopRightFramebuffers[0]=screenAlloc(topSize);
+	gfxTopRightFramebuffers[1]=screenAlloc(topSize);
+
 	enable3d=false;
 
 	//initialize framebuffer info structures
@@ -141,6 +157,10 @@ void gfxInit()
 	gspWaitForVBlank();
 
 	GSPGPU_SetLcdForceBlack(NULL, 0x0);
+}
+
+void gfxInitDefault() {
+	gfxInit(GSP_BGR8_OES,GSP_BGR8_OES,false);
 }
 
 void gfxExit()
