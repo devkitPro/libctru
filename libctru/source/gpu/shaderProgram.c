@@ -87,7 +87,7 @@ Result shaderInstanceSetBool(shaderInstance_s* si, int id, bool value)
 	if(id<0 || id>15)return -2;
 
 	si->boolUniforms &= ~(1<<id);
-	si->boolUniforms |= (!value)<<id;
+	si->boolUniforms |= (value)<<id;
 
 	return 0;
 }
@@ -138,7 +138,7 @@ Result shaderProgramSetVsh(shaderProgram_s* sp, DVLE_s* dvle)
 	return shaderInstanceInit(sp->vertexShader, dvle);
 }
 
-Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle)
+Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride)
 {
 	if(!sp || !dvle)return -1;
 	if(dvle->type != GEOMETRY_SHDR)return -2;
@@ -147,6 +147,8 @@ Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle)
 
 	sp->geometryShader = (shaderInstance_s*)malloc(sizeof(shaderInstance_s));
 	if(!sp->geometryShader)return -3;
+
+	sp->geometryShaderInputStride = stride;
 
 	return shaderInstanceInit(sp->geometryShader, dvle);
 }
@@ -201,7 +203,7 @@ Result shaderProgramUse(shaderProgram_s* sp)
 		GPU_SetShaderOutmap((u32*)gshDvle->outmapData);
 
 		//GSH input attributes stuff
-		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000003);
+		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000|(sp->geometryShaderInputStride-1));
 		GPUCMD_AddIncrementalWrites(GPUREG_GSH_ATTRIBUTES_PERMUTATION_LOW, ((u32[]){0x76543210, 0xFEDCBA98}), 2);
 
 		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000002);

@@ -24,6 +24,7 @@ typedef struct
 {
 	shaderInstance_s* vertexShader;
 	shaderInstance_s* geometryShader;
+	u8 geometryShaderInputStride;
 }shaderProgram_s;
 
 Result shaderInstanceInit(shaderInstance_s* si, DVLE_s* dvle);
@@ -34,5 +35,5 @@ Result shaderInstanceGetBool(shaderInstance_s* si, int id, bool* value);
 Result shaderProgramInit(shaderProgram_s* sp);
 Result shaderProgramFree(shaderProgram_s* sp);
 Result shaderProgramSetVsh(shaderProgram_s* sp, DVLE_s* dvle);
-Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle);
+Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride);
 Result shaderProgramUse(shaderProgram_s* sp);
