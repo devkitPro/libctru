@@ -97,6 +97,8 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	framebufferInfoHeader[0x1]=1;
 }
 
+void (*screenFree)(void *) = NULL;
+
 void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomFormat, bool vrambuffers)
 {
 	void *(*screenAlloc)(size_t);
@@ -104,11 +106,12 @@ void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomForm
 	if (vrambuffers)
 	{
 		screenAlloc=vramAlloc;
+		screenFree=vramFree;
 
 	} else {
 
 		screenAlloc=linearAlloc;
-
+		screenFree=linearFree;
 	}
 
 	gspInit();
@@ -165,16 +168,18 @@ void gfxInitDefault() {
 
 void gfxExit()
 {
+	if (screenFree == NULL ) return;
+
 	// Exit event handler
 	gspExitEventHandler();
 
 	// Free framebuffers
-	linearFree(gfxTopRightFramebuffers[1]);
-	linearFree(gfxTopRightFramebuffers[0]);
-	linearFree(gfxBottomFramebuffers[1]);
-	linearFree(gfxBottomFramebuffers[0]);
-	linearFree(gfxTopLeftFramebuffers[1]);
-	linearFree(gfxTopLeftFramebuffers[0]);
+	screenFree(gfxTopRightFramebuffers[1]);
+	screenFree(gfxTopRightFramebuffers[0]);
+	screenFree(gfxBottomFramebuffers[1]);
+	screenFree(gfxBottomFramebuffers[0]);
+	screenFree(gfxTopLeftFramebuffers[1]);
+	screenFree(gfxTopLeftFramebuffers[0]);
 
 	//unmap GSP shared mem
 	svcUnmapMemoryBlock(gspSharedMemHandle, 0x10002000);
