@@ -3,11 +3,20 @@
 #include <3ds/types.h>
 #include <3ds/gpu/shbin.h>
 
+typedef struct
+{
+	u32 id;
+	u32 data[3];
+}float24Uniform_s;
+
 // this structure describes an instance of either a vertex or geometry shader
 typedef struct
 {
 	DVLE_s* dvle;
 	u16 boolUniforms;
+	u32 intUniforms[4];
+	float24Uniform_s* float24Uniforms;
+	u8 numFloat24Uniforms;
 }shaderInstance_s;
 
 // this structure describes an instance of a full shader program

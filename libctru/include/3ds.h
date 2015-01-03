@@ -35,6 +35,7 @@ extern "C" {
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
 #include <3ds/gpu/shbin.h>
+#include <3ds/gpu/shaderProgram.h>
 
 #include <3ds/sdmc.h>
 

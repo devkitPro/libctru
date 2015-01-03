@@ -203,6 +203,11 @@ typedef enum{
 	GPU_UNKPRIM = 0x0300 // ?
 }GPU_Primitive_t;
 
+typedef enum{
+	GPU_VERTEX_SHADER=0x0,
+	GPU_GEOMETRY_SHADER=0x1
+}GPU_SHADER_TYPE;
+
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
 
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
@@ -232,5 +237,8 @@ void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16
 
 void GPU_DrawArray(GPU_Primitive_t primitive, u32 n);
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n);
-
 void GPU_FinishDrawing();
+
+void GPU_SetShaderOutmap(u32 outmapData[8]);
+void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
+void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);

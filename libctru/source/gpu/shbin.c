@@ -25,14 +25,17 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 	ret->DVLP.codeSize=dvlpData[3];
 	ret->DVLP.codeData=&dvlpData[dvlpData[2]/4];
 	ret->DVLP.opdescSize=dvlpData[5];
-	ret->DVLP.opcdescData=&dvlpData[dvlpData[4]/4];
+	ret->DVLP.opcdescData=(u32*)malloc(sizeof(u32)*ret->DVLP.opdescSize);
+	if(!ret->DVLP.opcdescData)goto clean2;
+	int i; for(i=0;i<ret->DVLP.opdescSize;i++)ret->DVLP.opcdescData[i]=dvlpData[dvlpData[4]/4+i*2];
 
 	//parse DVLE
-	int i;
 	for(i=0;i<ret->numDVLE;i++)
 	{
 		DVLE_s* dvle=&ret->DVLE[i];
 		u32* dvleData=&shbinData[shbinData[2+i]/4];
+
+		dvle->dvlp=&ret->DVLP;
 
 		dvle->type=(dvleData[1]>>16)&0xFF;
 		dvle->mainOffset=dvleData[2];
@@ -48,14 +51,25 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 		dvle->uniformTableData=(DVLE_uniformEntry_s*)&dvleData[dvleData[12]/4];
 
 		dvle->symbolTableData=(char*)&dvleData[dvleData[14]/4];
+
+		DVLE_GenerateOutmap(dvle);
 	}
 
 	goto exit;
+	clean2:
+		free(ret->DVLE);
 	clean1:
 		free(ret);
 		ret=NULL;
 	exit:
 		return ret;
+}
+
+//TODO
+void SHDR_FreeDVLB(DVLB_s* dvlb)
+{
+	if(!dvlb)return;
+
 }
 
 s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
@@ -76,51 +90,31 @@ s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
 void DVLP_SendCode(DVLP_s* dvlp, DVLE_type type)
 {
 	if(!dvlp)return;
-
-	u32 regOffset=(type==GEOMETRY_SHDR)?(-0x30):(0x0);
-
-	GPUCMD_AddWrite(GPUREG_VSH_CODETRANSFER_CONFIG+regOffset, 0x00000000);
-
-	int i;
-	for(i=0;i<dvlp->codeSize;i+=0x80)GPUCMD_Add(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_CODETRANSFER_DATA)+regOffset, &dvlp->codeData[i], ((dvlp->codeSize-i)<0x80)?(dvlp->codeSize-i):0x80);
-
-	GPUCMD_AddWrite(GPUREG_VSH_CODETRANSFER_END+regOffset, 0x00000001);
+	
+	GPU_SendShaderCode(type, dvlp->codeData, 0, dvlp->codeSize);
 }
 
 void DVLP_SendOpDesc(DVLP_s* dvlp, DVLE_type type)
 {
 	if(!dvlp)return;
 
-	u32 regOffset=(type==GEOMETRY_SHDR)?(-0x30):(0x0);
-
-	GPUCMD_AddWrite(GPUREG_VSH_OPDESCS_CONFIG+regOffset, 0x00000000);
-
-	u32 param[0x80];
-
-	int i;
-	//TODO : should probably preprocess this
-	for(i=0;i<dvlp->opdescSize;i++)param[i]=dvlp->opcdescData[i*2];
-
-	GPUCMD_Add(GPUCMD_HEADER(0, 0xF, GPUREG_VSH_OPDESCS_DATA)+regOffset, param, dvlp->opdescSize);
+	GPU_SendOperandDescriptors(type, dvlp->opcdescData, 0, dvlp->opdescSize);
 }
 
-void DVLE_SendOutmap(DVLE_s* dvle)
+void DVLE_GenerateOutmap(DVLE_s* dvle)
 {
 	if(!dvle)return;
 
-	u32 regOffset=(dvle->type==GEOMETRY_SHDR)?(-0x30):(0x0);
-
-	u32 param[0x8]={0x00000000,0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,
-					0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F};
+	memset(dvle->outmapData, 0x1F, sizeof(dvle->outmapData));
 
 	int i;
 	u8 numAttr=0;
 	u8 maxAttr=0;
 	u8 attrMask=0;
-	//TODO : should probably preprocess this
+
 	for(i=0;i<dvle->outTableSize;i++)
 	{
-		u32* out=&param[dvle->outTableData[i].regID+1];
+		u32* out=&dvle->outmapData[dvle->outTableData[i].regID+1];
 		u32 mask=0x00000000;
 		u8 tmpmask=dvle->outTableData[i].mask;
 		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
@@ -148,17 +142,24 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 		if(dvle->outTableData[i].regID+1>maxAttr)maxAttr=dvle->outTableData[i].regID+1;
 	}
 
-	param[0]=numAttr;
+	dvle->outmapData[0]=numAttr;
+	dvle->outmapMask=attrMask;
+}
+
+void DVLE_SendOutmap(DVLE_s* dvle)
+{
+	if(!dvle)return;
+
+	u32 regOffset=(dvle->type==GEOMETRY_SHDR)?(-0x30):(0x0);
 
 	if(dvle->type==VERTEX_SHDR)
 	{
-		GPUCMD_AddWrite(GPUREG_024A, numAttr-1); //?
-		GPUCMD_AddWrite(GPUREG_0251, numAttr-1); //?
+		GPUCMD_AddWrite(GPUREG_024A, dvle->outmapData[0]-1); //?
+		GPUCMD_AddWrite(GPUREG_0251, dvle->outmapData[0]-1); //?
 	}
 	
-	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_MASK+regOffset, attrMask);
-	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x1, numAttr-1);
-	GPUCMD_AddIncrementalWrites(GPUREG_SH_OUTMAP_TOTAL, param, 8);
+	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_MASK+regOffset, dvle->outmapMask);
+	GPU_SetShaderOutmap(dvle->outmapData);
 }
 
 void DVLE_SendConstants(DVLE_s* dvle)
@@ -180,7 +181,7 @@ void DVLE_SendConstants(DVLE_s* dvle)
 		memcpy(&rev8[6], &cnst->data[2], 3);
 		memcpy(&rev8[9], &cnst->data[3], 3);
 
-		param[0x0]=(cnst->header>>16)&0xFF;
+		param[0x0]=(cnst->id)&0xFF;
 		param[0x1]=rev[2];
 		param[0x2]=rev[1];
 		param[0x3]=rev[0];
@@ -195,7 +196,6 @@ void SHDR_UseProgram(DVLB_s* dvlb, u8 id)
 	DVLE_s* dvle=&dvlb->DVLE[id];
 
 	u32 regOffset=(dvlb->DVLE[id].type==GEOMETRY_SHDR)?(-0x30):(0x0);
-
 
 	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000000);
 	GPUCMD_AddMaskedWrite(GPUREG_0244, 0x1, (dvlb->DVLE[id].type==GEOMETRY_SHDR)?0x1:0x0);
@@ -214,11 +214,4 @@ void SHDR_UseProgram(DVLB_s* dvlb, u8 id)
 	//?
 		GPUCMD_AddWrite(GPUREG_0064, 0x00000001);
 		GPUCMD_AddWrite(GPUREG_006F, 0x00000703);
-}
-
-//TODO
-void SHDR_FreeDVLB(DVLB_s* dvlb)
-{
-	if(!dvlb)return;
-
 }

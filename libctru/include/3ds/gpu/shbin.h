@@ -1,9 +1,17 @@
 #pragma once
 
+#include <3ds/gpu/gpu.h>
+
 typedef enum{
-	VERTEX_SHDR=0x0,
-	GEOMETRY_SHDR=0x1
+	VERTEX_SHDR=GPU_VERTEX_SHADER,
+	GEOMETRY_SHDR=GPU_GEOMETRY_SHADER
 }DVLE_type;
+
+typedef enum{
+	DVLE_CONST_BOOL=0x0,
+	DVLE_CONST_u8=0x1,
+	DVLE_CONST_FLOAT24=0x2,
+}DVLE_constantType;
 
 typedef enum{
 	RESULT_POSITION = 0x0,
@@ -24,7 +32,8 @@ typedef struct{
 }DVLP_s;
 
 typedef struct{
-	u32 header;
+	u16 type;
+	u16 id;
 	u32 data[4];
 }DVLE_constEntry_s;
 
@@ -43,6 +52,7 @@ typedef struct{
 
 typedef struct{
 	DVLE_type type;
+	DVLP_s* dvlp;
 	u32 mainOffset, endmainOffset;
 	u32 constTableSize;
 	DVLE_constEntry_s* constTableData;
@@ -51,6 +61,8 @@ typedef struct{
 	u32 uniformTableSize;
 	DVLE_uniformEntry_s* uniformTableData;
 	char* symbolTableData;
+	u8 outmapMask;
+	u32 outmapData[8];
 }DVLE_s;
 
 typedef struct{
@@ -69,3 +81,4 @@ void DVLP_SendOpDesc(DVLP_s* dvlp, DVLE_type type);
 
 void DVLE_SendOutmap(DVLE_s* dvle);
 void DVLE_SendConstants(DVLE_s* dvle);
+void DVLE_GenerateOutmap(DVLE_s* dvle);
