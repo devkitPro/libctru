@@ -6,7 +6,7 @@
 #include <string.h>
 #include <3ds/types.h>
 #include <3ds/gpu/gpu.h>
-#include <3ds/gpu/shdr.h>
+#include <3ds/gpu/shbin.h>
 
 //please don't feed this an invalid SHBIN
 DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
@@ -73,7 +73,7 @@ s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
 	return -1;
 }
 
-void DVLP_SendCode(DVLP_s* dvlp, SHDR_type type)
+void DVLP_SendCode(DVLP_s* dvlp, DVLE_type type)
 {
 	if(!dvlp)return;
 
@@ -87,7 +87,7 @@ void DVLP_SendCode(DVLP_s* dvlp, SHDR_type type)
 	GPUCMD_AddWrite(GPUREG_VSH_CODETRANSFER_END+regOffset, 0x00000001);
 }
 
-void DVLP_SendOpDesc(DVLP_s* dvlp, SHDR_type type)
+void DVLP_SendOpDesc(DVLP_s* dvlp, DVLE_type type)
 {
 	if(!dvlp)return;
 

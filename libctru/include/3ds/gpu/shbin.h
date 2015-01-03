@@ -3,7 +3,7 @@
 typedef enum{
 	VERTEX_SHDR=0x0,
 	GEOMETRY_SHDR=0x1
-}SHDR_type;
+}DVLE_type;
 
 typedef enum{
 	RESULT_POSITION = 0x0,
@@ -14,7 +14,7 @@ typedef enum{
 	RESULT_TEXCOORD1 = 0x5,
 	RESULT_TEXCOORD2 = 0x6,
 	RESULT_VIEW = 0x8
-}SHDR_outType;
+}DVLE_outputAttribute_t;
 
 typedef struct{
 	u32 codeSize;
@@ -42,7 +42,7 @@ typedef struct{
 }DVLE_uniformEntry_s;
 
 typedef struct{
-	SHDR_type type;
+	DVLE_type type;
 	u32 mainOffset, endmainOffset;
 	u32 constTableSize;
 	DVLE_constEntry_s* constTableData;
@@ -59,14 +59,13 @@ typedef struct{
 	DVLE_s* DVLE;
 }DVLB_s;
 
-
 DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize);
 void SHDR_UseProgram(DVLB_s* dvlb, u8 id);
 void SHDR_FreeDVLB(DVLB_s* dvlb);
 s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID);
 
-void DVLP_SendCode(DVLP_s* dvlp, SHDR_type type);
-void DVLP_SendOpDesc(DVLP_s* dvlp, SHDR_type type);
+void DVLP_SendCode(DVLP_s* dvlp, DVLE_type type);
+void DVLP_SendOpDesc(DVLP_s* dvlp, DVLE_type type);
 
 void DVLE_SendOutmap(DVLE_s* dvle);
 void DVLE_SendConstants(DVLE_s* dvle);
