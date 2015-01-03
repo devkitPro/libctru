@@ -8,11 +8,11 @@
 
 typedef enum
 {
-    CSND_ENCODING_PCM8,
-    CSND_ENCODING_PCM16,
-    CSND_ENCODING_ADPCM, // IMA-ADPCM
-    CSND_ENCODING_PSG, // Similar to DS?
-} CSND_ENCODING;
+	CSND_ENCODING_PCM8 = 0,
+	CSND_ENCODING_PCM16,
+	CSND_ENCODING_ADPCM, // IMA-ADPCM
+	CSND_ENCODING_PSG, // Similar to DS?
+};
 
 #define SOUND_CHANNEL(n) ((u32)(n) & 0x1F)
 #define SOUND_FORMAT(n) ((u32)(n) << 12)
@@ -28,6 +28,19 @@ enum
 	SOUND_FORMAT_ADPCM = SOUND_FORMAT(CSND_ENCODING_ADPCM),
 	SOUND_FORMAT_PSG = SOUND_FORMAT(CSND_ENCODING_PSG),
 	SOUND_ENABLE = BIT(14),
+};
+
+// Duty cycles for a PSG channel
+enum
+{
+	DutyCycle_0  = 7, /*!<  0.0% duty cycle */
+	DutyCycle_12 = 0, /*!<  12.5% duty cycle */
+	DutyCycle_25 = 1, /*!<  25.0% duty cycle */
+	DutyCycle_37 = 2, /*!<  37.5% duty cycle */
+	DutyCycle_50 = 3, /*!<  50.0% duty cycle */
+	DutyCycle_62 = 4, /*!<  62.5% duty cycle */
+	DutyCycle_75 = 5, /*!<  75.0% duty cycle */
+	DutyCycle_87 = 6  /*!<  87.5% duty cycle */
 };
 
 typedef union
@@ -62,6 +75,7 @@ void CSND_ChnSetPlayState(u32 channel, u32 value);
 void CSND_ChnSetBlock(u32 channel, int block, u32 physaddr, u32 size);
 void CSND_ChnSetVol(u32 channel, u16 left, u16 right);
 void CSND_ChnSetTimer(u32 channel, u32 timer);
+void CSND_ChnSetDuty(u32 channel, u32 duty);
 void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
 
 Result CSND_UpdateChnInfo(bool waitDone);

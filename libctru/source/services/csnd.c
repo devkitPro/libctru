@@ -260,6 +260,18 @@ void CSND_ChnSetTimer(u32 channel, u32 timer)
 	csndWriteChnCmd(0x8, (u8*)&cmdparams);
 }
 
+void CSND_ChnSetDuty(u32 channel, u32 duty)
+{
+	u32 cmdparams[0x18>>2];
+
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = channel & 0x1f;
+	cmdparams[1] = duty;
+
+	csndWriteChnCmd(0x7, (u8*)&cmdparams);
+}
+
 void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 {
 	u32 cmdparams[0x18>>2];
@@ -267,7 +279,7 @@ void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 	memset(cmdparams, 0, 0x18);
 
 	cmdparams[0] = flags;
-	cmdparams[1] = 0; // Unknown
+	cmdparams[1] = 0x7FFF7FFF; // Volume
 	cmdparams[2] = 0; // Unknown
 	cmdparams[3] = physaddr0;
 	cmdparams[4] = physaddr1;
@@ -313,8 +325,6 @@ Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* d
 		size -= paddr1 - paddr0;
 		CSND_ChnSetBlock(chn, 1, paddr1, size);
 	}
-
-	CSND_ChnSetVol(chn, 0xFFFF, 0xFFFF);
 
 	return csndExecChnCmds(true);
 }
