@@ -15,7 +15,7 @@ int main()
 
 	srvInit();	
 	aptInit();
-	gfxInit();
+	gfxInitDefault();
 	hidInit(NULL);
 	
 	if(CSND_initialize(NULL)==0)audio_initialized = 1;

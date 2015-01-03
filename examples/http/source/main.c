@@ -91,7 +91,7 @@ int main()
 	srvInit();
 	aptInit();
 	hidInit(NULL);
-	gfxInit();
+	gfxInitDefault();
 	//gfxSet3D(true); // uncomment if using stereoscopic 3D
 	httpcInit();
 

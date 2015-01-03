@@ -8,7 +8,7 @@ int main()
 {
 	srvInit(); // Needed
 	aptInit(); // Needed
-	gfxInit(); // Init graphic stuff
+	gfxInitDefault(); // Init graphic stuff
 	hidInit(NULL); // For input (buttons, touchscreen...)
 
 

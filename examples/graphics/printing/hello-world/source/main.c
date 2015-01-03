@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 	// Initialize services
 	srvInit();
 	aptInit();
-	gfxInit();
+	gfxInitDefault();
 	hidInit(NULL);
 
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one

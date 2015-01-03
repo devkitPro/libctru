@@ -110,7 +110,7 @@ int main()
 	srvInit();
 	aptInit();
 	hidInit(NULL);
-	gfxInit();
+	gfxInitDefault();
 	fsInit();
 	sdmcInit();
 	//gfxSet3D(true); // uncomment if using stereoscopic 3D

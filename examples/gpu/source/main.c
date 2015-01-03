@@ -192,7 +192,7 @@ int main(int argc, char** argv)
 	//setup services
 	srvInit();	
 	aptInit();
-	gfxInit();
+	gfxInitDefault();
 	hidInit(NULL);
 
 	//initialize GPU
