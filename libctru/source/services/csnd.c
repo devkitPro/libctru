@@ -272,6 +272,31 @@ void CSND_ChnSetDuty(u32 channel, u32 duty)
 	csndWriteChnCmd(0x7, (u8*)&cmdparams);
 }
 
+void CSND_ChnSetAdpcmState(u32 channel, int block, int sample, int index)
+{
+	u32 cmdparams[0x18>>2];
+
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = channel & 0x1f;
+	cmdparams[1] = sample & 0xFFFF;
+	cmdparams[2] = index & 0x7F;
+
+	csndWriteChnCmd(block ? 0xC : 0xB, (u8*)&cmdparams);
+}
+
+void CSND_ChnSetAdpcmReload(u32 channel, bool reload)
+{
+	u32 cmdparams[0x18>>2];
+
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = channel & 0x1f;
+	cmdparams[1] = reload ? 1 : 0;
+
+	csndWriteChnCmd(0xD, (u8*)&cmdparams);
+}
+
 void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 {
 	u32 cmdparams[0x18>>2];
@@ -305,10 +330,20 @@ Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* d
 
 	u32 paddr0 = 0, paddr1 = 0;
 
-	if (((flags >> 12) & 3) != CSND_ENCODING_PSG)
+	int encoding = (flags >> 12) & 3;
+	int loopMode = (flags >> 10) & 3;
+
+	if (encoding != CSND_ENCODING_PSG)
 	{
 		if (data0) paddr0 = osConvertVirtToPhys((u32)data0);
 		if (data1) paddr1 = osConvertVirtToPhys((u32)data1);
+
+		if (encoding == CSND_ENCODING_ADPCM)
+		{
+			int adpcmSample = ((s16*)data0)[-2];
+			int adpcmIndex = ((u8*)data0)[-2];
+			CSND_ChnSetAdpcmState(chn, 0, adpcmSample, adpcmIndex);
+		}
 	}
 
 	u32 timer = CSND_TIMER(sampleRate);
@@ -319,7 +354,7 @@ Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* d
 
 	CSND_ChnConfig(flags, paddr0, paddr1, size);
 
-	if ((flags & SOUND_REPEAT) && !(flags & SOUND_CONST_BLOCK_SIZE) && paddr1 > paddr0)
+	if (loopMode == CSND_LOOPMODE_NORMAL && paddr1 > paddr0)
 	{
 		// Now that the first block is playing, configure the size of the subsequent blocks
 		size -= paddr1 - paddr0;

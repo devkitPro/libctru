@@ -14,15 +14,23 @@ typedef enum
 	CSND_ENCODING_PSG, // Similar to DS?
 };
 
+enum
+{
+	CSND_LOOPMODE_MANUAL = 0,
+	CSND_LOOPMODE_NORMAL,
+	CSND_LOOPMODE_ONESHOT,
+	CSND_LOOPMODE_NORELOAD,
+};
+
 #define SOUND_CHANNEL(n) ((u32)(n) & 0x1F)
 #define SOUND_FORMAT(n) ((u32)(n) << 12)
+#define SOUND_LOOPMODE(n) ((u32)(n) << 10)
 
 enum
 {
 	SOUND_LINEAR_INTERP = BIT(6),
-	SOUND_REPEAT = BIT(10),
-	SOUND_CONST_BLOCK_SIZE = BIT(11),
-	SOUND_ONE_SHOT = 0,
+	SOUND_REPEAT = SOUND_LOOPMODE(CSND_LOOPMODE_NORMAL),
+	SOUND_ONE_SHOT = SOUND_LOOPMODE(CSND_LOOPMODE_ONESHOT),
 	SOUND_FORMAT_8BIT = SOUND_FORMAT(CSND_ENCODING_PCM8),
 	SOUND_FORMAT_16BIT = SOUND_FORMAT(CSND_ENCODING_PCM16),
 	SOUND_FORMAT_ADPCM = SOUND_FORMAT(CSND_ENCODING_ADPCM),
@@ -76,6 +84,8 @@ void CSND_ChnSetBlock(u32 channel, int block, u32 physaddr, u32 size);
 void CSND_ChnSetVol(u32 channel, u16 left, u16 right);
 void CSND_ChnSetTimer(u32 channel, u32 timer);
 void CSND_ChnSetDuty(u32 channel, u32 duty);
+void CSND_ChnSetAdpcmState(u32 channel, int block, int sample, int index);
+void CSND_ChnSetAdpcmReload(u32 channel, bool reload);
 void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
 
 Result CSND_UpdateChnInfo(bool waitDone);
