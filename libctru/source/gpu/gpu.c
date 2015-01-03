@@ -218,12 +218,14 @@ void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize)
 	GPUCMD_Run(gpuBuf);
 }
 
-void GPU_SetUniform(u32 startreg, u32* data, u32 numreg)
+void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numreg)
 {
 	if(!data)return;
 
-	GPUCMD_AddWrite(GPUREG_VSH_FLOATUNIFORM_CONFIG, 0x80000000|startreg);
-	GPUCMD_AddWrites(GPUREG_VSH_FLOATUNIFORM_DATA, data, numreg*4);
+	u32 regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
+
+	GPUCMD_AddWrite(GPUREG_VSH_FLOATUNIFORM_CONFIG-regOffset, 0x80000000|startreg);
+	GPUCMD_AddWrites(GPUREG_VSH_FLOATUNIFORM_DATA-regOffset, data, numreg*4);
 }
 
 //TODO : fix

@@ -208,7 +208,7 @@ typedef enum{
 	GPU_GEOMETRY_SHADER=0x1
 }GPU_SHADER_TYPE;
 
-void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
+void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numreg);
 
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 
