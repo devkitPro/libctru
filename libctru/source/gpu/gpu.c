@@ -468,6 +468,8 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 n)
 	//set primitive type
 	GPUCMD_AddSingleParam(0x0002025E, primitive);
 	GPUCMD_AddSingleParam(0x0002025F, 0x00000001);
+	//index buffer address register should be cleared (except bit 31) before drawing
+	GPUCMD_AddSingleParam(0x000F0227, 0x80000000);
 	//pass number of vertices
 	GPUCMD_AddSingleParam(0x000F0228, n);
 

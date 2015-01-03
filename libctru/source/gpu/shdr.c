@@ -53,6 +53,7 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 	goto exit;
 	clean1:
 		free(ret);
+		ret=NULL;
 	exit:
 		return ret;
 }
