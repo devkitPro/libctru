@@ -103,6 +103,13 @@ Result shaderInstanceGetBool(shaderInstance_s* si, int id, bool* value)
 	return 0;
 }
 
+Result shaderInstanceGetUniformLocation(shaderInstance_s* si, const char* name)
+{
+	if(!si)return -1;
+
+	return DVLE_GetUniformRegister(si->dvle, name);
+}
+
 Result shaderProgramInit(shaderProgram_s* sp)
 {
 	if(!sp)return -1;

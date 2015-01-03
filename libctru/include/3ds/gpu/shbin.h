@@ -71,14 +71,8 @@ typedef struct{
 	DVLE_s* DVLE;
 }DVLB_s;
 
-DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize);
-void SHDR_UseProgram(DVLB_s* dvlb, u8 id);
-void SHDR_FreeDVLB(DVLB_s* dvlb);
-s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID);
+DVLB_s* DVLB_ParseFile(u32* shbinData, u32 shbinSize);
+void DVLB_Free(DVLB_s* dvlb);
 
-void DVLP_SendCode(DVLP_s* dvlp, DVLE_type type);
-void DVLP_SendOpDesc(DVLP_s* dvlp, DVLE_type type);
-
-void DVLE_SendOutmap(DVLE_s* dvle);
-void DVLE_SendConstants(DVLE_s* dvle);
+s8 DVLE_GetUniformRegister(DVLE_s* dvle, const char* name);
 void DVLE_GenerateOutmap(DVLE_s* dvle);

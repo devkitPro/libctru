@@ -31,6 +31,7 @@ Result shaderInstanceInit(shaderInstance_s* si, DVLE_s* dvle);
 Result shaderInstanceFree(shaderInstance_s* si);
 Result shaderInstanceSetBool(shaderInstance_s* si, int id, bool value);
 Result shaderInstanceGetBool(shaderInstance_s* si, int id, bool* value);
+Result shaderInstanceGetUniformLocation(shaderInstance_s* si, const char* name);
 
 Result shaderProgramInit(shaderProgram_s* sp);
 Result shaderProgramFree(shaderProgram_s* sp);
