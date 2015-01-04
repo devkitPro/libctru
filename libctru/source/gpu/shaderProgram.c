@@ -168,6 +168,17 @@ Result shaderProgramUse(shaderProgram_s* sp)
 
 	int i;
 
+	// configure geostage
+	// has to be done first or else VSH registers might only reconfigure 3 of the 4 shader units !
+	if(!sp->geometryShader)
+	{
+		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000000);
+		GPUCMD_AddMaskedWrite(GPUREG_0244, 0x1, 0x00000000);
+	}else{
+		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000002);
+		GPUCMD_AddMaskedWrite(GPUREG_0244, 0x1, 0x00000001);
+	}
+
 	// setup vertex shader stuff no matter what
 	const DVLE_s* vshDvle = sp->vertexShader->dvle;
 	const DVLP_s* vshDvlp = vshDvle->dvlp;
@@ -190,9 +201,6 @@ Result shaderProgramUse(shaderProgram_s* sp)
 		// finish setting up vertex shader alone
 		GPU_SetShaderOutmap((u32*)vshDvle->outmapData);
 
-		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000000);
-		GPUCMD_AddMaskedWrite(GPUREG_0244, 0x1, 0x00000000);
-
 		GPUCMD_AddWrite(GPUREG_0064, 0x00000001); // ?
 		GPUCMD_AddWrite(GPUREG_006F, 0x00000703); // ?
 	}else{
@@ -212,9 +220,6 @@ Result shaderProgramUse(shaderProgram_s* sp)
 		//GSH input attributes stuff
 		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000|(sp->geometryShaderInputStride-1));
 		GPUCMD_AddIncrementalWrites(GPUREG_GSH_ATTRIBUTES_PERMUTATION_LOW, ((u32[]){0x76543210, 0xFEDCBA98}), 2);
-
-		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000002);
-		GPUCMD_AddMaskedWrite(GPUREG_0244, 0x1, 0x00000001);
 
 		GPUCMD_AddWrite(GPUREG_0064, 0x00000001); // ?
 		GPUCMD_AddWrite(GPUREG_006F, 0x01030703); // ?
