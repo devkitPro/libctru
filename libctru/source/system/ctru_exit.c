@@ -15,9 +15,6 @@ void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 {
 	u32 tmp=0;
 
-	// Run the global destructors
-	__libc_fini_array();
-
 	__appExit();
 
 	// Unmap the linear heap
