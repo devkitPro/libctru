@@ -91,6 +91,11 @@ void CSND_ChnSetAdpcmState(u32 channel, int block, int sample, int index);
 void CSND_ChnSetAdpcmReload(u32 channel, bool reload);
 void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
 
+void CSND_CapEnable(u32 capUnit, bool enable);
+void CSND_CapSetBit(u32 capUnit, int bit, bool state); // Sets bit0..2 in the CNT register, purpose currently unknown
+void CSND_CapSetTimer(u32 capUnit, u32 timer);
+void CSND_CapSetBuffer(u32 capUnit, u32 paddr, u32 size);
+
 Result CSND_UpdateChnInfo(bool waitDone);
 
 Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size);

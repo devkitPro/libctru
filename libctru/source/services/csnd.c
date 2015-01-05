@@ -350,6 +350,51 @@ Result CSND_UpdateChnInfo(bool waitDone)
 	return csndExecChnCmds(waitDone);
 }
 
+void CSND_CapEnable(u32 capUnit, bool enable)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = capUnit;
+	cmdparams[1] = enable ? 1 : 0;
+
+	csndWriteChnCmd(0x100, (u8*)&cmdparams);
+}
+
+void CSND_CapSetBit(u32 capUnit, int bit, bool state)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = capUnit;
+	cmdparams[1] = state ? 1 : 0;
+
+	csndWriteChnCmd(0x101 + bit, (u8*)&cmdparams);
+}
+
+void CSND_CapSetTimer(u32 capUnit, u32 timer)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = capUnit;
+	cmdparams[1] = timer & 0xFFFF;
+
+	csndWriteChnCmd(0x104, (u8*)&cmdparams);
+}
+
+void CSND_CapSetBuffer(u32 capUnit, u32 paddr, u32 size)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = capUnit;
+	cmdparams[1] = paddr;
+	cmdparams[2] = size;
+
+	csndWriteChnCmd(0x105, (u8*)&cmdparams);
+}
+
 Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size)
 {
 	if (!(csndChannels & BIT(chn)))
