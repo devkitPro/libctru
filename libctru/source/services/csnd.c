@@ -77,6 +77,33 @@ static Result CSND_ReleaseSoundChannels(void)
 	return (Result)cmdbuf[1];
 }
 
+Result CSND_AcquireCapUnit(u32* capUnit)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00070000;
+
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+
+	*capUnit = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result CSND_ReleaseCapUnit(u32 capUnit)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00080040;
+	cmdbuf[1] = capUnit;
+
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result csndInit(void)
 {
 	Result ret=0;

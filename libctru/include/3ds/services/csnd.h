@@ -72,6 +72,9 @@ extern vu32* csndSharedMem;
 extern u32 csndSharedMemSize;
 extern u32 csndChannels; // Bitmask of channels that are allowed for usage
 
+Result CSND_AcquireCapUnit(u32* capUnit);
+Result CSND_ReleaseCapUnit(u32 capUnit);
+
 Result csndInit(void);
 Result csndExit(void);
 
