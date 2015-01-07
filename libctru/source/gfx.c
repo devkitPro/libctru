@@ -145,6 +145,10 @@ void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomForm
 
 	enable3d=false;
 
+	//set requested modes
+	gfxSetScreenFormat(GFX_TOP,topFormat);
+	gfxSetScreenFormat(GFX_BOTTOM,bottomFormat);
+
 	//initialize framebuffer info structures
 	gfxSetFramebufferInfo(GFX_TOP, 0);
 	gfxSetFramebufferInfo(GFX_BOTTOM, 0);
@@ -212,9 +216,12 @@ u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* hei
 
 void gfxFlushBuffers()
 {
-	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x46500);
-	if(enable3d)GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), 0x46500);
-	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), 0x38400);
+	u32 topSize = 400 * 240 * __get_bytes_per_pixel(gfxGetScreenFormat(GFX_TOP));
+	u32 bottomSize = 320 * 240 * __get_bytes_per_pixel(gfxGetScreenFormat(GFX_BOTTOM));
+
+	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), topSize);
+	if(enable3d)GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), topSize);
+	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), bottomSize);
 }
 
 void gfxSwapBuffers()
