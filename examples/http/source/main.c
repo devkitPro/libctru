@@ -1,26 +1,17 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 #include <3ds.h>
 
 Result http_download(httpcContext *context)//This error handling needs updated with proper text printing once ctrulib itself supports that.
 {
 	Result ret=0;
-	u8* framebuf_top, *framebuf_bottom;
+	u8* framebuf_top;
 	u32 statuscode=0;
 	u32 size=0, contentsize=0;
 	u8 *buf;
-
-	framebuf_bottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-	memset(framebuf_bottom, 0x40, 240*320*3);
-	gfxFlushBuffers();
-	gfxSwapBuffers();
-
-	framebuf_bottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-	memset(framebuf_bottom, 0x40, 240*320*3);
-	gfxFlushBuffers();
-	gfxSwapBuffers();
-	gspWaitForVBlank();
 
 	ret = httpcBeginRequest(context);
 	if(ret!=0)return ret;
@@ -33,23 +24,13 @@ Result http_download(httpcContext *context)//This error handling needs updated w
 	ret=httpcGetDownloadSizeState(context, NULL, &contentsize);
 	if(ret!=0)return ret;
 
+	printf("size: %"PRId32"\n",contentsize);
+	gfxFlushBuffers();
+
 	buf = (u8*)malloc(contentsize);
 	if(buf==NULL)return -1;
 	memset(buf, 0, contentsize);
 
-	framebuf_bottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-	memset(framebuf_bottom, 0xc0, 240*320*3);
-	gfxFlushBuffers();
-	gfxSwapBuffers();
-
-	framebuf_bottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-	memset(framebuf_bottom, 0xc0, 240*320*3);
-	gfxFlushBuffers();
-	gfxSwapBuffers();
-	gspWaitForVBlank();
-
-	framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	framebuf_bottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 
 	ret = httpcDownloadData(context, buf, contentsize, NULL);
 	if(ret!=0)
@@ -59,18 +40,15 @@ Result http_download(httpcContext *context)//This error handling needs updated w
 	}
 
 	size = contentsize;
-	if(size>(240*400*3))size = 240*400*3;
+	if(size>(240*400*3*2))size = 240*400*3*2;
 
-	memset(framebuf_bottom, 0xff, 240*320*3);
+	framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 	memcpy(framebuf_top, buf, size);
 
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 
 	framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	framebuf_bottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-
-	memset(framebuf_bottom, 0xff, 240*320*3);
 	memcpy(framebuf_top, buf, size);
 
 	gfxFlushBuffers();
@@ -88,14 +66,25 @@ int main()
 	httpcContext context;
 
 	gfxInitDefault();
-	//gfxSet3D(true); // uncomment if using stereoscopic 3D
 	httpcInit();
 
-	ret = httpcOpenContext(&context, "http://10.0.0.3/httpexample_rawimg.bin", 0);//Change this to your own URL.
+	consoleInit(GFX_BOTTOM,NULL);
+
+	//Change this to your own URL.
+	char *url = "http://devkitpro.org/misc/httpexample_rawimg.rgb";
+
+	printf("Downloading %s\n",url);
+	gfxFlushBuffers();
+
+	ret = httpcOpenContext(&context, url , 0);
+	printf("return from httpcOpenContext: %"PRId32"\n",ret);
+	gfxFlushBuffers();
 
 	if(ret==0)
 	{
 		ret=http_download(&context);
+		printf("return from http_download: %"PRId32"\n",ret);
+		gfxFlushBuffers();
 		httpcCloseContext(&context);
 	}
 
