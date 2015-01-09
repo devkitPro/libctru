@@ -4,10 +4,6 @@
 
 int main()
 {
-	// Initialize services
-	srvInit();
-	aptInit();
-	hidInit(NULL);
 	gfxInitDefault();
 	//gfxSet3D(true); // uncomment if using stereoscopic 3D
 
@@ -36,10 +32,6 @@ int main()
 		gfxSwapBuffers();
 	}
 
-	// Exit services
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }

@@ -87,10 +87,6 @@ int main()
 	Result ret=0;
 	httpcContext context;
 
-	// Initialize services
-	srvInit();
-	aptInit();
-	hidInit(NULL);
 	gfxInitDefault();
 	//gfxSet3D(true); // uncomment if using stereoscopic 3D
 	httpcInit();
@@ -123,9 +119,6 @@ int main()
 	// Exit services
 	httpcExit();
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }
 

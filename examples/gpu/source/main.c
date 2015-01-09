@@ -114,13 +114,13 @@ const vertex_s modelVboData[]=
 //stolen from staplebutt
 void GPU_SetDummyTexEnv(u8 num)
 {
-	GPU_SetTexEnv(num, 
-		GPU_TEVSOURCES(GPU_PREVIOUS, 0, 0), 
-		GPU_TEVSOURCES(GPU_PREVIOUS, 0, 0), 
-		GPU_TEVOPERANDS(0,0,0), 
-		GPU_TEVOPERANDS(0,0,0), 
-		GPU_REPLACE, 
-		GPU_REPLACE, 
+	GPU_SetTexEnv(num,
+		GPU_TEVSOURCES(GPU_PREVIOUS, 0, 0),
+		GPU_TEVSOURCES(GPU_PREVIOUS, 0, 0),
+		GPU_TEVOPERANDS(0,0,0),
+		GPU_TEVOPERANDS(0,0,0),
+		GPU_REPLACE,
+		GPU_REPLACE,
 		0xFFFFFFFF);
 }
 
@@ -128,31 +128,31 @@ void GPU_SetDummyTexEnv(u8 num)
 void renderFrame()
 {
 	GPU_SetViewport((u32*)osConvertVirtToPhys((u32)gpuDOut),(u32*)osConvertVirtToPhys((u32)gpuOut),0,0,240*2,400);
-	
+
 	GPU_DepthRange(-1.0f, 0.0f);
 	GPU_SetFaceCulling(GPU_CULL_BACK_CCW);
 	GPU_SetStencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
 	GPU_SetStencilOp(GPU_KEEP, GPU_KEEP, GPU_KEEP);
 	GPU_SetBlendingColor(0,0,0,0);
 	GPU_SetDepthTestAndWriteMask(true, GPU_GREATER, GPU_WRITE_ALL);
-	
-	GPUCMD_AddSingleParam(0x00010062, 0); 
+
+	GPUCMD_AddSingleParam(0x00010062, 0);
 	GPUCMD_AddSingleParam(0x000F0118, 0);
-	
+
 	//setup shader
 	SHDR_UseProgram(shader, 0);
-	
+
 	GPU_SetAlphaBlending(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 	GPU_SetAlphaTest(false, GPU_ALWAYS, 0x00);
-	
+
 	GPU_SetTextureEnable(GPU_TEXUNIT0);
-	
-	GPU_SetTexEnv(0, 
-		GPU_TEVSOURCES(GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR), 
+
+	GPU_SetTexEnv(0,
 		GPU_TEVSOURCES(GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR),
-		GPU_TEVOPERANDS(0,0,0), 
-		GPU_TEVOPERANDS(0,0,0), 
-		GPU_MODULATE, GPU_MODULATE, 
+		GPU_TEVSOURCES(GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR),
+		GPU_TEVOPERANDS(0,0,0),
+		GPU_TEVOPERANDS(0,0,0),
+		GPU_MODULATE, GPU_MODULATE,
 		0xFFFFFFFF);
 	GPU_SetDummyTexEnv(1);
 	GPU_SetDummyTexEnv(2);
@@ -189,11 +189,8 @@ void renderFrame()
 
 int main(int argc, char** argv)
 {
-	//setup services
-	srvInit();	
-	aptInit();
+
 	gfxInitDefault();
-	hidInit(NULL);
 
 	//initialize GPU
 	GPU_Init(NULL);
@@ -321,9 +318,6 @@ int main(int argc, char** argv)
 	}
 
 	gsExit();
-	hidExit();
 	gfxExit();
-	aptExit();
-	srvExit();
 	return 0;
 }

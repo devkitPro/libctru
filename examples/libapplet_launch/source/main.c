@@ -4,10 +4,6 @@ int main()
 {
 	u32 val, i;
 
-	// Initialize services
-	srvInit();
-	aptInit();
-	hidInit(NULL);
 	gfxInitDefault();
 	//gfxSet3D(true); // uncomment if using stereoscopic 3D
 
@@ -42,9 +38,6 @@ int main()
 
 	// Exit services
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }
 

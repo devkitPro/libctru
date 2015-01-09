@@ -17,16 +17,12 @@
 
 int main(int argc, char **argv)
 {
-	// Initialize services
-	srvInit();
-	aptInit();
 	gfxInitDefault();
-	hidInit(NULL);
 
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 	consoleInit(GFX_TOP, NULL);
 
-	//Move the cursor to row 15 and column 19 and then prints "Hello World!" 
+	//Move the cursor to row 15 and column 19 and then prints "Hello World!"
 	//To move the cursor you have tu print "\x1b[r;cH", where r and c are respectively
 	//the row and column where you want your cursor to move
 	//The top screen has 30 rows and 50 columns
@@ -54,10 +50,6 @@ int main(int argc, char **argv)
 		gspWaitForVBlank();
 	}
 
-	// Exit services
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }

@@ -106,13 +106,7 @@ void draw_startup()
 
 int main()
 {
-	// Initialize services
-	srvInit();
-	aptInit();
-	hidInit(NULL);
 	gfxInitDefault();
-	fsInit();
-	sdmcInit();
 	//gfxSet3D(true); // uncomment if using stereoscopic 3D
 
 	memset(logstring, 0, 256);
@@ -143,13 +137,7 @@ int main()
 	if(inaddr)linearFree(inaddr);
 	if(outaddr)linearFree(outaddr);
 
-	// Exit services
-	sdmcExit();
-	fsExit();
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }
 

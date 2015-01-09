@@ -13,11 +13,8 @@ int main()
 	u8 control=0x40;
 	u32 audio_initialized = 0;
 
-	srvInit();	
-	aptInit();
 	gfxInitDefault();
-	hidInit(NULL);
-	
+
 	if(CSND_initialize(NULL)==0)audio_initialized = 1;
 
 	sharedmem = (u32*)memalign(0x1000, sharedmem_size);
@@ -85,10 +82,7 @@ int main()
 	free(sharedmem);
 	linearFree(audiobuf);
 
-	hidExit();
 	gfxExit();
-	aptExit();
-	srvExit();
 	return 0;
 }
 

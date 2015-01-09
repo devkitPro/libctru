@@ -6,10 +6,7 @@
 
 int main()
 {
-	srvInit(); // Needed
-	aptInit(); // Needed
 	gfxInitDefault(); // Init graphic stuff
-	hidInit(NULL); // For input (buttons, touchscreen...)
 
 
 	// We need these 2 buffers for APT_DoAppJump() later. They can be smaller too
@@ -46,11 +43,7 @@ int main()
 	}
 
 
-	// Deinit everything before the app process get's terminated
-	hidExit();
 	gfxExit();
-	aptExit();
-	srvExit();
 
 	return 0;
 }
