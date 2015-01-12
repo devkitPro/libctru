@@ -45,7 +45,7 @@ void renderEffect()
 int main(int argc, char** argv)
 {
 
-	gfxInit(); //makes displaying to screen easier
+	gfxInitDefault(); //makes displaying to screen easier
 
 	FILE *file = fopen("test.bin","rb");
 	if (file == NULL) goto exit;

@@ -19,7 +19,8 @@ typedef enum
 }gfx3dSide_t;
 
 //system stuff
-void gfxInit();
+void gfxInitDefault();
+void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomFormat, bool vrambuffers);
 void gfxExit();
 
 //control stuff

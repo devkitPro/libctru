@@ -42,3 +42,9 @@ typedef s32 Result;
 typedef void (*ThreadFunc)(u32);
 
 #define BIT(n) (1U<<(n))
+
+//! aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
+#define ALIGN(m)	__attribute__((aligned (m)))
+
+//! packs a struct (and other types?) so it won't include padding bytes.
+#define PACKED __attribute__ ((packed))

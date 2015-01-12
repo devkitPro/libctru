@@ -43,7 +43,7 @@ PrintConsole defaultConsole =
 	{
 		(u8*)default_font_bin, //font gfx
 		0, //first ascii character in the set
-		128 //number of characters in the font set
+		256 //number of characters in the font set
 	},
 	(u16*)NULL,
 	0,0,	//cursorX cursorY
@@ -68,7 +68,7 @@ PrintConsole* currentConsole = &currentCopy;
 
 PrintConsole* consoleGetDefault(void){return &defaultConsole;}
 
-void consolePrintChar(char c);
+void consolePrintChar(int c);
 void consoleDrawChar(int c);
 
 //---------------------------------------------------------------------------------
@@ -672,7 +672,7 @@ void consoleDrawChar(int c) {
 }
 
 //---------------------------------------------------------------------------------
-void consolePrintChar(char c) {
+void consolePrintChar(int c) {
 //---------------------------------------------------------------------------------
 	if (c==0) return;
 

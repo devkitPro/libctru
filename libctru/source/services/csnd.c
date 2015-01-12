@@ -301,14 +301,14 @@ Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u3
 	return CSND_sharedmemtype0_cmdupdatestate(0);
 }
 
-Result CSND_getchannelstate(u32 entryindex, u32 *out)
+Result CSND_getchannelstate(u32 entryindex, struct CSND_CHANNEL_STATUS *out)
 {
 	Result ret=0;
 
 	if((ret = CSND_sharedmemtype0_cmdupdatestate(1))!=0)return ret;
 
 	memcpy(out, &CSND_sharedmem[(CSND_sharedmem_cmdblocksize+8 + entryindex*0xc) >> 2], 0xc);
-	out[2] -= 0x0c000000;
+	out->position -= 0x0c000000;
 
 	return 0;
 }
@@ -316,12 +316,12 @@ Result CSND_getchannelstate(u32 entryindex, u32 *out)
 Result CSND_getchannelstate_isplaying(u32 entryindex, u8 *status)
 {
 	Result ret;
-	u32 entry[0xc>>2];
+	struct CSND_CHANNEL_STATUS entry;
 
-	ret = CSND_getchannelstate(entryindex, entry);
+	ret = CSND_getchannelstate(entryindex, &entry);
 	if(ret!=0)return ret;
 
-	*status = entry[0] & 0xff;
+	*status = entry.state;
 
 	return 0;
 }

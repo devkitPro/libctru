@@ -6,7 +6,7 @@
 int main(int argc, char** argv)
 {
 	// Initialize services
-	gfxInit();
+	gfxInitDefault();
 	initCfgu();
 
 

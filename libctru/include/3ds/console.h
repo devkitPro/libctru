@@ -23,7 +23,7 @@ consoleInit()
 extern "C" {
 #endif
 
-typedef bool(* ConsolePrint)(void* con, char c);
+typedef bool(* ConsolePrint)(void* con, int c);
 
 //! a font struct for the console.
 typedef struct ConsoleFont
