@@ -1,5 +1,5 @@
 /*
-  srv.c _ Service manager.
+	srv.c _ Service manager.
 */
 
 #include <string.h>
@@ -9,14 +9,14 @@
 
 
 /*
-  The homebrew loader can choose to supply a list of service handles that have
-  been "stolen" from other processes that have been compromised. This allows us
-  to access services that are normally restricted from the current process.
+	The homebrew loader can choose to supply a list of service handles that have
+	been "stolen" from other processes that have been compromised. This allows us
+	to access services that are normally restricted from the current process.
 
-  For every service requested by the application, we shall first check if the
-  list given to us contains the requested service and if so use it. If we don't
-  find the service in that list, we ask the service manager and hope for the
-  best.
+	For every service requested by the application, we shall first check if the
+	list given to us contains the requested service and if so use it. If we don't
+	find the service in that list, we ask the service manager and hope for the
+	best.
  */
 
 typedef struct {
@@ -116,7 +116,7 @@ Result srvGetServiceHandle(Handle* out, const char* name)
 	Result rc = 0;
 
 	/* Look in service-list given to us by loader. If we find find a match,
-	   we return it. */
+     we return it. */
 	Handle h = __get_handle_from_list(name);
 
 	if(h != 0) {

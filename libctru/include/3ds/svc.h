@@ -24,14 +24,14 @@ typedef enum {
 } MemPerm;
 
 typedef struct {
-    u32 base_addr;
-    u32 size;
-    u32 perm;
-    u32 state;
+		u32 base_addr;
+		u32 size;
+		u32 perm;
+		u32 state;
 } MemInfo;
 
 typedef struct {
-    u32 flags;
+		u32 flags;
 } PageInfo;
 
 typedef enum {

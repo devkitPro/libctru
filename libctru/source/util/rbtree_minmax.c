@@ -5,33 +5,33 @@ static inline rbtree_node_t*
 do_minmax(const rbtree_t *tree,
           int            max)
 {
-  rbtree_node_t *node = tree->root;
+	rbtree_node_t *node = tree->root;
 
-  if(node == NULL)
-    return NULL;
+	if(node == NULL)
+		return NULL;
 
-  while(node->child[max] != NULL)
-    node = node->child[max];
+	while(node->child[max] != NULL)
+		node = node->child[max];
 
-  return node;
+	return node;
 }
 
 rbtree_node_t*
 rbtree_min(const rbtree_t *tree)
 {
-  rbtree_node_t *node;
+	rbtree_node_t *node;
 
-  node = do_minmax(tree, LEFT);
+	node = do_minmax(tree, LEFT);
 
-  return node;
+	return node;
 }
 
 rbtree_node_t*
 rbtree_max(const rbtree_t *tree)
 {
-  rbtree_node_t *node;
+	rbtree_node_t *node;
 
-  node = do_minmax(tree, RIGHT);
+	node = do_minmax(tree, RIGHT);
 
-  return node;
+	return node;
 }
