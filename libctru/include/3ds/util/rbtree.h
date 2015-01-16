@@ -14,15 +14,15 @@ typedef int  (*rbtree_node_comparator_t)(const rbtree_node_t *lhs,
                                          const rbtree_node_t *rhs);
 struct rbtree_node
 {
-  uintptr_t      parent_color;
-  rbtree_node_t  *child[2];
+	uintptr_t      parent_color;
+	rbtree_node_t  *child[2];
 };
 
 struct rbtree
 {
-  rbtree_node_t            *root;
-  rbtree_node_comparator_t comparator;
-  size_t                   size;
+	rbtree_node_t            *root;
+	rbtree_node_comparator_t comparator;
+	size_t                   size;
 };
 
 #ifdef __cplusplus

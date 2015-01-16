@@ -103,28 +103,28 @@ typedef struct
 /*! Directory entry */
 typedef struct
 {
-  // 0x00
-  u16 name[0x106];     //!< UTF-16 encoded name
-  // 0x20C
-  u8  shortName[0x09]; //!< 8.3 file name
-  // 0x215
-  u8  unknown1;        //!< ???
-  // 0x216
-  u8  shortExt[0x04];  //!< 8.3 file extension (set to spaces for directories)
-  // 0x21A
-  u8  unknown2;        //!< ???
-  // 0x21B
-  u8  unknown3;        //!< ???
-  // 0x21C
-  u8  isDirectory;     //!< directory bit
-  // 0x21D
-  u8  isHidden;        //!< hidden bit
-  // 0x21E
-  u8  isArchive;       //!< archive bit
-  // 0x21F
-  u8  isReadOnly;      //!< read-only bit
-  // 0x220
-  u64 fileSize;        //!< file size
+	// 0x00
+	u16 name[0x106];     //!< UTF-16 encoded name
+	// 0x20C
+	u8  shortName[0x09]; //!< 8.3 file name
+	// 0x215
+	u8  unknown1;        //!< ???
+	// 0x216
+	u8  shortExt[0x04];  //!< 8.3 file extension (set to spaces for directories)
+	// 0x21A
+	u8  unknown2;        //!< ???
+	// 0x21B
+	u8  unknown3;        //!< ???
+	// 0x21C
+	u8  isDirectory;     //!< directory bit
+	// 0x21D
+	u8  isHidden;        //!< hidden bit
+	// 0x21E
+	u8  isArchive;       //!< archive bit
+	// 0x21F
+	u8  isReadOnly;      //!< read-only bit
+	// 0x220
+	u64 fileSize;        //!< file size
 } FS_dirent;
 
 Result fsInit(void);
