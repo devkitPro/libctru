@@ -28,8 +28,8 @@ int ioctl(int fd, int request, ...)
 			return -1;
 		}
 
-		if(*value) ret = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-		else       ret = fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+		if(*value)	ret = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+		else				ret = fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
 
 		if(ret != 0)
 			errno = SOC_GetErrno();

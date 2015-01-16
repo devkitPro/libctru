@@ -1,7 +1,7 @@
 
 
 /*! \file console.h
-    \brief 3ds stdio support.
+		\brief 3ds stdio support.
 
 <div class="fileHeader">
 Provides stdio integration for printing to the 3DS screen as well as debug print
@@ -29,7 +29,7 @@ typedef bool(* ConsolePrint)(void* con, int c);
 typedef struct ConsoleFont
 {
 	u8* gfx;			//!< A pointer to the font graphics
-	u16 asciiOffset;	//!<  Offset to the first valid character in the font table
+	u16 asciiOffset;	//!<	Offset to the first valid character in the font table
 	u16 numChars;		//!< Number of characters in the font graphics
 
 }ConsoleFont;
@@ -50,13 +50,13 @@ PrintConsole defaultConsole =
 	0,0, //prevcursorX prevcursorY
 	40, //console width
 	30, //console height
-	0,  //window x
-	0,  //window y
+	0,	//window x
+	0,	//window y
 	32, //window width
 	24, //window height
 	3, //tab size
 	0, //font character offset
-	0,  //print callback
+	0,	//print callback
 	false //console initialized
 };
 </pre></div>
@@ -74,7 +74,7 @@ typedef struct PrintConsole
 	int prevCursorY;	/*!< Internal state */
 
 	int consoleWidth;	/*!< Width of the console hardware layer in characters */
-	int consoleHeight;	/*!< Height of the console hardware layer in characters  */
+	int consoleHeight;	/*!< Height of the console hardware layer in characters	*/
 
 	int windowX;		/*!< Window X location in characters (not implemented) */
 	int windowY;		/*!< Window Y location in characters (not implemented) */

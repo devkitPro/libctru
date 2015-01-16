@@ -28,9 +28,9 @@ int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
 		if((readfds && FD_ISSET(i, readfds))
 		|| (writefds && FD_ISSET(i, writefds))
 		|| (exceptfds && FD_ISSET(i, exceptfds))) {
-			pollinfo[j].fd      = i;
-			pollinfo[j].events  = 0;
-			pollinfo[j].revents = 0;
+			pollinfo[j].fd			= i;
+			pollinfo[j].events	= 0;
+			pollinfo[j].revents	= 0;
 
 			if(readfds && FD_ISSET(i, readfds))
 				pollinfo[j].events |= POLLIN;

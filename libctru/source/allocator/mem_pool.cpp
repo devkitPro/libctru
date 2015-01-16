@@ -63,9 +63,9 @@ bool MemPool::Allocate(MemChunk& chunk, u32 size, int align)
 			if (nSize)
 			{
 				// We need to add the tail chunk that wasn't used to the list
-				auto n = MemBlock::Create(nAddr, nSize);
-				if (n) InsertAfter(b, n);
-				else   chunk.size += nSize; // we have no choice but to waste the space.
+				auto n	= MemBlock::Create(nAddr, nSize);
+				if (n)	InsertAfter(b, n);
+				else		chunk.size += nSize; // we have no choice but to waste the space.
 			}
 		}
 		return true;
@@ -76,9 +76,9 @@ bool MemPool::Allocate(MemChunk& chunk, u32 size, int align)
 
 void MemPool::Deallocate(const MemChunk& chunk)
 {
-	u8*  cAddr = chunk.addr;
-	auto cSize = chunk.size;
-	bool done = false;
+	u8*		cAddr = chunk.addr;
+	auto	cSize = chunk.size;
+	bool	done = false;
 
 	// Try to merge the chunk somewhere into the list
 	for (auto b = first; !done && b; b = b->next)
@@ -121,7 +121,7 @@ void MemPool::Dump(const char* title)
 {
 	printf("<%s> VRAM Pool Dump\n", title);
 	for (auto b = first; b; b = b->next)
-		printf("  - %p (%u bytes)\n", b->base, b->size);
+		printf("	- %p (%u bytes)\n", b->base, b->size);
 }
 */
 
