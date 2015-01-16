@@ -1,6 +1,6 @@
-///////////////////////////////////////
-//           SDMC example            //
-///////////////////////////////////////
+//////////////////////////////////////
+//					SDMC example						//
+//////////////////////////////////////
 
 //this example shows you how to load a binary image file from the SD card and display it on the lower screen
 //for this to work you should copy test.bin to same folder as your .3dsx

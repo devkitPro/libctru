@@ -24,7 +24,7 @@ int poll(struct pollfd *fds, nfds_t nfsd, int timeout)
 	if((ret = svcSendSyncRequest(SOCU_handle)) != 0)return ret;
 
 	cmdbuf[0x100>>2] = saved_threadstorage[0];
-        cmdbuf[0x104>>2] = saved_threadstorage[1];
+				cmdbuf[0x104>>2] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret==0)ret = _net_convert_error(cmdbuf[2]);

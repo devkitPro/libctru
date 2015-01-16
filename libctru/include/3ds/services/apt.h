@@ -23,17 +23,17 @@ typedef enum{
 }APP_STATUS;
 
 enum {
-	APTSIGNAL_HOMEBUTTON   = 1,
+	APTSIGNAL_HOMEBUTTON		= 1,
 	// 2: sleep-mode related?
-	APTSIGNAL_PREPARESLEEP = 3,
+	APTSIGNAL_PREPARESLEEP	= 3,
 	// 4: triggered when ptm:s GetShellStatus() returns 5.
-	APTSIGNAL_ENTERSLEEP   = 5,
-	APTSIGNAL_WAKEUP       = 6,
-	APTSIGNAL_ENABLE       = 7,
-	APTSIGNAL_POWERBUTTON  = 8,
-	APTSIGNAL_UTILITY      = 9,
-	APTSIGNAL_SLEEPSYSTEM  = 10,
-	APTSIGNAL_ERROR        = 11
+	APTSIGNAL_ENTERSLEEP		= 5,
+	APTSIGNAL_WAKEUP				= 6,
+	APTSIGNAL_ENABLE				= 7,
+	APTSIGNAL_POWERBUTTON		= 8,
+	APTSIGNAL_UTILITY				= 9,
+	APTSIGNAL_SLEEPSYSTEM		= 10,
+	APTSIGNAL_ERROR					= 11
 };
 
 
@@ -82,4 +82,3 @@ Result APT_DoAppJump(Handle* handle, u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0P
 Result APT_PrepareToStartLibraryApplet(Handle* handle, NS_APPID appID);
 Result APT_StartLibraryApplet(Handle* handle, NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
 Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);//This should be used for launching library applets, this uses the above APT_StartLibraryApplet/APT_PrepareToStartLibraryApplet funcs + apt*Session(). parambuf is used for APT params input, when the applet closes the output param block is copied here. This is not usable from the homebrew launcher. This is broken: when the applet does get launched at all, the applet process doesn't actually get terminated when the applet gets closed.
-

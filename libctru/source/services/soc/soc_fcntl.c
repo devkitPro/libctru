@@ -5,8 +5,8 @@
 
 #define O_NONBLOCK_3DS 0x4
 
-#define ALL_3DS   (O_NONBLOCK_3DS)
-#define ALL_FLAGS (O_NONBLOCK)
+#define ALL_3DS		(O_NONBLOCK_3DS)
+#define ALL_FLAGS	(O_NONBLOCK)
 
 static int from_3ds(int flags)
 {

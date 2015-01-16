@@ -24,7 +24,7 @@ bufferMatrix_s bufferMatrixList[BUFFERMATRIXLIST_SIZE];
 int bufferMatrixListLength;
 
 //----------------------
-//   GS SYSTEM STUFF
+//	GS SYSTEM STUFF
 //----------------------
 
 void initBufferMatrixList()
@@ -74,7 +74,7 @@ void gsLinearFree(void* mem)
 }
 
 //----------------------
-//  MATRIX STACK STUFF
+//	MATRIX STACK STUFF
 //----------------------
 
 static mtx44 gsMatrixStacks[GS_MATRIXTYPES][GS_MATRIXSTACK_SIZE];
@@ -149,7 +149,7 @@ int gsMatrixMode(GS_MATRIX m)
 }
 
 //------------------------
-// MATRIX TRANSFORM STUFF
+//	MATRIX TRANSFORM STUFF
 //------------------------
 
 int gsMultMatrix(float* data)
@@ -208,7 +208,7 @@ void gsTranslate(float x, float y, float z)
 }
 
 //----------------------
-// MATRIX RENDER STUFF
+//	MATRIX RENDER STUFF
 //----------------------
 
 static void gsSetUniformMatrix(u32 startreg, float* m)
@@ -279,7 +279,7 @@ void gsAdjustBufferMatrices(mtx44 transformation)
 }
 
 //----------------------
-//      VBO STUFF
+//			VBO STUFF
 //----------------------
 
 int gsVboInit(gsVbo_s* vbo)
