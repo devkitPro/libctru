@@ -31,17 +31,17 @@ void gfxSet3D(bool enable)
 }
 
 void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format) {
-		if(screen==GFX_TOP)
-				topFormat = format;
-		else
-				botFormat = format;
+	if(screen==GFX_TOP)
+		topFormat = format;
+	else
+		botFormat = format;
 }
 
 GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen) {
-		if(screen==GFX_TOP)
-				return topFormat;
-		else
-				return botFormat;
+	if(screen==GFX_TOP)
+		return topFormat;
+	else
+		return botFormat;
 }
 
 void gfxSetDoubleBuffering( gfxScreen_t screen, bool doubleBuffering) {
@@ -49,18 +49,18 @@ void gfxSetDoubleBuffering( gfxScreen_t screen, bool doubleBuffering) {
 }
 
 static u32 __get_bytes_per_pixel(GSP_FramebufferFormats format) {
-		switch(format) {
-		case GSP_RGBA8_OES:
-				return 4;
-		case GSP_BGR8_OES:
-				return 3;
-		case GSP_RGB565_OES:
-		case GSP_RGB5_A1_OES:
-		case GSP_RGBA4_OES:
-				return 2;
-		}
-
+	switch(format) {
+	case GSP_RGBA8_OES:
+		return 4;
+	case GSP_BGR8_OES:
 		return 3;
+	case GSP_RGB565_OES:
+	case GSP_RGB5_A1_OES:
+	case GSP_RGBA4_OES:
+		return 2;
+	}
+
+	return 3;
 }
 
 void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
