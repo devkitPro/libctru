@@ -159,7 +159,7 @@ Result csndExit(void)
 	return ret;
 }
 
-static Result CSND_ExecChnCmds(u32 offset)
+static Result CSND_ExecCmd0(u32 offset)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -172,7 +172,7 @@ static Result CSND_ExecChnCmds(u32 offset)
 	return (Result)cmdbuf[1];
 }
 
-void csndWriteChnCmd(int cmdid, u8 *cmdparams)
+void csndWriteCmd(int cmdid, u8 *cmdparams)
 {
 	vu16* ptr;
 	u32 prevoff;
@@ -206,7 +206,7 @@ void csndWriteChnCmd(int cmdid, u8 *cmdparams)
 	svcReleaseMutex(csndMutex);
 }
 
-Result csndExecChnCmds(bool waitDone)
+Result csndExecCmds(bool waitDone)
 {
 	Result ret=0;
 
@@ -216,7 +216,7 @@ Result csndExecChnCmds(bool waitDone)
 
 	vu8* flag = (vu8*)&csndSharedMem[(csndCmdStartOff + 4) >> 2];
 
-	ret = CSND_ExecChnCmds(csndCmdStartOff);
+	ret = CSND_ExecCmd0(csndCmdStartOff);
 	csndCmdStartOff = csndCmdCurOff;
 	if (ret != 0) return ret;
 
@@ -226,7 +226,7 @@ Result csndExecChnCmds(bool waitDone)
 	return ret;
 }
 
-void CSND_ChnSetPlayStateR(u32 channel, u32 value)
+void CSND_SetPlayStateR(u32 channel, u32 value)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -235,10 +235,10 @@ void CSND_ChnSetPlayStateR(u32 channel, u32 value)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = value;
 
-	csndWriteChnCmd(0x0, (u8*)&cmdparams);
+	csndWriteCmd(0x0, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetPlayState(u32 channel, u32 value)
+void CSND_CetPlayState(u32 channel, u32 value)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -247,10 +247,10 @@ void CSND_ChnSetPlayState(u32 channel, u32 value)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = value;
 
-	csndWriteChnCmd(0x1, (u8*)&cmdparams);
+	csndWriteCmd(0x1, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetBlock(u32 channel, int block, u32 physaddr, u32 size)
+void CSND_SetBlock(u32 channel, int block, u32 physaddr, u32 size)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -260,10 +260,10 @@ void CSND_ChnSetBlock(u32 channel, int block, u32 physaddr, u32 size)
 	cmdparams[1] = physaddr;
 	cmdparams[2] = size;
 
-	csndWriteChnCmd(block ? 0x3 : 0xA, (u8*)&cmdparams);
+	csndWriteCmd(block ? 0x3 : 0xA, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetVol(u32 channel, u16 left, u16 right)
+void CSND_SetVol(u32 channel, u16 left, u16 right)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -272,10 +272,10 @@ void CSND_ChnSetVol(u32 channel, u16 left, u16 right)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = left | (right<<16);
 
-	csndWriteChnCmd(0x9, (u8*)&cmdparams);
+	csndWriteCmd(0x9, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetTimer(u32 channel, u32 timer)
+void CSND_SetTimer(u32 channel, u32 timer)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -284,10 +284,10 @@ void CSND_ChnSetTimer(u32 channel, u32 timer)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = timer;
 
-	csndWriteChnCmd(0x8, (u8*)&cmdparams);
+	csndWriteCmd(0x8, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetDuty(u32 channel, u32 duty)
+void CSND_SetDuty(u32 channel, u32 duty)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -296,10 +296,10 @@ void CSND_ChnSetDuty(u32 channel, u32 duty)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = duty;
 
-	csndWriteChnCmd(0x7, (u8*)&cmdparams);
+	csndWriteCmd(0x7, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetAdpcmState(u32 channel, int block, int sample, int index)
+void CSND_SetAdpcmState(u32 channel, int block, int sample, int index)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -309,10 +309,10 @@ void CSND_ChnSetAdpcmState(u32 channel, int block, int sample, int index)
 	cmdparams[1] = sample & 0xFFFF;
 	cmdparams[2] = index & 0x7F;
 
-	csndWriteChnCmd(block ? 0xC : 0xB, (u8*)&cmdparams);
+	csndWriteCmd(block ? 0xC : 0xB, (u8*)&cmdparams);
 }
 
-void CSND_ChnSetAdpcmReload(u32 channel, bool reload)
+void CSND_SetAdpcmReload(u32 channel, bool reload)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -321,10 +321,10 @@ void CSND_ChnSetAdpcmReload(u32 channel, bool reload)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = reload ? 1 : 0;
 
-	csndWriteChnCmd(0xD, (u8*)&cmdparams);
+	csndWriteCmd(0xD, (u8*)&cmdparams);
 }
 
-void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
+void CSND_SetChnRegs(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -337,17 +337,17 @@ void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
 	cmdparams[4] = physaddr1;
 	cmdparams[5] = totalbytesize;
 
-	csndWriteChnCmd(0xe, (u8*)&cmdparams);
+	csndWriteCmd(0xe, (u8*)&cmdparams);
 }
 
-Result CSND_UpdateChnInfo(bool waitDone)
+Result CSND_UpdateInfo(bool waitDone)
 {
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
-	csndWriteChnCmd(0x300, (u8*)&cmdparams);
-	return csndExecChnCmds(waitDone);
+	csndWriteCmd(0x300, (u8*)&cmdparams);
+	return csndExecCmds(waitDone);
 }
 
 void CSND_CapEnable(u32 capUnit, bool enable)
@@ -358,7 +358,7 @@ void CSND_CapEnable(u32 capUnit, bool enable)
 	cmdparams[0] = capUnit;
 	cmdparams[1] = enable ? 1 : 0;
 
-	csndWriteChnCmd(0x100, (u8*)&cmdparams);
+	csndWriteCmd(0x100, (u8*)&cmdparams);
 }
 
 void CSND_CapSetBit(u32 capUnit, int bit, bool state)
@@ -369,7 +369,7 @@ void CSND_CapSetBit(u32 capUnit, int bit, bool state)
 	cmdparams[0] = capUnit;
 	cmdparams[1] = state ? 1 : 0;
 
-	csndWriteChnCmd(0x101 + bit, (u8*)&cmdparams);
+	csndWriteCmd(0x101 + bit, (u8*)&cmdparams);
 }
 
 void CSND_CapSetTimer(u32 capUnit, u32 timer)
@@ -380,7 +380,7 @@ void CSND_CapSetTimer(u32 capUnit, u32 timer)
 	cmdparams[0] = capUnit;
 	cmdparams[1] = timer & 0xFFFF;
 
-	csndWriteChnCmd(0x104, (u8*)&cmdparams);
+	csndWriteCmd(0x104, (u8*)&cmdparams);
 }
 
 void CSND_CapSetBuffer(u32 capUnit, u32 paddr, u32 size)
@@ -392,10 +392,10 @@ void CSND_CapSetBuffer(u32 capUnit, u32 paddr, u32 size)
 	cmdparams[1] = paddr;
 	cmdparams[2] = size;
 
-	csndWriteChnCmd(0x105, (u8*)&cmdparams);
+	csndWriteCmd(0x105, (u8*)&cmdparams);
 }
 
-Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size)
+Result csndPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size)
 {
 	if (!(csndChannels & BIT(chn)))
 		return 1;
@@ -414,7 +414,7 @@ Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* d
 		{
 			int adpcmSample = ((s16*)data0)[-2];
 			int adpcmIndex = ((u8*)data0)[-2];
-			CSND_ChnSetAdpcmState(chn, 0, adpcmSample, adpcmIndex);
+			CSND_SetAdpcmState(chn, 0, adpcmSample, adpcmIndex);
 		}
 	}
 
@@ -424,30 +424,30 @@ Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* d
 	flags &= ~0xFFFF001F;
 	flags |= SOUND_ENABLE | SOUND_CHANNEL(chn) | (timer << 16);
 
-	CSND_ChnConfig(flags, paddr0, paddr1, size);
+	CSND_SetChnRegs(flags, paddr0, paddr1, size);
 
 	if (loopMode == CSND_LOOPMODE_NORMAL && paddr1 > paddr0)
 	{
 		// Now that the first block is playing, configure the size of the subsequent blocks
 		size -= paddr1 - paddr0;
-		CSND_ChnSetBlock(chn, 1, paddr1, size);
+		CSND_SetBlock(chn, 1, paddr1, size);
 	}
 
-	return csndExecChnCmds(true);
+	return csndExecCmds(true);
 }
 
-CSND_ChnInfo* csndChnGetInfo(u32 channel)
+CSND_ChnInfo* csndGetChnInfo(u32 channel)
 {
 	channel = csndChnIdx[channel];
 	return (CSND_ChnInfo*)(&csndSharedMem[(csndOffsets[1] + channel*0xc) >> 2]);
 }
 
-Result csndChnGetState(u32 channel, u32 *out)
+Result csndGetState(u32 channel, CSND_ChnInfo* out)
 {
 	Result ret = 0;
 	channel = csndChnIdx[channel];
 
-	if ((ret = CSND_UpdateChnInfo(true)) != 0)return ret;
+	if ((ret = CSND_UpdateInfo(true)) != 0)return ret;
 
 	memcpy(out, (const void*)&csndSharedMem[(csndOffsets[1] + channel*0xc) >> 2], 0xc);
 	//out[2] -= 0x0c000000;
@@ -455,12 +455,12 @@ Result csndChnGetState(u32 channel, u32 *out)
 	return 0;
 }
 
-Result csndChnIsPlaying(u32 channel, u8 *status)
+Result csndIsPlaying(u32 channel, u8* status)
 {
 	Result ret;
 	struct CSND_CHANNEL_STATUS entry;
 
-	ret = csndChnGetState(channel, entry);
+	ret = csndGetState(channel, &entry);
 	if(ret!=0)return ret;
 
 	*status = entry.state;

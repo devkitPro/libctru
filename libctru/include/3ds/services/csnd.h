@@ -78,29 +78,29 @@ Result CSND_ReleaseCapUnit(u32 capUnit);
 Result csndInit(void);
 Result csndExit(void);
 
-void csndWriteChnCmd(int cmdid, u8 *cmdparams);
-Result csndExecChnCmds(bool waitDone);
+void csndWriteCmd(int cmdid, u8 *cmdparams);
+Result csndExecCmds(bool waitDone);
 
-void CSND_ChnSetPlayStateR(u32 channel, u32 value);
-void CSND_ChnSetPlayState(u32 channel, u32 value);
-void CSND_ChnSetBlock(u32 channel, int block, u32 physaddr, u32 size);
-void CSND_ChnSetVol(u32 channel, u16 left, u16 right);
-void CSND_ChnSetTimer(u32 channel, u32 timer);
-void CSND_ChnSetDuty(u32 channel, u32 duty);
-void CSND_ChnSetAdpcmState(u32 channel, int block, int sample, int index);
-void CSND_ChnSetAdpcmReload(u32 channel, bool reload);
-void CSND_ChnConfig(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
+void CSND_SetPlayStateR(u32 channel, u32 value);
+void CSND_SetPlayState(u32 channel, u32 value);
+void CSND_SetBlock(u32 channel, int block, u32 physaddr, u32 size);
+void CSND_SetVol(u32 channel, u16 left, u16 right);
+void CSND_SetTimer(u32 channel, u32 timer);
+void CSND_SetDuty(u32 channel, u32 duty);
+void CSND_SetAdpcmState(u32 channel, int block, int sample, int index);
+void CSND_SetAdpcmReload(u32 channel, bool reload);
+void CSND_SetChnRegs(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
 
 void CSND_CapEnable(u32 capUnit, bool enable);
 void CSND_CapSetBit(u32 capUnit, int bit, bool state); // Sets bit0..2 in the CNT register, purpose currently unknown
 void CSND_CapSetTimer(u32 capUnit, u32 timer);
 void CSND_CapSetBuffer(u32 capUnit, u32 paddr, u32 size);
 
-Result CSND_UpdateChnInfo(bool waitDone);
+Result CSND_UpdateInfo(bool waitDone);
 
-Result csndChnPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size);
+Result csndPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size);
 
-CSND_ChnInfo* csndChnGetInfo(u32 channel); // Requires previous CSND_UpdateChnInfo()
+CSND_ChnInfo* csndGetChnInfo(u32 channel); // Requires previous CSND_UpdateInfo()
 
-Result csndChnGetState(u32 channel, u32 *out);
-Result csndChnIsPlaying(u32 channel, u8 *status);
+Result csndGetState(u32 channel, CSND_ChnInfo* out);
+Result csndIsPlaying(u32 channel, u8* status);
