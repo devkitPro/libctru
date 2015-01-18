@@ -18,6 +18,7 @@ consoleInit()
 #define CONSOLE_H
 
 #include <3ds/types.h>
+#include <3ds/gfx.h>
 
 #ifdef __cplusplus
 extern "C" {
