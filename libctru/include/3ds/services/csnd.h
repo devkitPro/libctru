@@ -26,13 +26,23 @@ struct  CSND_CHANNEL_STATUS {
 
 //See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 
+Result CSND_cmd1(Handle *mutexhandle, Handle *sharedmemhandle, u32 sharedmem_size, u32 off0, u32 off1, u32 off2, u32 off3);
+Result CSND_cmd2();
+Result CSND_cmd3(u32 offset);void CSND_writesharedmem_cmdtype0(u16 cmdid, u8 *cmdparams);
+Result CSND_cmd5(u32 *bitmask);
+
 Result CSND_initialize(u32* sharedMem);
 Result CSND_shutdown();
 
+Result CSND_processtype0cmds();
 u32 CSND_convertsamplerate(u32 samplerate);
 Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1);
 void CSND_setchannel_playbackstate(u32 channel, u32 value);
 void CSND_sharedmemtype0_cmd0(u32 channel, u32 value);
+void CSND_sharedmemtype0_cmd3(u32 channel, u32 physaddr, u32 size);
+void CSND_sharedmemtype0_cmd8(u32 channel, u32 samplerate);
+void CSND_sharedmemtype0_cmd9(u32 channel, u16 value);
+void CSND_sharedmemtype0_cmde(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
 void CSND_writesharedmem_cmdtype0(u16 cmdid, u8 *cmdparams);
 Result CSND_sharedmemtype0_cmdupdatestate(int waitdone);
 
