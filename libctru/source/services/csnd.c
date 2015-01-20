@@ -458,12 +458,12 @@ Result csndGetState(u32 channel, CSND_ChnInfo* out)
 Result csndIsPlaying(u32 channel, u8* status)
 {
 	Result ret;
-	struct CSND_CHANNEL_STATUS entry;
+	CSND_ChnInfo entry;
 
 	ret = csndGetState(channel, &entry);
 	if(ret!=0)return ret;
 
-	*status = entry.state;
+	*status = entry.active;
 
 	return 0;
 }

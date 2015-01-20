@@ -6,7 +6,7 @@
 
 #define CSND_TIMER(n) (0x3FEC3FC / ((u32)(n)))
 
-typedef enum
+enum
 {
 	CSND_ENCODING_PCM8 = 0,
 	CSND_ENCODING_PCM16,
