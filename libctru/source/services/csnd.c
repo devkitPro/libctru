@@ -238,7 +238,7 @@ void CSND_SetPlayStateR(u32 channel, u32 value)
 	csndWriteCmd(0x0, (u8*)&cmdparams);
 }
 
-void CSND_CetPlayState(u32 channel, u32 value)
+void CSND_SetPlayState(u32 channel, u32 value)
 {
 	u32 cmdparams[0x18>>2];
 
