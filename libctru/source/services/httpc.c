@@ -39,14 +39,14 @@ Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
 	if(ret!=0) {
 		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 		return ret;
-        }
+	}
 
 	ret = HTTPC_InitializeConnectionSession(context->servhandle, context->httphandle);
 	if(ret!=0) {
 		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 		svcCloseHandle(context->servhandle);
 		return ret;
-        }
+	}
 
 	if(use_defaultproxy==0)return 0;
 
@@ -55,7 +55,7 @@ Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
 		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 		svcCloseHandle(context->servhandle);
 		return ret;
-        }
+				}
 
 	return 0;
 }
