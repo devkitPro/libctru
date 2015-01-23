@@ -7,6 +7,13 @@ int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optl
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 saved_threadstorage[2];
 
+	sockfd = soc_get_fd(sockfd);
+	if(sockfd < 0)
+	{
+		SOCU_errno = sockfd;
+		return -1;
+	}
+
 	cmdbuf[0] = 0x00110102;
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)level;

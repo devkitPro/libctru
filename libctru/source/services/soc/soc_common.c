@@ -1,5 +1,6 @@
 #include "soc_common.h"
 #include <errno.h>
+#include <sys/iosupport.h>
 
 Handle	SOCU_handle = 0;
 int	SOCU_errno = 0;

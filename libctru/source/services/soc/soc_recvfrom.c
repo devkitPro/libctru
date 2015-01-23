@@ -102,6 +102,13 @@ ssize_t socuipc_cmd8(int sockfd, void *buf, size_t len, int flags, struct sockad
 
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
 {
+	sockfd = soc_get_fd(sockfd);
+	if(sockfd < 0)
+	{
+		SOCU_errno = sockfd;
+		return -1;
+	}
+
 	if(len<0x2000)return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
 	return socuipc_cmd7(sockfd, buf, len, flags, src_addr, addrlen);
 }

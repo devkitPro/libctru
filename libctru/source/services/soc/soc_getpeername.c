@@ -8,6 +8,13 @@ int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	u32 saved_threadstorage[2];
 	u8 tmpaddr[0x1c];
 
+	sockfd = soc_get_fd(sockfd);
+	if(sockfd < 0)
+	{
+		SOCU_errno = sockfd;
+		return -1;
+	}
+
 	cmdbuf[0] = 0x00180082;
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = 0x1c;

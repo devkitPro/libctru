@@ -28,13 +28,20 @@ static int to_3ds(int flags)
 	return newflags;
 }
 
-int fcntl(int fd, int cmd, ...)
+int fcntl(int sockfd, int cmd, ...)
 {
 	int ret = 0;
 	int arg = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	va_list args;
+
+	sockfd = soc_get_fd(sockfd);
+	if(sockfd < 0)
+	{
+		SOCU_errno = sockfd;
+		return -1;
+	}
 
 	if(cmd != F_GETFL && cmd != F_SETFL)
 	{
@@ -60,7 +67,7 @@ int fcntl(int fd, int cmd, ...)
 	va_end(args);
 
 	cmdbuf[0] = 0x001300C2;
-	cmdbuf[1] = (u32)fd;
+	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)cmd;
 	cmdbuf[3] = (u32)arg;
 	cmdbuf[4] = 0x20;
