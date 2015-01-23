@@ -1,4 +1,41 @@
 #include "soc_common.h"
+#include <sys/socket.h>
+
+static int     soc_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
+static int     soc_close(struct _reent *r, int fd);
+static ssize_t soc_write(struct _reent *r, int fd, const char *ptr, size_t len);
+static ssize_t soc_read(struct _reent *r, int fd, char *ptr, size_t len);
+
+static devoptab_t
+soc_devoptab =
+{
+  .name         = "soc",
+  .structSize   = sizeof(Handle),
+  .open_r       = soc_open,
+  .close_r      = soc_close,
+  .write_r      = soc_write,
+  .read_r       = soc_read,
+  .seek_r       = NULL,
+  .fstat_r      = NULL,
+  .stat_r       = NULL,
+  .link_r       = NULL,
+  .unlink_r     = NULL,
+  .chdir_r      = NULL,
+  .rename_r     = NULL,
+  .mkdir_r      = NULL,
+  .dirStateSize = 0,
+  .diropen_r    = NULL,
+  .dirreset_r   = NULL,
+  .dirnext_r    = NULL,
+  .dirclose_r   = NULL,
+  .statvfs_r    = NULL,
+  .ftruncate_r  = NULL,
+  .fsync_r      = NULL,
+  .deviceData   = NULL,
+  .chmod_r      = NULL,
+  .fchmod_r     = NULL,
+};
+
 
 static Result socu_cmd1(Handle memhandle, u32 memsize)
 {
@@ -20,18 +57,43 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)
 {
 	Result ret=0;
 
+	/* check that the "soc" device doesn't already exist */
+	int dev = FindDevice("soc:");
+	if(dev >= 0)
+		return -1;
+
+	/* add the "soc" device */
+	dev = AddDevice(&soc_devoptab);
+	if(dev < 0)
+		return dev;
+
 	ret = svcCreateMemoryBlock(&socMemhandle, (u32)context_addr, context_size, 0, 3);
-	if(ret!=0)return ret;
+	if(ret != 0)
+	{
+		RemoveDevice("soc");
+		return ret;
+	}
 
-	if((ret = srvGetServiceHandle(&SOCU_handle, "soc:U"))!=0)return ret;
+	if((ret = srvGetServiceHandle(&SOCU_handle, "soc:U")) != 0)
+	{
+		RemoveDevice("soc");
+		return ret;
+	}
 
-	return socu_cmd1(socMemhandle, context_size);
+	if((ret = socu_cmd1(socMemhandle, context_size)) != 0)
+	{
+		RemoveDevice("soc");
+		return ret;
+	}
+
+	return 0;
 }
 
 Result SOC_Shutdown(void)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
+	int dev;
 
 	cmdbuf[0] = 0x00190000;
 
@@ -40,5 +102,62 @@ Result SOC_Shutdown(void)
 	svcCloseHandle(SOCU_handle);
 	svcCloseHandle(socMemhandle);
 
+	dev = FindDevice("soc:");
+	if(dev >= 0)
+		RemoveDevice("soc");
+
 	return cmdbuf[1];
+}
+
+static int
+soc_open(struct _reent *r,
+         void          *fileStruct,
+         const char    *path,
+         int           flags,
+         int           mode)
+{
+	return -1;
+}
+
+static int
+soc_close(struct _reent *r,
+          int           fd)
+{
+	Handle sockfd = *(Handle*)fd;
+	
+	int ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x000B0042;
+	cmdbuf[1] = (u32)sockfd;
+	cmdbuf[2] = 0x20;
+
+	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
+
+	ret = (int)cmdbuf[1];
+	if(ret==0)ret =_net_convert_error(cmdbuf[2]);
+	SOCU_errno = ret;
+
+	if(ret!=0)return -1;
+	return 0;
+}
+
+static ssize_t
+soc_write(struct _reent *r,
+          int           fd,
+          const char    *ptr,
+          size_t        len)
+{
+	Handle sockfd = *(Handle*)fd;
+	return send(sockfd, ptr, len, 0);
+}
+
+static ssize_t
+soc_read(struct _reent *r,
+         int           fd,
+         char          *ptr,
+         size_t        len)
+{
+	Handle sockfd = *(Handle*)fd;
+	return recv(sockfd, ptr, len, 0);
 }

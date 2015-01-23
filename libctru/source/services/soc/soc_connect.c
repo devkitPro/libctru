@@ -9,6 +9,13 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u8 tmpaddr[0x1c];
 
+	sockfd = soc_get_fd(sockfd);
+	if(sockfd < 0)
+	{
+		SOCU_errno = sockfd;
+		return -1;
+	}
+
 	memset(tmpaddr, 0, 0x1c);
 
 	if(addr->sa_family == AF_INET)

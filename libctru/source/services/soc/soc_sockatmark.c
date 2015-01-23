@@ -6,6 +6,13 @@ int sockatmark(int sockfd)
 	int ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
+	sockfd = soc_get_fd(sockfd);
+	if(sockfd < 0)
+	{
+		SOCU_errno = sockfd;
+		return -1;
+	}
+
 	cmdbuf[0] = 0x00150042;
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = 0x20;
