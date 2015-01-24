@@ -8,12 +8,13 @@
 #include <3ds/srv.h>
 #include <3ds/services/soc.h>
 
+#define SYNC_ERROR ENODEV
+
 int __alloc_handle(int size);
 __handle *__get_handle(int fd);
 void __release_handle(int fd);
 
 extern Handle	SOCU_handle;
-extern int	SOCU_errno;
 extern Handle	socMemhandle;
 
 static inline int

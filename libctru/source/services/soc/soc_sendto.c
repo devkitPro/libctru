@@ -4,27 +4,21 @@
 
 ssize_t socuipc_cmd9(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
 {
-	int ret=0;
+	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u32 tmp_addrlen=0;
+	u32 tmp_addrlen = 0;
 	u8 tmpaddr[0x1c];
 
 	memset(tmpaddr, 0, 0x1c);
 
-	if(dest_addr)
-	{
+	if(dest_addr) {
 		if(dest_addr->sa_family == AF_INET)
-		{
 			tmp_addrlen = 8;
-		}
 		else
-		{
 			tmp_addrlen = 0x1c;
-		}
 
-		if(addrlen < tmp_addrlen)
-		{
-			SOCU_errno = -EINVAL;
+		if(addrlen < tmp_addrlen) {
+			errno = EINVAL;
 			return -1;
 		}
 
@@ -44,39 +38,41 @@ ssize_t socuipc_cmd9(int sockfd, const void *buf, size_t len, int flags, const s
 	cmdbuf[9] = (((u32)len)<<4) | 10;
 	cmdbuf[10] = (u32)buf;
 
-	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
+		return ret;
+	}
 
 	ret = (int)cmdbuf[1];
-	if(ret==0)ret = _net_convert_error(cmdbuf[2]);
-	if(ret<0)SOCU_errno = ret;
+	if(ret == 0)
+		ret = _net_convert_error(cmdbuf[2]);
 
-	if(ret<0)return -1;
+	if(ret < 0) {
+		errno = -ret;
+		return -1;
+	}
+
 	return ret;
 }
 
 ssize_t socuipc_cmda(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
 {
-	int ret=0;
+	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u32 tmp_addrlen=0;
+	u32 tmp_addrlen = 0;
 	u8 tmpaddr[0x1c];
 
 	memset(tmpaddr, 0, 0x1c);
 
-	if(dest_addr)
-	{
+	if(dest_addr) {
 		if(dest_addr->sa_family == AF_INET)
-		{
 			tmp_addrlen = 8;
-		}
 		else
-		{
 			tmp_addrlen = 0x1c;
-		}
 
-		if(addrlen < tmp_addrlen)
-		{
-			SOCU_errno = -EINVAL;
+		if(addrlen < tmp_addrlen) {
+			errno = EINVAL;
 			return -1;
 		}
 
@@ -96,25 +92,33 @@ ssize_t socuipc_cmda(int sockfd, const void *buf, size_t len, int flags, const s
 	cmdbuf[9] = (tmp_addrlen<<14) | 0x402;
 	cmdbuf[10] = (u32)tmpaddr;
 
-	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
+		return ret;
+	}
 
 	ret = (int)cmdbuf[1];
-	if(ret==0)ret = _net_convert_error(cmdbuf[2]);
-	if(ret<0)SOCU_errno = ret;
+	if(ret == 0)
+		ret = _net_convert_error(cmdbuf[2]);
 
-	if(ret<0)return -1;
+	if(ret < 0) {
+		errno = -ret;
+		return -1;
+	}
+
 	return ret;
 }
 
 ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
 {
 	sockfd = soc_get_fd(sockfd);
-	if(sockfd < 0)
-	{
-		SOCU_errno = sockfd;
+	if(sockfd < 0) {
+		errno = -sockfd;
 		return -1;
 	}
 
-	if(len<0x2000)return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
-	return socuipc_cmd9(sockfd, buf, len, flags, (struct sockaddr*)dest_addr, addrlen);
+	if(len < 0x2000)
+		return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
+	return socuipc_cmd9(sockfd, buf, len, flags, dest_addr, addrlen);
 }

@@ -1,15 +1,15 @@
 #include "soc_common.h"
+#include <errno.h>
 #include <sys/socket.h>
 
 int sockatmark(int sockfd)
 {
-	int ret=0;
+	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	sockfd = soc_get_fd(sockfd);
-	if(sockfd < 0)
-	{
-		SOCU_errno = sockfd;
+	if(sockfd < 0) {
+		errno = -sockfd;
 		return -1;
 	}
 
@@ -17,12 +17,20 @@ int sockatmark(int sockfd)
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = 0x20;
 
-	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
+		return -1;
+	}
 
 	ret = (int)cmdbuf[1];
-	if(ret==0)ret = _net_convert_error(cmdbuf[2]);
-	if(ret<0)SOCU_errno = ret;
+	if(ret == 0)
+		ret = _net_convert_error(cmdbuf[2]);
 
-	if(ret<0)return -1;
+	if(ret < 0) {
+		errno = -ret;
+		return -1;
+	}
+
 	return ret;
 }
