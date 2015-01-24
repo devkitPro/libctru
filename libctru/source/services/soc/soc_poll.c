@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <poll.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
@@ -47,12 +48,17 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 	saved_threadstorage[1] = cmdbuf[0x104>>2];
 
 	cmdbuf[0x100>>2] = (size<<14) | 2;
-	cmdbuf[0x104>>2] = (u32)fds;
+	cmdbuf[0x104>>2] = (u32)tmp_fds;
 
 	if((ret = svcSendSyncRequest(SOCU_handle)) != 0)
 	{
 		free(tmp_fds);
 		return ret;
+	}
+
+	for(i = 0; i < nfds; ++i)
+	{
+		fds[i].revents = tmp_fds[i].revents;
 	}
 
 	free(tmp_fds);
