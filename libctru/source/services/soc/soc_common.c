@@ -3,7 +3,6 @@
 #include <sys/iosupport.h>
 
 Handle	SOCU_handle = 0;
-int	SOCU_errno = 0;
 Handle	socMemhandle = 0;
 
 //This is based on the array from libogc network_wii.c.
@@ -92,14 +91,11 @@ static u8 _net_error_code_map[] = {
 //This is based on the function from libogc network_wii.c.
 s32 _net_convert_error(s32 sock_retval)
 {
-	if (sock_retval >= 0) return sock_retval;
-	if (sock_retval < -sizeof(_net_error_code_map)
-		|| !_net_error_code_map[-sock_retval])
-			return NET_UNKNOWN_ERROR_OFFSET + sock_retval;
-	return -_net_error_code_map[-sock_retval];
-}
+	if(sock_retval >= 0)
+		return sock_retval;
 
-int SOC_GetErrno(void)
-{
-	return SOCU_errno;
+	if(sock_retval < -sizeof(_net_error_code_map)
+	|| !_net_error_code_map[-sock_retval])
+		return NET_UNKNOWN_ERROR_OFFSET + sock_retval;
+	return -_net_error_code_map[-sock_retval];
 }

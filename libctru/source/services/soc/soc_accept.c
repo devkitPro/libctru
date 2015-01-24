@@ -1,4 +1,5 @@
 #include "soc_common.h"
+#include <errno.h>
 #include <sys/socket.h>
 
 int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
@@ -12,23 +13,20 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	u32 saved_threadstorage[2];
 
 	sockfd = soc_get_fd(sockfd);
-	if(sockfd < 0)
-	{
-		SOCU_errno = sockfd;
+	if(sockfd < 0) {
+		errno = -sockfd;
 		return -1;
 	}
 
 	dev = FindDevice("soc:");
-	if(dev < 0)
-	{
-		SOCU_errno = -ENODEV;
+	if(dev < 0) {
+		errno = ENODEV;
 		return -1;
 	}
 
 	fd = __alloc_handle(sizeof(__handle) + sizeof(Handle));
-	if(fd < 0)
-	{
-		SOCU_errno = -ENOMEM;
+	if(fd < 0) {
+		errno = ENOMEM;
 		return -1;
 	}
 
@@ -49,9 +47,10 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	cmdbuf[0x100>>2] = (tmp_addrlen<<14) | 2;
 	cmdbuf[0x104>>2] = (u32)tmpaddr;
 
-	if((ret = svcSendSyncRequest(SOCU_handle)) != 0)
-	{
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
 		__release_handle(fd);
+		errno = SYNC_ERROR;
 		return ret;
 	}
 
@@ -63,18 +62,16 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 		ret = _net_convert_error(cmdbuf[2]);
 
 	if(ret < 0)
-		SOCU_errno = ret;
+		errno = -ret;
 
-	if(ret >= 0 && addr != NULL)
-	{
+	if(ret >= 0 && addr != NULL) {
 		addr->sa_family = tmpaddr[1];
 		if(*addrlen > tmpaddr[0])
 			*addrlen = tmpaddr[0];
 		memcpy(addr->sa_data, &tmpaddr[2], *addrlen - 2);
 	}
 
-	if(ret < 0)
-	{
+	if(ret < 0) {
 		__release_handle(fd);
 		return -1;
 	}

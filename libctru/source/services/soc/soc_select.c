@@ -20,7 +20,7 @@ int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
 
 	pollinfo = (struct pollfd*)calloc(numfds, sizeof(struct pollfd));
 	if(pollinfo == NULL) {
-		SOCU_errno = ENOMEM;
+		errno = ENOMEM;
 		return -1;
 	}
 
@@ -79,7 +79,8 @@ int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struc
 					FD_CLR(i, exceptfds);
 			}
 
-			if(found) ++rc;
+			if(found)
+				++rc;
 			++j;
 		}
 	}

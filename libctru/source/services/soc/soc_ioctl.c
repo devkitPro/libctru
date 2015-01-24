@@ -12,17 +12,17 @@ int ioctl(int sockfd, int request, ...)
 	va_list ap;
 
 	sockfd = soc_get_fd(sockfd);
-	if(sockfd < 0)
-	{
-		SOCU_errno = sockfd;
+	if(sockfd < 0) {
+		errno = -sockfd;
 		return -1;
 	}
 
-	va_start(ap, request);
-
 	switch(request) {
 	case FIONBIO:
+		va_start(ap, request);
 		value = va_arg(ap, int*);
+		va_end(ap);
+
 		if(value == NULL) {
 			errno = EFAULT;
 			va_end(ap);
@@ -30,17 +30,13 @@ int ioctl(int sockfd, int request, ...)
 		}
 
 		flags = fcntl(sockfd, F_GETFL, 0);
-		if(flags == -1) {
-			errno = SOC_GetErrno();
-			va_end(ap);
+		if(flags == -1)	
 			return -1;
-		}
 
-		if(*value) ret = fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-		else       ret = fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
-
-		if(ret != 0)
-			errno = SOC_GetErrno();
+		if(*value)
+			ret = fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+		else
+			ret = fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
 
 		break;
 
@@ -49,8 +45,6 @@ int ioctl(int sockfd, int request, ...)
 		ret = -1;
 		break;
 	}
-
-	va_end(ap);
 
 	return ret;
 }

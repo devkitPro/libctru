@@ -1,4 +1,5 @@
 #include "soc_common.h"
+#include <errno.h>
 #include <sys/socket.h>
 
 static int     soc_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
@@ -39,7 +40,7 @@ soc_devoptab =
 
 static Result socu_cmd1(Handle memhandle, u32 memsize)
 {
-	Result ret=0;
+	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x00010044;
@@ -48,14 +49,18 @@ static Result socu_cmd1(Handle memhandle, u32 memsize)
 	cmdbuf[4] = 0;
 	cmdbuf[5] = memhandle;
 
-	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
+		return ret;
+	}
 
 	return cmdbuf[1];
 }
 
 Result SOC_Initialize(u32 *context_addr, u32 context_size)
 {
-	Result ret=0;
+	Result ret = 0;
 
 	/* check that the "soc" device doesn't already exist */
 	int dev = FindDevice("soc:");
@@ -68,20 +73,19 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)
 		return dev;
 
 	ret = svcCreateMemoryBlock(&socMemhandle, (u32)context_addr, context_size, 0, 3);
-	if(ret != 0)
-	{
+	if(ret != 0) {
 		RemoveDevice("soc");
 		return ret;
 	}
 
-	if((ret = srvGetServiceHandle(&SOCU_handle, "soc:U")) != 0)
-	{
+	ret = srvGetServiceHandle(&SOCU_handle, "soc:U");
+	if(ret != 0) {
 		RemoveDevice("soc");
 		return ret;
 	}
 
-	if((ret = socu_cmd1(socMemhandle, context_size)) != 0)
-	{
+	ret = socu_cmd1(socMemhandle, context_size);
+	if(ret != 0) {
 		RemoveDevice("soc");
 		return ret;
 	}
@@ -91,13 +95,17 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)
 
 Result SOC_Shutdown(void)
 {
-	Result ret=0;
+	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	int dev;
 
 	cmdbuf[0] = 0x00190000;
 
-	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
+		return ret;
+	}
 
 	svcCloseHandle(SOCU_handle);
 	svcCloseHandle(socMemhandle);
@@ -116,6 +124,7 @@ soc_open(struct _reent *r,
          int           flags,
          int           mode)
 {
+	r->_errno = ENOSYS;
 	return -1;
 }
 
@@ -125,20 +134,28 @@ soc_close(struct _reent *r,
 {
 	Handle sockfd = *(Handle*)fd;
 	
-	int ret=0;
+	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x000B0042;
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = 0x20;
 
-	if((ret = svcSendSyncRequest(SOCU_handle))!=0)return ret;
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
+		return ret;
+	}
 
 	ret = (int)cmdbuf[1];
-	if(ret==0)ret =_net_convert_error(cmdbuf[2]);
-	SOCU_errno = ret;
+	if(ret == 0)
+		ret =_net_convert_error(cmdbuf[2]);
 
-	if(ret!=0)return -1;
+	if(ret < 0) {
+		errno = -ret;
+		return -1;
+	}
+
 	return 0;
 }
 
