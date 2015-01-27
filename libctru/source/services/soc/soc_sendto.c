@@ -110,6 +110,13 @@ ssize_t socuipc_cmda(int sockfd, const void *buf, size_t len, int flags, const s
 	return ret;
 }
 
+ssize_t soc_sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
+{
+	if(len < 0x2000)
+		return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
+	return socuipc_cmd9(sockfd, buf, len, flags, dest_addr, addrlen);
+}
+
 ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
 {
 	sockfd = soc_get_fd(sockfd);
@@ -118,7 +125,5 @@ ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct 
 		return -1;
 	}
 
-	if(len < 0x2000)
-		return socuipc_cmda(sockfd, buf, len, flags, dest_addr, addrlen);
-	return socuipc_cmd9(sockfd, buf, len, flags, dest_addr, addrlen);
+	return soc_sendto(sockfd, buf, len, flags, dest_addr, addrlen);
 }

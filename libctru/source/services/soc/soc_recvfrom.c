@@ -118,6 +118,12 @@ ssize_t socuipc_cmd8(int sockfd, void *buf, size_t len, int flags, struct sockad
 	return ret;
 }
 
+ssize_t soc_recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
+{
+	if(len < 0x2000)
+		return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
+	return socuipc_cmd7(sockfd, buf, len, flags, src_addr, addrlen);
+}
 
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
 {
@@ -127,7 +133,5 @@ ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *
 		return -1;
 	}
 
-	if(len < 0x2000)
-		return socuipc_cmd8(sockfd, buf, len, flags, src_addr, addrlen);
-	return socuipc_cmd7(sockfd, buf, len, flags, src_addr, addrlen);
+	return soc_recvfrom(sockfd, buf, len, flags, src_addr, addrlen);
 }

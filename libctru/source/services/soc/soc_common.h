@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/iosupport.h>
+#include <sys/socket.h>
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
@@ -29,3 +30,7 @@ soc_get_fd(int fd)
 }
 
 s32 _net_convert_error(s32 sock_retval);
+
+ssize_t soc_recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen);
+
+ssize_t soc_sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen);
