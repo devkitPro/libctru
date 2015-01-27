@@ -166,7 +166,7 @@ soc_write(struct _reent *r,
           size_t        len)
 {
 	Handle sockfd = *(Handle*)fd;
-	return send(sockfd, ptr, len, 0);
+	return soc_sendto(sockfd, ptr, len, 0, NULL, 0);
 }
 
 static ssize_t
@@ -176,5 +176,5 @@ soc_read(struct _reent *r,
          size_t        len)
 {
 	Handle sockfd = *(Handle*)fd;
-	return recv(sockfd, ptr, len, 0);
+	return soc_recvfrom(sockfd, ptr, len, 0, NULL, 0);
 }
