@@ -681,6 +681,7 @@ sdmc_stat(struct _reent *r,
     memset(st, 0, sizeof(struct stat));
     st->st_nlink = 1;
     st->st_mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IRWXO;
+    FSDIR_Close(fd);
     return 0;
   }
 
