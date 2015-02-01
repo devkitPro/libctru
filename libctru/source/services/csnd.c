@@ -410,7 +410,7 @@ Result csndPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data
 		if (data0) paddr0 = osConvertVirtToPhys((u32)data0);
 		if (data1) paddr1 = osConvertVirtToPhys((u32)data1);
 
-		if (encoding == CSND_ENCODING_ADPCM)
+		if (data0 && encoding == CSND_ENCODING_ADPCM)
 		{
 			int adpcmSample = ((s16*)data0)[-2];
 			int adpcmIndex = ((u8*)data0)[-2];

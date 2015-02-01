@@ -18,7 +18,8 @@ int ioctl(int fd, int request, ...)
 		value = va_arg(ap, int*);
 		if(value == NULL) {
 			errno = EFAULT;
-			ret = -1;
+			va_end(ap);
+			return -1;
 		}
 
 		flags = fcntl(fd, F_GETFL, 0);
