@@ -65,6 +65,12 @@ svcSetThreadPriority:
 	svc 0x0C
 	bx  lr
 
+.global svcGetCurrentProcessorNumber
+.type svcGetCurrentProcessorNumber, %function
+svcGetCurrentProcessorNumber:
+	svc 0x11
+	bx  lr
+
 .global svcCreateMutex
 .type svcCreateMutex, %function
 svcCreateMutex:

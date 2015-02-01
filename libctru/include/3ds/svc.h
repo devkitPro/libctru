@@ -61,6 +61,7 @@ s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_
 void __attribute__((noreturn)) svcExitThread();
 void svcSleepThread(s64 ns);
 s32  svcSetThreadPriority(Handle thread, s32 prio);
+s32  svcGetCurrentProcessorNumber(void);
 s32  svcCreateMutex(Handle* mutex, bool initially_locked);
 s32  svcReleaseMutex(Handle handle);
 s32  svcCreateSemaphore(Handle* semaphore, s32 initial_count, s32 max_count);
