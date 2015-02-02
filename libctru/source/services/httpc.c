@@ -216,16 +216,16 @@ Result HTTPC_AddRequestHeaderField(Handle handle, Handle contextHandle, char* na
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	int l1=strlen(name)+1;
-	int l2=strlen(value)+1;
+	int name_len=strlen(name)+1;
+	int value_len=strlen(value)+1;
 
 	cmdbuf[0]=0x1100c4; //request header code
 	cmdbuf[1]=contextHandle;
-	cmdbuf[2]=l1;
-	cmdbuf[3]=l2;
-	cmdbuf[4]=(l1<<14)|0xC02;
+	cmdbuf[2]=name_len;
+	cmdbuf[3]=value_len;
+	cmdbuf[4]=(name_len<<14)|0xC02;
 	cmdbuf[5]=(u32)name;
-	cmdbuf[6]=(l1<<4)|0xA;
+	cmdbuf[6]=(value_len<<4)|0xA;
 	cmdbuf[7]=(u32)value;
 	
 	Result ret=0;
