@@ -225,7 +225,7 @@ Result HTTPC_AddRequestHeaderField(Handle handle, Handle contextHandle, char* na
 	cmdbuf[3]=l2;
 	cmdbuf[4]=(l1<<14)|0xC02;
 	cmdbuf[5]=(u32)name;
-	cmdbuf[6]=(l1<<4)|0xA;
+	cmdbuf[6]=(l2<<4)|0xA;
 	cmdbuf[7]=(u32)value;
 	
 	Result ret=0;
