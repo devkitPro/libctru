@@ -25,7 +25,7 @@ int ioctl(int sockfd, int request, ...)
 
 		if(value == NULL) {
 			errno = EFAULT;
-			ret = -1;
+			return -1;
 		}
 
 		flags = fcntl(sockfd, F_GETFL, 0);

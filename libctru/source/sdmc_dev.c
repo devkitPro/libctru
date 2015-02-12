@@ -565,6 +565,7 @@ sdmc_stat(struct _reent *r,
       st->st_uid = 1;
       st->st_gid = 2;
       st->st_mode = S_IFDIR | S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH;
+      FSFILE_Close(fd);
       return 0;
     }
 

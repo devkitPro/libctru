@@ -380,7 +380,7 @@ static bool __handle_incoming_parameter() {
 	return true;
 }
 
-void aptEventHandler(u32 arg)
+void aptEventHandler(void *arg)
 {
 	bool runThread = true;
 
