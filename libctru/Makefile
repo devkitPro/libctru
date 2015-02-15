@@ -29,7 +29,8 @@ SOURCES		:=	source \
 			source/gpu \
 			source/services \
 			source/services/soc \
-			source/util \
+			source/util/rbtree \
+			source/util/utf \
 			source/system
 
 DATA		:=	data
