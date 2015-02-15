@@ -121,6 +121,7 @@ static void consoleCls(char mode) {
 			break;
 		}
 	}
+	gfxFlushBuffers();
 }
 //---------------------------------------------------------------------------------
 static void consoleClearLine(char mode) {
@@ -173,6 +174,7 @@ static void consoleClearLine(char mode) {
 			break;
 		}
 	}
+	gfxFlushBuffers();
 }
 
 
@@ -605,6 +607,7 @@ static void newRow() {
 		}
 
 		consoleClearLine('2');
+		gfxFlushBuffers();
 	}
 }
 //---------------------------------------------------------------------------------
@@ -718,6 +721,7 @@ void consolePrintChar(int c) {
 			newRow();
 		case 13:
 			currentConsole->cursorX  = 0;
+			gfxFlushBuffers();
 			break;
 		default:
 			consoleDrawChar(c);
