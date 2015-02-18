@@ -120,7 +120,7 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@+$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
@@ -153,7 +153,7 @@ $(OUTPUT).elf	:	$(OFILES)
 
 # WARNING: This is not the right way to do this! TODO: Do it right!
 #---------------------------------------------------------------------------------
-%.vsh.o	:	%.vsh
+%_vsh.h %.vsh.o	:	%.vsh
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@python $(AEMSTRO)/aemstro_as.py $< ../$(notdir $<).shbin
