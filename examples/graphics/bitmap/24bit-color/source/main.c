@@ -26,9 +26,9 @@ int main(int argc, char **argv)
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 	consoleInit(GFX_TOP, NULL);
 
-	printf("Sorry for the recycled image from the Nintendo DS devkitPro's examples, but it's always good to bring back some memories, isn't it?");
+	printf("Why so sad Smealum? We can haz 3DS homebrew!");
 
-	printf("\x1b[29;15HPress Start to exit.");
+	printf("\x1b[20;15HPress Start to exit.");
 
 	//We don't need double buffering in this example. In this way we can draw our image only once on screen.
 	gfxSetDoubleBuffering(GFX_BOTTOM, false);
