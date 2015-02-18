@@ -94,7 +94,7 @@ endif
 #---------------------------------------------------------------------------------
 
 export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-			$(PNGFILES:.png=.rgb.o) \
+			$(PNGFILES:.png=.bgr.o) \
 			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o) \
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
@@ -172,16 +172,16 @@ $(OUTPUT).elf	:	$(OFILES)
 
 
 #---------------------------------------------------------------------------------
-%.rgb.o: %.rgb
+%.bgr.o: %.bgr
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
 
 #---------------------------------------------------------------------------------
-%.rgb: %.png
+%.bgr: %.png
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
-	@convert $< -channel B -separate $< -channel G -separate $< -channel R -separate -channel RGB -combine -rotate 90 $@
+	@convert $< -rotate 90 $@
 
 -include $(DEPENDS)
 

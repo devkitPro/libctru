@@ -17,7 +17,7 @@
 #include <string.h>
 
 //This include a header containing definitions of our image
-#include "brew_rgb.h"
+#include "brew_bgr.h"
 
 int main(int argc, char **argv)
 {
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	u8* fb = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 	
 	//Copy our image in the bottom screen's frame buffer
-	memcpy(fb, brew_rgb, brew_rgb_size);
+	memcpy(fb, brew_bgr, brew_bgr_size);
 
 	// Main loop
 	while (aptMainLoop())
