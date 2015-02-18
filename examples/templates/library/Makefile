@@ -90,7 +90,7 @@ lib:
 	
 $(BUILD): lib
 	@[ -d $@ ] || mkdir -p $@
-	@+$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
