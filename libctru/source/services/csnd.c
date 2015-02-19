@@ -405,6 +405,8 @@ Result csndPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data
 	int encoding = (flags >> 12) & 3;
 	int loopMode = (flags >> 10) & 3;
 
+	if (!loopMode) flags |= CSND_LOOPMODE_ONESHOT;
+
 	if (encoding != CSND_ENCODING_PSG)
 	{
 		if (data0) paddr0 = osConvertVirtToPhys((u32)data0);
