@@ -5,6 +5,7 @@
 #include <3ds/gfx.h>
 #include <3ds/svc.h>
 #include <3ds/linear.h>
+#include <3ds/vram.h>
 
 GSP_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
 
@@ -96,8 +97,23 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	framebufferInfoHeader[0x1]=1;
 }
 
-void gfxInit()
+void (*screenFree)(void *) = NULL;
+
+void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomFormat, bool vrambuffers)
 {
+	void *(*screenAlloc)(size_t);
+
+	if (vrambuffers)
+	{
+		screenAlloc=vramAlloc;
+		screenFree=vramFree;
+
+	} else {
+
+		screenAlloc=linearAlloc;
+		screenFree=linearFree;
+	}
+
 	gspInit();
 
 	gfxSharedMemory=(u8*)0x10002000;
@@ -117,14 +133,21 @@ void gfxInit()
 	//	 if 3d enabled :
 	//		topright1 0x000FD200-0x00143700
 	//		topright2 0x00143700-0x00189C00
+	u32 topSize = 400 * 240 * __get_bytes_per_pixel(topFormat);
+	u32 bottomSize = 320 * 240 * __get_bytes_per_pixel(bottomFormat);
 
-	gfxTopLeftFramebuffers[0]=linearAlloc(0x46500);
-	gfxTopLeftFramebuffers[1]=linearAlloc(0x46500);
-	gfxBottomFramebuffers[0]=linearAlloc(0x38400);
-	gfxBottomFramebuffers[1]=linearAlloc(0x38400);
-	gfxTopRightFramebuffers[0]=linearAlloc(0x46500);
-	gfxTopRightFramebuffers[1]=linearAlloc(0x46500);
+	gfxTopLeftFramebuffers[0]=screenAlloc(topSize);
+	gfxTopLeftFramebuffers[1]=screenAlloc(topSize);
+	gfxBottomFramebuffers[0]=screenAlloc(bottomSize);
+	gfxBottomFramebuffers[1]=screenAlloc(bottomSize);
+	gfxTopRightFramebuffers[0]=screenAlloc(topSize);
+	gfxTopRightFramebuffers[1]=screenAlloc(topSize);
+
 	enable3d=false;
+
+	//set requested modes
+	gfxSetScreenFormat(GFX_TOP,topFormat);
+	gfxSetScreenFormat(GFX_BOTTOM,bottomFormat);
 
 	//initialize framebuffer info structures
 	gfxSetFramebufferInfo(GFX_TOP, 0);
@@ -143,18 +166,24 @@ void gfxInit()
 	GSPGPU_SetLcdForceBlack(NULL, 0x0);
 }
 
+void gfxInitDefault() {
+	gfxInit(GSP_BGR8_OES,GSP_BGR8_OES,false);
+}
+
 void gfxExit()
 {
+	if (screenFree == NULL ) return;
+
 	// Exit event handler
 	gspExitEventHandler();
 
 	// Free framebuffers
-	linearFree(gfxTopRightFramebuffers[1]);
-	linearFree(gfxTopRightFramebuffers[0]);
-	linearFree(gfxBottomFramebuffers[1]);
-	linearFree(gfxBottomFramebuffers[0]);
-	linearFree(gfxTopLeftFramebuffers[1]);
-	linearFree(gfxTopLeftFramebuffers[0]);
+	screenFree(gfxTopRightFramebuffers[1]);
+	screenFree(gfxTopRightFramebuffers[0]);
+	screenFree(gfxBottomFramebuffers[1]);
+	screenFree(gfxBottomFramebuffers[0]);
+	screenFree(gfxTopLeftFramebuffers[1]);
+	screenFree(gfxTopLeftFramebuffers[0]);
 
 	//unmap GSP shared mem
 	svcUnmapMemoryBlock(gspSharedMemHandle, 0x10002000);
@@ -167,6 +196,8 @@ void gfxExit()
 	GSPGPU_ReleaseRight(NULL);
 
 	gspExit();
+
+	screenFree = NULL;
 }
 
 u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* height)
@@ -185,9 +216,12 @@ u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* hei
 
 void gfxFlushBuffers()
 {
-	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x46500);
-	if(enable3d)GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), 0x46500);
-	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), 0x38400);
+	u32 topSize = 400 * 240 * __get_bytes_per_pixel(gfxGetScreenFormat(GFX_TOP));
+	u32 bottomSize = 320 * 240 * __get_bytes_per_pixel(gfxGetScreenFormat(GFX_BOTTOM));
+
+	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), topSize);
+	if(enable3d)GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), topSize);
+	GSPGPU_FlushDataCache(NULL, gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), bottomSize);
 }
 
 void gfxSwapBuffers()

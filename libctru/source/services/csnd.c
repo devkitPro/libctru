@@ -6,102 +6,160 @@
 #include <3ds/os.h>
 #include <3ds/services/csnd.h>
 
-//See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
+// See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 
-Handle CSND_handle = 0;
-Handle CSND_mutexhandle = 0;
-Handle CSND_sharedmemhandle = 0;
-u32 *CSND_sharedmem = NULL;
-static u32 CSND_bitmask=0;
+vu32* csndSharedMem = NULL;
+u32 csndSharedMemSize;
+u32 csndChannels = 0;
+u32 csndOffsets[4];
 
-static u32 CSND_sharedmem_cmdblocksize = 0x2000;
-static u32 CSND_sharedmem_startcmdoff = 0;
-static u32 CSND_sharedmem_currentcmdoff = 0;
+static Handle csndHandle = 0;
+static Handle csndMutex = 0;
+static Handle csndSharedMemBlock = 0;
 
-Result CSND_cmd1(Handle *mutexhandle, Handle *sharedmemhandle, u32 sharedmem_size, u32 off0, u32 off1, u32 off2, u32 off3)
+static u8 csndChnIdx[CSND_NUM_CHANNELS];
+static u32 csndCmdBlockSize = 0x2000;
+static u32 csndCmdStartOff = 0;
+static u32 csndCmdCurOff = 0;
+
+static Result CSND_Initialize(void)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x00010140;
-	cmdbuf[1] = sharedmem_size;
-	cmdbuf[2] = off0;
-	cmdbuf[3] = off1;
-	cmdbuf[4] = off2;
-	cmdbuf[5] = off3;
+	cmdbuf[1] = csndSharedMemSize;
+	memcpy(&cmdbuf[2], &csndOffsets[0], 4*sizeof(u32));
 
-	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
-	*mutexhandle = cmdbuf[3];
-	*sharedmemhandle = cmdbuf[4];
+	csndMutex = cmdbuf[3];
+	csndSharedMemBlock = cmdbuf[4];
 
 	return (Result)cmdbuf[1];
 }
 
-Result CSND_cmd2()
+static Result CSND_Shutdown()
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x00020000;
 
-	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
 	return (Result)cmdbuf[1];
 }
 
-Result CSND_cmd5(u32 *bitmask)
+static Result CSND_AcquireSoundChannels(u32* channelMask)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x00050000;
 
-	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
-	*bitmask = cmdbuf[2];
+	*channelMask = cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
 
-Result CSND_initialize(u32* sharedMem)
+static Result CSND_ReleaseSoundChannels(void)
 {
 	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
 
-	if(sharedMem==NULL)sharedMem = (u32*)CSND_SHAREDMEM_DEFAULT;
-	CSND_sharedmem = sharedMem;
+	cmdbuf[0] = 0x00060000;
 
-	ret = srvGetServiceHandle(&CSND_handle, "csnd:SND");
-	if(ret!=0)return ret;
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
-	ret = CSND_cmd1(&CSND_mutexhandle, &CSND_sharedmemhandle, CSND_sharedmem_cmdblocksize+0x114, CSND_sharedmem_cmdblocksize, CSND_sharedmem_cmdblocksize+8, CSND_sharedmem_cmdblocksize+0xc8, CSND_sharedmem_cmdblocksize+0xd8);
-	if(ret!=0)return ret;
+	return (Result)cmdbuf[1];
+}
 
-	ret = svcMapMemoryBlock(CSND_sharedmemhandle, (u32)CSND_sharedmem, 3, 0x10000000);
-	if(ret!=0)return ret;
+Result CSND_AcquireCapUnit(u32* capUnit)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
 
-	memset(CSND_sharedmem, 0, 0x2114);
+	cmdbuf[0] = 0x00070000;
 
-	ret = CSND_cmd5(&CSND_bitmask);
-	if(ret!=0)return ret;
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+
+	*capUnit = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result CSND_ReleaseCapUnit(u32 capUnit)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00080040;
+	cmdbuf[1] = capUnit;
+
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result csndInit(void)
+{
+	Result ret=0;
+	csndSharedMem = (vu32*)CSND_SHAREDMEM_DEFAULT;
+
+	// TODO: proper error handling!
+
+	ret = srvGetServiceHandle(&csndHandle, "csnd:SND");
+	if (ret != 0) return ret;
+
+	// Calculate offsets and sizes required by the CSND module
+	csndOffsets[0] = csndCmdBlockSize;                         // Offset to some unknown DSP status flags
+	csndOffsets[1] = csndOffsets[0] + 8;                       // Offset to sound channel information
+	csndOffsets[2] = csndOffsets[1] + 32*sizeof(CSND_ChnInfo); // Offset to information for an 'unknown' sort of channels
+	csndOffsets[3] = csndOffsets[2] + 2*8;                     // Offset to more unknown information
+	csndSharedMemSize = csndOffsets[3] + 0x3C;                 // Total size of the CSND shared memory
+
+	ret = CSND_Initialize();
+	if (ret != 0) return ret;
+
+	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, 3, 0x10000000);
+	if (ret != 0) return ret;
+
+	memset((void*)csndSharedMem, 0, csndSharedMemSize);
+
+	ret = CSND_AcquireSoundChannels(&csndChannels);
+	if (ret != 0) return ret;
+
+	// Build channel indices for the sound channel information table
+	int i, j = 0;
+	for (i = 0; i < CSND_NUM_CHANNELS; i ++)
+	{
+		csndChnIdx[i] = j;
+		if (csndChannels & BIT(i))
+			j ++;
+	}
 
 	return 0;
 }
 
-Result CSND_shutdown()
+Result csndExit(void)
 {
 	Result ret;
 
-	svcUnmapMemoryBlock(CSND_sharedmemhandle, (u32)CSND_sharedmem);
-	svcCloseHandle(CSND_sharedmemhandle);
+	ret = CSND_ReleaseSoundChannels();
+	if (ret != 0) return ret;
 
-	ret = CSND_cmd2();
-	if(ret!=0)return ret;
+	svcUnmapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem);
+	svcCloseHandle(csndSharedMemBlock);
 
-	return svcCloseHandle(CSND_handle);
+	ret = CSND_Shutdown();
+	svcCloseHandle(csndHandle);
+	return ret;
 }
 
-Result CSND_cmd3(u32 offset)
+static Result CSND_ExecCmd0(u32 offset)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -109,66 +167,66 @@ Result CSND_cmd3(u32 offset)
 	cmdbuf[0] = 0x00030040;
 	cmdbuf[1] = offset;
 
-	if((ret = svcSendSyncRequest(CSND_handle))!=0)return ret;
+	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
 
 	return (Result)cmdbuf[1];
 }
 
-void CSND_writesharedmem_cmdtype0(u16 cmdid, u8 *cmdparams)
+void csndWriteCmd(int cmdid, u8 *cmdparams)
 {
-	u16 *ptr;
+	vu16* ptr;
 	u32 prevoff;
 	s32 outindex=0;
 
-	svcWaitSynchronizationN(&outindex, &CSND_mutexhandle, 1, 0, ~0);
+	svcWaitSynchronizationN(&outindex, &csndMutex, 1, 0, ~0);
 
-	if(CSND_sharedmem_startcmdoff != CSND_sharedmem_currentcmdoff)
+	if (csndCmdStartOff != csndCmdCurOff)
 	{
-		if(CSND_sharedmem_currentcmdoff>=0x20)
-		{
-			prevoff = CSND_sharedmem_currentcmdoff-0x20;
-		}
+		if (csndCmdCurOff>=0x20)
+			prevoff = csndCmdCurOff-0x20;
 		else
-		{
-			prevoff = CSND_sharedmem_cmdblocksize-0x20;
-		}
+			prevoff = csndCmdBlockSize-0x20;
 
-		ptr = (u16*)&CSND_sharedmem[prevoff>>2];
-		*ptr = CSND_sharedmem_currentcmdoff;
+		ptr = (vu16*)&csndSharedMem[prevoff>>2];
+		*ptr = csndCmdCurOff;
 	}
 
-	ptr = (u16*)&CSND_sharedmem[CSND_sharedmem_currentcmdoff>>2];
+	ptr = (vu16*)&csndSharedMem[csndCmdCurOff>>2];
 
-	ptr[0] = 0xffff;
+	ptr[0] = 0xFFFF;
 	ptr[1] = cmdid;
 	ptr[2] = 0;
 	ptr[3] = 0;
-	memcpy(&ptr[8>>1], cmdparams, 0x18);
+	memcpy((void*)&ptr[4], cmdparams, 0x18);
 
-	CSND_sharedmem_currentcmdoff+= 0x20;
-	if(CSND_sharedmem_currentcmdoff >= CSND_sharedmem_cmdblocksize)CSND_sharedmem_currentcmdoff = 0;
+	csndCmdCurOff += 0x20;
+	if (csndCmdCurOff >= csndCmdBlockSize)
+		csndCmdCurOff = 0;
 
-	svcReleaseMutex(CSND_mutexhandle);
+	svcReleaseMutex(csndMutex);
 }
 
-Result CSND_processtype0cmds()
+Result csndExecCmds(bool waitDone)
 {
 	Result ret=0;
 
-	if(CSND_sharedmem_startcmdoff == CSND_sharedmem_currentcmdoff)return 0;
+	// Check we actually wrote commands
+	if (csndCmdStartOff == csndCmdCurOff)
+		return 0;
 
-	ret = CSND_cmd3(CSND_sharedmem_startcmdoff);
-	CSND_sharedmem_startcmdoff = CSND_sharedmem_currentcmdoff;
+	vu8* flag = (vu8*)&csndSharedMem[(csndCmdStartOff + 4) >> 2];
+
+	ret = CSND_ExecCmd0(csndCmdStartOff);
+	csndCmdStartOff = csndCmdCurOff;
+	if (ret != 0) return ret;
+
+	// FIXME: This is a really ugly busy waiting loop!
+	while (waitDone && *flag == 0);
 
 	return ret;
 }
 
-u32 CSND_convertsamplerate(u32 samplerate)
-{
-	return (u32)(6.7027964E+07f / ((float)samplerate));
-}
-
-void CSND_sharedmemtype0_cmd0(u32 channel, u32 value)
+void CSND_SetPlayStateR(u32 channel, u32 value)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -177,10 +235,10 @@ void CSND_sharedmemtype0_cmd0(u32 channel, u32 value)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = value;
 
-	CSND_writesharedmem_cmdtype0(0x0, (u8*)&cmdparams);
+	csndWriteCmd(0x0, (u8*)&cmdparams);
 }
 
-void CSND_setchannel_playbackstate(u32 channel, u32 value)
+void CSND_SetPlayState(u32 channel, u32 value)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -189,10 +247,10 @@ void CSND_setchannel_playbackstate(u32 channel, u32 value)
 	cmdparams[0] = channel & 0x1f;
 	cmdparams[1] = value;
 
-	CSND_writesharedmem_cmdtype0(0x1, (u8*)&cmdparams);
+	csndWriteCmd(0x1, (u8*)&cmdparams);
 }
 
-void CSND_sharedmemtype0_cmd3(u32 channel, u32 physaddr, u32 size)
+void CSND_SetBlock(u32 channel, int block, u32 physaddr, u32 size)
 {
 	u32 cmdparams[0x18>>2];
 
@@ -202,127 +260,210 @@ void CSND_sharedmemtype0_cmd3(u32 channel, u32 physaddr, u32 size)
 	cmdparams[1] = physaddr;
 	cmdparams[2] = size;
 
-	CSND_writesharedmem_cmdtype0(0x3, (u8*)&cmdparams);
+	csndWriteCmd(block ? 0x3 : 0xA, (u8*)&cmdparams);
 }
 
-void CSND_sharedmemtype0_cmd9(u32 channel, u16 value)
+void CSND_SetVol(u32 channel, u16 left, u16 right)
 {
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
 	cmdparams[0] = channel & 0x1f;
-	cmdparams[1] = value | (value<<16);
+	cmdparams[1] = left | (right<<16);
 
-	CSND_writesharedmem_cmdtype0(0x9, (u8*)&cmdparams);
+	csndWriteCmd(0x9, (u8*)&cmdparams);
 }
 
-void CSND_sharedmemtype0_cmd8(u32 channel, u32 samplerate)
+void CSND_SetTimer(u32 channel, u32 timer)
 {
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
 	cmdparams[0] = channel & 0x1f;
-	cmdparams[1] = CSND_convertsamplerate(samplerate);
+	cmdparams[1] = timer;
 
-	CSND_writesharedmem_cmdtype0(0x8, (u8*)&cmdparams);
+	csndWriteCmd(0x8, (u8*)&cmdparams);
 }
 
-void CSND_sharedmemtype0_cmde(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 unk0, u32 unk1, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
+void CSND_SetDuty(u32 channel, u32 duty)
 {
-	u32 val;
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
 	cmdparams[0] = channel & 0x1f;
-	cmdparams[0] |= (unk0 & 0xf) << 6;
-	if(!looping)cmdparams[0] |= 2 << 10;
-	if(looping)cmdparams[0] |= 1 << 10;
-	cmdparams[0] |= (encoding & 3) << 12;
-	cmdparams[0] |= (unk1 & 3) << 14;
+	cmdparams[1] = duty;
 
-	val = CSND_convertsamplerate(samplerate);
-	if(val<0x42)val = 0x42;
-	if(val>0xffff)val = 0xffff;
-	cmdparams[0] |= val<<16;
+	csndWriteCmd(0x7, (u8*)&cmdparams);
+}
 
+void CSND_SetAdpcmState(u32 channel, int block, int sample, int index)
+{
+	u32 cmdparams[0x18>>2];
+
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = channel & 0x1f;
+	cmdparams[1] = sample & 0xFFFF;
+	cmdparams[2] = index & 0x7F;
+
+	csndWriteCmd(block ? 0xC : 0xB, (u8*)&cmdparams);
+}
+
+void CSND_SetAdpcmReload(u32 channel, bool reload)
+{
+	u32 cmdparams[0x18>>2];
+
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = channel & 0x1f;
+	cmdparams[1] = reload ? 1 : 0;
+
+	csndWriteCmd(0xD, (u8*)&cmdparams);
+}
+
+void CSND_SetChnRegs(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize)
+{
+	u32 cmdparams[0x18>>2];
+
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = flags;
+	cmdparams[1] = 0x7FFF7FFF; // Volume
+	cmdparams[2] = 0; // Unknown
 	cmdparams[3] = physaddr0;
 	cmdparams[4] = physaddr1;
 	cmdparams[5] = totalbytesize;
 
-	CSND_writesharedmem_cmdtype0(0xe, (u8*)&cmdparams);
+	csndWriteCmd(0xe, (u8*)&cmdparams);
 }
 
-Result CSND_sharedmemtype0_cmdupdatestate(int waitdone)
+Result CSND_UpdateInfo(bool waitDone)
 {
-	u8 *ptr;
-	int ret=0;
-
 	u32 cmdparams[0x18>>2];
 
 	memset(cmdparams, 0, 0x18);
 
-	ptr = (u8*)&CSND_sharedmem[CSND_sharedmem_startcmdoff>>2];
+	csndWriteCmd(0x300, (u8*)&cmdparams);
+	return csndExecCmds(waitDone);
+}
 
-	CSND_writesharedmem_cmdtype0(0x300, (u8*)&cmdparams);
+void CSND_CapEnable(u32 capUnit, bool enable)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
 
-	ret = CSND_processtype0cmds();
-	if(ret!=0)return ret;
+	cmdparams[0] = capUnit;
+	cmdparams[1] = enable ? 1 : 0;
 
-	if(waitdone)
+	csndWriteCmd(0x100, (u8*)&cmdparams);
+}
+
+void CSND_CapSetBit(u32 capUnit, int bit, bool state)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = capUnit;
+	cmdparams[1] = state ? 1 : 0;
+
+	csndWriteCmd(0x101 + bit, (u8*)&cmdparams);
+}
+
+void CSND_CapSetTimer(u32 capUnit, u32 timer)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = capUnit;
+	cmdparams[1] = timer & 0xFFFF;
+
+	csndWriteCmd(0x104, (u8*)&cmdparams);
+}
+
+void CSND_CapSetBuffer(u32 capUnit, u32 paddr, u32 size)
+{
+	u32 cmdparams[0x18>>2];
+	memset(cmdparams, 0, 0x18);
+
+	cmdparams[0] = capUnit;
+	cmdparams[1] = paddr;
+	cmdparams[2] = size;
+
+	csndWriteCmd(0x105, (u8*)&cmdparams);
+}
+
+Result csndPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size)
+{
+	if (!(csndChannels & BIT(chn)))
+		return 1;
+
+	u32 paddr0 = 0, paddr1 = 0;
+
+	int encoding = (flags >> 12) & 3;
+	int loopMode = (flags >> 10) & 3;
+
+	if (encoding != CSND_ENCODING_PSG)
 	{
-		while(*ptr == 0);
+		if (data0) paddr0 = osConvertVirtToPhys((u32)data0);
+		if (data1) paddr1 = osConvertVirtToPhys((u32)data1);
+
+		if (data0 && encoding == CSND_ENCODING_ADPCM)
+		{
+			int adpcmSample = ((s16*)data0)[-2];
+			int adpcmIndex = ((u8*)data0)[-2];
+			CSND_SetAdpcmState(chn, 0, adpcmSample, adpcmIndex);
+		}
 	}
+
+	u32 timer = CSND_TIMER(sampleRate);
+	if (timer < 0x0042) timer = 0x0042;
+	else if (timer > 0xFFFF) timer = 0xFFFF;
+	flags &= ~0xFFFF001F;
+	flags |= SOUND_ENABLE | SOUND_CHANNEL(chn) | (timer << 16);
+
+	CSND_SetChnRegs(flags, paddr0, paddr1, size);
+
+	if (loopMode == CSND_LOOPMODE_NORMAL && paddr1 > paddr0)
+	{
+		// Now that the first block is playing, configure the size of the subsequent blocks
+		size -= paddr1 - paddr0;
+		CSND_SetBlock(chn, 1, paddr1, size);
+	}
+
+	return csndExecCmds(true);
+}
+
+CSND_ChnInfo* csndGetChnInfo(u32 channel)
+{
+	channel = csndChnIdx[channel];
+	return (CSND_ChnInfo*)(&csndSharedMem[(csndOffsets[1] + channel*0xc) >> 2]);
+}
+
+Result csndGetState(u32 channel, CSND_ChnInfo* out)
+{
+	Result ret = 0;
+	channel = csndChnIdx[channel];
+
+	if ((ret = CSND_UpdateInfo(true)) != 0)return ret;
+
+	memcpy(out, (const void*)&csndSharedMem[(csndOffsets[1] + channel*0xc) >> 2], 0xc);
+	//out[2] -= 0x0c000000;
 
 	return 0;
 }
 
-Result CSND_playsound(u32 channel, u32 looping, u32 encoding, u32 samplerate, u32 *vaddr0, u32 *vaddr1, u32 totalbytesize, u32 unk0, u32 unk1)
-{
-	u32 physaddr0 = 0;
-	u32 physaddr1 = 0;
-
-	physaddr0 = osConvertVirtToPhys((u32)vaddr0);
-	physaddr1 = osConvertVirtToPhys((u32)vaddr1);
-
-	CSND_sharedmemtype0_cmde(channel, looping, encoding, samplerate, unk0, unk1, physaddr0, physaddr1, totalbytesize);
-	CSND_sharedmemtype0_cmd8(channel, samplerate);
-	if(looping)
-	{
-		if(physaddr1>physaddr0)totalbytesize-= (u32)physaddr1 - (u32)physaddr0;
-		CSND_sharedmemtype0_cmd3(channel, physaddr1, totalbytesize);
-	}
-	CSND_sharedmemtype0_cmd8(channel, samplerate);
-	CSND_sharedmemtype0_cmd9(channel, 0xffff);
-	CSND_setchannel_playbackstate(channel, 1);
-
-	return CSND_sharedmemtype0_cmdupdatestate(0);
-}
-
-Result CSND_getchannelstate(u32 entryindex, u32 *out)
-{
-	Result ret=0;
-
-	if((ret = CSND_sharedmemtype0_cmdupdatestate(1))!=0)return ret;
-
-	memcpy(out, &CSND_sharedmem[(CSND_sharedmem_cmdblocksize+8 + entryindex*0xc) >> 2], 0xc);
-	out[2] -= 0x0c000000;
-
-	return 0;
-}
-
-Result CSND_getchannelstate_isplaying(u32 entryindex, u8 *status)
+Result csndIsPlaying(u32 channel, u8* status)
 {
 	Result ret;
-	u32 entry[0xc>>2];
+	CSND_ChnInfo entry;
 
-	ret = CSND_getchannelstate(entryindex, entry);
+	ret = csndGetState(channel, &entry);
 	if(ret!=0)return ret;
 
-	*status = entry[0] & 0xff;
+	*status = entry.active;
 
 	return 0;
 }
-

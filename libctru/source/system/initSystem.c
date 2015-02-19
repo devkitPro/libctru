@@ -12,9 +12,6 @@ void __system_allocateHeaps();
 void __system_initArgv();
 void __appInit();
 
-// newlib definitions we need
-void __libc_init_array(void);
-
 
 void __ctru_exit(int rc);
 
@@ -32,6 +29,4 @@ void __attribute__((weak)) __libctru_init(void (*retAddr)(void))
 
 	__appInit();
 
-	// Run the global constructors
-	__libc_init_array();
 }

@@ -22,6 +22,8 @@ initSystem:
 	bics	sp, sp, #7
 	str	sp, [r2]
 
+	bl	__libc_init_array
+
 	ldr	r2, =saved_stack
 	ldr	lr, [r2,#4]
  	bx	lr
@@ -31,6 +33,8 @@ initSystem:
 	.type	__ctru_exit,	%function
 
 __ctru_exit:
+	bl	__libc_fini_array
+
 	ldr	r2, =saved_stack
 	ldr	sp, [r2]
 	b	__libctru_exit

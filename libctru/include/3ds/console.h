@@ -18,12 +18,13 @@ consoleInit()
 #define CONSOLE_H
 
 #include <3ds/types.h>
+#include <3ds/gfx.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef bool(* ConsolePrint)(void* con, char c);
+typedef bool(* ConsolePrint)(void* con, int c);
 
 //! a font struct for the console.
 typedef struct ConsoleFont

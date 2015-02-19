@@ -43,7 +43,7 @@ PrintConsole defaultConsole =
 	{
 		(u8*)default_font_bin, //font gfx
 		0, //first ascii character in the set
-		128 //number of characters in the font set
+		256 //number of characters in the font set
 	},
 	(u16*)NULL,
 	0,0,	//cursorX cursorY
@@ -68,7 +68,7 @@ PrintConsole* currentConsole = &currentCopy;
 
 PrintConsole* consoleGetDefault(void){return &defaultConsole;}
 
-void consolePrintChar(char c);
+void consolePrintChar(int c);
 void consoleDrawChar(int c);
 
 //---------------------------------------------------------------------------------
@@ -121,6 +121,7 @@ static void consoleCls(char mode) {
 			break;
 		}
 	}
+	gfxFlushBuffers();
 }
 //---------------------------------------------------------------------------------
 static void consoleClearLine(char mode) {
@@ -173,6 +174,7 @@ static void consoleClearLine(char mode) {
 			break;
 		}
 	}
+	gfxFlushBuffers();
 }
 
 
@@ -605,6 +607,7 @@ static void newRow() {
 		}
 
 		consoleClearLine('2');
+		gfxFlushBuffers();
 	}
 }
 //---------------------------------------------------------------------------------
@@ -672,7 +675,7 @@ void consoleDrawChar(int c) {
 }
 
 //---------------------------------------------------------------------------------
-void consolePrintChar(char c) {
+void consolePrintChar(int c) {
 //---------------------------------------------------------------------------------
 	if (c==0) return;
 
@@ -718,6 +721,7 @@ void consolePrintChar(char c) {
 			newRow();
 		case 13:
 			currentConsole->cursorX  = 0;
+			gfxFlushBuffers();
 			break;
 		default:
 			consoleDrawChar(c);

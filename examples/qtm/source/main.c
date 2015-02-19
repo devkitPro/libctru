@@ -11,11 +11,7 @@ int main()
 	qtmHeadtrackingInfo qtminfo;
 	u32 colors[4] = {0x0000FF, 0x00FF00, 0xFF0000, 0xFFFFFF};
 
-	// Initialize services
-	srvInit();
-	aptInit();
-	hidInit(NULL);
-	gfxInit();
+	gfxInitDefault();
 	//gfxSet3D(true); // uncomment if using stereoscopic 3D
 
 	qtmInit();
@@ -84,9 +80,6 @@ int main()
 	// Exit services
 	qtmExit();
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }
 
