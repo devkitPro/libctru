@@ -18,11 +18,7 @@
 
 int main(int argc, char **argv)
 {
-	// Initialize services
-	srvInit();
-	aptInit();
-	gfxInit();
-	hidInit(NULL);
+	gfxInitDefault();
 
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 	consoleInit(GFX_TOP, NULL);
@@ -60,8 +56,5 @@ int main(int argc, char **argv)
 
 	// Exit services
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
 	return 0;
 }
