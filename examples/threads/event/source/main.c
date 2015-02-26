@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 		if (kDown & KEY_START)
 			break; // break in order to return to hbmenu
 
-		if (kDown * KEY_A)
+		if (kDown & KEY_A)
 			svcSignalEvent(threadRequest);
 
 		// Flush and swap framebuffers
