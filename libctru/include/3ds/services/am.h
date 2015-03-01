@@ -91,3 +91,13 @@ Note: The title must have the uniqueid: 0x00000, otherwise this will fail.
   titleid		title id of title
 */
 Result AM_InstallFIRM(u8 mediatype, u64 titleid);
+
+/* AM_GetTitleProductCode()
+About: Gets the product code of a title based on its title id.
+
+  mediatype		mediatype of title
+  titleid		title id of title
+  productcode           buffer to output the product code to (should have a length of 16) 
+*/
+Result AM_GetTitleProductCode(u8 mediatype, u64 titleid, char* productcode);
+
