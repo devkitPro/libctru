@@ -199,7 +199,7 @@ Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode)
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
 
 	// The product code string can use the full 16 bytes without NULL terminator
-	if(productCode) memcpy(productCode, &cmdbuf[2], 16);
+	if(productCode) snprintf(productCode, 16, "%s", (char*)&cmdbuf[2]);
 
 	return (Result)cmdbuf[1];
 }
