@@ -141,10 +141,11 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(NO_SMDH)),)
-.PHONY: all
-all	:	$(OUTPUT).3dsx $(OUTPUT).smdh
-endif
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).smdh
+else
 $(OUTPUT).3dsx	:	$(OUTPUT).elf
+endif
+
 $(OUTPUT).elf	:	$(OFILES)
 
 #---------------------------------------------------------------------------------
