@@ -222,10 +222,10 @@ void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numr
 {
 	if(!data)return;
 
-	u32 regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
+	int regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
 
-	GPUCMD_AddWrite(GPUREG_VSH_FLOATUNIFORM_CONFIG-regOffset, 0x80000000|startreg);
-	GPUCMD_AddWrites(GPUREG_VSH_FLOATUNIFORM_DATA-regOffset, data, numreg*4);
+	GPUCMD_AddWrite(GPUREG_VSH_FLOATUNIFORM_CONFIG+regOffset, 0x80000000|startreg);
+	GPUCMD_AddWrites(GPUREG_VSH_FLOATUNIFORM_DATA+regOffset, data, numreg*4);
 }
 
 //TODO : fix
