@@ -28,7 +28,8 @@ typedef struct{
 typedef struct{
 	u16 type;
 	u16 regID;
-	u32 header;
+	u8 compMask;
+	u8 pad[3];
 }DVLE_outEntry_s;
 
 typedef struct{
