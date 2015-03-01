@@ -137,8 +137,8 @@ void renderFrame()
 	GPU_SetBlendingColor(0,0,0,0);
 	GPU_SetDepthTestAndWriteMask(true, GPU_GREATER, GPU_WRITE_ALL);
 
-	GPUCMD_AddSingleParam(0x00010062, 0);
-	GPUCMD_AddSingleParam(0x000F0118, 0);
+	GPUCMD_AddMaskedWrite(GPUREG_0062, 0x1, 0);
+	GPUCMD_AddWrite(GPUREG_0118, 0);
 
 	GPU_SetAlphaBlending(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 	GPU_SetAlphaTest(false, GPU_ALWAYS, 0x00);
@@ -196,14 +196,6 @@ int main(int argc, char** argv)
 	//let GFX know we're ok with doing stereoscopic 3D rendering
 	gfxSet3D(true);
 
-	//load our vertex shader binary
-	dvlb=DVLB_ParseFile((u32*)test_vsh_shbin, test_vsh_shbin_size);
-	shaderProgramInit(&shader);
-	shaderProgramSetVsh(&shader, &dvlb->DVLE[0]);
-
-	//initialize GS
-	gsInit(&shader);
-
 	//allocate our GPU command buffers
 	//they *have* to be on the linear heap
 	u32 gpuCmdSize=0x40000;
@@ -212,6 +204,19 @@ int main(int argc, char** argv)
 
 	//actually reset the GPU
 	GPU_Reset(NULL, gpuCmd, gpuCmdSize);
+
+	//load our vertex shader binary
+	dvlb=DVLB_ParseFile((u32*)test_vsh_shbin, test_vsh_shbin_size);
+	shaderProgramInit(&shader);
+	shaderProgramSetVsh(&shader, &dvlb->DVLE[0]);
+
+	//initialize GS
+	gsInit(&shader);
+
+	// Flush the command buffer so that the shader upload gets executed
+	GPUCMD_Finalize();
+	GPUCMD_FlushAndRun(NULL);
+	gspWaitForP3D();
 
 	//create texture
 	texData=(u32*)linearMemAlign(texture_bin_size, 0x80); //textures need to be 0x80-byte aligned
