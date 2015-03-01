@@ -247,6 +247,15 @@ svcSendSyncRequest:
 	svc 0x32
 	bx lr
 
+.global svcOpenProcess
+.type svcOpenProcess, %function
+svcOpenProcess:
+	push {r0}
+	svc 0x33
+	pop {r2}
+	str r1, [r2]
+	bx lr
+
 .global svcGetProcessId
 .type svcGetProcessId, %function
 svcGetProcessId:
@@ -288,3 +297,67 @@ svcGetThreadId:
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
+
+.global svcCreatePort
+.type svcCreatePort, %function
+svcCreatePort:
+	push {r0, r1}
+	svc 0x47
+	ldr r3, [sp, #0]
+	str r1, [r3]
+	ldr r3, [sp, #4]
+	str r2, [r3]
+	add sp, sp, #8
+	bx lr
+
+.global svcDebugActiveProcess
+.type svcDebugActiveProcess, %function
+svcDebugActiveProcess:
+	push {r0}
+	svc 0x60
+	pop {r2}
+	str r1, [r2]
+	bx lr
+
+.global svcGetProcessList
+.type svcGetProcessList, %function
+svcGetProcessList:
+	push {r0, r1}
+	svc 0x65
+	ldr r3, [sp, #0]
+	str r1, [r3]
+	ldr r3, [sp, #4]
+	str r2, [r3]
+	add sp, sp, #8
+	bx lr
+
+.global svcReadProcessMemory
+.type svcReadProcessMemory, %function
+svcReadProcessMemory:
+	svc 0x6A
+	bx lr
+
+.global svcMapProcessMemory
+.type svcMapProcessMemory, %function
+svcMapProcessMemory:
+	svc 0x71
+	bx lr
+
+.global svcUnmapProcessMemory
+.type svcUnmapProcessMemory, %function
+svcUnmapProcessMemory:
+	svc 0x72
+	bx lr
+
+.global svcQueryProcessMemory
+.type svcQueryProcessMemory, %function
+svcQueryProcessMemory:
+	push {r0, r1, r4-r6}
+	svc 0x7D
+	ldr r6, [sp]
+	stm r6, {r1-r4}
+	ldr r6, [sp, #4]
+	str r5, [r6]
+	add sp, sp, #8
+	pop {r4-r6}
+	bx lr
