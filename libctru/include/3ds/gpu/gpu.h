@@ -190,6 +190,8 @@ typedef enum{
 }GPU_Primitive_t;
 
 void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
+void GPU_SetIntUniform(u32 startreg, u32 value);
+void GPU_SetBoolUniforms(u32 values);
 
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 

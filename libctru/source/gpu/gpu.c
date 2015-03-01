@@ -234,6 +234,16 @@ void GPU_SetUniform(u32 startreg, u32* data, u32 numreg)
 	GPUCMD_Add(0x000F02C1, data, numreg*4);
 }
 
+void GPU_SetIntUniform(u32 reg, u32 value)
+{
+	GPUCMD_AddSingleParam(0x000F02B1 + reg, value);
+}
+
+void GPU_SetBoolUniforms(u32 values)
+{
+	GPUCMD_AddSingleParam(0x000F02B0, values);
+}
+
 //TODO : fix
 u32 f32tof24(float f)
 {
