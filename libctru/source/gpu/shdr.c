@@ -57,7 +57,7 @@ DVLB_s* SHDR_ParseSHBIN(u32* shbinData, u32 shbinSize)
 		return ret;
 }
 
-s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
+static s32 SHDR_GetUniformRegisterInternal(DVLB_s* dvlb, const char* name, u8 programID)
 {
 	if(!dvlb || !name)return -1;
 
@@ -66,10 +66,33 @@ s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
 	int i;	DVLE_uniformEntry_s* u=dvle->uniformTableData;
 	for(i=0;i<dvle->uniformTableSize;i++)
 	{
-		if(!strcmp(&dvle->symbolTableData[u->symbolOffset],name))return (s8)u->startReg-0x10;
+		if(!strcmp(&dvle->symbolTableData[u->symbolOffset],name))
+			return u->startReg;
+
 		u++;
 	}
 	return -1;
+}
+
+s8 SHDR_GetUniformRegister(DVLB_s* dvlb, const char* name, u8 programID)
+{
+	s32 value = SHDR_GetUniformRegisterInternal(dvlb, name, programID);
+	if (value < 0x10 || value > 0x6f) return -1;
+	else return value - 0x10;
+}
+
+s8 SHDR_GetIntUniformRegster(DVLB_s* dvlb, const char* name, u8 programID)
+{
+	s32 value = SHDR_GetUniformRegisterInternal(dvlb, name, programID);
+	if (value < 0x70 || value > 0x73) return -1;
+	else return value - 0x70;
+}
+
+s8 SHDR_GetBoolUniformRegster(DVLB_s* dvlb, const char* name, u8 programID)
+{
+	s32 value = SHDR_GetUniformRegisterInternal(dvlb, name, programID);
+	if (value < 0x78 || value > 0x87) return -1;
+	else return value - 0x78;
 }
 
 void DVLP_SendCode(DVLP_s* dvlp)
@@ -101,7 +124,7 @@ void DVLP_SendOpDesc(DVLP_s* dvlp)
 
 void DVLE_SendOutmap(DVLE_s* dvle)
 {
-	if(!dvle)return;
+	if(!dvle) return;
 
 	u32 param[0x7]={0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F,
 					0x1F1F1F1F,0x1F1F1F1F,0x1F1F1F1F};
