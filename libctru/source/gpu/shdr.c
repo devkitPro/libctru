@@ -109,32 +109,38 @@ void DVLE_SendOutmap(DVLE_s* dvle)
 	int i;
 	u8 numAttr=0;
 	u8 maxAttr=0;
-	u8 attrMask=0;
+	u8 activeOutputs=0;
 	//TODO : should probably preprocess this
 	for(i=0;i<dvle->outTableSize;i++)
 	{
 		u32* out=&param[dvle->outTableData[i].regID];
-		
-		if(*out==0x1F1F1F1F)numAttr++;
+
+		if(*out==0x1F1F1F1F) numAttr++;
 
 		//desc could include masking/swizzling info not currently taken into account
 		//also TODO : map out other output register values
+		u32 mask = ((dvle->outTableData[i].compMask & 1) ? 0x000000FF : 0u) |
+					((dvle->outTableData[i].compMask & 2) ? 0x0000FF00 : 0u) |
+					((dvle->outTableData[i].compMask & 4) ? 0x00FF0000 : 0u) |
+					((dvle->outTableData[i].compMask & 8) ? 0xFF000000 : 0u);
+
+        *out &= ~mask;
 		switch(dvle->outTableData[i].type)
 		{
-			case RESULT_POSITION: *out=0x03020100; break;
-			case RESULT_COLOR: *out=0x0B0A0908; break;
-			case RESULT_TEXCOORD0: *out=0x1F1F0D0C; break;
-			case RESULT_TEXCOORD1: *out=0x1F1F0F0E; break;
-			case RESULT_TEXCOORD2: *out=0x1F1F1716; break;
+			case RESULT_POSITION: *out |= 0x03020100 & mask; break;
+			case RESULT_COLOR: *out |= 0x0B0A0908 & mask; break;
+			case RESULT_TEXCOORD0: *out |= 0x1F1F0D0C & mask; break;
+			case RESULT_TEXCOORD1: *out |= 0x1F1F0F0E & mask; break;
+			case RESULT_TEXCOORD2: *out |= 0x1F1F1716 & mask; break;
 		}
 
-		attrMask|=1<<dvle->outTableData[i].regID;
+		activeOutputs |= 1 << dvle->outTableData[i].regID;
 		if(dvle->outTableData[i].regID+1>maxAttr)maxAttr=dvle->outTableData[i].regID+1;
 	}
 
 	GPUCMD_AddSingleParam(0x000F0251, numAttr-1); //?
 	GPUCMD_AddSingleParam(0x000F024A, numAttr-1); //?
-	GPUCMD_AddSingleParam(0x000F02BD, attrMask); //?
+	GPUCMD_AddSingleParam(0x000F02BD, activeOutputs); //?
 	GPUCMD_AddSingleParam(0x0001025E, numAttr-1); //?
 	GPUCMD_AddSingleParam(0x000F004F, numAttr); //?
 	GPUCMD_Add(0x800F0050, param, 0x00000007);
