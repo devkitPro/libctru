@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <3ds/types.h>
 #include <3ds/svc.h>
@@ -163,5 +164,21 @@ Result AM_InstallFIRM(u8 mediatype, u64 titleid)
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
 
+	return (Result)cmdbuf[1];
+}
+
+Result AM_GetTitleProductCode(u8 mediatype, u64 titleid, char* productcode)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	
+	cmdbuf[0] = 0x000500C0;
+	cmdbuf[1] = mediatype;
+	cmdbuf[2] = titleid & 0xffffffff;
+	cmdbuf[3] = (titleid >> 32) & 0xffffffff;
+	
+	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
+
+	snprintf(productcode, 16, "%s", (char*)(&cmdbuf[2]));
 	return (Result)cmdbuf[1];
 }
