@@ -25,7 +25,8 @@
 #define RGBA8(r,g,b,a) ((((r)&0xFF)<<24) | (((g)&0xFF)<<16) | (((b)&0xFF)<<8) | (((a)&0xFF)<<0))
 
 //shader structure
-DVLB_s* shader;
+DVLB_s* dvlb;
+shaderProgram_s shader;
 //texture data pointer
 u32* texData;
 //vbo structure
@@ -139,9 +140,6 @@ void renderFrame()
 	GPUCMD_AddSingleParam(0x00010062, 0);
 	GPUCMD_AddSingleParam(0x000F0118, 0);
 
-	//setup shader
-	SHDR_UseProgram(shader, 0);
-
 	GPU_SetAlphaBlending(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 	GPU_SetAlphaTest(false, GPU_ALWAYS, 0x00);
 
@@ -168,8 +166,8 @@ void renderFrame()
 
 	//setup lighting (this is specific to our shader)
 		vect3Df_s lightDir=vnormf(vect3Df(cos(lightAngle), -1.0f, sin(lightAngle)));
-		GPU_SetUniform(SHDR_GetUniformRegister(shader, "lightDirection", 0), (u32*)(float[]){0.0f, -lightDir.z, -lightDir.y, -lightDir.x}, 1);
-		GPU_SetUniform(SHDR_GetUniformRegister(shader, "lightAmbient", 0), (u32*)(float[]){0.7f, 0.4f, 0.4f, 0.4f}, 1);
+		GPU_SetFloatUniform(GPU_VERTEX_SHADER, shaderInstanceGetUniformLocation(shader.vertexShader, "lightDirection"), (u32*)(float[]){0.0f, -lightDir.z, -lightDir.y, -lightDir.x}, 1);
+		GPU_SetFloatUniform(GPU_VERTEX_SHADER, shaderInstanceGetUniformLocation(shader.vertexShader, "lightAmbient"), (u32*)(float[]){0.7f, 0.4f, 0.4f, 0.4f}, 1);
 
 	//initialize projection matrix to standard perspective stuff
 	gsMatrixMode(GS_PROJECTION);
@@ -199,10 +197,12 @@ int main(int argc, char** argv)
 	gfxSet3D(true);
 
 	//load our vertex shader binary
-	shader=SHDR_ParseSHBIN((u32*)test_vsh_shbin, test_vsh_shbin_size);
+	dvlb=DVLB_ParseFile((u32*)test_vsh_shbin, test_vsh_shbin_size);
+	shaderProgramInit(&shader);
+	shaderProgramSetVsh(&shader, &dvlb->DVLE[0]);
 
 	//initialize GS
-	gsInit(shader);
+	gsInit(&shader);
 
 	//allocate our GPU command buffers
 	//they *have* to be on the linear heap
@@ -318,6 +318,8 @@ int main(int argc, char** argv)
 	}
 
 	gsExit();
+	shaderProgramFree(&shader);
+	DVLB_Free(dvlb);
 	gfxExit();
 	return 0;
 }
