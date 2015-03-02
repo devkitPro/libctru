@@ -32,6 +32,4 @@ void __attribute__((weak)) __libctru_init(void (*retAddr)(void))
 	// Build argc/argv if present
 	__system_initArgv();
 
-	__appInit();
-
 }
