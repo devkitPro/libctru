@@ -15,8 +15,6 @@ void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 {
 	u32 tmp=0;
 
-	__appExit();
-
 	// Unmap the linear heap
 	svcControlMemory(&tmp, __linear_heap, 0x0, __linear_heap_size, MEMOP_FREE, 0x0);
 
