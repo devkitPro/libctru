@@ -361,3 +361,9 @@ svcQueryProcessMemory:
 	add sp, sp, #8
 	pop {r4-r6}
 	bx lr
+
+.global svcGetProcessorID
+.type svcGetProcessorID, %function
+svcGetProcessorID:
+	svc 0x11
+	bx  lr
