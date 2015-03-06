@@ -518,7 +518,7 @@ void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length)
 {
 	if(!data)return;
 
-	u32 regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
+	int regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
 
 	GPUCMD_AddWrite(GPUREG_VSH_CODETRANSFER_CONFIG+regOffset, offset);
 
@@ -532,7 +532,7 @@ void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16
 {
 	if(!data)return;
 
-	u32 regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
+	int regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
 
 	GPUCMD_AddWrite(GPUREG_VSH_OPDESCS_CONFIG+regOffset, offset);
 
