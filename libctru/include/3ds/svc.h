@@ -97,3 +97,4 @@ Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
 Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
+s32 svcGetProcessorID();
