@@ -317,11 +317,11 @@ void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h)
 	GPUCMD_AddIncrementalWrites(GPUREG_SCISSORTEST_MODE, param, 0x00000003);
 }
 
-void GPU_DepthRange(float nearVal, float farVal)
+void GPU_DepthMap(float zScale, float zOffset)
 {
 	GPUCMD_AddWrite(GPUREG_006D, 0x00000001); //?
-	GPUCMD_AddWrite(GPUREG_DEPTHRANGE_NEAR, f32tof24(nearVal));
-	GPUCMD_AddWrite(GPUREG_DEPTHRANGE_FAR, f32tof24(farVal));
+	GPUCMD_AddWrite(GPUREG_DEPTHMAP_SCALE, f32tof24(zScale));
+	GPUCMD_AddWrite(GPUREG_DEPTHMAP_OFFSET, f32tof24(zOffset));
 }
 
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref)

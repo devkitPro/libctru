@@ -214,7 +214,7 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 
 void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h);
 
-void GPU_DepthRange(float nearVal, float farVal);
+void GPU_DepthMap(float zScale, float zOffset);
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask); // GPU_WRITEMASK values can be ORed together
 void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace);
