@@ -127,8 +127,6 @@ Result shaderProgramFree(shaderProgram_s* sp)
 	shaderInstanceFree(sp->vertexShader);
 	shaderInstanceFree(sp->geometryShader);
 
-	free(sp);
-
 	return 0;
 }
 

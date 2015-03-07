@@ -69,7 +69,9 @@ DVLB_s* DVLB_ParseFile(u32* shbinData, u32 shbinSize)
 void DVLB_Free(DVLB_s* dvlb)
 {
 	if(!dvlb)return;
-
+	if(dvlb->DVLP.opcdescData)free(dvlb->DVLP.opcdescData);
+	if(dvlb->DVLE)free(dvlb->DVLE);
+	free(dvlb);
 }
 
 s8 DVLE_GetUniformRegister(DVLE_s* dvle, const char* name)
