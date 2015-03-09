@@ -42,6 +42,13 @@ typedef enum {
 	ARBITER_KERNEL4        =4,
 } ArbitrationType;
 
+typedef struct{
+	u32 type;
+	u32 tid;
+	u32 unknown[2];
+	u32 eventdata[6];
+} DebugEventInfo;
+
 static inline void* getThreadLocalStorage(void)
 {
 	void* ret;
@@ -52,7 +59,7 @@ static inline void* getThreadLocalStorage(void)
 static inline u32* getThreadCommandBuffer(void)
 {
 	return (u32*)((u8*)getThreadLocalStorage() + 0x80);
-}
+}    
 
 s32  svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op, MemPerm perm);
 s32  svcQueryMemory(MemInfo* info, PageInfo* out, u32 addr);
@@ -92,6 +99,9 @@ s32  svcGetThreadId(u32 *out, Handle handle);
 s32  svcOutputDebugString(const char* str, int length);
 Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s32 maxSessions);
 Result svcDebugActiveProcess(Handle* debug, u32 processId);
+Result svcBreakDebugProcess(Handle debug);
+Result svcGetProcessDebugEvent(DebugEventInfo *info, Handle debug);
+Result svcContinueDebugEvent(Handle debug, u32 flags);
 Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCount);
 Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
 Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
