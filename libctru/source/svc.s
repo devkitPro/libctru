@@ -319,6 +319,30 @@ svcDebugActiveProcess:
 	str r1, [r2]
 	bx lr
 
+.global svcBreakDebugProcess
+.type svcBreakDebugProcess, %function
+svcBreakDebugProcess:
+	svc 0x61
+	bx lr
+
+.global svcTerminateDebugProcess
+.type svcTerminateDebugProcess, %function
+svcTerminateDebugProcess:
+	svc 0x62
+	bx lr
+
+.global svcGetProcessDebugEvent
+.type svcGetProcessDebugEvent, %function
+svcGetProcessDebugEvent:
+	svc 0x63
+	bx lr
+	
+.global svcContinueDebugEvent
+.type svcContinueDebugEvent, %function
+svcContinueDebugEvent:
+	svc 0x64
+	bx lr
+
 .global svcGetProcessList
 .type svcGetProcessList, %function
 svcGetProcessList:
