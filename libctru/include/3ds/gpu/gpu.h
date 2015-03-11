@@ -1,7 +1,13 @@
 #pragma once
 
+#include "3ds/gpu/registers.h"
+
+//GPU
 void GPU_Init(Handle *gsphandle);
 void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize);
+
+//GPUCMD
+#define GPUCMD_HEADER(incremental, mask, reg) (((incremental)<<31)|(((mask)&0xF)<<16)|((reg)&0x3FF))
 
 void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset);
 void GPUCMD_SetBufferOffset(u32 offset);
@@ -9,9 +15,17 @@ void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset);
 void GPUCMD_AddRawCommands(u32* cmd, u32 size);
 void GPUCMD_Run(u32* gxbuf);
 void GPUCMD_FlushAndRun(u32* gxbuf);
-void GPUCMD_Add(u32 cmd, u32* param, u32 paramlength);
-void GPUCMD_AddSingleParam(u32 cmd, u32 param);
+void GPUCMD_Add(u32 header, u32* param, u32 paramlength);
 void GPUCMD_Finalize();
+
+#define GPUCMD_AddSingleParam(header, param) GPUCMD_Add((header), (u32[]){(u32)(param)}, 1)
+
+#define GPUCMD_AddMaskedWrite(reg, mask, val) GPUCMD_AddSingleParam(GPUCMD_HEADER(0, (mask), (reg)), (val))
+#define GPUCMD_AddWrite(reg, val) GPUCMD_AddMaskedWrite((reg), 0xF, (val))
+#define GPUCMD_AddMaskedWrites(reg, mask, vals, num) GPUCMD_Add(GPUCMD_HEADER(0, (mask), (reg)), (vals), (num))
+#define GPUCMD_AddWrites(reg, vals, num) GPUCMD_AddMaskedWrites((reg), 0xF, (vals), (num))
+#define GPUCMD_AddMaskedIncrementalWrites(reg, mask, vals, num) GPUCMD_Add(GPUCMD_HEADER(1, (mask), (reg)), (vals), (num))
+#define GPUCMD_AddIncrementalWrites(reg, vals, num) GPUCMD_AddMaskedIncrementalWrites((reg), 0xF, (vals), (num))
 
 //tex param
 #define GPU_TEXTURE_MAG_FILTER(v) (((v)&0x1)<<1) //takes a GPU_TEXTURE_FILTER_PARAM
@@ -189,13 +203,18 @@ typedef enum{
 	GPU_UNKPRIM = 0x0300 // ?
 }GPU_Primitive_t;
 
-void GPU_SetUniform(u32 startreg, u32* data, u32 numreg);
+typedef enum{
+	GPU_VERTEX_SHADER=0x0,
+	GPU_GEOMETRY_SHADER=0x1
+}GPU_SHADER_TYPE;
+
+void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numreg);
 
 void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
 
 void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h);
 
-void GPU_DepthRange(float nearVal, float farVal);
+void GPU_DepthMap(float zScale, float zOffset);
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask); // GPU_WRITEMASK values can be ORed together
 void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace);
@@ -218,5 +237,8 @@ void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16
 
 void GPU_DrawArray(GPU_Primitive_t primitive, u32 n);
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n);
-
 void GPU_FinishDrawing();
+
+void GPU_SetShaderOutmap(u32 outmapData[8]);
+void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
+void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);

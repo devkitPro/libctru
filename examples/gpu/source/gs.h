@@ -24,7 +24,7 @@ typedef struct
 }gsVbo_s;
 
 
-void gsInit(DVLB_s* shader);
+void gsInit(shaderProgram_s* shader);
 void gsExit(void);
 
 void gsStartFrame(void);

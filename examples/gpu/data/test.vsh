@@ -2,11 +2,11 @@
 	.const c20, 1.0, 0.0, 0.5, 1.0
  
 ; setup outmap
-	.out o0, result.position, 0x0
-	.out o1, result.color, 0x0
-	.out o2, result.texcoord0, 0x0
-	.out o3, result.texcoord1, 0x0
-	.out o4, result.texcoord2, 0x0
+	.out o0, result.position, 0xF
+	.out o1, result.color, 0xF
+	.out o2, result.texcoord0, 0x3
+	.out o3, result.texcoord1, 0x3
+	.out o4, result.texcoord2, 0x3
  
 ; setup uniform map (not required)
 	.uniform c0, c3, projection

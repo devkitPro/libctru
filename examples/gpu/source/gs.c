@@ -32,15 +32,16 @@ void initBufferMatrixList()
 	bufferMatrixListLength=0;
 }
 
-void gsInit(DVLB_s* shader)
+void gsInit(shaderProgram_s* shader)
 {
 	gsInitMatrixStack();
 	initBufferMatrixList();
 	svcCreateMutex(&linearAllocMutex, false);
 	if(shader)
 	{
-		gsMatrixStackRegisters[0]=SHDR_GetUniformRegister(shader, "projection", 0);
-		gsMatrixStackRegisters[1]=SHDR_GetUniformRegister(shader, "modelview", 0);
+		gsMatrixStackRegisters[0]=shaderInstanceGetUniformLocation(shader->vertexShader, "projection");
+		gsMatrixStackRegisters[1]=shaderInstanceGetUniformLocation(shader->vertexShader, "modelview");
+		shaderProgramUse(shader);
 	}
 }
 
@@ -235,7 +236,7 @@ static void gsSetUniformMatrix(u32 startreg, float* m)
 	param[0xe]=m[13];
 	param[0xf]=m[12];
 
-	GPU_SetUniform(startreg, (u32*)param, 4);
+	GPU_SetFloatUniform(GPU_VERTEX_SHADER, startreg, (u32*)param, 4);
 }
 
 static int gsUpdateTransformation()
