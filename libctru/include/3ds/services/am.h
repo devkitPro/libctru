@@ -8,7 +8,7 @@
 typedef struct
 {
 	u64 titleID;
-	u64 unknown;
+	u64 size;
 	u16 titleVersion;
 	u8 unknown2[6];
 } TitleList;
