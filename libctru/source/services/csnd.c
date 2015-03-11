@@ -405,7 +405,7 @@ Result csndPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data
 	int encoding = (flags >> 12) & 3;
 	int loopMode = (flags >> 10) & 3;
 
-	if (!loopMode) flags |= CSND_LOOPMODE_ONESHOT;
+	if (!loopMode) flags |= SOUND_ONE_SHOT;
 
 	if (encoding != CSND_ENCODING_PSG)
 	{
