@@ -22,6 +22,8 @@ initSystem:
 	bics	sp, sp, #7
 	str	sp, [r2]
 
+
+	bl	__appInit
 	bl	__libc_init_array
 
 	ldr	r2, =saved_stack
@@ -34,6 +36,7 @@ initSystem:
 
 __ctru_exit:
 	bl	__libc_fini_array
+	bl	__appExit
 
 	ldr	r2, =saved_stack
 	ldr	sp, [r2]

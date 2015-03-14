@@ -380,7 +380,7 @@ static bool __handle_incoming_parameter() {
 	return true;
 }
 
-void aptEventHandler(u32 arg)
+void aptEventHandler(void *arg)
 {
 	bool runThread = true;
 
@@ -1153,5 +1153,38 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 	__apt_launchapplet_parambufsize = parambufsize;
 
 	return 0;
+}
+
+Result APT_PrepareToStartSystemApplet(Handle* handle, NS_APPID appID)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00190040; //request header code
+	cmdbuf[1]=appID;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result APT_StartSystemApplet(Handle* handle, NS_APPID appID, u32 bufSize, Handle applHandle, u8 *buf)
+{
+	if(!handle)handle=&aptuHandle;
+
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0] = 0x001F0084; //request header code
+	cmdbuf[1] = appID;
+	cmdbuf[2] = bufSize;
+	cmdbuf[3] = 0;
+	cmdbuf[4] = applHandle;
+	cmdbuf[5] = (bufSize<<14) | 2;
+	cmdbuf[6] = (u32)buf;
+	
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	return cmdbuf[1];
 }
 

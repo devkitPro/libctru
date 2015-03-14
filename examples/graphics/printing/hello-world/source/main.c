@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	consoleInit(GFX_TOP, NULL);
 
 	//Move the cursor to row 15 and column 19 and then prints "Hello World!"
-	//To move the cursor you have tu print "\x1b[r;cH", where r and c are respectively
+	//To move the cursor you have to print "\x1b[r;cH", where r and c are respectively
 	//the row and column where you want your cursor to move
 	//The top screen has 30 rows and 50 columns
 	//The bottom screen has 30 rows and 40 columns

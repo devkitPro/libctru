@@ -12,7 +12,8 @@ static int from_3ds(int flags)
 {
 	int newflags = 0;
 
-	if(flags & O_NONBLOCK_3DS) newflags |= O_NONBLOCK;
+	if(flags & O_NONBLOCK_3DS)
+		newflags |= O_NONBLOCK;
 	/* add other flag translations here, but I have only seen O_NONBLOCK */
 
 	return newflags;
@@ -22,13 +23,14 @@ static int to_3ds(int flags)
 {
 	int newflags = 0;
 
-	if(flags & O_NONBLOCK) newflags |= O_NONBLOCK_3DS;
+	if(flags & O_NONBLOCK)
+		newflags |= O_NONBLOCK_3DS;
 	/* add other flag translations here, but I have only seen O_NONBLOCK */
 
 	return newflags;
 }
 
-int fcntl(int fd, int cmd, ...)
+int fcntl(int sockfd, int cmd, ...)
 {
 	int ret = 0;
 	int arg = 0;
@@ -36,49 +38,53 @@ int fcntl(int fd, int cmd, ...)
 
 	va_list args;
 
-	if(cmd != F_GETFL && cmd != F_SETFL)
-	{
-		SOCU_errno = -EINVAL;
+	sockfd = soc_get_fd(sockfd);
+	if(sockfd < 0) {
+		errno = -sockfd;
 		return -1;
 	}
 
-	va_start(args, cmd);
-	if(cmd == F_SETFL)
-	{
+	if(cmd != F_GETFL && cmd != F_SETFL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if(cmd == F_SETFL) {
+		va_start(args, cmd);
 		arg = va_arg(args, int);
+		va_end(args);
 
 		/* make sure they only used known flags */
-		if(arg & ~ALL_FLAGS)
-		{
-			SOCU_errno = -EINVAL;
-			va_end(args);
+		if(arg & ~ALL_FLAGS) {
+			errno = EINVAL;
 			return -1;
 		}
 
 		arg = to_3ds(arg);
 	}
-	va_end(args);
 
 	cmdbuf[0] = 0x001300C2;
-	cmdbuf[1] = (u32)fd;
+	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)cmd;
 	cmdbuf[3] = (u32)arg;
 	cmdbuf[4] = 0x20;
 
-	if((ret = svcSendSyncRequest(SOCU_handle)) != 0)
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
 		return ret;
+	}
 
 	ret = (int)cmdbuf[1];
 	if(ret == 0)
 		ret = _net_convert_error(cmdbuf[2]);
-	if(ret < 0)
-		SOCU_errno = ret;
 
-	if(ret < 0)
+	if(ret < 0) {
+		errno = ret;
 		return -1;
+	}
 
-	if(ret & ~ALL_3DS)
-	{
+	if(ret & ~ALL_3DS) {
 		/* somehow report unknown flags */
 	}
 

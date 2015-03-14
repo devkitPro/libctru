@@ -39,7 +39,7 @@ typedef volatile s64 vs64;
 
 typedef u32 Handle;
 typedef s32 Result;
-typedef void (*ThreadFunc)(u32);
+typedef void (*ThreadFunc)(void *);
 
 #define BIT(n) (1U<<(n))
 

@@ -2,8 +2,16 @@
 #include <3ds/os.h>
 #include <3ds/svc.h>
 
+#include <sys/time.h>
+#include <reent.h>
 
+#define TICKS_PER_USEC 268.123480
 #define TICKS_PER_MSEC 268123.480
+
+// Work around the VFP not supporting 64-bit integer <--> floating point conversion
+static inline double u64_to_double(u64 value) {
+	return (((double)(u32)(value >> 32))*0x100000000ULL+(u32)value);
+}
 
 typedef struct {
 	u64 date_time;
@@ -19,8 +27,9 @@ static volatile datetime_t* __datetime1 =
 	(datetime_t*) 0x1FF81040;
 
 
-u32 osConvertVirtToPhys(u32 vaddr)
-{
+//---------------------------------------------------------------------------------
+u32 osConvertVirtToPhys(u32 vaddr) {
+//---------------------------------------------------------------------------------
 	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)
 		return vaddr + 0x0c000000; // LINEAR heap
 	if(vaddr >= 0x1F000000 && vaddr < 0x1F600000)
@@ -32,15 +41,17 @@ u32 osConvertVirtToPhys(u32 vaddr)
 	return 0;
 }
 
-u32 osConvertOldLINEARMemToNew(u32 vaddr)
-{
+//---------------------------------------------------------------------------------
+u32 osConvertOldLINEARMemToNew(u32 vaddr) {
+//---------------------------------------------------------------------------------
 	if(vaddr >= 0x30000000 && vaddr < 0x40000000)return vaddr;
 	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)return vaddr+=0x1c000000;
 	return 0;
 }
 
-// Returns number of milliseconds since 1st Jan 1900 00:00.
-u64 osGetTime() {
+//---------------------------------------------------------------------------------
+static datetime_t getSysTime() {
+//---------------------------------------------------------------------------------
 	u32 s1, s2 = *__datetime_selector & 1;
 	datetime_t dt;
 
@@ -53,26 +64,64 @@ u64 osGetTime() {
 		s2 = *__datetime_selector & 1;
 	} while(s2 != s1);
 
-	u64 delta = svcGetSystemTick() - dt.update_tick;
-
-	// Work around the VFP not supporting 64-bit integer <--> floating point conversion
-	double temp = (u32)(delta >> 32);
-	temp *= 0x100000000ULL;
-	temp += (u32)delta;
-
-	u32 offset = temp / TICKS_PER_MSEC;
-	return dt.date_time + offset;
+	return dt;
 }
 
+//---------------------------------------------------------------------------------
+int __libctru_gtod(struct _reent *ptr, struct timeval *tp, struct timezone *tz) {
+//---------------------------------------------------------------------------------
+	if (tp != NULL) {
+
+		datetime_t dt = getSysTime();
+
+		u64 delta = svcGetSystemTick() - dt.update_tick;
+
+		u32 offset =  (u32)(u64_to_double(delta)/TICKS_PER_USEC);
+
+		// adjust from 1900 to 1970
+		u64 now = ((dt.date_time - 2208988800000ULL) * 1000) + offset;
+
+		tp->tv_sec =  u64_to_double(now)/1000000.0;
+		tp->tv_usec = now - ((tp->tv_sec) * 1000000);
+
+	}
+
+	if (tz != NULL) {
+		tz->tz_minuteswest = 0;
+		tz->tz_dsttime = 0;
+	}
+
+	return 0;
+
+}
+
+
+// Returns number of milliseconds since 1st Jan 1900 00:00.
+//---------------------------------------------------------------------------------
+u64 osGetTime() {
+//---------------------------------------------------------------------------------
+	datetime_t dt = getSysTime();
+
+	u64 delta = svcGetSystemTick() - dt.update_tick;
+
+	return dt.date_time + (u32)(u64_to_double(delta)/TICKS_PER_MSEC);
+}
+
+//---------------------------------------------------------------------------------
 u32 osGetFirmVersion() {
+//---------------------------------------------------------------------------------
 	return (*(u32*)0x1FF80000) & ~0xFF;
 }
 
+//---------------------------------------------------------------------------------
 u32 osGetKernelVersion() {
+//---------------------------------------------------------------------------------
 	return (*(u32*)0x1FF80060) & ~0xFF;
 }
 
+//---------------------------------------------------------------------------------
 const char* osStrError(u32 error) {
+//---------------------------------------------------------------------------------
 	switch((error>>26) & 0x3F) {
 	case 0:
 		return "Success.";

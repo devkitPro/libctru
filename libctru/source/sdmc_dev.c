@@ -1,15 +1,17 @@
-#include <fcntl.h>
 #include <errno.h>
-#include <unistd.h>
+#include <fcntl.h>
 #include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/dirent.h>
 #include <sys/iosupport.h>
 #include <sys/param.h>
+#include <unistd.h>
 
-#include <string.h>
 #include <3ds/types.h>
 #include <3ds/sdmc.h>
 #include <3ds/services/fs.h>
-
+#include <3ds/util/utf.h>
 
 
 /*! @internal
@@ -18,6 +20,8 @@
  *
  *  SDMC Device
  */
+
+static int sdmc_translate_error(Result error);
 
 static int       sdmc_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
 static int       sdmc_close(struct _reent *r, int fd);
@@ -40,6 +44,7 @@ static int       sdmc_ftruncate(struct _reent *r, int fd, off_t len);
 static int       sdmc_fsync(struct _reent *r, int fd);
 static int       sdmc_chmod(struct _reent *r, const char *path, mode_t mode);
 static int       sdmc_fchmod(struct _reent *r, int fd, mode_t mode);
+static int       sdmc_rmdir(struct _reent *r, const char *name);
 
 /*! @cond INTERNAL */
 
@@ -87,6 +92,7 @@ sdmc_devoptab =
   .deviceData   = NULL,
   .chmod_r      = sdmc_chmod,
   .fchmod_r     = sdmc_fchmod,
+  .rmdir_r      = sdmc_rmdir,
 };
 
 /*! SDMC archive handle */
@@ -103,28 +109,106 @@ static FS_archive sdmcArchive =
 
 /*! @endcond */
 
-static char __cwd[PATH_MAX+1] = "/";
-static char __fixedpath[PATH_MAX+1];
+static char     __cwd[PATH_MAX+1] = "/";
+static char     __fixedpath[PATH_MAX+1];
+static uint16_t __utf16path[PATH_MAX+1];
 
-static const char *sdmc_fixpath(const char *path)
+static const char*
+sdmc_fixpath(struct _reent *r,
+             const char    *path)
 {
+  size_t        units;
+  uint32_t      code;
+  const uint8_t *p = (const uint8_t*)path;
+
   // Move the path pointer to the start of the actual path
-  if (strchr (path, ':') != NULL)
+  do
   {
-    path = strchr (path, ':') + 1;
+    units = decode_utf8(&code, p);
+    if(units == (size_t)-1)
+    {
+      r->_errno = EILSEQ;
+      return NULL;
+    }
+
+    p += units;
+  } while(code != ':' && code != 0);
+
+  // We found a colon; p points to the actual path
+  if(code == ':')
+    path = (const char*)p;
+
+  // Make sure there are no more colons and that the
+  // remainder of the filename is valid UTF-8
+  p = (const uint8_t*)path;
+  do
+  {
+    units = decode_utf8(&code, p);
+    if(units == (size_t)-1)
+    {
+      r->_errno = EILSEQ;
+      return NULL;
+    }
+
+    if(code == ':')
+    {
+      r->_errno = EINVAL;
+      return NULL;
+    }
+
+    p += units;
+  } while(code != 0);
+
+  if(path[0] == '/')
+    strncpy(__fixedpath, path, PATH_MAX+1);
+  else
+  {
+    strncpy(__fixedpath, __cwd, PATH_MAX+1);
+    strncat(__fixedpath, path, PATH_MAX+1);
   }
 
-  if (strchr (path, ':') != NULL) return NULL;
-
-
-  if (path[0]=='/') return path;
-
-  strncpy(__fixedpath,__cwd,PATH_MAX);
-  strncat(__fixedpath,path,PATH_MAX);
-  __fixedpath[PATH_MAX] = 0;
+  if(__fixedpath[PATH_MAX] != 0)
+  {
+    __fixedpath[PATH_MAX] = 0;
+    r->_errno = ENAMETOOLONG;
+    return NULL;
+  }
 
   return __fixedpath;
+}
 
+static const FS_path
+sdmc_utf16path(struct _reent *r,
+               const char    *path)
+{
+  size_t  units;
+  FS_path fspath;
+
+  fspath.data = NULL;
+
+  if(sdmc_fixpath(r, path) == NULL)
+    return fspath;
+
+  units = utf8_to_utf16(__utf16path, (const uint8_t*)__fixedpath, PATH_MAX+1);
+  if(units == (size_t)-1)
+  {
+    r->_errno = EILSEQ;
+    return fspath;
+  }
+
+  if(__utf16path[PATH_MAX] != 0)
+  {
+    r->_errno = ENAMETOOLONG;
+    return fspath;
+  }
+
+  __utf16path[units] = 0;
+
+  fspath.type = PATH_WCHAR;
+  fspath.size = (units+1)*sizeof(uint16_t);
+  fspath.data = (const u8*)__utf16path;
+
+  return fspath;
 }
 
 extern int __system_argc;
@@ -135,29 +219,56 @@ static bool sdmcInitialised = false;
 /*! Initialize SDMC device */
 Result sdmcInit(void)
 {
-  Result rc = 0;
+  size_t   units;
+  uint32_t code;
+  char     *p;
+  Result   rc = 0;
 
-  if (sdmcInitialised) return rc;
+  if(sdmcInitialised)
+    return rc;
 
   rc = FSUSER_OpenArchive(NULL, &sdmcArchive);
-
-
   if(rc == 0)
   {
 
     int dev = AddDevice(&sdmc_devoptab);
 
-    if (dev != -1) {
+    if(dev != -1)
+    {
       setDefaultDevice(dev);
-      if (__system_argc != 0 && __system_argv[0] != NULL)
+      if(__system_argc != 0 && __system_argv[0] != NULL)
       {
-        if (FindDevice(__system_argv[0]) == dev)
+        if(FindDevice(__system_argv[0]) == dev)
         {
           strncpy(__fixedpath,__system_argv[0],PATH_MAX);
-          char *last_slash = strrchr(__fixedpath,'/');
-          if (last_slash != NULL) {
-            last_slash[0] = 0;
-            chdir(__fixedpath);
+          if(__fixedpath[PATH_MAX] != 0)
+          {
+            __fixedpath[PATH_MAX] = 0;
+          }
+          else
+          {
+            char *last_slash = NULL;
+            p = __fixedpath;
+            do
+            {
+              units = decode_utf8(&code, (const uint8_t*)p);
+              if(units == (size_t)-1)
+              {
+                last_slash = NULL;
+                break;
+              }
+
+              if(code == '/')
+                last_slash = p;
+
+              p += units;
+            } while(code != 0);
+
+            if(last_slash != NULL)
+            {
+              last_slash[0] = 0;
+              chdir(__fixedpath);
+            }
           }
         }
       }
@@ -174,13 +285,14 @@ Result sdmcExit(void)
 {
   Result rc = 0;
 
-  if (!sdmcInitialised) return rc;
+  if(!sdmcInitialised) return rc;
 
   rc = FSUSER_CloseArchive(NULL, &sdmcArchive);
   if(rc == 0)
+  {
     RemoveDevice("sdmc");
-
-  sdmcInitialised = false;
+    sdmcInitialised = false;
+  }
 
   return rc;
 }
@@ -207,15 +319,11 @@ sdmc_open(struct _reent *r,
   Result      rc;
   u32         sdmc_flags = 0;
   u32         attributes = FS_ATTRIBUTE_NONE;
-  const char  *pathptr = NULL;
+  FS_path     fs_path;
 
-  pathptr = sdmc_fixpath(path);
-
-  if(pathptr==NULL)
-  {
-    r->_errno=EINVAL;
+  fs_path = sdmc_utf16path(r, path);
+  if(fs_path.data == NULL)
     return -1;
-  }
 
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fileStruct;
@@ -256,14 +364,10 @@ sdmc_open(struct _reent *r,
   /* Test O_EXCL. */
   if((flags & O_CREAT) && (flags & O_EXCL))
   {
-    rc = FSUSER_CreateFile(NULL, sdmcArchive, FS_makePath(PATH_CHAR, pathptr), 0);
+    rc = FSUSER_CreateFile(NULL, sdmcArchive, fs_path, 0);
     if(rc != 0)
     {
-      r->_errno = rc;
-      if(rc == 0x82044BE)
-        r->_errno = EEXIST;
-      if(rc == 0x86044D2)
-        r->_errno = ENOSPC;
+      r->_errno = sdmc_translate_error(rc);
       return -1;
     }
   }
@@ -273,7 +377,7 @@ sdmc_open(struct _reent *r,
     attributes |= FS_ATTRIBUTE_READONLY;*/
 
   /* open the file */
-  rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr),
+  rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, fs_path,
                        sdmc_flags, attributes);
   if(rc == 0)
   {
@@ -283,17 +387,18 @@ sdmc_open(struct _reent *r,
       if(rc != 0)
       {
         FSFILE_Close(fd);
-        r->_errno = rc;
+        r->_errno = sdmc_translate_error(rc);
         return -1;
       }
     }
+
     file->fd     = fd;
     file->flags  = (flags & (O_ACCMODE|O_APPEND|O_SYNC));
     file->offset = 0;
     return 0;
   }
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -318,7 +423,7 @@ sdmc_close(struct _reent *r,
   if(rc == 0)
     return 0;
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -339,9 +444,8 @@ sdmc_write(struct _reent *r,
            size_t        len)
 {
   Result      rc;
-  u32         bytes;
+  u32         bytes, bytesWritten = 0;
   u32         sync = 0;
-  u64         offset;
 
   /* get pointer to our data */
   sdmc_file_t *file = (sdmc_file_t*)fd;
@@ -355,38 +459,52 @@ sdmc_write(struct _reent *r,
 
   /* check if this is synchronous or not */
   if(file->flags & O_SYNC)
-    sync = 0x10001;
+    sync = FS_WRITE_FLUSH;
 
-  /* initialize offset */
-  offset = file->offset;
   if(file->flags & O_APPEND)
   {
     /* append means write from the end of the file */
-    rc = FSFILE_GetSize(file->fd, &offset);
+    rc = FSFILE_GetSize(file->fd, &file->offset);
     if(rc != 0)
     {
-      r->_errno = rc;
+      r->_errno = sdmc_translate_error(rc);
       return -1;
     }
   }
 
-  /* TODO: Copy to internal buffer and write in chunks.
-   *       You cannot write from read-only memory.
+  /* Copy to internal buffer and write in chunks.
+   * You cannot write from read-only memory.
    */
-
-  /* write the data */
-  rc = FSFILE_Write(file->fd, &bytes, offset, (u32*)ptr, (u32)len, sync);
-  if(rc == 0)
+  static char tmp_buffer[8192];
+  while(len > 0)
   {
-    /* update current file offset; if O_APPEND, this moves it to the
-     * new end-of-file
-     */
-    file->offset = offset + bytes;
-    return (ssize_t)bytes;
+    size_t toWrite = len;
+    if(toWrite > sizeof(tmp_buffer))
+      toWrite = sizeof(tmp_buffer);
+
+    /* copy to internal buffer */
+    memcpy(tmp_buffer, ptr, toWrite);
+
+    /* write the data */
+    rc = FSFILE_Write(file->fd, &bytes, file->offset, 
+                      (u32*)tmp_buffer, (u32)toWrite, sync);
+    if(rc != 0)
+    {
+      /* return partial transfer */
+      if(bytesWritten > 0)
+        return bytesWritten;
+
+      r->_errno = sdmc_translate_error(rc);
+      return -1;
+    }
+
+    file->offset += bytes;
+    bytesWritten += bytes;
+    ptr          += bytes;
+    len          -= bytes;
   }
 
-  r->_errno = rc;
-  return -1;
+  return bytesWritten;
 }
 
 /*! Read from an open file
@@ -427,7 +545,7 @@ sdmc_read(struct _reent *r,
     return (ssize_t)bytes;
   }
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -471,7 +589,7 @@ sdmc_seek(struct _reent *r,
       rc = FSFILE_GetSize(file->fd, &offset);
       if(rc != 0)
       {
-        r->_errno = rc;
+        r->_errno = sdmc_translate_error(rc);
         return -1;
       }
       break;
@@ -509,7 +627,21 @@ sdmc_fstat(struct _reent *r,
            int           fd,
            struct stat   *st)
 {
-  r->_errno = ENOSYS;
+  Result      rc;
+  u64         size;
+  sdmc_file_t *file = (sdmc_file_t*)fd;
+
+  rc = FSFILE_GetSize(file->fd, &size);
+  if(rc == 0)
+  {
+    memset(st, 0, sizeof(struct stat));
+    st->st_size = (off_t)size;
+    st->st_nlink = 1;
+    st->st_mode = S_IFREG | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+    return 0;
+  }
+
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -527,48 +659,33 @@ sdmc_stat(struct _reent *r,
           const char    *file,
           struct stat   *st)
 {
-  Handle fd;
-  Result rc;
-  const char  *pathptr = NULL;
+  Handle  fd;
+  Result  rc;
+  FS_path fs_path;
 
-  pathptr = sdmc_fixpath(file);
-
-  if(pathptr==NULL)
-  {
-    r->_errno=EINVAL;
+  fs_path = sdmc_utf16path(r, file);
+  if(fs_path.data == NULL)
     return -1;
-  }
 
-  if( (rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr),
-                       FS_OPEN_READ, FS_ATTRIBUTE_NONE))==0)
+  if((rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, fs_path,
+                           FS_OPEN_READ, FS_ATTRIBUTE_NONE)) == 0)
   {
-    u64 tmpsize = 0;
-    rc = FSFILE_GetSize(fd, &tmpsize);
-
+    sdmc_file_t tmpfd = { .fd = fd };
+    rc = sdmc_fstat(r, (int)&tmpfd, st);
     FSFILE_Close(fd);
 
-    if(rc==0)
-    {
-      memset(st, 0, sizeof(struct stat));
-      st->st_size = (off_t)tmpsize;
-      st->st_nlink = 1;
-      st->st_uid = 1;
-      st->st_gid = 2;
-      st->st_mode = S_IFREG | S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH;
-      return 0;
-    }
+    return rc;
   }
-    if( (rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr))) == 0 )
-    {
-      memset(st, 0, sizeof(struct stat));
-      st->st_nlink = 1;
-      st->st_uid = 1;
-      st->st_gid = 2;
-      st->st_mode = S_IFDIR | S_IWUSR | S_IWGRP | S_IWOTH | S_IRUSR | S_IRGRP | S_IROTH;
-      return 0;
-    }
+  else if((rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, fs_path)) == 0)
+  {
+    memset(st, 0, sizeof(struct stat));
+    st->st_nlink = 1;
+    st->st_mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IRWXO;
+    FSDIR_Close(fd);
+    return 0;
+  }
 
-  r->_errno = EBADF;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -602,7 +719,18 @@ static int
 sdmc_unlink(struct _reent *r,
             const char    *name)
 {
-  r->_errno = ENOSYS;
+  Result  rc;
+  FS_path fs_path;
+
+  fs_path = sdmc_utf16path(r, name);
+  if(fs_path.data == NULL)
+    return -1;
+
+  rc = FSUSER_DeleteFile(NULL, sdmcArchive, fs_path);
+  if(rc == 0)
+    return 0;
+
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -618,32 +746,24 @@ static int
 sdmc_chdir(struct _reent *r,
            const char    *name)
 {
-  Handle fd;
-  Result rc;
-  const char     *pathptr = NULL;
+  Handle  fd;
+  Result  rc;
+  FS_path fs_path;
 
-  pathptr = sdmc_fixpath(name);
-
-  if(pathptr==NULL)
-  {
-    r->_errno=EINVAL;
+  fs_path = sdmc_utf16path(r, name);
+  if(fs_path.data == NULL)
     return -1;
-  }
 
-  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr));
+  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, fs_path);
   if(rc == 0)
   {
     FSDIR_Close(fd);
-    strncpy(__cwd,pathptr,PATH_MAX);
-  }
-  else
-  {
-    r->_errno=EINVAL;
-    return -1;
+    strncpy(__cwd, __fixedpath, PATH_MAX);
+    return 0;
   }
 
-  return 0;
-
+  r->_errno = sdmc_translate_error(rc);
+  return -1;
 }
 
 /*! Rename a file
@@ -660,7 +780,30 @@ sdmc_rename(struct _reent *r,
             const char    *oldName,
             const char    *newName)
 {
-  r->_errno = ENOSYS;
+  Result  rc;
+  FS_path fs_path_old, fs_path_new;
+  static uint16_t __utf16path_old[PATH_MAX+1];
+
+  fs_path_old = sdmc_utf16path(r, oldName);
+  if(fs_path_old.data == NULL)
+    return -1;
+
+  memcpy(__utf16path_old, __utf16path, sizeof(__utf16path));
+  fs_path_old.data = (const u8*)__utf16path_old;
+
+  fs_path_new = sdmc_utf16path(r, newName);
+  if(fs_path_new.data == NULL)
+    return -1;
+
+  rc = FSUSER_RenameFile(NULL, sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
+  if(rc == 0)
+    return 0;
+
+  rc = FSUSER_RenameDirectory(NULL, sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
+  if(rc == 0)
+    return 0;
+
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -679,23 +822,19 @@ sdmc_mkdir(struct _reent *r,
            int           mode)
 {
   Result rc;
-  const char *pathptr = NULL;
+  FS_path fs_path;
 
-  pathptr = sdmc_fixpath(path);
-
-  if(pathptr==NULL)
-  {
-    r->_errno=EINVAL;
+  fs_path = sdmc_utf16path(r, path);
+  if(fs_path.data == NULL)
     return -1;
-  }
 
   /* TODO: Use mode to set directory attributes. */
 
-  rc = FSUSER_CreateDirectory(NULL, sdmcArchive, FS_makePath(PATH_CHAR, pathptr));
+  rc = FSUSER_CreateDirectory(NULL, sdmcArchive, fs_path);
   if(rc == 0)
     return 0;
 
-  r->_errno = ENOSYS;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -713,23 +852,20 @@ sdmc_diropen(struct _reent *r,
              DIR_ITER      *dirState,
              const char    *path)
 {
-  Handle         fd;
-  Result         rc;
-  const char     *pathptr = NULL;
+  Handle  fd;
+  Result  rc;
+  FS_path fs_path;
 
-  pathptr = sdmc_fixpath(path);
+  fs_path = sdmc_utf16path(r, path);
 
-  if(pathptr==NULL)
-  {
-    r->_errno=EINVAL;
+  if(fs_path.data == NULL)
     return NULL;
-  }
 
   /* get pointer to our data */
   sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
 
   /* open the directory */
-  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, FS_makePath(PATH_CHAR, pathptr));
+  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, fs_path);
   if(rc == 0)
   {
     dir->fd = fd;
@@ -737,7 +873,7 @@ sdmc_diropen(struct _reent *r,
     return dirState;
   }
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return NULL;
 }
 
@@ -773,14 +909,15 @@ sdmc_dirnext(struct _reent *r,
              char          *filename,
              struct stat   *filestat)
 {
-  Result         rc;
-  u32            entries;
-  u16            *name;
+  Result rc;
+  u32    entries;
+  size_t units;
 
   /* get pointer to our data */
   sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
 
   /* fetch the next entry */
+  memset(&dir->entry_data, 0, sizeof(dir->entry_data));
   rc = FSDIR_Read(dir->fd, &entries, 1, &dir->entry_data);
   if(rc == 0)
   {
@@ -798,16 +935,25 @@ sdmc_dirnext(struct _reent *r,
     else
       filestat->st_mode = S_IFREG;
 
-    /* copy the name */
-    name = dir->entry_data.name;
-    while(*name)
-      *filename++ = *name++;
-    *filename = 0;
+    /* convert name from UTF-16 to UTF-8 */
+    memset(filename, 0, NAME_MAX);
+    units = utf16_to_utf8((uint8_t*)filename, dir->entry_data.name, NAME_MAX);
+    if(units == (size_t)-1)
+    {
+      r->_errno = EILSEQ;
+      return -1;
+    }
+
+    if(filename[NAME_MAX-1] != 0)
+    {
+      r->_errno = ENAMETOOLONG;
+      return -1;
+    }
 
     return 0;
   }
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -833,7 +979,7 @@ sdmc_dirclose(struct _reent *r,
   if(rc == 0)
     return 0;
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -882,7 +1028,7 @@ sdmc_statvfs(struct _reent  *r,
     return 0;
   }
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -917,7 +1063,7 @@ sdmc_ftruncate(struct _reent *r,
   if(rc == 0)
     return 0;
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -942,7 +1088,7 @@ sdmc_fsync(struct _reent *r,
   if(rc == 0)
     return 0;
 
-  r->_errno = rc;
+  r->_errno = sdmc_translate_error(rc);
   return -1;
 }
 
@@ -980,4 +1126,92 @@ sdmc_fchmod(struct _reent *r,
 {
   r->_errno = ENOSYS;
   return -1;
+}
+
+/*! Remove a directory
+ *
+ *  @param[in,out] r    newlib reentrancy struct
+ *  @param[in]     name Path of directory to remove
+ *
+ *  @returns 0 for success
+ *  @returns -1 for error
+ */
+static int
+sdmc_rmdir(struct _reent *r,
+           const char    *name)
+{
+  Result  rc;
+  FS_path fs_path;
+
+  fs_path = sdmc_utf16path(r, name);
+  if(fs_path.data == NULL)
+    return -1;
+
+  rc = FSUSER_DeleteDirectory(NULL, sdmcArchive, fs_path);
+  if(rc == 0)
+    return 0;
+
+  r->_errno = sdmc_translate_error(rc);
+  return -1;
+}
+
+/*! Error map */
+typedef struct
+{
+  Result fs_error; //!< Error from FS service
+  int    error;    //!< POSIX errno
+} error_map_t;
+
+/*! Error table */
+static const error_map_t error_table[] =
+{
+  /* keep this list sorted! */
+  { 0x082044BE, EEXIST,       },
+  { 0x086044D2, ENOSPC,       },
+  { 0xC8804478, ENOENT,       },
+  { 0xC92044FA, ENOENT,       },
+  { 0xE0E046BE, EINVAL,       },
+  { 0xE0E046BF, ENAMETOOLONG, },
+};
+static const size_t num_errors = sizeof(error_table)/sizeof(error_table[0]);
+
+/*! Comparison function for bsearch on error_table
+ *
+ *  @param[in] p1 Left side of comparison
+ *  @param[in] p2 Right side of comparison
+ *
+ *  @returns <0 if lhs < rhs
+ *  @returns >0 if lhs > rhs
+ *  @returns 0  if lhs == rhs
+ */
+static int
+error_cmp(const void *p1, const void *p2)
+{
+  const error_map_t *lhs = (const error_map_t*)p1;
+  const error_map_t *rhs = (const error_map_t*)p2;
+
+  if((u32)lhs->fs_error < (u32)rhs->fs_error)
+    return -1;
+  else if((u32)lhs->fs_error > (u32)rhs->fs_error)
+    return 1;
+  return 0;
+}
+
+/*! Translate FS service error to errno
+ *
+ *  @param[in] error FS service error
+ *
+ *  @returns errno
+ */
+static int
+sdmc_translate_error(Result error)
+{
+  error_map_t key = { .fs_error = error };
+  const error_map_t *rc = bsearch(&key, error_table, num_errors,
+                                  sizeof(error_map_t), error_cmp);
+
+  if(rc != NULL)
+    return rc->error;
+
+  return (int)error;
 }

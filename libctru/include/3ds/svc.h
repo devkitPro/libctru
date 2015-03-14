@@ -16,6 +16,21 @@ typedef enum {
 } MemOp;
 
 typedef enum {
+	MEMSTATE_FREE       = 0,
+	MEMSTATE_RESERVED   = 1,
+	MEMSTATE_IO         = 2,
+	MEMSTATE_STATIC     = 3,
+	MEMSTATE_CODE       = 4,
+	MEMSTATE_PRIVATE    = 5,
+	MEMSTATE_SHARED     = 6,
+	MEMSTATE_CONTINUOUS = 7,
+	MEMSTATE_ALIASED    = 8,
+	MEMSTATE_ALIAS      = 9,
+	MEMSTATE_ALIASCODE  = 10,
+	MEMSTATE_LOCKED     = 11
+} MemState;
+
+typedef enum {
 	MEMPERM_READ     = 1,
 	MEMPERM_WRITE    = 2,
 	MEMPERM_EXECUTE  = 4,
@@ -41,6 +56,125 @@ typedef enum {
 	ARBITER_ACQUIRE_TIMEOUT=3,
 	ARBITER_KERNEL4        =4,
 } ArbitrationType;
+
+typedef enum {
+	DBG_EVENT_PROCESS        = 0,
+	DBG_EVENT_CREATE_THREAD  = 1,
+	DBG_EVENT_EXIT_THREAD    = 2,
+	DBG_EVENT_EXIT_PROCESS   = 3,
+	DBG_EVENT_EXCEPTION      = 4,
+	DBG_EVENT_DLL_LOAD       = 5,
+	DBG_EVENT_DLL_UNLOAD     = 6,
+	DBG_EVENT_SCHEDULE_IN    = 7,
+	DBG_EVENT_SCHEDULE_OUT   = 8,
+	DBG_EVENT_SYSCALL_IN     = 9,
+	DBG_EVENT_SYSCALL_OUT    = 10,
+	DBG_EVENT_OUTPUT_STRING  = 11,
+	DBG_EVENT_MAP            = 12
+} DebugEventType;
+
+typedef enum {
+	REASON_CREATE = 1,
+	REASON_ATTACH = 2
+} ProcessEventReason;
+               
+typedef struct {
+	u64 program_id;
+	u8  process_name[8];
+	u32 process_id;
+	u32 reason;
+} ProcessEvent;
+
+typedef struct {
+	u32 creator_thread_id;
+	u32 base_addr;
+	u32 entry_point;
+} CreateThreadEvent;
+
+typedef enum {
+	EXITTHREAD_EVENT_NONE              = 0,
+	EXITTHREAD_EVENT_TERMINATE         = 1,
+	EXITTHREAD_EVENT_UNHANDLED_EXC     = 2,
+	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3
+} ExitThreadEventReason;
+
+typedef enum {
+	EXITPROCESS_EVENT_NONE                = 0,
+	EXITPROCESS_EVENT_TERMINATE           = 1,
+	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2
+} ExitProcessEventReason;
+
+typedef struct {
+	u32 reason;
+} ExitProcessEvent;
+
+typedef struct {
+	u32 reason;
+} ExitThreadEvent;
+
+typedef struct {
+	u32 type;
+	u32 address;
+	u32 argument;
+} ExceptionEvent;
+
+typedef enum {
+	EXC_EVENT_UNDEFINED_INSTRUCTION = 0, // arg: (None)
+	EXC_EVENT_UNKNOWN1              = 1, // arg: (None)
+	EXC_EVENT_UNKNOWN2              = 2, // arg: address
+	EXC_EVENT_UNKNOWN3              = 3, // arg: address
+	EXC_EVENT_ATTACH_BREAK          = 4, // arg: (None)
+	EXC_EVENT_BREAKPOINT            = 5, // arg: (None)
+	EXC_EVENT_USER_BREAK            = 6, // arg: user break type
+	EXC_EVENT_DEBUGGER_BREAK        = 7, // arg: (None)
+	EXC_EVENT_UNDEFINED_SYSCALL     = 8  // arg: attempted syscall 
+} ExceptionEventType;
+
+typedef enum {
+	USERBREAK_PANIC  = 0,
+	USERBREAK_ASSERT = 1,
+	USERBREAK_USER   = 2
+} UserBreakType;
+
+typedef struct {
+	u64 clock_tick;
+} SchedulerInOutEvent;
+
+typedef struct {
+	u64 clock_tick;
+	u32 syscall;
+} SyscallInOutEvent;
+
+typedef struct {
+	u32 string_addr;
+	u32 string_size;
+} OutputStringEvent;
+
+typedef struct {
+	u32 mapped_addr;
+	u32 mapped_size;
+	u32 memperm;
+	u32 memstate;
+} MapEvent;
+
+typedef struct {
+	u32 type;
+	u32 thread_id;
+	u32 unknown[2];
+	union {
+		ProcessEvent process;
+		CreateThreadEvent create_thread;
+		ExitThreadEvent exit_thread;
+		ExitProcessEvent exit_process;
+		ExceptionEvent exception;
+		/* TODO: DLL_LOAD */
+		/* TODO: DLL_UNLOAD */
+		SchedulerInOutEvent scheduler;
+		SyscallInOutEvent syscall;
+		OutputStringEvent output_string;
+		MapEvent map;		
+	};
+} DebugEventInfo;
 
 static inline void* getThreadLocalStorage(void)
 {
@@ -86,6 +220,19 @@ s32  svcGetSystemInfo(s64* out, u32 type, s32 param);
 s32  svcGetProcessInfo(s64* out, Handle process, u32 type);
 s32  svcConnectToPort(volatile Handle* out, const char* portName);
 s32  svcSendSyncRequest(Handle session);
+Result svcOpenProcess(Handle* process, u32 processId);
 s32  svcGetProcessId(u32 *out, Handle handle);
 s32  svcGetThreadId(u32 *out, Handle handle);
 s32  svcOutputDebugString(const char* str, int length);
+Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s32 maxSessions);
+Result svcDebugActiveProcess(Handle* debug, u32 processId);
+Result svcBreakDebugProcess(Handle debug);
+Result svcTerminateDebugProcess(Handle debug);
+Result svcGetProcessDebugEvent(DebugEventInfo *info, Handle debug);
+Result svcContinueDebugEvent(Handle debug, u32 flags);
+Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCount);
+Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
+Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
+Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
+Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
+s32 svcGetProcessorID();

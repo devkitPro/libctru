@@ -13,8 +13,10 @@ extern "C" {
 #include <3ds/os.h>
 #include <3ds/gfx.h>
 #include <3ds/console.h>
+#include <3ds/util/utf.h>
 
 #include <3ds/services/ac.h>
+#include <3ds/services/am.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/cfgnor.h>
 #include <3ds/services/cfgu.h>
@@ -25,6 +27,9 @@ extern "C" {
 #include <3ds/services/irrst.h>
 #include <3ds/services/httpc.h>
 #include <3ds/services/ir.h>
+#include <3ds/services/ns.h>
+#include <3ds/services/pm.h>
+#include <3ds/services/ps.h>
 #include <3ds/services/ptm.h>
 #include <3ds/services/soc.h>
 #include <3ds/services/mic.h>
@@ -34,7 +39,8 @@ extern "C" {
 
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
-#include <3ds/gpu/shdr.h>
+#include <3ds/gpu/shbin.h>
+#include <3ds/gpu/shaderProgram.h>
 
 #include <3ds/sdmc.h>
 
