@@ -32,18 +32,33 @@ void MemPool::CoalesceRight(MemBlock* b)
 
 bool MemPool::Allocate(MemChunk& chunk, u32 size, int align)
 {
-	int alignM = (1 << align) - 1;
-	u32 newsize;
-	newsize = (size + alignM) &~ alignM; // Round the size
-	if(newsize < size)return false;//Return error when integer-overflow occurs due to aligning the size.
-	size = newsize;
+	// Don't shift out of bounds (CERT INT34-C)
+	if(align >= 32 || align < 0)
+		return false;
+
+	// Alignment must not be 0
+	if(align == 0)
+		return false;
+
+	u32 alignMask = (1 << align) - 1;
+
+	// Check if size doesn't fit neatly in alignment
+	if(size & alignMask)
+	{
+		// Make sure addition won't overflow (CERT INT30-C)
+		if(size > UINT32_MAX - alignMask)
+			return false;
+
+		// Pad size to next alignment
+		size = (size + alignMask) &~ alignMask;
+	}
 
 	// Find the first suitable block
 	for (auto b = first; b; b = b->next)
 	{
 		auto addr = b->base;
-		u32 begWaste = (u32)addr & alignM;
-		if (begWaste > 0) begWaste = alignM + 1 - begWaste;
+		u32 begWaste = (u32)addr & alignMask;
+		if (begWaste > 0) begWaste = alignMask + 1 - begWaste;
 		addr += begWaste;
 		u32 bSize = b->size - begWaste;
 		if (bSize < size) continue;
