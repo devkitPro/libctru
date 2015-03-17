@@ -33,7 +33,11 @@ void MemPool::CoalesceRight(MemBlock* b)
 bool MemPool::Allocate(MemChunk& chunk, u32 size, int align)
 {
 	int alignM = (1 << align) - 1;
-	size = (size + alignM) &~ alignM; // Round the size
+	u32 newsize;
+	newsize = (size + alignM) &~ alignM; // Round the size
+	if(newsize < size)return false;//Return error when integer-overflow occurs due to aligning the size.
+	size = newsize;
+
 	// Find the first suitable block
 	for (auto b = first; b; b = b->next)
 	{
