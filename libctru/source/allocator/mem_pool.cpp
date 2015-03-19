@@ -59,6 +59,7 @@ bool MemPool::Allocate(MemChunk& chunk, u32 size, int align)
 		auto addr = b->base;
 		u32 begWaste = (u32)addr & alignMask;
 		if (begWaste > 0) begWaste = alignMask + 1 - begWaste;
+		if (begWaste > b->size) continue;
 		addr += begWaste;
 		u32 bSize = b->size - begWaste;
 		if (bSize < size) continue;
