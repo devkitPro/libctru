@@ -13,8 +13,7 @@ install:
   
 env:
   global:
-    - secure: "O+zG6TSo9y2XQOUn8n+LcOIKg40ONpLgdZDYPnGjKM+OYp5dffLUjIWQj7PCknhL7HO+fObLGroLvDI7lWOvD81FhsTl5axGxt8NrtslfAnv6SIBom4dww1acqHTo0C1le1+mdhbB1anm7gYCAdDn3TApWBWbGkAOCkS5JzwqC4="
-
+    - secure: "Hayg1mC1ejZWoTC3vl4sv8TNCLGMYC4kxjzectUBQLPve0abgekTUm7wAkYoBo9CecbVnDqMH4sUazR46uZmtji/xeXVc1++9m/r1A7kubsJJsEMi1e5VYaKkpDc+/FycClaSyojwiv69EjtAaHhAld7qmu+zN/pJZNTbmX071Y="
   
 script:
   - cd libctru
