@@ -1,4 +1,4 @@
-ctrulib[![Build Status](https://travis-ci.org/smealum/ctrulib.svg?branch=master)](https://travis-ci.org/smealum/ctrulib)
+ctrulib[![Build Status](https://travis-ci.org/Lectem/ctrulib.svg?branch=master)](https://travis-ci.org/Lectem/ctrulib)
 =======
 
 CTR User Library
