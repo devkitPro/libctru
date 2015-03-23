@@ -26,7 +26,7 @@
 	dp4 outpos.z, projection[2], r0
 	dp4 outpos.w, projection[3], r0
 	
-	; Set vertex color to white
+	; Set vertex color to white rgba => (1.0,1.0,1.0,1.0)
 	mov outclr, ones
 	end
 .end

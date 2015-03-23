@@ -1,3 +1,14 @@
+/**
+* Hello Triangle example, made by Lectem
+*
+* Draws a white triangle using the 3DS GPU.
+* This example should give you enough hints and links on how to use the GPU for basic non-textured rendering.
+* Another version of this example will be made with colors.
+*
+* Thanks to smea, fincs, neobrain, xerpi and all those who helped me understand how the 3DS GPU works
+*/
+
+
 #include <3ds.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +18,10 @@
 #include "mmath.h"
 
 
+
+/**
+* Crappy assert stuff that lets you go back to hbmenu by pressing start. 
+*/
 #define STRINGIZE(x) STRINGIZE2(x)
 #define STRINGIZE2(x) #x
 #define LINE_STRING STRINGIZE(__LINE__)
@@ -21,7 +36,7 @@ void _my_assert(char * text)
         gfxSwapBuffers();
         gspWaitForVBlank();
     }while(aptMainLoop());
-    exit(0);
+    //should stop the program and clean up our mess
 }
 
 
@@ -127,10 +142,12 @@ void gpuUIEndFrame()
     GPU_FinishDrawing();
     GPUCMD_Finalize();
     GPUCMD_FlushAndRun(NULL);
-    gspWaitForP3D();
-    //Draw the screen
+    gspWaitForP3D();//Wait for the gpu 3d processing to be done
+    //Copy the GPU output buffer to the screen framebuffer
+	//See http://3dbrew.org/wiki/GPU#Transfer_Engine for more details about the transfer engine 
     GX_SetDisplayTransfer(NULL, gpuFBuffer, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
     gspWaitForPPF();
+	
     //Clear the screen
     GX_SetMemoryFill(NULL, gpuFBuffer, clearColor, &gpuFBuffer[0x2EE00],
             0x201, gpuDBuffer, 0x00000000, &gpuDBuffer[0x2EE00], 0x201);
@@ -146,7 +163,10 @@ void gpuUIEndFrame()
     //Viewport (http://3dbrew.org/wiki/GPU_Commands#Command_0x0041)
     GPU_SetViewport((u32 *)osConvertVirtToPhys((u32)gpuDBuffer),
             (u32 *)osConvertVirtToPhys((u32)gpuFBuffer),
-            0, 0, 240*2, 400);    //Our screen is 400*240, and we actually have 2 framebuffers, even without 3D mode activated
+            0, 0, 
+			//Our screen is 400*240, but the GPU actually renders to 400*480 and then downscales it SetDisplayTransfer bit 24 is set 
+			//This is the case here (See http://3dbrew.org/wiki/GPU#0x1EF00C10 for more details)
+			240*2, 400);    
 
 
     GPU_DepthMap(-1.0f, 0.0f);  //Be careful, standard OpenGL clipping is [-1;1], but it is [-1;0] on the pica200
@@ -207,7 +227,7 @@ int main(int argc, char** argv)
                 1, // number of attributes
                 (u32 *) osConvertVirtToPhys((u32) triangle_data),
                 GPU_ATTRIBFMT(0, 3, GPU_FLOAT),//We only have vertices
-                0xFFFE,//Attribute mask, in our case 0b1110
+                0xFFFE,//Attribute mask, in our case 0b1110 since we use only the first one
                 0x0,//Attribute permutations (here it is the identity)
                 1, //number of buffers
                 (u32[]) {0x0}, // buffer offsets (placeholders)
