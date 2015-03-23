@@ -171,14 +171,12 @@ Result AM_DeleteAppTitle(u8 mediatype, u64 titleID)
 	return (Result)cmdbuf[1];
 }
 
-Result AM_InstallFIRM(u64 titleID)
+Result AM_InstallNativeFirm()
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x04010080;
-	cmdbuf[1] = titleID & 0xffffffff;
-	cmdbuf[2] = (u32)(titleID >> 32);
+	cmdbuf[0] = 0x040F0000;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
 
