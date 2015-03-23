@@ -144,10 +144,10 @@ void gpuUIEndFrame()
     GPUCMD_FlushAndRun(NULL);
     gspWaitForP3D();//Wait for the gpu 3d processing to be done
     //Copy the GPU output buffer to the screen framebuffer
-	//See http://3dbrew.org/wiki/GPU#Transfer_Engine for more details about the transfer engine 
+    //See http://3dbrew.org/wiki/GPU#Transfer_Engine for more details about the transfer engine
     GX_SetDisplayTransfer(NULL, gpuFBuffer, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
     gspWaitForPPF();
-	
+
     //Clear the screen
     GX_SetMemoryFill(NULL, gpuFBuffer, clearColor, &gpuFBuffer[0x2EE00],
             0x201, gpuDBuffer, 0x00000000, &gpuDBuffer[0x2EE00], 0x201);
@@ -163,10 +163,10 @@ void gpuUIEndFrame()
     //Viewport (http://3dbrew.org/wiki/GPU_Commands#Command_0x0041)
     GPU_SetViewport((u32 *)osConvertVirtToPhys((u32)gpuDBuffer),
             (u32 *)osConvertVirtToPhys((u32)gpuFBuffer),
-            0, 0, 
-			//Our screen is 400*240, but the GPU actually renders to 400*480 and then downscales it SetDisplayTransfer bit 24 is set 
-			//This is the case here (See http://3dbrew.org/wiki/GPU#0x1EF00C10 for more details)
-			240*2, 400);    
+            0, 0,
+            //Our screen is 400*240, but the GPU actually renders to 400*480 and then downscales it SetDisplayTransfer bit 24 is set
+            //This is the case here (See http://3dbrew.org/wiki/GPU#0x1EF00C10 for more details)
+            240*2, 400);
 
 
     GPU_DepthMap(-1.0f, 0.0f);  //Be careful, standard OpenGL clipping is [-1;1], but it is [-1;0] on the pica200
@@ -194,11 +194,11 @@ void gpuUIEndFrame()
 
 //Our data
 static const vector_3f triangle_mesh[] =
-    {
-            {240.0f+60.0f, 120.0f,       0.5f},
-            {240.0f-60.0f, 120.0f+60.0f, 0.5f},
-            {240.0f-60.0f, 120.0f-60.0f, 0.5f}
-    };
+        {
+                {240.0f+60.0f, 120.0f,       0.5f},
+                {240.0f-60.0f, 120.0f+60.0f, 0.5f},
+                {240.0f-60.0f, 120.0f-60.0f, 0.5f}
+        };
 
 static void* triangle_data = NULL;
 
@@ -233,7 +233,7 @@ int main(int argc, char** argv)
                 (u32[]) {0x0}, // buffer offsets (placeholders)
                 (u64[]) {0x0}, // attribute permutations for each buffer (identity again)
                 (u8[]) {1} // number of attributes for each buffer
-            );
+        );
         //Display the buffers data
         GPU_DrawArray(GPU_TRIANGLES, sizeof(triangle_mesh) / sizeof(triangle_mesh[0]));
 
@@ -248,7 +248,7 @@ int main(int argc, char** argv)
     aptExit();
     srvExit();
 
-	return 0;
+    return 0;
 }
 
 
