@@ -70,6 +70,16 @@ void* linearRealloc(void* mem, size_t size)
 	return NULL;
 }
 
+void* linearCalloc(size_t num, size_t size)
+{
+	char* res = (char*)linearAlloc(size*num);
+	size_t i;
+	for(i=0;i<size*num;i++){
+		res[i] = 0;
+	}
+	return (void*)res;
+}
+
 void linearFree(void* mem)
 {
 	auto node = getNode(mem);
