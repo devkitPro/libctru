@@ -68,16 +68,6 @@ void* vramRealloc(void* mem, size_t size)
 	return NULL;
 }
 
-void* vramCalloc(size_t num, size_t size)
-{
-	char* res = (char*)vramAlloc(size*num);
-	size_t i;
-	for(i=0;i<size*num;i++){
-		res[i] = 0;
-	}
-	return (void*)res;
-}
-
 void vramFree(void* mem)
 {
 	auto node = getNode(mem);
