@@ -216,6 +216,7 @@ void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize)
 
 	GPUCMD_Finalize();
 	GPUCMD_Run(gpuBuf);
+	GPUCMD_SetBufferOffset(0);
 }
 
 void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numreg)
