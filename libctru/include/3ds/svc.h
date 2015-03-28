@@ -188,51 +188,366 @@ static inline u32* getThreadCommandBuffer(void)
 	return (u32*)((u8*)getThreadLocalStorage() + 0x80);
 }
 
+static inline void __attribute__((noreturn)) svcExitProcess()
+{
+	asm volatile("svc 0x03"
+		::: "lr");
+	__builtin_unreachable();
+}
+
+static inline void __attribute__((noreturn)) svcExitThread()
+{
+	asm volatile("svc 0x09"
+		::: "lr");
+	__builtin_unreachable();
+}
+
+static inline void svcSleepThread(s64 ns)
+{
+	register s64 r0 asm("r0") = ns;
+
+	asm volatile("svc 0x0A"
+		:: "r"(r0)
+		: "lr");
+}
+
+static inline s32 svcSetThreadPriority(Handle thread, s32 prio)
+{
+	register Handle r0 asm("r0") = thread;
+	register s32 r1 asm("r1") = prio;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x0C"
+		: "=r"(res)
+		: "r"(r0), "r"(r1)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcReleaseMutex(Handle handle)
+{
+	register Handle r0 asm("r0") = handle;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x14"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcSignalEvent(Handle handle)
+{
+	register Handle r0 asm("r0") = handle;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x18"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcClearEvent(Handle handle)
+{
+	register Handle r0 asm("r0") = handle;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x19"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcSetTimer(Handle timer, s64 initial, s64 interval)
+{
+	register Handle r0 asm("r0") = timer;
+	register s64 r1 asm("r1") = initial;
+	register s64 r2 asm("r2") = interval;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x1B"
+		: "=r"(res)
+		: "r"(r0), "r"(r1), "r"(r2)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcCancelTimer(Handle timer)
+{
+	register Handle r0 asm("r0") = timer;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x1C"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcClearTimer(Handle timer)
+{
+	register Handle r0 asm("r0") = timer;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x1D"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcMapMemoryBlock(
+	Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm)
+{
+	register Handle r0 asm("r0") = memblock;
+	register u32 r1 asm("r1") = addr;
+	register MemPerm r2 asm("r2") = my_perm;
+	register MemPerm r3 asm("r3") = other_perm;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x1F"
+		: "=r"(res)
+		: "r"(r0), "r"(r1), "r"(r2), "r"(r3)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcUnmapMemoryBlock(Handle memblock, u32 addr)
+{
+	register Handle r0 asm("r0") = memblock;
+	register u32 r1 asm("r1") = addr;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x20"
+		: "=r"(res)
+		: "r"(r0), "r"(r1)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcCreateAddressArbiter(Handle *arbiter)
+{
+	register Handle *r0 asm("r0") = arbiter;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x21"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcCloseHandle(Handle handle)
+{
+	register Handle r0 asm("r0") = handle;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x23"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcWaitSynchronization(Handle handle, s64 nanoseconds)
+{
+	register Handle r0 asm("r0") = handle;
+	register s32 r1 asm("r1") = nanoseconds & 0xFFFFFFFF;
+	register s32 r2 asm("r2") = (nanoseconds >> 32) & 0xFFFFFFFF;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x24"
+		: "=r"(res)
+		: "r"(r0), "r"(r1), "r"(r2)
+		: "lr");
+
+	return res;
+}
+
+static inline u64 svcGetSystemTick()
+{
+	register u32 r0 asm("r0");
+	register u32 r1 asm("r1");
+
+	asm volatile("svc 0x28"
+		: "=r"(r0), "=r"(r1)
+		:: "lr");
+
+	return r0 | ((u64)r1 << 32);
+}
+
+static inline s32 svcSendSyncRequest(Handle session)
+{
+	register Handle r0 asm("r0") = session;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x32"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcOutputDebugString(const char* str, int length)
+{
+	register const char *r0 asm("r0") = str;
+	register int r1 asm("r1") = length;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x3D"
+		: "=r"(res)
+		: "r"(r0), "r"(r1)
+		: "lr");
+
+	return res;
+}
+
+static inline Result svcBreakDebugProcess(Handle debug)
+{
+	register Handle r0 asm("r0") = debug;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x61"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline Result svcTerminateDebugProcess(Handle debug)
+{
+	register Handle r0 asm("r0") = debug;
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x62"
+		: "=r"(res)
+		: "r"(r0)
+		: "lr");
+
+	return res;
+}
+
+static inline Result svcGetProcessDebugEvent(DebugEventInfo *info, Handle debug)
+{
+	register DebugEventInfo *r0 asm("r0") = info;
+	register Handle r1 asm("r1") = debug;
+	register Result res asm("r0");
+
+	asm volatile("svc 0x63"
+		: "=r"(res)
+		: "r"(r0), "r"(r1)
+		: "lr");
+
+	return res;
+}
+
+static inline Result svcContinueDebugEvent(Handle debug, u32 flags)
+{
+	register Handle r0 asm("r0") = debug;
+	register u32 r1 asm("r1") = flags;
+	register Result res asm("r0");
+
+	asm volatile("svc 0x64"
+		: "=r"(res)
+		: "r"(r0), "r"(r1)
+		: "lr");
+
+	return res;
+}
+
+static inline Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size)
+{
+	register void* r0 asm("r0") = buffer;
+	register Handle r1 asm("r1") = debug;
+	register u32 r2 asm("r2") = addr;
+	register u32 r3 asm("r3") = size;
+	register Result res asm("r0");
+
+	asm volatile("svc 0x6A"
+		: "=r"(res)
+		: "r"(r0), "r"(r1), "r"(r2), "r"(r3)
+		: "lr");
+
+	return res;
+}
+
+static inline Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr)
+{
+	register Handle r0 asm("r0") = process;
+	register u32 r1 asm("r1") = startAddr;
+	register u32 r2 asm("r2") = endAddr;
+	register Result res asm("r0");
+
+	asm volatile("svc 0x71"
+		: "=r"(res)
+		: "r"(r0), "r"(r1), "r"(r2)
+		: "lr");
+
+	return res;
+}
+
+static inline Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr)
+{
+	register Handle r0 asm("r0") = process;
+	register u32 r1 asm("r1") = startAddr;
+	register u32 r2 asm("r2") = endAddr;
+	register Result res asm("r0");
+
+	asm volatile("svc 0x72"
+		: "=r"(res)
+		: "r"(r0), "r"(r1), "r"(r2)
+		: "lr");
+
+	return res;
+}
+
+static inline s32 svcGetProcessorID()
+{
+	register s32 res asm("r0");
+
+	asm volatile("svc 0x11"
+		: "=r"(res)
+		:: "lr");
+
+	return res;
+}
+
 s32  svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op, MemPerm perm);
 s32  svcQueryMemory(MemInfo* info, PageInfo* out, u32 addr);
-void __attribute__((noreturn)) svcExitProcess();
 s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_top, s32 thread_priority, s32 processor_id);
-void __attribute__((noreturn)) svcExitThread();
-void svcSleepThread(s64 ns);
 s32  svcSetThreadPriority(Handle thread, s32 prio);
 s32  svcCreateMutex(Handle* mutex, bool initially_locked);
-s32  svcReleaseMutex(Handle handle);
 s32  svcCreateSemaphore(Handle* semaphore, s32 initial_count, s32 max_count);
 s32  svcReleaseSemaphore(s32* count, Handle semaphore, s32 release_count);
 s32  svcCreateEvent(Handle* event, u8 reset_type);
-s32  svcSignalEvent(Handle handle);
-s32  svcClearEvent(Handle handle);
 s32  svcCreateTimer(Handle* timer, u8 reset_type);
-s32  svcSetTimer(Handle timer, s64 initial, s64 interval);
-s32  svcCancelTimer(Handle timer);
-s32  svcClearTimer(Handle timer);
 s32  svcCreateMemoryBlock(Handle* memblock, u32 addr, u32 size, MemPerm my_perm, MemPerm other_perm);
-s32  svcMapMemoryBlock(Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm);
-s32  svcUnmapMemoryBlock(Handle memblock, u32 addr);
-s32  svcCreateAddressArbiter(Handle *arbiter);
 s32  svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
-s32  svcWaitSynchronization(Handle handle, s64 nanoseconds);
 s32  svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
-s32  svcCloseHandle(Handle handle);
 s32  svcDuplicateHandle(Handle* out, Handle original);
-u64  svcGetSystemTick();
 s32  svcGetSystemInfo(s64* out, u32 type, s32 param);
 s32  svcGetProcessInfo(s64* out, Handle process, u32 type);
 s32  svcConnectToPort(volatile Handle* out, const char* portName);
-s32  svcSendSyncRequest(Handle session);
 Result svcOpenProcess(Handle* process, u32 processId);
 s32  svcGetProcessId(u32 *out, Handle handle);
 s32  svcGetThreadId(u32 *out, Handle handle);
-s32  svcOutputDebugString(const char* str, int length);
 Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s32 maxSessions);
 Result svcDebugActiveProcess(Handle* debug, u32 processId);
-Result svcBreakDebugProcess(Handle debug);
-Result svcTerminateDebugProcess(Handle debug);
-Result svcGetProcessDebugEvent(DebugEventInfo *info, Handle debug);
-Result svcContinueDebugEvent(Handle debug, u32 flags);
+
 Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCount);
-Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
-Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
-Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
-s32 svcGetProcessorID();
