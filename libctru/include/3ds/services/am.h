@@ -103,13 +103,10 @@ Note: If the title has the system category bit set, this will fail
 */
 Result AM_DeleteAppTitle(u8 mediatype, u64 titleID);
 
-/* AM_InstallFIRM()
-About: Installs FIRM to NAND (firm0:/ & firm1:/) from a CXI
-Note: The title must have the uniqueid: 0x00000, otherwise this will fail.
-
-  titleid		title id of title
+/* AM_InstallNativeFirm()
+About: Installs NATIVE_FIRM to NAND (firm0:/ & firm1:/) from a CXI
 */
-Result AM_InstallFIRM(u64 titleID);
+Result AM_InstallNativeFirm();
 
 /* AM_GetTitleProductCode()
 About: Gets the product code of a title based on its title id.
