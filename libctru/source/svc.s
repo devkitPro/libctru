@@ -29,12 +29,6 @@ svcQueryMemory:
 	pop  {r4-r6}
 	bx   lr
 
-.global svcExitProcess
-.type svcExitProcess, %function
-svcExitProcess:
-	svc 0x03
-	bx  lr
-
 .global svcCreateThread
 .type svcCreateThread, %function
 svcCreateThread:
@@ -47,24 +41,6 @@ svcCreateThread:
 	ldr  r4, [sp], #4
 	bx   lr
 
-.global svcExitThread
-.type svcExitThread, %function
-svcExitThread:
-	svc 0x09
-	bx  lr
-
-.global svcSleepThread
-.type svcSleepThread, %function
-svcSleepThread:
-	svc 0x0A
-	bx  lr
-
-.global svcSetThreadPriority
-.type svcSetThreadPriority, %function
-svcSetThreadPriority:
-	svc 0x0C
-	bx  lr
-
 .global svcCreateMutex
 .type svcCreateMutex, %function
 svcCreateMutex:
@@ -72,12 +48,6 @@ svcCreateMutex:
 	svc 0x13
 	ldr r3, [sp], #4
 	str r1, [r3]
-	bx  lr
-
-.global svcReleaseMutex
-.type svcReleaseMutex, %function
-svcReleaseMutex:
-	svc 0x14
 	bx  lr
 
 .global svcCreateEvent
@@ -89,18 +59,6 @@ svcCreateEvent:
 	str r1, [r2]
 	bx  lr
 
-.global svcSignalEvent
-.type svcSignalEvent, %function
-svcSignalEvent:
-	svc 0x18
-	bx  lr
-
-.global svcClearEvent
-.type svcClearEvent, %function
-svcClearEvent:
-	svc 0x19
-	bx  lr
-
 .global svcCreateTimer
 .type svcCreateTimer, %function
 svcCreateTimer:
@@ -108,24 +66,6 @@ svcCreateTimer:
 	svc 0x1A
 	ldr r2, [sp], #4
 	str r1, [r2]
-	bx  lr
-
-.global svcSetTimer
-.type svcSetTimer, %function
-svcSetTimer:
-	svc 0x1B
-	bx  lr
-
-.global svcCancelTimer
-.type svcCancelTimer, %function
-svcCancelTimer:
-	svc 0x1C
-	bx  lr
-
-.global svcClearTimer
-.type svcClearTimer, %function
-svcClearTimer:
-	svc 0x1D
 	bx  lr
 
 .global svcCreateMemoryBlock
@@ -138,24 +78,6 @@ svcCreateMemoryBlock:
 	str r1, [r2]
 	bx  lr
 
-.global svcMapMemoryBlock
-.type svcMapMemoryBlock, %function
-svcMapMemoryBlock:
-	svc 0x1F
-	bx  lr
-
-.global svcUnmapMemoryBlock
-.type svcUnmapMemoryBlock, %function
-svcUnmapMemoryBlock:
-	svc 0x20
-	bx  lr
-
-.global svcCreateAddressArbiter
-.type svcCreateAddressArbiter, %function
-svcCreateAddressArbiter:
-	svc 0x21
-	bx  lr
-
 .global svcArbitrateAddress
 .type svcArbitrateAddress, %function
 svcArbitrateAddress:
@@ -166,18 +88,6 @@ svcArbitrateAddress:
 	sub sp, #8
 	svc 0x22
 	pop {r4, r5}
-	bx  lr
-
-.global svcCloseHandle
-.type svcCloseHandle, %function
-svcCloseHandle:
-	svc 0x23
-	bx  lr
-
-.global svcWaitSynchronization
-.type svcWaitSynchronization, %function
-svcWaitSynchronization:
-	svc 0x24
 	bx  lr
 
 .global svcWaitSynchronizationN
@@ -202,12 +112,6 @@ svcDuplicateHandle:
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
-
-.global svcGetSystemTick
-.type svcGetSystemTick, %function
-svcGetSystemTick:
-	svc 0x28
-	bx lr
 
 .global svcGetSystemInfo
 .type svcGetSystemInfo, %function
@@ -241,12 +145,6 @@ svcConnectToPort:
 	str r1, [r3]
 	bx  lr
 
-.global svcSendSyncRequest
-.type svcSendSyncRequest, %function
-svcSendSyncRequest:
-	svc 0x32
-	bx lr
-
 .global svcOpenProcess
 .type svcOpenProcess, %function
 svcOpenProcess:
@@ -263,12 +161,6 @@ svcGetProcessId:
 	svc 0x35
 	ldr r3, [sp], #4
 	str r1, [r3]
-	bx  lr
-
-.global svcOutputDebugString
-.type svcOutputDebugString, %function
-svcOutputDebugString:
-	svc 0x3D
 	bx  lr
 
 .global svcCreateSemaphore
@@ -319,30 +211,6 @@ svcDebugActiveProcess:
 	str r1, [r2]
 	bx lr
 
-.global svcBreakDebugProcess
-.type svcBreakDebugProcess, %function
-svcBreakDebugProcess:
-	svc 0x61
-	bx lr
-
-.global svcTerminateDebugProcess
-.type svcTerminateDebugProcess, %function
-svcTerminateDebugProcess:
-	svc 0x62
-	bx lr
-
-.global svcGetProcessDebugEvent
-.type svcGetProcessDebugEvent, %function
-svcGetProcessDebugEvent:
-	svc 0x63
-	bx lr
-	
-.global svcContinueDebugEvent
-.type svcContinueDebugEvent, %function
-svcContinueDebugEvent:
-	svc 0x64
-	bx lr
-
 .global svcGetProcessList
 .type svcGetProcessList, %function
 svcGetProcessList:
@@ -353,24 +221,6 @@ svcGetProcessList:
 	ldr r3, [sp, #4]
 	str r2, [r3]
 	add sp, sp, #8
-	bx lr
-
-.global svcReadProcessMemory
-.type svcReadProcessMemory, %function
-svcReadProcessMemory:
-	svc 0x6A
-	bx lr
-
-.global svcMapProcessMemory
-.type svcMapProcessMemory, %function
-svcMapProcessMemory:
-	svc 0x71
-	bx lr
-
-.global svcUnmapProcessMemory
-.type svcUnmapProcessMemory, %function
-svcUnmapProcessMemory:
-	svc 0x72
 	bx lr
 
 .global svcQueryProcessMemory
@@ -385,9 +235,3 @@ svcQueryProcessMemory:
 	add sp, sp, #8
 	pop {r4-r6}
 	bx lr
-
-.global svcGetProcessorID
-.type svcGetProcessorID, %function
-svcGetProcessorID:
-	svc 0x11
-	bx  lr
