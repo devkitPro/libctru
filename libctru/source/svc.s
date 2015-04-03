@@ -373,6 +373,12 @@ svcUnmapProcessMemory:
 	svc 0x72
 	bx lr
 
+.global svcBackdoor
+.type svcBackdoor, %function
+svcBackdoor:
+    svc 0x7B
+    bx lr
+
 .global svcQueryProcessMemory
 .type svcQueryProcessMemory, %function
 svcQueryProcessMemory:

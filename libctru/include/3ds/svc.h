@@ -234,5 +234,6 @@ Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCou
 Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
 Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
+Result svcBackdoor(s32 (*callback)(void));
 Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
 s32 svcGetProcessorID();
