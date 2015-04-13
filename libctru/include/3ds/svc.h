@@ -195,6 +195,7 @@ s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_
 void __attribute__((noreturn)) svcExitThread();
 void svcSleepThread(s64 ns);
 s32  svcSetThreadPriority(Handle thread, s32 prio);
+s32  svcGetProcessorID();
 s32  svcCreateMutex(Handle* mutex, bool initially_locked);
 s32  svcReleaseMutex(Handle handle);
 s32  svcCreateSemaphore(Handle* semaphore, s32 initial_count, s32 max_count);
@@ -228,12 +229,13 @@ Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s
 Result svcDebugActiveProcess(Handle* debug, u32 processId);
 Result svcBreakDebugProcess(Handle debug);
 Result svcTerminateDebugProcess(Handle debug);
-Result svcGetProcessDebugEvent(DebugEventInfo *info, Handle debug);
+Result svcGetProcessDebugEvent(DebugEventInfo* info, Handle debug);
 Result svcContinueDebugEvent(Handle debug, u32 flags);
 Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCount);
 Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
+Result svcWriteProcessMemory(Handle debug, const void* buffer, u32 addr, u32 size);
+Result svcControlProcessMemory(Handle process, u32 addr0, u32 addr1, u32 size, u32 type, u32 perm);
 Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcBackdoor(s32 (*callback)(void));
 Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
-s32 svcGetProcessorID();
