@@ -11,7 +11,6 @@ typedef enum {
 	MEMOP_UNMAP=5, // Mirror unmapping
 	MEMOP_PROT =6, // Change protection
 
-	MEMOP_FREE_LINEAR =0x10001, // Free linear heap
 	MEMOP_ALLOC_LINEAR=0x10003  // Allocate linear heap
 } MemOp;
 
