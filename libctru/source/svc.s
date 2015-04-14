@@ -65,6 +65,12 @@ svcSetThreadPriority:
 	svc 0x0C
 	bx  lr
 
+.global svcGetProcessorID
+.type svcGetProcessorID, %function
+svcGetProcessorID:
+	svc 0x11
+	bx  lr
+
 .global svcCreateMutex
 .type svcCreateMutex, %function
 svcCreateMutex:
@@ -79,6 +85,24 @@ svcCreateMutex:
 svcReleaseMutex:
 	svc 0x14
 	bx  lr
+
+.global svcCreateSemaphore
+.type svcCreateSemaphore, %function
+svcCreateSemaphore:
+	push {r0}
+	svc 0x15
+	pop {r3}
+	str r1, [r3]
+	bx  lr
+
+.global svcReleaseSemaphore
+.type svcReleaseSemaphore, %function
+svcReleaseSemaphore:
+	push {r0}
+	svc  0x16
+	pop  {r3}
+	str  r1, [r3]
+	bx   lr
 
 .global svcCreateEvent
 .type svcCreateEvent, %function
@@ -265,30 +289,6 @@ svcGetProcessId:
 	str r1, [r3]
 	bx  lr
 
-.global svcOutputDebugString
-.type svcOutputDebugString, %function
-svcOutputDebugString:
-	svc 0x3D
-	bx  lr
-
-.global svcCreateSemaphore
-.type svcCreateSemaphore, %function
-svcCreateSemaphore:
-	push {r0}
-	svc 0x15
-	pop {r3}
-	str r1, [r3]
-	bx  lr
-
-.global svcReleaseSemaphore
-.type svcReleaseSemaphore, %function
-svcReleaseSemaphore:
-	push {r0}
-	svc  0x16
-	pop  {r3}
-	str  r1, [r3]
-	bx   lr
-
 .global svcGetThreadId
 .type svcGetThreadId, %function
 svcGetThreadId:
@@ -296,6 +296,12 @@ svcGetThreadId:
 	svc 0x37
 	ldr r3, [sp], #4
 	str r1, [r3]
+	bx  lr
+
+.global svcOutputDebugString
+.type svcOutputDebugString, %function
+svcOutputDebugString:
+	svc 0x3D
 	bx  lr
 
 .global svcCreatePort
@@ -361,6 +367,22 @@ svcReadProcessMemory:
 	svc 0x6A
 	bx lr
 
+.global svcWriteProcessMemory
+.type svcWriteProcessMemory, %function
+svcWriteProcessMemory:
+	svc 0x6B
+	bx  lr
+
+.global svcControlProcessMemory
+.type svcControlProcessMemory, %function
+svcControlProcessMemory:
+	push {r4-r5}
+	ldr r4, [sp, #0x8]
+	ldr r5, [sp, #0xC]
+	svc 0x70
+	pop {r4-r5}
+	bx lr
+
 .global svcMapProcessMemory
 .type svcMapProcessMemory, %function
 svcMapProcessMemory:
@@ -371,6 +393,12 @@ svcMapProcessMemory:
 .type svcUnmapProcessMemory, %function
 svcUnmapProcessMemory:
 	svc 0x72
+	bx lr
+
+.global svcBackdoor
+.type svcBackdoor, %function
+svcBackdoor:
+	svc 0x7B
 	bx lr
 
 .global svcQueryProcessMemory
@@ -385,9 +413,3 @@ svcQueryProcessMemory:
 	add sp, sp, #8
 	pop {r4-r6}
 	bx lr
-
-.global svcGetProcessorID
-.type svcGetProcessorID, %function
-svcGetProcessorID:
-	svc 0x11
-	bx  lr
