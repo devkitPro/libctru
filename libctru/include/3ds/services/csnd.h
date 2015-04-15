@@ -6,6 +6,21 @@
 
 #define CSND_TIMER(n) (0x3FEC3FC / ((u32)(n)))
 
+// Convert a vol-pan pair into a left/right volume pair used by the hardware
+static inline u32 CSND_VOL(float vol, float pan)
+{
+	if (vol < 0.0) vol = 0.0;
+	else if (vol > 1.0) vol = 1.0;
+
+	float rpan = (pan+1) / 2;
+	if (rpan < 0.0) rpan = 0.0;
+	else if (rpan > 1.0) rpan = 1.0;
+
+	u32 lvol = vol*(1-rpan) * 0x8000;
+	u32 rvol = vol*rpan * 0x8000;
+	return lvol | (rvol << 16);
+}
+
 enum
 {
 	CSND_ENCODING_PCM8 = 0,
@@ -38,6 +53,15 @@ enum
 	SOUND_ENABLE = BIT(14),
 };
 
+enum
+{
+	CAPTURE_REPEAT = 0,
+	CAPTURE_ONE_SHOT = BIT(0),
+	CAPTURE_FORMAT_16BIT = 0,
+	CAPTURE_FORMAT_8BIT = BIT(1),
+	CAPTURE_ENABLE = BIT(15),
+};
+
 // Duty cycles for a PSG channel
 enum
 {
@@ -62,9 +86,21 @@ typedef union
 		s16 adpcmSample;
 		u8 adpcmIndex;
 		u8 _pad3;
-		u32 samplePAddr;
+		u32 unknownZero;
 	};
 } CSND_ChnInfo;
+
+typedef union
+{
+	u32 value[2];
+	struct
+	{
+		u8 active;
+		u8 _pad1;
+		u16 _pad2;
+		u32 unknownZero;
+	};
+} CSND_CapInfo;
 
 // See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 
@@ -75,32 +111,47 @@ extern u32 csndChannels; // Bitmask of channels that are allowed for usage
 Result CSND_AcquireCapUnit(u32* capUnit);
 Result CSND_ReleaseCapUnit(u32 capUnit);
 
+Result CSND_Reset(void); // Currently breaks sound, don't use for now!
+
 Result csndInit(void);
 Result csndExit(void);
 
-void csndWriteCmd(int cmdid, u8 *cmdparams);
+u32* csndAddCmd(int cmdid); // Adds a command to the list and returns the buffer to which write its arguments.
+void csndWriteCmd(int cmdid, u8* cmdparams); // As above, but copies the arguments from an external buffer
 Result csndExecCmds(bool waitDone);
 
 void CSND_SetPlayStateR(u32 channel, u32 value);
 void CSND_SetPlayState(u32 channel, u32 value);
+void CSND_SetEncoding(u32 channel, u32 value);
 void CSND_SetBlock(u32 channel, int block, u32 physaddr, u32 size);
-void CSND_SetVol(u32 channel, u16 left, u16 right);
-void CSND_SetTimer(u32 channel, u32 timer);
+void CSND_SetLooping(u32 channel, u32 value);
+void CSND_SetBit7(u32 channel, bool set);
+void CSND_SetInterp(u32 channel, bool interp);
 void CSND_SetDuty(u32 channel, u32 duty);
+void CSND_SetTimer(u32 channel, u32 timer);
+void CSND_SetVol(u32 channel, u32 chnVolumes, u32 capVolumes);
 void CSND_SetAdpcmState(u32 channel, int block, int sample, int index);
 void CSND_SetAdpcmReload(u32 channel, bool reload);
-void CSND_SetChnRegs(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize);
+void CSND_SetChnRegs(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize, u32 chnVolumes, u32 capVolumes);
+void CSND_SetChnRegsPSG(u32 flags, u32 chnVolumes, u32 capVolumes, u32 duty);
+void CSND_SetChnRegsNoise(u32 flags, u32 chnVolumes, u32 capVolumes);
 
 void CSND_CapEnable(u32 capUnit, bool enable);
-void CSND_CapSetBit(u32 capUnit, int bit, bool state); // Sets bit0..2 in the CNT register, purpose currently unknown
+void CSND_CapSetRepeat(u32 capUnit, bool repeat);
+void CSND_CapSetFormat(u32 capUnit, bool eightbit);
+void CSND_CapSetBit2(u32 capUnit, bool set);
 void CSND_CapSetTimer(u32 capUnit, u32 timer);
-void CSND_CapSetBuffer(u32 capUnit, u32 paddr, u32 size);
+void CSND_CapSetBuffer(u32 capUnit, u32 addr, u32 size);
+void CSND_SetCapRegs(u32 capUnit, u32 flags, u32 addr, u32 size);
 
+Result CSND_SetDspFlags(bool waitDone);
 Result CSND_UpdateInfo(bool waitDone);
 
-Result csndPlaySound(int chn, u32 flags, u32 sampleRate, void* data0, void* data1, u32 size);
+Result csndPlaySound(int chn, u32 flags, u32 sampleRate, float vol, float pan, void* data0, void* data1, u32 size);
 
+void csndGetDspFlags(u32* outSemFlags, u32* outIrqFlags); // Requires previous CSND_UpdateInfo()
 CSND_ChnInfo* csndGetChnInfo(u32 channel); // Requires previous CSND_UpdateInfo()
+CSND_CapInfo* csndGetCapInfo(u32 capUnit); // Requires previous CSND_UpdateInfo()
 
 Result csndGetState(u32 channel, CSND_ChnInfo* out);
 Result csndIsPlaying(u32 channel, u8* status);
