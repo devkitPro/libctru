@@ -178,7 +178,7 @@ typedef struct {
 static inline void* getThreadLocalStorage(void)
 {
 	void* ret;
-	asm volatile("mrc p15, 0, %[data], c13, c0, 3" : [data] "=r" (ret));
+	__asm__ __volatile__ ("mrc p15, 0, %[data], c13, c0, 3" : [data] "=r" (ret));
 	return ret;
 }
 
