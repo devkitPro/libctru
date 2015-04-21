@@ -1,0 +1,29 @@
+language: c
+
+before_install:
+  - wget http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl
+  - export DEVKITPRO=/home/travis/devkitPro
+  - export DEVKITARM=${DEVKITPRO}/devkitARM
+  - sudo add-apt-repository --yes ppa:libreoffice/ppa
+  - sudo apt-get update -qq
+
+install:
+  - sudo perl devkitARMupdate.pl
+
+  
+env:
+  global:
+    - secure: "Hayg1mC1ejZWoTC3vl4sv8TNCLGMYC4kxjzectUBQLPve0abgekTUm7wAkYoBo9CecbVnDqMH4sUazR46uZmtji/xeXVc1++9m/r1A7kubsJJsEMi1e5VYaKkpDc+/FycClaSyojwiv69EjtAaHhAld7qmu+zN/pJZNTbmX071Y="
+  
+script:
+  - cd libctru
+  - make
+  - cd ..
+  
+  
+after_success:
+  - #Build the doxygen files and upload to GH pages
+  - git config --global user.email "travis@travis-ci.org"
+  - git config --global user.name "TravisCI-DocBuilder"
+  - #export doc only once, in gcc job
+  - sh exportdoc.sh
