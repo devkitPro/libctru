@@ -116,3 +116,12 @@ About: Gets the product code of a title based on its title id.
   productcode           buffer to output the product code to (should have a length of 16) 
 */
 Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode);
+
+/* AM_GetCiaFileInfo()
+About: Reads a CIA file and returns a TitleList entry for it.
+
+  mediatype		destination mediatype
+  titleEntry		ptr to a TitleList entry
+  fileHandle		a fs:USER file handle for a CIA file
+*/
+Result AM_GetCiaFileInfo(u8 mediatype, TitleList *titleEntry, Handle fileHandle);

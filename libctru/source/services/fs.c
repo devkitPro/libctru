@@ -458,11 +458,60 @@ FSUSER_DeleteDirectory(Handle     *handle,
 	return cmdbuf[1];
 }
 
-/* stub */
+/*! Delete a directory and all sub directories/files recursively
+ *
+ *  @param[in] handle     fs:USER handle
+ *  @param[in] archive    Open archive
+ *  @param[in] dirLowPath Directory path
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08070142]
+ *  1          | 0
+ *  2          | archive.handleLow
+ *  3          | archive.handleHigh
+ *  4          | dirLowPath.type
+ *  5          | dirLowPath.size
+ *  6          | (dirLowPath.size << 14) \| 0x2
+ *  7          | dirLowPath.data
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ */
 Result
-FSUSER_DeleteDirectoryRecursively(void)
+FSUSER_DeleteDirectoryRecursively(Handle     *handle,
+                                  FS_archive archive,
+                                  FS_path    dirLowPath)
 {
-	return -1;
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08070142;
+	cmdbuf[1] = 0;
+	cmdbuf[2] = archive.handleLow;
+	cmdbuf[3] = archive.handleHigh;
+	cmdbuf[4] = dirLowPath.type;
+	cmdbuf[5] = dirLowPath.size;
+	cmdbuf[6] = (dirLowPath.size << 14) | 0x2;
+	cmdbuf[7] = (u32)dirLowPath.data;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	return cmdbuf[1];
 }
 
 /*! Create a File
