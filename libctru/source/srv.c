@@ -136,6 +136,34 @@ Result srvGetServiceHandle(Handle* out, const char* name)
 	return cmdbuf[1];
 }
 
+Result srvRegisterService(Handle* out, const char* name, int maxSessions)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = 0x30100;
+	strcpy((char*) &cmdbuf[1], name);
+	cmdbuf[3] = strlen(name);
+	cmdbuf[4] = maxSessions;
+	
+	Result rc;
+	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
+
+	*out = cmdbuf[3];
+	return cmdbuf[1];
+}
+
+Result srvUnregisterService(const char* name)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = 0x400C0;
+	strcpy((char*) &cmdbuf[1], name);
+	cmdbuf[3] = strlen(name);
+	
+	Result rc;
+	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
+
+	return cmdbuf[1];
+}
+
 // Old srv:pm interface, will only work on systems where srv:pm was a port (<7.X)
 Result srvPmInit()
 {	
