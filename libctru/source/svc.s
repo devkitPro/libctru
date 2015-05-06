@@ -177,7 +177,10 @@ svcUnmapMemoryBlock:
 .global svcCreateAddressArbiter
 .type svcCreateAddressArbiter, %function
 svcCreateAddressArbiter:
+        push {r0}
 	svc 0x21
+        pop {r2}
+        str r1, [r2]
 	bx  lr
 
 .global svcArbitrateAddress
