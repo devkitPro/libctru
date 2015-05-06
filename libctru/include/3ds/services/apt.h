@@ -2,6 +2,7 @@
 
 // TODO : find a better place to put this
 #define RUNFLAG_APTWORKAROUND (BIT(0))
+#define RUNFLAG_APTREINIT (BIT(1))
 
 typedef enum{
 	APPID_HOMEMENU = 0x101, // Home Menu
@@ -55,11 +56,14 @@ bool aptMainLoop(); // Use like this in your main(): while (aptMainLoop()) { you
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
 Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
+Result APT_Finalize(Handle* handle, NS_APPID appId);
 Result APT_HardwareResetAsync(Handle* handle);
 Result APT_Enable(Handle* handle, u32 a);
 Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid);
 Result APT_PrepareToJumpToHomeMenu(Handle* handle);
 Result APT_JumpToHomeMenu(Handle* handle, u32 a, u32 b, u32 c);
+Result APT_PrepareToJumpToApplication(Handle* handle, u32 a);
+Result APT_JumpToApplication(Handle* handle, u32 a, u32 b, u32 c);
 Result APT_IsRegistered(Handle* handle, NS_APPID appID, u8* out);
 Result APT_InquireNotification(Handle* handle, u32 appID, u8* signalType);
 Result APT_NotifyToWait(Handle* handle, NS_APPID appID);
