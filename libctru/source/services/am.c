@@ -200,3 +200,20 @@ Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode)
 
 	return (Result)cmdbuf[1];
 }
+
+Result AM_GetCiaFileInfo(u8 mediatype, TitleList *titleEntry, Handle fileHandle)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	
+	cmdbuf[0] = 0x04080042;
+	cmdbuf[1] = mediatype;
+	cmdbuf[2] = 0;
+	cmdbuf[3] = fileHandle;
+
+	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
+
+	if(titleEntry) memcpy(titleEntry, &cmdbuf[2], sizeof(TitleList));
+
+	return (Result)cmdbuf[1];
+}
