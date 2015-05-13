@@ -55,14 +55,14 @@ __attribute__((weak)) void _aptDebug(int a, int b)
 
 static void aptAppStarted(void);
 
-static bool aptIsCrippled(void)
-{
-	return (__system_runflags & RUNFLAG_APTWORKAROUND) != 0;
-}
-
 static bool aptIsReinit(void)
 {
 	return (__system_runflags & RUNFLAG_APTREINIT) != 0;
+}
+
+static bool aptIsCrippled(void)
+{
+	return (__system_runflags & RUNFLAG_APTWORKAROUND) != 0 && !aptIsReinit();
 }
 
 static Result __apt_initservicehandle()
@@ -510,7 +510,7 @@ void aptExit()
 	if(!aptIsCrippled())
 	{
 		bool isReinit = aptIsReinit();
-		if (aptGetStatus() == APP_EXITING)
+		if (aptGetStatus() == APP_EXITING || !isReinit)
 		{
 			aptOpenSession();
 			APT_PrepareToCloseApplication(NULL, 0x1);
