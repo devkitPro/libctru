@@ -173,6 +173,9 @@ typedef enum{
 
 #define GPU_ATTRIBFMT(i, n, f) (((((n)-1)<<2)|((f)&3))<<((i)*4))
 
+/**
+* Texture combiners sources 
+*/
 typedef enum{
 	GPU_PRIMARY_COLOR = 0x00,
 	GPU_TEXTURE0 = 0x03,
@@ -183,6 +186,43 @@ typedef enum{
 	GPU_PREVIOUS = 0x0F,
 }GPU_TEVSRC;
 
+/**
+* Texture RGB combiners operands
+*/
+typedef enum{
+	GL_TEVOP_RGB_SRC_COLOR = 0x00,
+	GL_TEVOP_RGB_ONE_MINUS_SRC_COLOR = 0x01,
+	GL_TEVOP_RGB_SRC_ALPHA = 0x02,
+	GL_TEVOP_RGB_ONE_MINUS_SRC_ALPHA = 0x03,
+	GL_TEVOP_RGB_SRC0_RGB = 0x04,
+	GL_TEVOP_RGB_0x05 = 0x05,
+	GL_TEVOP_RGB_0x06 = 0x06,
+	GL_TEVOP_RGB_0x07 = 0x07,
+	GL_TEVOP_RGB_SRC1_RGB = 0x08,
+	GL_TEVOP_RGB_0x09 = 0x09,
+	GL_TEVOP_RGB_0x0A = 0x0A,
+	GL_TEVOP_RGB_0x0B = 0x0B,
+	GL_TEVOP_RGB_SRC2_RGB = 0x0C,
+	GL_TEVOP_RGB_0x0D = 0x0D,
+	GL_TEVOP_RGB_0x0E = 0x0E,
+	GL_TEVOP_RGB_0x0F = 0x0F,
+}GPU_TEVOP_RGB;
+
+
+/**
+* Texture ALPHA combiners operands
+*/
+typedef enum{
+	GL_TEVOP_A_SRC_ALPHA = 0x00,
+	GL_TEVOP_A_ONE_MINUS_SRC_ALPHA = 0x01,
+	GL_TEVOP_A_SRC0_RGB = 0x02,
+	GL_TEVOP_A_SRC1_RGB = 0x04,
+	GL_TEVOP_A_SRC2_RGB = 0x06,
+}GPU_TEVOP_A;
+
+/**
+* Texture combiner functions
+*/
 typedef enum{
 	GPU_REPLACE = 0x00,
 	GPU_MODULATE = 0x01,
