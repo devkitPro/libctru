@@ -48,6 +48,15 @@ static Handle __apt_launchapplet_inhandle;
 static u32 *__apt_launchapplet_parambuf;
 static u32 __apt_launchapplet_parambufsize;
 
+static aptHookCookie aptFirstHook;
+
+static void aptCallHook(int hookType)
+{
+	aptHookCookie* c;
+	for (c = &aptFirstHook; c && c->callback; c = c->next)
+		c->callback(hookType, c->param);
+}
+
 // The following function can be overriden in order to log APT signals and notifications for debugging purposes
 __attribute__((weak)) void _aptDebug(int a, int b)
 {
@@ -558,9 +567,12 @@ bool aptMainLoop()
 			case APP_RUNNING:
 				return true;
 			case APP_EXITING:
+				aptCallHook(APTHOOK_ONEXIT);
 				return false;
 			case APP_SUSPENDING:
+				aptCallHook(APTHOOK_ONSUSPEND);
 				aptReturnToMenu();
+				aptCallHook(APTHOOK_ONRESTORE);
 				break;
 			case APP_APPLETSTARTED:
 				aptAppletStarted();
@@ -569,13 +581,39 @@ bool aptMainLoop()
 				aptAppletClosed();
 				break;
 			case APP_PREPARE_SLEEPMODE:
+				aptCallHook(APTHOOK_ONSLEEP);
 				aptSignalReadyForSleep();
 				// Fall through
 			default:
 			//case APP_NOTINITIALIZED:
 			//case APP_SLEEPMODE:
 				aptWaitStatusEvent();
+				aptCallHook(APTHOOK_ONWAKEUP);
 				break;
+		}
+	}
+}
+
+void aptHook(aptHookCookie* cookie, aptHookFn callback, void* param)
+{
+	if (!callback) return;
+
+	aptHookCookie* hook = &aptFirstHook;
+	*cookie = *hook; // Structure copy.
+	hook->next = cookie;
+	hook->callback = callback;
+	hook->param = param;
+}
+
+void aptUnhook(aptHookCookie* cookie)
+{
+	aptHookCookie* hook;
+	for (hook = &aptFirstHook; hook; hook = hook->next)
+	{
+		if (hook->next == cookie)
+		{
+			*hook = *cookie; // Structure copy.
+			break;
 		}
 	}
 }

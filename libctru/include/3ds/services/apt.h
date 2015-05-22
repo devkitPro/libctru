@@ -37,6 +37,24 @@ enum {
 	APTSIGNAL_ERROR        = 11
 };
 
+enum {
+	APTHOOK_ONSUSPEND = 0,
+	APTHOOK_ONRESTORE,
+	APTHOOK_ONSLEEP,
+	APTHOOK_ONWAKEUP,
+	APTHOOK_ONEXIT,
+
+	APTHOOK_COUNT,
+};
+
+typedef void (*aptHookFn)(int hook, void* param);
+
+typedef struct tag_aptHookCookie
+{
+	struct tag_aptHookCookie* next;
+	aptHookFn callback;
+	void* param;
+} aptHookCookie;
 
 extern Handle aptEvents[3];
 
@@ -53,6 +71,9 @@ void aptWaitStatusEvent();
 void aptSignalReadyForSleep();
 NS_APPID aptGetMenuAppID();
 bool aptMainLoop(); // Use like this in your main(): while (aptMainLoop()) { your code here... }
+
+void aptHook(aptHookCookie* cookie, aptHookFn callback, void* param);
+void aptUnhook(aptHookCookie* cookie);
 
 Result APT_GetLockHandle(Handle* handle, u16 flags, Handle* lockHandle);
 Result APT_Initialize(Handle* handle, NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
