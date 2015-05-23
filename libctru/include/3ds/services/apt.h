@@ -7,9 +7,22 @@
 typedef enum{
 	APPID_HOMEMENU = 0x101, // Home Menu
 	APPID_CAMERA = 0x110, // Camera applet
+	APPID_FRIENDS_LIST = 0x112, // Friends List applet
+	APPID_GAME_NOTES = 0x113, // Game Notes applet
 	APPID_WEB = 0x114, // Internet Browser
+	APPID_INSTRUCTION_MANUAL = 0x115, // Instruction Manual applet
+	APPID_NOTIFICATIONS = 0x116, // Notifications applet
+	APPID_MIIVERSE = 0x117, // Miiverse applet
 	APPID_APPLICATION = 0x300, // Application
-}NS_APPID; // cf http://3dbrew.org/wiki/NS#AppIDs
+	APPID_SOFTWARE_KEYBOARD = 0x401, // Software Keyboard
+	APPID_APPLETED = 0x402, // appletEd
+	APPID_PNOTE_AP = 0x404, // PNOTE_AP
+	APPID_SNOTE_AP = 0x405, // SNOTE_AP
+	APPID_ERROR = 0x406, // error
+	APPID_MINT = 0x407, // mint
+	APPID_EXTRAPAD = 0x408, // extrapad
+	APPID_MEMOLIB = 0x409, // memolib
+}NS_APPID; // cf http://3dbrew.org/wiki/NS_and_APT_Services#AppIDs
 
 typedef enum{
 	APP_NOTINITIALIZED,
