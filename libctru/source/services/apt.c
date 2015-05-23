@@ -202,6 +202,7 @@ void aptReturnToMenu()
 	}
 
 	// Set status to SUSPENDED.
+	__apt_launchapplet_appID = 0;
 	svcClearEvent(aptStatusEvent);
 	aptSetStatus(APP_SUSPENDED);
 
@@ -384,11 +385,11 @@ static bool __handle_incoming_parameter() {
 		return true;
 
 	case 0x3: // "Launched library applet finished loading"
-		if (aptGetStatus() == APP_SUSPENDED) return true;
+		if (aptGetStatus() != APP_SUSPENDED || __apt_launchapplet_appID==0) return true;
 		aptSetStatus(APP_APPLETSTARTED);
 		return true;
 	case 0xA: // "Launched library applet closed"
-		if (aptGetStatus() == APP_SUSPENDED) return true;
+		if (aptGetStatus() != APP_SUSPENDED || __apt_launchapplet_appID==0) return true;
 		if(__apt_launchapplet_parambuf && __apt_launchapplet_parambufsize)memcpy(__apt_launchapplet_parambuf, aptParameters, __apt_launchapplet_parambufsize);
 		aptSetStatus(APP_APPLETCLOSED);
 		return true;
@@ -1231,15 +1232,6 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 
 	u8 buf1[4];
 	u8 buf2[4];
-
-	aptOpenSession();
-	APT_ReplySleepQuery(NULL, currentAppId, 0);
-	aptCloseSession();
-
-	memset(buf1, 0, 4);
-	aptOpenSession();
-	APT_AppletUtility(NULL, NULL, 0x4, 0x1, buf1, 0x1, buf2);
-	aptCloseSession();
 
 	aptOpenSession();
 	APT_ReplySleepQuery(NULL, currentAppId, 0);
