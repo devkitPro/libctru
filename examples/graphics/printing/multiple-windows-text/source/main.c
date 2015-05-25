@@ -18,10 +18,7 @@
 int main(int argc, char **argv)
 {
 	// Initialize services
-	srvInit();
-	aptInit();
-	gfxInit();
-	hidInit(NULL);
+	gfxInitDefault();
 
 	//In this example we need three PrintConsole, one for each window and one for the whole top screen
 	PrintConsole leftWindow, rightWindow, topScreen;
@@ -72,8 +69,6 @@ int main(int argc, char **argv)
 
 	// Exit services
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
+	
 	return 0;
 }
