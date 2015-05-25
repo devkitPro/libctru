@@ -24,6 +24,12 @@
 
 #define RGBA8(r,g,b,a) ((((r)&0xFF)<<24) | (((g)&0xFF)<<16) | (((b)&0xFF)<<8) | (((a)&0xFF)<<0))
 
+//transfer from GPU output buffer to actual framebuffer flags
+#define DISPLAY_TRANSFER_FLAGS \
+	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
+	 GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) | \
+	 GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_X))
+
 //shader structure
 DVLB_s* dvlb;
 shaderProgram_s shader;
@@ -159,10 +165,28 @@ void renderFrame()
 	GPU_SetDummyTexEnv(5);
 
 	//texturing stuff
-		GPU_SetTexture(GPU_TEXUNIT0, (u32*)osConvertVirtToPhys((u32)texData),128,128,GPU_TEXTURE_MAG_FILTER(GPU_NEAREST)|GPU_TEXTURE_MIN_FILTER(GPU_NEAREST),GPU_RGBA8);
-		GPU_SetAttributeBuffers(3, (u32*)osConvertVirtToPhys((u32)texData),
-			GPU_ATTRIBFMT(0, 3, GPU_FLOAT)|GPU_ATTRIBFMT(1, 2, GPU_FLOAT)|GPU_ATTRIBFMT(2, 3, GPU_FLOAT),
-			0xFFC, 0x210, 1, (u32[]){0x00000000}, (u64[]){0x210}, (u8[]){3});
+		GPU_SetTexture(
+			GPU_TEXUNIT0, //texture unit
+			(u32*)osConvertVirtToPhys((u32)texData), //data buffer
+			128, //texture width
+			128, //texture height
+			GPU_TEXTURE_MAG_FILTER(GPU_NEAREST) | GPU_TEXTURE_MIN_FILTER(GPU_NEAREST), //texture params
+			GPU_RGBA8 //texture pixel format
+		);
+
+		GPU_SetAttributeBuffers(
+			3, //3 attributes: vertices, texcoords, and normals
+			(u32*)osConvertVirtToPhys((u32)texData), //mesh buffer
+			GPU_ATTRIBFMT(0, 3, GPU_FLOAT) | // GPU Input attribute register 0 (v0): 3 floats (position)
+			GPU_ATTRIBFMT(1, 2, GPU_FLOAT) | // GPU Input attribute register 1 (v1): 2 floats (texcoord)
+			GPU_ATTRIBFMT(2, 3, GPU_FLOAT),  // GPU Input attribute register 2 (v2): 3 floats (normal)
+			0xFFC,
+			0x210,
+			1,
+			(u32[]){0x00000000},
+			(u64[]){0x210},
+			(u8[]){3}
+		);
 
 	//setup lighting (this is specific to our shader)
 		vect3Df_s lightDir=vnormf(vect3Df(cos(lightAngle), -1.0f, sin(lightAngle)));
@@ -286,7 +310,7 @@ int main(int argc, char** argv)
 
 			//we wait for the left buffer to finish drawing
 			gspWaitForP3D();
-			GX_SetDisplayTransfer(NULL, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
+			GX_SetDisplayTransfer(NULL, (u32*)gpuOut, GX_BUFFER_DIM(240*2, 400), (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), GX_BUFFER_DIM(240*2, 400), DISPLAY_TRANSFER_FLAGS);
 			gspWaitForPPF();
 
 			//we draw the right buffer, wait for it to finish and then switch back to left one
@@ -299,7 +323,7 @@ int main(int argc, char** argv)
 			gspWaitForP3D();
 
 			//transfer from GPU output buffer to actual framebuffer
-			GX_SetDisplayTransfer(NULL, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), 0x019001E0, 0x01001000);
+			GX_SetDisplayTransfer(NULL, (u32*)gpuOut, GX_BUFFER_DIM(240*2, 400), (u32*)gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), GX_BUFFER_DIM(240*2, 400), DISPLAY_TRANSFER_FLAGS);
 			gspWaitForPPF();
 			GPUCMD_SetBuffer(gpuCmd, gpuCmdSize, 0);
 		}else{
@@ -310,7 +334,7 @@ int main(int argc, char** argv)
 			gspWaitForP3D();
 
 			//clear the screen
-			GX_SetDisplayTransfer(NULL, (u32*)gpuOut, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
+			GX_SetDisplayTransfer(NULL, (u32*)gpuOut, GX_BUFFER_DIM(240*2, 400), (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), GX_BUFFER_DIM(240*2, 400), DISPLAY_TRANSFER_FLAGS);
 			gspWaitForPPF();
 		}
 

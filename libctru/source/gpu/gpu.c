@@ -377,21 +377,21 @@ void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 para
 	case GPU_TEXUNIT0:
 		GPUCMD_AddWrite(GPUREG_TEXUNIT0_TYPE, colorType);
 		GPUCMD_AddWrite(GPUREG_TEXUNIT0_LOC, ((u32)data)>>3);
-		GPUCMD_AddWrite(GPUREG_TEXUNIT0_DIM, (width)|(height<<16));
+		GPUCMD_AddWrite(GPUREG_TEXUNIT0_DIM, (width<<16)|height);
 		GPUCMD_AddWrite(GPUREG_TEXUNIT0_PARAM, param);
 		break;
 		
 	case GPU_TEXUNIT1:
 		GPUCMD_AddWrite(GPUREG_TEXUNIT1_TYPE, colorType);
 		GPUCMD_AddWrite(GPUREG_TEXUNIT1_LOC, ((u32)data)>>3);
-		GPUCMD_AddWrite(GPUREG_TEXUNIT1_DIM, (width)|(height<<16));
+		GPUCMD_AddWrite(GPUREG_TEXUNIT1_DIM, (width<<16)|height);
 		GPUCMD_AddWrite(GPUREG_TEXUNIT1_PARAM, param);
 		break;
 		
 	case GPU_TEXUNIT2:
 		GPUCMD_AddWrite(GPUREG_TEXUNIT2_TYPE, colorType);
 		GPUCMD_AddWrite(GPUREG_TEXUNIT2_LOC, ((u32)data)>>3);
-		GPUCMD_AddWrite(GPUREG_TEXUNIT2_DIM, (width)|(height<<16));
+		GPUCMD_AddWrite(GPUREG_TEXUNIT2_DIM, (width<<16)|height);
 		GPUCMD_AddWrite(GPUREG_TEXUNIT2_PARAM, param);
 		break;
 	}

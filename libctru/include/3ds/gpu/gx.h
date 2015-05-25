@@ -2,6 +2,29 @@
 
 #define GX_BUFFER_DIM(w, h) (((h)<<16)|((w)&0xFFFF))
 
+typedef enum
+{
+	GX_TRANSFER_FMT_RGBA8  = 0,
+	GX_TRANSFER_FMT_RGB8   = 1,
+	GX_TRANSFER_FMT_RGB565 = 2,
+	GX_TRANSFER_FMT_RGB5A1 = 3,
+	GX_TRANSFER_FMT_RGBA4  = 4
+} GX_TRANSFER_FORMAT;
+
+typedef enum
+{
+	GX_TRANSFER_SCALE_NO = 0,
+	GX_TRANSFER_SCALE_X  = 1,
+	GX_TRANSFER_SCALE_Y  = 2
+} GX_TRANSFER_SCALE;
+
+#define GX_TRANSFER_FLIP_VERT(x)  ((x)<<0)
+#define GX_TRANSFER_OUT_TILED(x)  ((x)<<1)
+#define GX_TRANSFER_RAW_COPY(x)   ((x)<<3)
+#define GX_TRANSFER_IN_FORMAT(x)  ((x)<<8)
+#define GX_TRANSFER_OUT_FORMAT(x) ((x)<<12)
+#define GX_TRANSFER_SCALING(x)    ((x)<<24)
+
 Result GX_RequestDma(u32* gxbuf, u32* src, u32* dst, u32 length);
 Result GX_SetCommandList_Last(u32* gxbuf, u32* buf0a, u32 buf0s, u8 flags);
 Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width0, u32* buf1a, u32 buf1v, u32* buf1e, u16 width1);
