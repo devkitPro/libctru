@@ -59,10 +59,46 @@ svcSleepThread:
 	svc 0x0A
 	bx  lr
 
+.global svcGetThreadPriority
+.type svcGetThreadPriority, %function
+svcGetThreadPriority:
+	str r0, [sp, #-0x4]!
+	svc 0x0B
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
+	
 .global svcSetThreadPriority
 .type svcSetThreadPriority, %function
 svcSetThreadPriority:
 	svc 0x0C
+	bx  lr
+	
+.global svcGetThreadAffinityMask
+.type svcGetThreadAffinityMask, %function
+svcGetThreadAffinityMask:
+	svc 0x0D
+	bx  lr
+	
+.global svcSetThreadAffinityMask
+.type svcSetThreadAffinityMask, %function
+svcSetThreadAffinityMask:
+	svc 0x0E
+	bx  lr
+	
+.global svcGetThreadIdealProcessor
+.type svcGetThreadIdealProcessor, %function
+svcGetThreadIdealProcessor:
+	str r0, [sp, #-0x4]!
+	svc 0x0F
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
+	
+.global svcSetThreadIdealProcessor
+.type svcSetThreadIdealProcessor, %function
+svcSetThreadIdealProcessor:
+	svc 0x10
 	bx  lr
 
 .global svcGetProcessorID
@@ -259,6 +295,17 @@ svcGetProcessInfo:
 	ldr  r4, [sp], #4
 	bx   lr
 
+.global svcGetThreadInfo
+.type svcGetThreadInfo, %function
+svcGetThreadInfo:
+	push {r0,r4}
+	svc  0x2C
+	ldr  r4, [sp], #4
+	str  r1, [r4]
+	str  r2, [r4, #4]
+	ldr  r4, [sp], #4
+	bx   lr
+
 .global svcConnectToPort
 .type svcConnectToPort, %function
 svcConnectToPort:
@@ -283,6 +330,17 @@ svcOpenProcess:
 	str r1, [r2]
 	bx lr
 
+
+.global svcOpenThread
+.type svcOpenThread, %function
+svcOpenThread:
+	push {r0}
+	svc 0x34
+	pop {r2}
+	str r1, [r2]
+	bx lr
+
+	
 .global svcGetProcessId
 .type svcGetProcessId, %function
 svcGetProcessId:
@@ -292,6 +350,16 @@ svcGetProcessId:
 	str r1, [r3]
 	bx  lr
 
+
+.global svcGetProcessIdOfThread
+.type svcGetProcessIdOfThread, %function
+svcGetProcessIdOfThread:
+	str r0, [sp, #-0x4]!
+	svc 0x36
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
+	
 .global svcGetThreadId
 .type svcGetThreadId, %function
 svcGetThreadId:

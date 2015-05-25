@@ -135,6 +135,13 @@ typedef enum {
 	USERBREAK_USER   = 2
 } UserBreakType;
 
+/**
+* Type of the query for svcGetThreadInfo
+*/
+typedef enum {
+	THREADINFO_TYPE_UNKNOWN
+} ThreadInfoType;
+
 typedef struct {
 	u64 clock_tick;
 } SchedulerInOutEvent;
@@ -193,7 +200,12 @@ void __attribute__((noreturn)) svcExitProcess();
 s32  svcCreateThread(Handle* thread, ThreadFunc entrypoint, u32 arg, u32* stack_top, s32 thread_priority, s32 processor_id);
 void __attribute__((noreturn)) svcExitThread();
 void svcSleepThread(s64 ns);
+s32  svcGetThreadPriority(s32 *out, Handle handle);
 s32  svcSetThreadPriority(Handle thread, s32 prio);
+s32  svcGetThreadAffinityMask(u8* affinitymask, Handle thread, s32 processorcount);
+s32  svcSetThreadAffinityMask(Handle thread, u8* affinitymask, s32 processorcount);
+s32  svcGetThreadIdealProcessor(s32* processorid, Handle thread);
+s32  svcSetThreadIdealProcessor(Handle thread, s32 processorid);
 s32  svcGetProcessorID();
 s32  svcCreateMutex(Handle* mutex, bool initially_locked);
 s32  svcReleaseMutex(Handle handle);
@@ -218,10 +230,13 @@ s32  svcDuplicateHandle(Handle* out, Handle original);
 u64  svcGetSystemTick();
 s32  svcGetSystemInfo(s64* out, u32 type, s32 param);
 s32  svcGetProcessInfo(s64* out, Handle process, u32 type);
+s32  svcGetThreadInfo(s64* out, Handle thread, ThreadInfoType type);
 s32  svcConnectToPort(volatile Handle* out, const char* portName);
 s32  svcSendSyncRequest(Handle session);
 Result svcOpenProcess(Handle* process, u32 processId);
+Result svcOpenThread(Handle* thread,Handle process, u32 threadId);
 s32  svcGetProcessId(u32 *out, Handle handle);
+s32  svcGetProcessIdOfThread(u32 *out, Handle handle);
 s32  svcGetThreadId(u32 *out, Handle handle);
 s32  svcOutputDebugString(const char* str, int length);
 Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s32 maxSessions);
