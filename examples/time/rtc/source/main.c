@@ -14,18 +14,12 @@
 
 #include <3ds.h>
 #include <stdio.h>
-
-#define SECONDS_IN_DAY 86400
-#define SECONDS_IN_HOUR 3600
-#define SECONDS_IN_MINUTE 60
+#include <time.h>
 
 int main(int argc, char **argv)
 {
 	// Initialize services
-	srvInit();
-	aptInit();
-	gfxInit();
-	hidInit(NULL);
+	gfxInitDefault();
 
 	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 	consoleInit(GFX_TOP, NULL);
@@ -44,13 +38,18 @@ int main(int argc, char **argv)
 		if (kDown & KEY_START) break; // break in order to return to hbmenu
 
 		//Print current time
-		u64 timeInSeconds = osGetTime() / 1000;
-		u64 dayTime = timeInSeconds % SECONDS_IN_DAY;
-		u8 hour = dayTime / SECONDS_IN_HOUR;
-		u8 min = (dayTime % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE;
-		u8 seconds = dayTime % SECONDS_IN_MINUTE;
+		time_t unixTime = time(NULL);
+		struct tm* timeStruct = gmtime((const time_t *)&unixTime);
 
-		printf("\x1b[0;0H%02d:%02d:%02d", hour, min, seconds);
+		int hours = timeStruct->tm_hour;
+		int minutes = timeStruct->tm_min;
+		int seconds = timeStruct->tm_sec;
+		int day = timeStruct->tm_mday;
+		int month = timeStruct->tm_mon;
+		int year = timeStruct->tm_year +1900;
+
+		printf("\x1b[0;0H%02i:%02i:%02i", hours, minutes, seconds);
+		printf("\x1b[1;0H%02i/%02i/%04i", day, month, year);
 
 		// Flush and swap framebuffers
 		gfxFlushBuffers();
@@ -62,8 +61,6 @@ int main(int argc, char **argv)
 
 	// Exit services
 	gfxExit();
-	hidExit();
-	aptExit();
-	srvExit();
+
 	return 0;
 }
