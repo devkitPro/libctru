@@ -25,6 +25,8 @@ Handle gspEvent, gspSharedMemHandle;
 static GSP_FramebufferFormats topFormat = GSP_BGR8_OES;
 static GSP_FramebufferFormats botFormat = GSP_BGR8_OES;
 
+void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id);
+
 void gfxSet3D(bool enable)
 {
 	enable3d=enable;
@@ -46,6 +48,18 @@ GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen) {
 
 void gfxSetDoubleBuffering( gfxScreen_t screen, bool doubleBuffering) {
 	doubleBuf[screen] = doubleBuffering ? 1 : 0; // make sure they're the integer values '1' and '0'
+	
+	//This avoid graphics being corrupted when using single buffer mode and never calling gfxSwapBuffers()
+	if (!screen)
+	{
+		gfxSetFramebufferInfo(GFX_TOP, currentBuffer[0]);
+		GSPGPU_SetBufferSwap(NULL, GFX_TOP, &topFramebufferInfo);
+	}
+	else
+	{
+		gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer[1]);
+		GSPGPU_SetBufferSwap(NULL, GFX_BOTTOM, &bottomFramebufferInfo);
+	}
 }
 
 static u32 __get_bytes_per_pixel(GSP_FramebufferFormats format) {
