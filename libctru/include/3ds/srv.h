@@ -2,6 +2,7 @@
 
 Result srvInit();
 Result srvExit();
+Handle *srvGetSessionHandle();
 Result srvRegisterClient();
 Result srvGetServiceHandle(Handle* out, const char* name);
 Result srvRegisterService(Handle* out, const char* name, int maxSessions);

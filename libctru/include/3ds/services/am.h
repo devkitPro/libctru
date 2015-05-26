@@ -16,6 +16,7 @@ typedef struct
 
 Result amInit();
 Result amExit();
+Handle *amGetSessionHandle();
 
 /* AM_GetTitleCount()
 About: Gets the number of titles for a given mediatype

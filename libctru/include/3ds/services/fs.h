@@ -129,6 +129,7 @@ typedef struct
 
 Result fsInit(void);
 Result fsExit(void);
+Handle *fsGetSessionHandle();
 
 FS_path FS_makePath(FS_pathType type, const char  *path);
 

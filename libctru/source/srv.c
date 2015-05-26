@@ -97,6 +97,11 @@ Result srvExit()
 	return 0;
 }
 
+Handle *srvGetSessionHandle()
+{
+	return &g_srv_handle;
+}
+
 Result srvRegisterClient()
 {
 	Result rc = 0;

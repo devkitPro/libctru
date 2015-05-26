@@ -69,6 +69,15 @@ fsExit(void)
 	return svcCloseHandle(fsuHandle);
 }
 
+/*! Gets the fsuser service session handle.
+*
+*  @returns Handle
+*/
+Handle *fsGetSessionHandle()
+{
+	return &fsuHandle;
+}
+
 /*! Initialize FS service handle
  *
  *  If @a handle is NULL, this initializes @ref fsuHandle.

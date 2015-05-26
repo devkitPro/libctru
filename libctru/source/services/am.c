@@ -21,6 +21,11 @@ Result amExit()
 	return svcCloseHandle(amHandle);
 }
 
+Handle *amGetSessionHandle()
+{
+	return &amHandle;
+}
+
 Result AM_GetTitleCount(u8 mediatype, u32 *count)
 {
 	Result ret = 0;
