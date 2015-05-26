@@ -178,7 +178,7 @@ typedef struct {
 static inline void* getThreadLocalStorage(void)
 {
 	void* ret;
-	asm ("mrc p15, 0, %[data], c13, c0, 3" : [data] "=r" (ret));
+	__asm__ ("mrc p15, 0, %[data], c13, c0, 3" : [data] "=r" (ret));
 	return ret;
 }
 
