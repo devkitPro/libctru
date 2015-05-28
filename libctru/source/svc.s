@@ -275,36 +275,32 @@ svcGetSystemTick:
 .global svcGetSystemInfo
 .type svcGetSystemInfo, %function
 svcGetSystemInfo:
-	push {r0, r4}
-	svc  0x2A
-	ldr  r4, [sp], #4
-	str  r1, [r4]
-	str  r2, [r4, #4]
-	str  r3, [r4, #8]
-	ldr  r4, [sp], #4
-	bx   lr
+	str r0, [sp, #-0x4]!
+	svc 0x2A
+	ldr r3, [sp], #4
+	str r1, [r3]
+	str r2, [r3,#4]
+	bx  lr
 
 .global svcGetProcessInfo
 .type svcGetProcessInfo, %function
 svcGetProcessInfo:
-	push {r0,r4}
-	svc  0x2B
-	ldr  r4, [sp], #4
-	str  r1, [r4]
-	str  r2, [r4, #4]
-	ldr  r4, [sp], #4
-	bx   lr
+	str r0, [sp, #-0x4]!
+	svc 0x2B
+	ldr r3, [sp], #4
+	str r1, [r3]
+	str r2, [r3,#4]
+	bx  lr
 
 .global svcGetThreadInfo
 .type svcGetThreadInfo, %function
 svcGetThreadInfo:
-	push {r0,r4}
-	svc  0x2C
-	ldr  r4, [sp], #4
-	str  r1, [r4]
-	str  r2, [r4, #4]
-	ldr  r4, [sp], #4
-	bx   lr
+	str r0, [sp, #-0x4]!
+	svc 0x2C
+	ldr r3, [sp], #4
+	str r1, [r3]
+	str r2, [r3,#4]
+	bx  lr
 
 .global svcConnectToPort
 .type svcConnectToPort, %function
