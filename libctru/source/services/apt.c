@@ -1101,13 +1101,15 @@ Result APT_CheckNew3DS_Application(Handle* handle, u8 *out)
 	Result ret=0;
 	if((ret=svcSendSyncRequest(*handle)))return ret;
 
+	if(ret==0)ret = cmdbuf[1];
+
 	if(out)
 	{
 		*out = 0;
 		if(ret==0)*out=cmdbuf[2];
 	}
 
-	return cmdbuf[1];
+	return ret;
 }
 
 Result APT_CheckNew3DS_System(Handle* handle, u8 *out)
@@ -1120,18 +1122,24 @@ Result APT_CheckNew3DS_System(Handle* handle, u8 *out)
 	Result ret=0;
 	if((ret=svcSendSyncRequest(*handle)))return ret;
 
+	if(ret==0)ret = cmdbuf[1];
+
 	if(out)
 	{
 		*out = 0;
 		if(ret==0)*out=cmdbuf[2];
 	}
 
-	return cmdbuf[1];
+	return ret;
 }
 
 Result APT_CheckNew3DS(Handle* handle, u8 *out)
 {
 	Result ret=0;
+
+	if(out==NULL)return -1;
+
+	*out = 0;
 
 	if(__apt_new3dsflag_initialized)
 	{
