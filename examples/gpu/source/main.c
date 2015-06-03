@@ -315,7 +315,7 @@ int main(int argc, char** argv)
 
 			//we draw the right buffer, wait for it to finish and then switch back to left one
 			//clear the screen
-			GX_SetMemoryFill(NULL, (u32*)gpuOut, backgroundColor, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
+			GX_SetMemoryFill(NULL, (u32*)gpuOut, backgroundColor, (u32*)&gpuOut[0x2EE00], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH , (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);
 			gspWaitForPSC0();
 
 			//draw the right framebuffer
@@ -339,7 +339,7 @@ int main(int argc, char** argv)
 		}
 
 		//clear the screen
-		GX_SetMemoryFill(NULL, (u32*)gpuOut, backgroundColor, (u32*)&gpuOut[0x2EE00], 0x201, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], 0x201);
+		GX_SetMemoryFill(NULL, (u32*)gpuOut, backgroundColor, (u32*)&gpuOut[0x2EE00], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH, (u32*)gpuDOut, 0x00000000, (u32*)&gpuDOut[0x2EE00], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);
 		gspWaitForPSC0();
 		gfxSwapBuffersGpu();
 

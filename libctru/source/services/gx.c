@@ -40,7 +40,7 @@ Result GX_SetCommandList_Last(u32* gxbuf, u32* buf0a, u32 buf0s, u8 flags)
 	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }
 
-Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width0, u32* buf1a, u32 buf1v, u32* buf1e, u16 width1)
+Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 control0, u32* buf1a, u32 buf1v, u32* buf1e, u16 control1)
 {
 	if(!gxbuf)gxbuf=gxCmdBuf;
 
@@ -53,7 +53,7 @@ Result GX_SetMemoryFill(u32* gxbuf, u32* buf0a, u32 buf0v, u32* buf0e, u16 width
 	gxCommand[4]=(u32)buf1a; //buf1 address
 	gxCommand[5]=buf1v; //buf1 value
 	gxCommand[6]=(u32)buf1e; //buf1 end addr
-	gxCommand[7]=(width0)|(width1<<16);
+	gxCommand[7]=(control0)|(control1<<16);
 
 	return GSPGPU_SubmitGxCommand(gxbuf, gxCommand, NULL);
 }
