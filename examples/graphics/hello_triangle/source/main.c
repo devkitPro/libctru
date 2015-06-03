@@ -39,6 +39,11 @@ void _my_assert(char * text)
     //should stop the program and clean up our mess
 }
 
+//falgs used for transfer from GPU output buffer to the actual framebuffer
+#define DISPLAY_TRANSFER_FLAGS \
+	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
+	 GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) | \
+	 GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
 
 
@@ -74,10 +79,10 @@ shaderProgram_s shader; //the program
 Result projUniformRegister      =-1;
 Result modelviewUniformRegister =-1;
 
-#define RGBA8(r,g,b,a) ((((r)&0xFF)<<24) | (((g)&0xFF)<<16) | (((b)&0xFF)<<8) | (((a)&0xFF)<<0))
+#define ABGR8(r,g,b,a) ((((r)&0xFF)<<24) | (((g)&0xFF)<<16) | (((b)&0xFF)<<8) | (((a)&0xFF)<<0))
 
-//The color used to clear the screen
-u32 clearColor=RGBA8(0x68, 0xB0, 0xD8, 0xFF);
+//The color used to clear the screen. ctrulib defaults to the ABGR format
+u32 clearColor=ABGR8(0x68, 0xB0, 0xD8, 0xFF);
 
 //The projection matrix
 static float ortho_matrix[4*4];
@@ -121,10 +126,6 @@ void gpuInit()
 
     initOrthographicMatrix(ortho_matrix, 0.0f, 400.0f, 0.0f, 240.0f, 0.0f, 1.0f); // A basic projection for 2D drawings
     SetUniformMatrix(projUniformRegister, ortho_matrix); // Upload the matrix to the GPU
-
-    //Flush buffers and setup the environment for the next frame
-    gpuEndFrame();
-
 }
 
 void gpuExit()
@@ -145,12 +146,17 @@ void gpuEndFrame()
     gspWaitForP3D();//Wait for the gpu 3d processing to be done
     //Copy the GPU output buffer to the screen framebuffer
     //See http://3dbrew.org/wiki/GPU#Transfer_Engine for more details about the transfer engine
-    GX_SetDisplayTransfer(NULL, gpuFBuffer, 0x019001E0, (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 0x019001E0, 0x01001000);
+    GX_SetDisplayTransfer(NULL, // Use ctrulib's gx command buffer
+		gpuFBuffer, GX_BUFFER_DIM(240, 400), 
+		(u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), GX_BUFFER_DIM(240, 400), 
+		DISPLAY_TRANSFER_FLAGS);
     gspWaitForPPF();
 
     //Clear the screen
-    GX_SetMemoryFill(NULL, gpuFBuffer, clearColor, &gpuFBuffer[0x2EE00],
-            0x201, gpuDBuffer, 0x00000000, &gpuDBuffer[0x2EE00], 0x201);
+	//See http://3dbrew.org/wiki/GSP_Shared_Memory#Trigger_Memory_Fill for the width0 and width1 arguments (control bits)
+    GX_SetMemoryFill(NULL,// Use ctrulib's gx command buffer
+		gpuFBuffer, clearColor, &gpuFBuffer[400*240],0x201, // Fill the framebuffer with clearcolor. 32bit values
+		gpuDBuffer, 0x00000000, &gpuDBuffer[400*240], 0x201);// Fill the depthbuffer with clearcolor. 32bit values
     gspWaitForPSC0();
     gfxSwapBuffersGpu();
 
@@ -164,9 +170,7 @@ void gpuEndFrame()
     GPU_SetViewport((u32 *)osConvertVirtToPhys((u32)gpuDBuffer),
             (u32 *)osConvertVirtToPhys((u32)gpuFBuffer),
             0, 0,
-            //Our screen is 400*240, but the GPU actually renders to 400*480 and then downscales it SetDisplayTransfer bit 24 is set
-            //This is the case here (See http://3dbrew.org/wiki/GPU#0x1EF00C10 for more details)
-            240*2, 400);
+            240, 400);//Our screen is 400*240, but remember that the screen is sideways, hence using w=240 and h=400
 
 
     GPU_DepthMap(-1.0f, 0.0f);  //Be careful, standard OpenGL clipping is [-1;1], but it is [-1;0] on the pica200
