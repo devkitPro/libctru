@@ -155,8 +155,8 @@ void gpuEndFrame()
     //Clear the screen
 	//See http://3dbrew.org/wiki/GSP_Shared_Memory#Trigger_Memory_Fill for the width0 and width1 arguments (control bits)
     GX_SetMemoryFill(NULL,// Use ctrulib's gx command buffer
-		gpuFBuffer, clearColor, &gpuFBuffer[400*240],0x201, // Fill the framebuffer with clearcolor. 32bit values
-		gpuDBuffer, 0x00000000, &gpuDBuffer[400*240], 0x201);// Fill the depthbuffer with clearcolor. 32bit values
+		gpuFBuffer, clearColor, &gpuFBuffer[400*240], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH, // Fill the framebuffer with clearcolor. 32bit values
+		gpuDBuffer, 0x00000000, &gpuDBuffer[400*240],  GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);// Fill the depthbuffer with clearcolor. 32bit values
     gspWaitForPSC0();
     gfxSwapBuffersGpu();
 
