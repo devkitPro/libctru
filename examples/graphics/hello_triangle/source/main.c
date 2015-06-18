@@ -41,9 +41,9 @@ void _my_assert(char * text)
 
 //falgs used for transfer from GPU output buffer to the actual framebuffer
 #define DISPLAY_TRANSFER_FLAGS \
-	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
-	 GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) | \
-	 GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
+    (GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
+     GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) | \
+     GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
 
 
@@ -64,10 +64,9 @@ typedef struct {
 #define GPU_CMD_SIZE 0x40000
 
 //GPU framebuffer address
-u32* gpuFBuffer =(u32*)0x1F119400;
+u32* gpuFBuffer = NULL;
 //GPU depth buffer address
-u32* gpuDBuffer =(u32*)0x1F370800;
-
+u32* gpuDBuffer = NULL;
 //GPU command buffers
 u32* gpuCmd = NULL;
 
@@ -108,8 +107,12 @@ void gpuInit()
     res = shaderProgramSetVsh(&shader, &shader_dvlb->DVLE[0]);
     my_assert(res >=0); // check for errors
 
+    //Allocate the GPU render buffers
+    gpuFBuffer = vramMemAlign(400*240*8, 0x100);
+    gpuDBuffer = vramMemAlign(400*240*8, 0x100);
+
     //In this example we are only rendering in "2D mode", so we don't need one command buffer per eye
-    gpuCmd=(u32*)linearAlloc(GPU_CMD_SIZE * (sizeof *gpuCmd) ); //Don't forget that commands size is 4 (hence the sizeof)
+    gpuCmd    = linearAlloc(GPU_CMD_SIZE * (sizeof *gpuCmd) ); //Don't forget that commands size is 4 (hence the sizeof)
     my_assert(gpuCmd != NULL);
 
     //Reset the gpu
@@ -132,6 +135,8 @@ void gpuExit()
 {
     //do things properly
     linearFree(gpuCmd);
+    vramFree(gpuDBuffer);
+    vramFree(gpuFBuffer);
     shaderProgramFree(&shader);
     DVLB_Free(shader_dvlb);
     GPU_Reset(NULL, gpuCmd, GPU_CMD_SIZE); // Not really needed, but safer for the next applications ?
@@ -147,16 +152,16 @@ void gpuEndFrame()
     //Copy the GPU output buffer to the screen framebuffer
     //See http://3dbrew.org/wiki/GPU#Transfer_Engine for more details about the transfer engine
     GX_SetDisplayTransfer(NULL, // Use ctrulib's gx command buffer
-		gpuFBuffer, GX_BUFFER_DIM(240, 400), 
-		(u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), GX_BUFFER_DIM(240, 400), 
-		DISPLAY_TRANSFER_FLAGS);
+        gpuFBuffer, GX_BUFFER_DIM(240, 400), 
+        (u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), GX_BUFFER_DIM(240, 400), 
+        DISPLAY_TRANSFER_FLAGS);
     gspWaitForPPF();
 
     //Clear the screen
-	//See http://3dbrew.org/wiki/GSP_Shared_Memory#Trigger_Memory_Fill for the width0 and width1 arguments (control bits)
+    //See http://3dbrew.org/wiki/GSP_Shared_Memory#Trigger_Memory_Fill for the width0 and width1 arguments (control bits)
     GX_SetMemoryFill(NULL,// Use ctrulib's gx command buffer
-		gpuFBuffer, clearColor, &gpuFBuffer[400*240], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH, // Fill the framebuffer with clearcolor. 32bit values
-		gpuDBuffer, 0x00000000, &gpuDBuffer[400*240],  GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);// Fill the depthbuffer with clearcolor. 32bit values
+        gpuFBuffer, clearColor, &gpuFBuffer[400*240], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH, // Fill the framebuffer with clearcolor. 32bit values
+        gpuDBuffer, 0x00000000, &gpuDBuffer[400*240], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);// Fill the depthbuffer with clearcolor. 32bit values
     gspWaitForPSC0();
     gfxSwapBuffersGpu();
 
