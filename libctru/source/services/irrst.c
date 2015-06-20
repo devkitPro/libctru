@@ -8,6 +8,9 @@
 #include <3ds/srv.h>
 #include <3ds/services/irrst.h>
 
+// used to determine whether or not we should do IRRST_Initialize
+Handle __get_handle_from_list(char* name);
+
 Handle irrstHandle;
 Handle irrstMemHandle;
 Handle irrstEvent;
@@ -30,6 +33,9 @@ Result irrstInit(u32* sharedMem)
 
 	// Get sharedmem handle.
 	if((ret=IRRST_GetHandles(&irrstMemHandle, &irrstEvent))) goto cleanup1;
+
+	// Initialize ir:rst
+	if(__get_handle_from_list("ir:rst")==0)ret=IRRST_Initialize(10, 0);
 
 	// Map ir:rst shared memory at addr "sharedMem".
 	irrstSharedMem=sharedMem;
@@ -55,6 +61,7 @@ void irrstExit()
 	svcCloseHandle(irrstEvent);
 	// Unmap ir:rst sharedmem and close handles.
 	svcUnmapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem);
+	if(__get_handle_from_list("ir:rst")==0) IRRST_Shutdown();
 	svcCloseHandle(irrstMemHandle);
 	svcCloseHandle(irrstHandle);
 }
