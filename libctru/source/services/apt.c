@@ -1093,6 +1093,7 @@ Result APT_GetAppCpuTimeLimit(Handle* handle, u32 *percent)
 	return cmdbuf[1];
 }
 
+// Note: this function is unreliable, see: http://3dbrew.org/wiki/APT:PrepareToStartApplication
 Result APT_CheckNew3DS_Application(Handle* handle, u8 *out)
 {
 	if(!handle)handle=&aptuHandle;
@@ -1149,25 +1150,8 @@ Result APT_CheckNew3DS(Handle* handle, u8 *out)
 		return 0;
 	}
 
-	// This may be needed in future exploits because APT_CheckNew3DS has a
-	// compatibility mode which always return zero even on an actual N3DS.
-	if (__system_runflags & BIT(31))
-	{
-		__apt_new3dsflag_initialized = 1;
-		__apt_new3dsflag = 1;
-		*out = 1;
-		return 0;
-	}
-
 	aptOpenSession();
-	if(currentAppId==APPID_APPLICATION)
-	{
-		ret = APT_CheckNew3DS_Application(NULL, out);
-	}
-	else
-	{
-		ret = APT_CheckNew3DS_System(NULL, out);
-	}
+	ret = APT_CheckNew3DS_System(NULL, out);
 	aptCloseSession();
 
 	__apt_new3dsflag_initialized = 1;
