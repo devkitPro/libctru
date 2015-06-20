@@ -109,7 +109,7 @@ void aptInitCaptureInfo(u32 *ns_capinfo)
 	GSPGPU_ImportDisplayCaptureInfo(NULL, &gspcapinfo);
 
 	// Fill in display-capture info for NS.
-	if(gspcapinfo.screencapture[0].framebuf0_vaddr != gspcapinfo.screencapture[1].framebuf0_vaddr)ns_capinfo[1] = 1;
+	if(gspcapinfo.screencapture[0].framebuf0_vaddr != gspcapinfo.screencapture[0].framebuf1_vaddr)ns_capinfo[1] = 1;
 	
 	ns_capinfo[4] = gspcapinfo.screencapture[0].format & 0x7;
 	ns_capinfo[7] = gspcapinfo.screencapture[1].format & 0x7;
@@ -301,6 +301,7 @@ void aptAppletClosed()
 
 	svcClearEvent(aptStatusEvent);
 	aptSetStatus(APP_RUNNING);
+	svcClearEvent(aptStatusEvent);
 }
 
 static void __handle_notification() {
@@ -580,6 +581,7 @@ bool aptMainLoop()
 				break;
 			case APP_APPLETCLOSED:
 				aptAppletClosed();
+				aptCallHook(APTHOOK_ONRESTORE);
 				break;
 			case APP_PREPARE_SLEEPMODE:
 				aptCallHook(APTHOOK_ONSLEEP);
@@ -1147,6 +1149,16 @@ Result APT_CheckNew3DS(Handle* handle, u8 *out)
 		return 0;
 	}
 
+	// This may be needed in future exploits because APT_CheckNew3DS has a
+	// compatibility mode which always return zero even on an actual N3DS.
+	if (__system_runflags & BIT(31))
+	{
+		__apt_new3dsflag_initialized = 1;
+		__apt_new3dsflag = 1;
+		*out = 1;
+		return 0;
+	}
+
 	aptOpenSession();
 	if(currentAppId==APPID_APPLICATION)
 	{
@@ -1265,6 +1277,13 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 		if(tmp!=0)break;
 	}
 
+	aptCallHook(APTHOOK_ONSUSPEND);
+
+	__apt_launchapplet_appID = appID;
+	__apt_launchapplet_inhandle = inhandle;
+	__apt_launchapplet_parambuf = parambuf;
+	__apt_launchapplet_parambufsize = parambufsize;
+
 	// Set status to SUSPENDED.
 	svcClearEvent(aptStatusEvent);
 	aptSetStatus(APP_SUSPENDED);
@@ -1284,11 +1303,6 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 
 	// Release GSP module.
 	GSPGPU_ReleaseRight(NULL);
-
-	__apt_launchapplet_appID = appID;
-	__apt_launchapplet_inhandle = inhandle;
-	__apt_launchapplet_parambuf = parambuf;
-	__apt_launchapplet_parambufsize = parambufsize;
 
 	return 0;
 }
