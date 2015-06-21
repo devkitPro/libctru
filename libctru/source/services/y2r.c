@@ -277,12 +277,12 @@ Result Y2RU_SetInputLines(u16 num_lines)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetCoefficient(const Y2R_ColorCoefficients* coefficient)
+Result Y2RU_SetCoefficients(const Y2R_ColorCoefficients* coefficients)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x001E0100;
-	memcpy(&cmdbuf[1], coefficient, sizeof(Y2R_ColorCoefficients));
+	memcpy(&cmdbuf[1], coefficients, sizeof(Y2R_ColorCoefficients));
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
 	return cmdbuf[1];
