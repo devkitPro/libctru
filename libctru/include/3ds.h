@@ -36,6 +36,7 @@ extern "C" {
 #include <3ds/services/mvd.h>
 #include <3ds/services/news.h>
 #include <3ds/services/qtm.h>
+#include <3ds/services/y2r.h>
 #include <3ds/services/hb.h>
 
 #include <3ds/gpu/gx.h>
