@@ -1,5 +1,6 @@
 /**
  * @file y2r.h
+ * @brief Y2R service for hardware YUV->RGB conversions
  */
 #pragma once
 #include <3ds/types.h>
