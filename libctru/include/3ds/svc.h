@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "types.h"
+
 typedef enum {
 	MEMOP_FREE =1, // Free heap
 	MEMOP_ALLOC=3, // Allocate heap
@@ -26,7 +28,8 @@ typedef enum {
 	MEMSTATE_ALIASED    = 8,
 	MEMSTATE_ALIAS      = 9,
 	MEMSTATE_ALIASCODE  = 10,
-	MEMSTATE_LOCKED     = 11
+	MEMSTATE_LOCKED     = 11,
+	MEMSTATE_MAX        = 0xFFFFFFFF // force 4-byte
 } MemState;
 
 typedef enum {
@@ -38,51 +41,47 @@ typedef enum {
 } MemPerm;
 
 typedef struct {
-    u32 base_addr;
-    u32 size;
-    u32 perm;
-    u32 state;
+	u32 base_addr;
+	u32 size;
+	MemPerm perm   : 32;
+	MemState state : 32;
 } MemInfo;
 
 typedef struct {
-    u32 flags;
+	u32 flags;
 } PageInfo;
 
 typedef enum {
-	ARBITER_FREE           =0,
-	ARBITER_ACQUIRE        =1,
-	ARBITER_KERNEL2        =2,
-	ARBITER_ACQUIRE_TIMEOUT=3,
-	ARBITER_KERNEL4        =4,
+	ARBITER_FREE            =0,
+	ARBITER_ACQUIRE         =1,
+	ARBITER_KERNEL2         =2,
+	ARBITER_ACQUIRE_TIMEOUT =3,
+	ARBITER_KERNEL4         =4,
 } ArbitrationType;
 
 typedef enum {
-	DBG_EVENT_PROCESS        = 0,
-	DBG_EVENT_CREATE_THREAD  = 1,
-	DBG_EVENT_EXIT_THREAD    = 2,
-	DBG_EVENT_EXIT_PROCESS   = 3,
-	DBG_EVENT_EXCEPTION      = 4,
-	DBG_EVENT_DLL_LOAD       = 5,
-	DBG_EVENT_DLL_UNLOAD     = 6,
-	DBG_EVENT_SCHEDULE_IN    = 7,
-	DBG_EVENT_SCHEDULE_OUT   = 8,
-	DBG_EVENT_SYSCALL_IN     = 9,
-	DBG_EVENT_SYSCALL_OUT    = 10,
-	DBG_EVENT_OUTPUT_STRING  = 11,
-	DBG_EVENT_MAP            = 12
-} DebugEventType;
-
-typedef enum {
 	REASON_CREATE = 1,
-	REASON_ATTACH = 2
+	REASON_ATTACH = 2,
+	REASON_MAX    = 0xFFFFFFFF // force 4-byte
 } ProcessEventReason;
-               
+
 typedef struct {
 	u64 program_id;
 	u8  process_name[8];
 	u32 process_id;
-	u32 reason;
+	ProcessEventReason reason : 32;
 } ProcessEvent;
+
+typedef enum {
+	EXITPROCESS_EVENT_NONE                = 0,
+	EXITPROCESS_EVENT_TERMINATE           = 1,
+	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2,
+	EXITPROCESS_EVENT_MAX                 = 0xFFFFFFFF
+} ExitProcessEventReason;
+
+typedef struct {
+	ExitProcessEventReason reason : 32;
+} ExitProcessEvent;
 
 typedef struct {
 	u32 creator_thread_id;
@@ -94,28 +93,13 @@ typedef enum {
 	EXITTHREAD_EVENT_NONE              = 0,
 	EXITTHREAD_EVENT_TERMINATE         = 1,
 	EXITTHREAD_EVENT_UNHANDLED_EXC     = 2,
-	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3
+	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3,
+	EXITTHREAD_EVENT_MAX               = 0xFFFFFFFF
 } ExitThreadEventReason;
 
-typedef enum {
-	EXITPROCESS_EVENT_NONE                = 0,
-	EXITPROCESS_EVENT_TERMINATE           = 1,
-	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2
-} ExitProcessEventReason;
-
 typedef struct {
-	u32 reason;
-} ExitProcessEvent;
-
-typedef struct {
-	u32 reason;
+	ExitThreadEventReason reason : 32;
 } ExitThreadEvent;
-
-typedef struct {
-	u32 type;
-	u32 address;
-	u32 argument;
-} ExceptionEvent;
 
 typedef enum {
 	EXC_EVENT_UNDEFINED_INSTRUCTION = 0, // arg: (None)
@@ -126,7 +110,8 @@ typedef enum {
 	EXC_EVENT_BREAKPOINT            = 5, // arg: (None)
 	EXC_EVENT_USER_BREAK            = 6, // arg: user break type
 	EXC_EVENT_DEBUGGER_BREAK        = 7, // arg: (None)
-	EXC_EVENT_UNDEFINED_SYSCALL     = 8  // arg: attempted syscall 
+	EXC_EVENT_UNDEFINED_SYSCALL     = 8,  // arg: attempted syscall
+	EXC_EVENT_MAX     = 0xFFFFFFFF  // force 4-bytes
 } ExceptionEventType;
 
 typedef enum {
@@ -134,6 +119,12 @@ typedef enum {
 	USERBREAK_ASSERT = 1,
 	USERBREAK_USER   = 2
 } UserBreakType;
+
+typedef struct {
+	ExceptionEventType type : 32;
+	u32 address;
+	u32 argument;
+} ExceptionEvent;
 
 /**
 * Type of the query for svcGetThreadInfo
@@ -159,12 +150,29 @@ typedef struct {
 typedef struct {
 	u32 mapped_addr;
 	u32 mapped_size;
-	u32 memperm;
-	u32 memstate;
+	MemPerm memperm   : 32;
+	MemState memstate : 32;
 } MapEvent;
 
+typedef enum {
+	DBG_EVENT_PROCESS        = 0,
+	DBG_EVENT_CREATE_THREAD  = 1,
+	DBG_EVENT_EXIT_THREAD    = 2,
+	DBG_EVENT_EXIT_PROCESS   = 3,
+	DBG_EVENT_EXCEPTION      = 4,
+	DBG_EVENT_DLL_LOAD       = 5,
+	DBG_EVENT_DLL_UNLOAD     = 6,
+	DBG_EVENT_SCHEDULE_IN    = 7,
+	DBG_EVENT_SCHEDULE_OUT   = 8,
+	DBG_EVENT_SYSCALL_IN     = 9,
+	DBG_EVENT_SYSCALL_OUT    = 10,
+	DBG_EVENT_OUTPUT_STRING  = 11,
+	DBG_EVENT_MAP            = 12,
+	BDG_MAX                  = 0xFFFFFFFF // force 4-byte
+} DebugEventType;
+
 typedef struct {
-	u32 type;
+	DebugEventType type : 32;
 	u32 thread_id;
 	u32 unknown[2];
 	union {
@@ -178,7 +186,7 @@ typedef struct {
 		SchedulerInOutEvent scheduler;
 		SyscallInOutEvent syscall;
 		OutputStringEvent output_string;
-		MapEvent map;		
+		MapEvent map;
 	};
 } DebugEventInfo;
 
