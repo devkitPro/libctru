@@ -49,3 +49,24 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+/**
+ * @example app_launch/source/main.c
+ * @example audio/mic/source/main.c
+ * @example get_system_language/source/main.c
+ * @example gpu/source/main.c
+ * @example graphics/bitmap/24bit-color/source/main.c
+ * @example graphics/printing/hello-world/source/main.c
+ * @example graphics/printing/both-screen-text/source/main.c
+ * @example graphics/printing/colored-text/source/main.c
+ * @example graphics/printing/multiple-windows-text/source/main.c
+ * @example http/source/main.c
+ * @example input/read-controls/source/main.c
+ * @example input/touch-screen/source/main.c
+ * @example libapplet_launch/source/main.c
+ * @example mvd/source/main.c
+ * @example qtm/source/main.c
+ * @example sdmc/source/main.c
+ * @example threads/event/source/main.c
+ * @example time/rtc/source/main.c
+ */
+ 
