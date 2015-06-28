@@ -54,12 +54,12 @@ void GPUCMD_Run(u32* gxbuf)
 }
 
 extern u32 __linear_heap_size;
-extern u32* __linear_heap;
+extern u32 __linear_heap;
 
 void GPUCMD_FlushAndRun(u32* gxbuf)
 {
 	//take advantage of GX_SetCommandList_First to flush gsp heap
-	GX_SetCommandList_First(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, __linear_heap, __linear_heap_size, NULL, 0);
+	GX_SetCommandList_First(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, (u32 *) __linear_heap, __linear_heap_size, NULL, 0);
 	GX_SetCommandList_Last(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
 }
 
