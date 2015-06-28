@@ -274,10 +274,10 @@ int main(int argc, char** argv)
 		if(keysHeld()&KEY_B)lightAngle-=0.1f;
 
 		//D-PAD to rotate object
-		if(keysHeld()&KEY_RIGHT)angle.x+=0.05f;
-		if(keysHeld()&KEY_LEFT)angle.x-=0.05f;
-		if(keysHeld()&KEY_UP)angle.y+=0.05f;
-		if(keysHeld()&KEY_DOWN)angle.y-=0.05f;
+		if(keysHeld()&KEY_DOWN)angle.x+=0.05f;
+		if(keysHeld()&KEY_UP)angle.x-=0.05f;
+		if(keysHeld()&KEY_LEFT)angle.y+=0.05f;
+		if(keysHeld()&KEY_RIGHT)angle.y-=0.05f;
 
 		//R/L to bring object closer to or move it further from the camera
 		if(keysHeld()&KEY_R)position.z+=0.1f;
