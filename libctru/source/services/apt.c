@@ -574,7 +574,8 @@ bool aptMainLoop()
 			case APP_SUSPENDING:
 				aptCallHook(APTHOOK_ONSUSPEND);
 				aptReturnToMenu();
-				aptCallHook(APTHOOK_ONRESTORE);
+				if (aptGetStatus() == APP_RUNNING)
+					aptCallHook(APTHOOK_ONRESTORE);
 				break;
 			case APP_APPLETSTARTED:
 				aptAppletStarted();
