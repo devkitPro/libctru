@@ -1,3 +1,8 @@
+/**
+ * @file os.h
+ *
+ * OS related stuff.
+ */
 #pragma once
 
 #define SYSTEM_VERSION(major, minor, revision) \
@@ -7,14 +12,52 @@
 #define GET_VERSION_MINOR(version)    (((version)>>16)&0xFF)
 #define GET_VERSION_REVISION(version) (((version)>> 8)&0xFF)
 
+/**
+ * Converts an address from virtual (process) memory to physical memory.
+ * It is sometimes required by services or when using the GPU command buffer.
+ */
 u32 osConvertVirtToPhys(u32 vaddr);
-u32 osConvertOldLINEARMemToNew(u32 addr);//Converts 0x14* vmem to 0x30*. Returns the input addr when it's already within the new vmem. Returns 0 when outside of either LINEAR mem areas.
+
+/**
+ * Converts 0x14* vmem to 0x30*.
+ * @return The input address when it's already within the new vmem.
+ * @return 0 when outside of either LINEAR mem areas.
+ */
+u32 osConvertOldLINEARMemToNew(u32 addr);
+
+/**
+ * @brief Basic information about a service error.
+ * @return A string of the summary of an error.
+ *
+ * This can be used to get some details about an error returned by a service call.
+ */
 const char* osStrError(u32 error);
+
+/**
+ * @return the Firm version
+ *
+ * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
+ */
 u32 osGetFirmVersion();
+
+/**
+ * @return the kernel version
+ *
+ * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
+ *
+ * @code
+ * if(osGetKernelVersion() > SYSTEM_VERSION(2,46,0)) printf("You are running 9.0 or higher\n");
+ * @endcode
+ */
 u32 osGetKernelVersion();
+
+/**
+ * @return number of milliseconds since 1st Jan 1900 00:00.
+ */
 u64 osGetTime();
 
-/* @brief Returns the Wifi signal strength.
+/**
+ * @brief Returns the Wifi signal strength.
  *
  * Valid values are 0-3:
  * - 0 means the singal strength is terrible or the 3DS is disconnected from
