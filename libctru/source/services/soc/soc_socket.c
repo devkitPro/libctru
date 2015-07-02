@@ -41,9 +41,11 @@ int socket(int domain, int type, int protocol)
 	}
 
 	ret = (int)cmdbuf[1];
-	if(ret != 0) {
+	if(ret == 0)ret = cmdbuf[2];
+	if(ret < 0) {
 		__release_handle(fd);
-		errno = _net_convert_error(cmdbuf[2]);
+		if(cmdbuf[1] == 0)errno = _net_convert_error(ret);
+		if(cmdbuf[1] != 0)errno = SYNC_ERROR;
 		return -1;
 	}
 
