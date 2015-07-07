@@ -397,6 +397,24 @@ void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 para
 	}
 }
 
+void GPU_SetTextureBorderColor(GPU_TEXUNIT unit,u32 borderColor)
+{
+	switch (unit)
+	{
+	case GPU_TEXUNIT0:
+		GPUCMD_AddWrite(GPUREG_TEXUNIT0_BORDER_COLOR, borderColor);
+		break;
+		
+	case GPU_TEXUNIT1:
+		GPUCMD_AddWrite(GPUREG_TEXUNIT1_BORDER_COLOR, borderColor);
+		break;
+		
+	case GPU_TEXUNIT2:
+		GPUCMD_AddWrite(GPUREG_TEXUNIT2_BORDER_COLOR, borderColor);
+		break;
+	}
+}
+
 const u8 GPU_FORMATSIZE[4]={1,1,2,4};
 
 void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attributeFormats, u16 attributeMask, u64 attributePermutation, u8 numBuffers, u32 bufferOffsets[], u64 bufferPermutations[], u8 bufferNumAttributes[])
