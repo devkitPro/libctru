@@ -14,8 +14,13 @@ int main()
 	u32 audio_initialized = 0;
 
 	gfxInitDefault();
+	consoleInit(GFX_BOTTOM, NULL);
 
-	if(CSND_initialize(NULL)==0)audio_initialized = 1;
+	if(csndInit()==0)
+	{
+		printf("Init success\n");
+		audio_initialized = 1;
+	}
 
 	sharedmem = (u32*)memalign(0x1000, sharedmem_size);
 	audiobuf = linearAlloc(audiobuf_size);
@@ -38,13 +43,14 @@ int main()
 			if(kDown & KEY_A)
 			{
 				audiobuf_pos = 0;
-
-				CSND_setchannel_playbackstate(0x8, 0);//Stop audio playback.
-				CSND_sharedmemtype0_cmdupdatestate(0);
+				printf("Stopping audio playback\n");
+				CSND_SetPlayState(0x8, 0);//Stop audio playback.
+				CSND_UpdateInfo(0);
 
 				MIC_SetRecording(1);
 
 				memset(framebuf, 0x20, 0x46500);
+				printf("Now recording\n");
 			}
 
 			if((hidKeysHeld() & KEY_A) && audiobuf_pos < audiobuf_size)
@@ -57,9 +63,10 @@ int main()
 
 			if(hidKeysUp() & KEY_A)
 			{
+				printf("Playing the recorded sample\n");
 				MIC_SetRecording(0);
 				GSPGPU_FlushDataCache(NULL, audiobuf, audiobuf_pos);
-				CSND_playsound(0x8, CSND_LOOP_DISABLE, CSND_ENCODING_PCM16, 16000, (u32*)audiobuf, NULL, audiobuf_pos, 2, 0);
+				csndPlaySound(0x8, SOUND_ONE_SHOT | SOUND_FORMAT_16BIT, 16000, 1.0, 0.0, (u32*)audiobuf, NULL, audiobuf_pos);
 
 				memset(framebuf, 0xe0, 0x46500);
 
@@ -77,7 +84,7 @@ int main()
 
 	MIC_Shutdown();
 
-	if(audio_initialized)CSND_shutdown();
+	if(audio_initialized)csndExit();
 
 	free(sharedmem);
 	linearFree(audiobuf);
