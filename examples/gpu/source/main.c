@@ -171,7 +171,8 @@ void renderFrame()
 			128, //texture width
 			128, //texture height
 			GPU_TEXTURE_MAG_FILTER(GPU_NEAREST) | GPU_TEXTURE_MIN_FILTER(GPU_NEAREST), //texture params
-			GPU_RGBA8 //texture pixel format
+			GPU_RGBA8, //texture pixel format
+			0x00000000 // not using GPU_CLAMP_TO_BORDER, so we don't care
 		);
 
 		GPU_SetAttributeBuffers(
