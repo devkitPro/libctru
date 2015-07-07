@@ -275,10 +275,13 @@ void GPU_SetAttributeBuffers(u8 totalAttributes, u32* baseAddress, u64 attribute
 
 void GPU_SetTextureEnable(GPU_TEXUNIT units); // GPU_TEXUNITx values can be ORed together to enable multiple texture units
 
+
+void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType);
+
 /**
  * @param borderColor The color used for the border when using the @ref GPU_CLAMP_TO_BORDER wrap mode
  */
-void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType, u32 borderColor);
+ void GPU_SetTextureBorderColor(GPU_TEXUNIT unit,u32 borderColor);
 void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor);
 
 void GPU_DrawArray(GPU_Primitive_t primitive, u32 n);
