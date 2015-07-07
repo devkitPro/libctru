@@ -41,8 +41,10 @@ typedef enum
 
 typedef enum
 {
-	GPU_CLAMP_TO_EDGE = 0x0,
-	GPU_REPEAT = 0x2,
+	GPU_CLAMP_TO_EDGE   = 0x0,
+	GPU_CLAMP_TO_BORDER = 0x1,
+	GPU_REPEAT          = 0x2,
+	GPU_MIRRORED_REPEAT = 0x3,
 }GPU_TEXTURE_WRAP_PARAM;
 
 typedef enum
