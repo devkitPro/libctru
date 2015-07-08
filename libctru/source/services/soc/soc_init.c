@@ -98,6 +98,8 @@ Result SOC_Shutdown(void)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	int dev;
+	
+	svcCloseHandle(socMemhandle);
 
 	cmdbuf[0] = 0x00190000;
 
@@ -108,7 +110,6 @@ Result SOC_Shutdown(void)
 	}
 
 	svcCloseHandle(SOCU_handle);
-	svcCloseHandle(socMemhandle);
 
 	dev = FindDevice("soc:");
 	if(dev >= 0)
