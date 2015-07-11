@@ -356,7 +356,7 @@ Result Y2RU_SetConversionParams(const Y2R_ConversionParams* params)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
-	cmdbuf[0] = 0x002900C0;
+	cmdbuf[0] = 0x002901C0;
 	memcpy(&cmdbuf[1], params, sizeof(Y2R_ConversionParams));
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
