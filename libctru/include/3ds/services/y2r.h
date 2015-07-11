@@ -233,7 +233,7 @@ Result Y2RU_GetTransferEndEvent(Handle* end_event);
  * @param src_buf A pointer to the beginning of your Y data buffer.
  * @param image_size The total size of the data buffer.
  * @param transfer_unit Specifies the size of 1 DMA transfer. Usually set to 1 line. This has to be a divisor of image_size.
- * @param transfer_unit Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
+ * @param transfer_gap Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
  *
  * This specifies the Y data buffer for the planar input formats (INPUT_YUV42*_INDIV_*).
  * The actual transfer will only happen after calling @ref Y2RU_StartConversion.
@@ -245,7 +245,7 @@ Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, u16 transfer_unit, 
  * @param src_buf A pointer to the beginning of your Y data buffer.
  * @param image_size The total size of the data buffer.
  * @param transfer_unit Specifies the size of 1 DMA transfer. Usually set to 1 line. This has to be a divisor of image_size.
- * @param transfer_unit Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
+ * @param transfer_gap Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
  *
  * This specifies the U data buffer for the planar input formats (INPUT_YUV42*_INDIV_*).
  * The actual transfer will only happen after calling @ref Y2RU_StartConversion.
