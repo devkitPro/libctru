@@ -1,0 +1,47 @@
+language: c
+
+sudo: false
+
+#Cache devkitArm and doxygen
+cache:
+  directories:
+    - /home/travis/devkitPro
+    - /home/travis/doxygen/doxygen-1.8.10/bin
+
+before_install:
+  # Travis has an OLD doxygen build, so we fetch a recent one
+  - export DOXY_BINPATH=/home/travis/doxygen/doxygen-1.8.10/bin
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then mkdir -p ~/doxygen && cd ~/doxygen; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then wget http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.10.linux.bin.tar.gz; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then tar xzf doxygen-1.8.10.linux.bin.tar.gz; fi
+  - export PATH=$PATH:$DOXY_BINPATH
+  # Prepare devkitArm update
+  - export DEVKITPRO=/home/travis/devkitPro
+  - export DEVKITARM=${DEVKITPRO}/devkitARM
+  - mkdir -p $DEVKITPRO
+  - cd $DEVKITPRO
+  - wget -N http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl
+  - 
+
+install:
+  - cd $DEVKITPRO
+  # Install or update devkitArm if it's cached
+  - perl devkitARMupdate.pl
+  - cd $TRAVIS_BUILD_DIR
+  
+env:
+  global:
+    - secure: "ENCRYPTED GH_TOKEN HERE"
+  
+script:
+  - cd $TRAVIS_BUILD_DIR/libctru
+  - make
+  
+  
+after_success:
+  - cd $TRAVIS_BUILD_DIR
+  - #Build the doxygen files and upload to GH pages
+  - git config --global user.email "travis@travis-ci.org"
+  - git config --global user.name "TravisCI-DocBuilder"
+  # Build the doxygen documentation and push it to gh-pages if current branch is great-refactor
+  - sh exportdoc.sh
