@@ -67,27 +67,36 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)
 	if(dev >= 0)
 		return -1;
 
-	/* add the "soc" device */
-	dev = AddDevice(&soc_devoptab);
-	if(dev < 0)
-		return dev;
-
 	ret = svcCreateMemoryBlock(&socMemhandle, (u32)context_addr, context_size, 0, 3);
-	if(ret != 0) {
-		RemoveDevice("soc");
-		return ret;
-	}
+	if(ret != 0) return ret;
 
 	ret = srvGetServiceHandle(&SOCU_handle, "soc:U");
-	if(ret != 0) {
-		RemoveDevice("soc");
+	if(ret != 0)
+	{
+		svcCloseHandle(socMemhandle);
+		socMemhandle = 0;
 		return ret;
 	}
 
 	ret = socu_cmd1(socMemhandle, context_size);
-	if(ret != 0) {
-		RemoveDevice("soc");
+	if(ret != 0)
+	{
+		svcCloseHandle(socMemhandle);
+		svcCloseHandle(SOCU_handle);
+		socMemhandle = 0;
+		SOCU_handle = 0;
 		return ret;
+	}
+
+	/* add the "soc" device */
+	dev = AddDevice(&soc_devoptab);
+	if(dev < 0)
+	{
+		svcCloseHandle(socMemhandle);
+		svcCloseHandle(SOCU_handle);
+		socMemhandle = 0;
+		SOCU_handle = 0;
+		return dev;
 	}
 
 	return 0;
@@ -100,22 +109,21 @@ Result SOC_Shutdown(void)
 	int dev;
 	
 	svcCloseHandle(socMemhandle);
+	socMemhandle = 0;
 
 	cmdbuf[0] = 0x00190000;
 
 	ret = svcSendSyncRequest(SOCU_handle);
-	if(ret != 0) {
-		errno = SYNC_ERROR;
-		return ret;
-	}
 
 	svcCloseHandle(SOCU_handle);
+	SOCU_handle = 0;
 
 	dev = FindDevice("soc:");
 	if(dev >= 0)
-		RemoveDevice("soc");
+		RemoveDevice("soc:");
 
-	return cmdbuf[1];
+	if(ret)return ret;
+	else return cmdbuf[1];
 }
 
 static int
