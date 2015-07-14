@@ -35,7 +35,7 @@ Result hidInit(u32* sharedMem)
 	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
 
 	// Request service.
-	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")))return ret;
+	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")) && (ret=srvGetServiceHandle(&hidHandle, "hid:SPVR")))return ret;
 
 	// Get sharedmem handle.
 	if((ret=HIDUSER_GetHandles(&hidMemHandle, &hidEvents[HIDEVENT_PAD0], &hidEvents[HIDEVENT_PAD1], &hidEvents[HIDEVENT_Accel], &hidEvents[HIDEVENT_Gyro], &hidEvents[HIDEVENT_DebugPad]))) goto cleanup1;
