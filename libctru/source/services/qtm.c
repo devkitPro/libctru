@@ -18,7 +18,7 @@ Result qtmInit()
 
 	if(qtmInitialized)return 0;
 
-	if((ret=srvGetServiceHandle(&qtmHandle, "qtm:u")))return ret;
+	if((ret=srvGetServiceHandle(&qtmHandle, "qtm:u")) && (ret=srvGetServiceHandle(&qtmHandle, "qtm:s")) && (ret=srvGetServiceHandle(&qtmHandle, "qtm:sp")))return ret;
 
 	qtmInitialized = true;
 
