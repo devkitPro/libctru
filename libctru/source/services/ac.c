@@ -8,7 +8,9 @@ static Handle acHandle;
 
 Result acInit()
 {
-	return srvGetServiceHandle(&acHandle, "ac:u");	
+	Result ret = srvGetServiceHandle(&acHandle, "ac:u");
+	if(!ret)return ret;
+	return srvGetServiceHandle(&acHandle, "ac:i");
 }
 
 Result acExit()
