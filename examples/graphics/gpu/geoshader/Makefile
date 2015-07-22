@@ -75,6 +75,7 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+PICAFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.pica)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
@@ -91,7 +92,7 @@ else
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) $(PICAFILES:.pica=.shbin.o) \
 			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
@@ -156,17 +157,18 @@ $(OUTPUT).elf	:	$(OFILES)
 	@echo $(notdir $<)
 	@$(bin2o)
 
-# WARNING: This is not the right way to do this! TODO: Do it right!
 #---------------------------------------------------------------------------------
-%_vsh.h %.vsh.o	:	%.vsh
+# rule for assembling GPU shaders
 #---------------------------------------------------------------------------------
+%.shbin.o: %.pica
 	@echo $(notdir $<)
-	@python3 $(AEMSTRO)/aemstro_as.py $< ../$(notdir $<).shbin
-	@bin2s ../$(notdir $<).shbin | $(PREFIX)as -o $@
-	@echo "extern const u8" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(notdir $<).shbin | tr . _)`.h
-	@echo "extern const u8" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(notdir $<).shbin | tr . _)`.h
-	@echo "extern const u32" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(notdir $<).shbin | tr . _)`.h
-	@rm ../$(notdir $<).shbin
+	$(eval CURBIN := $(patsubst %.pica,%.shbin,$(notdir $<)))
+	$(eval CURH := $(patsubst %.pica,%.psh.h,$(notdir $<)))
+	@picasso $(CURBIN) $< $(CURH)
+	@bin2s $(CURBIN) | $(AS) -o $@
+	@echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
+	@echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
+	@echo "extern const u32" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
 
 -include $(DEPENDS)
 

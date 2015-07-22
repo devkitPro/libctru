@@ -1,0 +1,24 @@
+; Example PICA200 vertex shader
+
+; Constants
+.constf myconst(0.0, 1.0, -1.0, -0.5)
+.alias  zeros myconst.xxxx ; Vector full of zeros
+.alias  ones  myconst.yyyy ; Vector full of ones
+
+; Outputs - since we are also using a geoshader the output type isn't really used
+.out outpos position
+.out outclr color
+
+; Inputs (defined as aliases for convenience)
+.alias inpos v0
+.alias inclr v1
+
+.proc main
+	; Pass through both inputs to the geoshader
+	mov outpos.xyz, inpos
+	mov outpos.w,   ones
+	mov outclr,     inclr
+
+	; We're finished
+	end
+.end
