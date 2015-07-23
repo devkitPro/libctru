@@ -1,7 +1,15 @@
+/**
+ * @file gx.h
+ */
+
 #pragma once
 
 #define GX_BUFFER_DIM(w, h) (((h)<<16)|((w)&0xFFFF))
 
+/**
+ * @brief Pixel formats
+ * @sa GSP_FramebufferFormats
+ */
 typedef enum
 {
 	GX_TRANSFER_FMT_RGBA8  = 0,
@@ -11,20 +19,29 @@ typedef enum
 	GX_TRANSFER_FMT_RGBA4  = 4
 } GX_TRANSFER_FORMAT;
 
+/**
+ * @brief Anti-aliasing modes
+ *
+ * Please remember that the framebuffer is sideways.
+ * Hence if you activate 2x1 anti-aliasing the destination dimensions are w = 240*2 and h = 400
+ */
 typedef enum
 {
-	GX_TRANSFER_SCALE_NO = 0,
-	GX_TRANSFER_SCALE_X  = 1,
-	GX_TRANSFER_SCALE_Y  = 2
+	GX_TRANSFER_SCALE_NO = 0, ///< No anti-aliasing
+	GX_TRANSFER_SCALE_X  = 1, ///< 2x1 anti-aliasing
+	GX_TRANSFER_SCALE_XY = 2, ///< 2x2 anti-aliasing
 } GX_TRANSFER_SCALE;
 
+/**
+ * @brief GX transfer control flags
+ */
 typedef enum
 {
-	GX_FILL_TRIGGER     = 0x001,
-	GX_FILL_FINISHED    = 0x002,
-	GX_FILL_16BIT_DEPTH = 0x000,
-	GX_FILL_24BIT_DEPTH = 0x100,
-	GX_FILL_32BIT_DEPTH = 0x200,
+	GX_FILL_TRIGGER     = 0x001, ///< Trigger the PPF event
+	GX_FILL_FINISHED    = 0x002, ///< Indicates if the memory fill is complete. You should not use it when requesting a transfer.
+	GX_FILL_16BIT_DEPTH = 0x000, ///< The buffer has a 16 bit per pixel depth
+	GX_FILL_24BIT_DEPTH = 0x100, ///< The buffer has a 24 bit per pixel depth
+	GX_FILL_32BIT_DEPTH = 0x200, ///< The buffer has a 32 bit per pixel depth
 } GX_FILL_CONTROL;
 
 #define GX_TRANSFER_FLIP_VERT(x)  ((x)<<0)
