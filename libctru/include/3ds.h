@@ -53,12 +53,52 @@ extern "C" {
  * @example app_launch/source/main.c
  * @example audio/mic/source/main.c
  * @example get_system_language/source/main.c
- * @example gpu/source/main.c
  * @example graphics/bitmap/24bit-color/source/main.c
  * @example graphics/printing/hello-world/source/main.c
  * @example graphics/printing/both-screen-text/source/main.c
  * @example graphics/printing/colored-text/source/main.c
  * @example graphics/printing/multiple-windows-text/source/main.c
+
+ * @example graphics/gpu/geoshader/source/main.c
+   graphics/gpu/geoshader/source/gpu.h
+   @include graphics/gpu/geoshader/source/gpu.h
+   graphics/gpu/geoshader/source/gpu.c
+   @include graphics/gpu/geoshader/source/gpu.c
+   graphics/gpu/geoshader/source/3dmath.h
+   @include graphics/gpu/geoshader/source/3dmath.h
+   graphics/gpu/geoshader/source/3dmath.c
+   @include graphics/gpu/geoshader/source/3dmath.c
+   graphics/gpu/geoshader/source/vshader.pica
+   @include graphics/gpu/geoshader/source/vshader.pica
+   graphics/gpu/geoshader/source/gshader.pica
+   @include graphics/gpu/geoshader/source/gshader.pica
+
+   
+ * @example graphics/gpu/simple_tri/source/main.c
+   graphics/gpu/simple_tri/source/gpu.h
+   @include graphics/gpu/simple_tri/source/gpu.h
+   graphics/gpu/simple_tri/source/gpu.c
+   @include graphics/gpu/simple_tri/source/gpu.c
+   graphics/gpu/simple_tri/source/3dmath.h
+   @include graphics/gpu/simple_tri/source/3dmath.h
+   graphics/gpu/simple_tri/source/3dmath.c
+   @include graphics/gpu/simple_tri/source/3dmath.c
+   graphics/gpu/simple_tri/source/vshader.pica
+   @include graphics/gpu/simple_tri/source/vshader.pica
+
+   
+ * @example graphics/gpu/textured_cube/source/main.c
+   graphics/gpu/textured_cube/source/gpu.h
+   @include graphics/gpu/textured_cube/source/gpu.h
+   graphics/gpu/textured_cube/source/gpu.c
+   @include graphics/gpu/textured_cube/source/gpu.c
+   graphics/gpu/textured_cube/source/3dmath.h
+   @include graphics/gpu/textured_cube/source/3dmath.h
+   graphics/gpu/textured_cube/source/3dmath.c
+   @include graphics/gpu/textured_cube/source/3dmath.c
+   graphics/gpu/textured_cube/source/vshader.pica
+   @include graphics/gpu/textured_cube/source/vshader.pica
+
  * @example http/source/main.c
  * @example input/read-controls/source/main.c
  * @example input/touch-screen/source/main.c
