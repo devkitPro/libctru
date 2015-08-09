@@ -105,8 +105,8 @@ typedef struct
 	Y2R_OutputFormat output_format     : 8; ///< Value passed to @ref Y2RU_SetOutputFormat
 	Y2R_Rotation rotation              : 8; ///< Value passed to @ref Y2RU_SetRotation
 	Y2R_BlockAlignment block_alignment : 8; ///< Value passed to @ref Y2RU_SetBlockAlignment
-	u16 input_line_width;                   ///< Value passed to @ref Y2RU_SetInputLineWidth
-	u16 input_lines;                        ///< Value passed to @ref Y2RU_SetInputLines
+	s16 input_line_width;                   ///< Value passed to @ref Y2RU_SetInputLineWidth
+	s16 input_lines;                        ///< Value passed to @ref Y2RU_SetInputLines
 	Y2R_StandardCoefficient standard_coefficient : 8; ///< Value passed to @ref Y2RU_SetStandardCoefficient
 	u8 unused;
 	u16 alpha;                              ///< Value passed to @ref Y2RU_SetAlpha
@@ -235,10 +235,12 @@ Result Y2RU_GetTransferEndEvent(Handle* end_event);
  * @param transfer_unit Specifies the size of 1 DMA transfer. Usually set to 1 line. This has to be a divisor of image_size.
  * @param transfer_gap Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
  *
+ * @warning transfer_unit+transfer_gap must be less than 32768 (0x8000)
+ *
  * This specifies the Y data buffer for the planar input formats (INPUT_YUV42*_INDIV_*).
  * The actual transfer will only happen after calling @ref Y2RU_StartConversion.
  */
-Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap);
+Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap);
 
 /**
  * @brief Configures the U plane buffer.
@@ -247,45 +249,53 @@ Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, u16 transfer_unit, 
  * @param transfer_unit Specifies the size of 1 DMA transfer. Usually set to 1 line. This has to be a divisor of image_size.
  * @param transfer_gap Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
  *
+ * @warning transfer_unit+transfer_gap must be less than 32768 (0x8000)
+ *
  * This specifies the U data buffer for the planar input formats (INPUT_YUV42*_INDIV_*).
  * The actual transfer will only happen after calling @ref Y2RU_StartConversion.
  */
-Result Y2RU_SetSendingU(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap);
+Result Y2RU_SetSendingU(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap);
 
 /**
  * @brief Configures the V plane buffer.
  * @param src_buf A pointer to the beginning of your Y data buffer.
  * @param image_size The total size of the data buffer.
  * @param transfer_unit Specifies the size of 1 DMA transfer. Usually set to 1 line. This has to be a divisor of image_size.
- * @param transfer_unit Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
+ * @param transfer_gap Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
+ *
+ * @warning transfer_unit+transfer_gap must be less than 32768 (0x8000)
  *
  * This specifies the V data buffer for the planar input formats (INPUT_YUV42*_INDIV_*).
  * The actual transfer will only happen after calling @ref Y2RU_StartConversion.
  */
-Result Y2RU_SetSendingV(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap);
+Result Y2RU_SetSendingV(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap);
 
 /**
  * @brief Configures the YUYV source buffer.
  * @param src_buf A pointer to the beginning of your Y data buffer.
  * @param image_size The total size of the data buffer.
  * @param transfer_unit Specifies the size of 1 DMA transfer. Usually set to 1 line. This has to be a divisor of image_size.
- * @param transfer_unit Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
+ * @param transfer_gap Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
+ *
+ * @warning transfer_unit+transfer_gap must be less than 32768 (0x8000)
  *
  * This specifies the YUYV data buffer for the packed input format @ref INPUT_YUV422_BATCH.
  * The actual transfer will only happen after calling @ref Y2RU_StartConversion.
  */
-Result Y2RU_SetSendingYUYV(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap);
+Result Y2RU_SetSendingYUYV(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap);
 
 /**
  * @brief Configures the destination buffer.
  * @param src_buf A pointer to the beginning of your destination buffer in FCRAM
  * @param image_size The total size of the data buffer.
  * @param transfer_unit Specifies the size of 1 DMA transfer. Usually set to 1 line. This has to be a divisor of image_size.
- * @param transfer_unit Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
+ * @param transfer_gap Specifies the gap (offset) to be added after each transfer. Can be used to convert images with stride or only a part of it.
  *
  * This specifies the destination buffer of the conversion.
  * The actual transfer will only happen after calling @ref Y2RU_StartConversion.
  * The buffer does NOT need to be allocated in the linear heap.
+ *
+ * @warning transfer_unit+transfer_gap must be less than 32768 (0x8000)
  *
  * @note
  *      It seems that depending on the size of the image and of the transfer unit,\n
@@ -294,7 +304,7 @@ Result Y2RU_SetSendingYUYV(const void* src_buf, u32 image_size, u16 transfer_uni
  *
  * @note Setting a transfer_unit of 4 or 8 lines seems to bring the best results in terms of speed for a 400x240 image.
  */
-Result Y2RU_SetReceiving(void* dst_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap);
+Result Y2RU_SetReceiving(void* dst_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap);
 
 /**
  * @brief Checks if the DMA has finished sending the Y buffer.
