@@ -120,7 +120,7 @@ Result Y2RU_GetTransferEndEvent(Handle* end_event)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap)
+Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -136,7 +136,7 @@ Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, u16 transfer_unit, 
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetSendingU(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap)
+Result Y2RU_SetSendingU(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -152,7 +152,7 @@ Result Y2RU_SetSendingU(const void* src_buf, u32 image_size, u16 transfer_unit, 
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetSendingV(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap)
+Result Y2RU_SetSendingV(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -168,7 +168,7 @@ Result Y2RU_SetSendingV(const void* src_buf, u32 image_size, u16 transfer_unit, 
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetSendingYUYV(const void* src_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap)
+Result Y2RU_SetSendingYUYV(const void* src_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -228,7 +228,7 @@ Result Y2RU_IsDoneSendingV(bool* is_done)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetReceiving(void* dst_buf, u32 image_size, u16 transfer_unit, u16 transfer_gap)
+Result Y2RU_SetReceiving(void* dst_buf, u32 image_size, s16 transfer_unit, s16 transfer_gap)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
