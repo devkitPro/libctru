@@ -22,6 +22,7 @@ extern "C" {
 
 	extern int	h_errno;
 	struct hostent*	gethostbyname(const char *name);
+	struct hostent*	gethostbyaddr(const char *addr, int len, int type);
 	void		herror(const char *s);
 	const char*	hstrerror(int err);
 
