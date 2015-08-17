@@ -164,7 +164,7 @@ $(OUTPUT).elf	:	$(OFILES)
 	@echo $(notdir $<)
 	$(eval CURBIN := $(patsubst %.pica,%.shbin,$(notdir $<)))
 	$(eval CURH := $(patsubst %.pica,%.psh.h,$(notdir $<)))
-	@picasso $(CURBIN) $< $(CURH)
+	@picasso -h $(CURH) -o $(CURBIN) $<
 	@bin2s $(CURBIN) | $(AS) -o $@
 	@echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
 	@echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
