@@ -6,7 +6,7 @@ static struct hostent SOC_hostent;
 static char           *SOC_hostent_results[MAX_HOSTENT_RESULTS+1];
 static char           *SOC_hostent_alias = NULL;
 
-struct hostent* gethostbyaddr(const char *addr, socklen_t len, int type)
+struct hostent* gethostbyaddr(const void *addr, socklen_t len, int type)
 {
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
