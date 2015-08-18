@@ -30,7 +30,8 @@ typedef struct {
 
 extern service_list_t* __service_ptr;
 
-static Handle g_srv_handle = 0;
+// not static so that apps can actually access it if need be
+Handle g_srv_handle = 0;
 
 
 static int __name_cmp(const char* a, const char* b) {

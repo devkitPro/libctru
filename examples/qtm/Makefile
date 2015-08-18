@@ -32,6 +32,10 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 
+APP_TITLE := Head tracking demo
+APP_DESCRIPTION := This is a small demo app for the New 3DS head tracking.
+APP_AUTHOR := yellows8
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------

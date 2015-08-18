@@ -12,8 +12,11 @@ Result amInit()
 {
 	if(srvGetServiceHandle(&amHandle, "am:net") == 0)
 		return (Result)0;
-	else
-		return srvGetServiceHandle(&amHandle, "am:u");
+	else if(srvGetServiceHandle(&amHandle, "am:u") == 0)
+		return (Result)0;
+	else if(srvGetServiceHandle(&amHandle, "am:sys") == 0)
+		return (Result)0;
+	else return srvGetServiceHandle(&amHandle, "am:app");
 }
 
 Result amExit()
