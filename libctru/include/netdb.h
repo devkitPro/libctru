@@ -14,6 +14,7 @@ struct hostent {
 	int	h_addrtype;
 	int	h_length;
 	char	**h_addr_list;
+	char	*h_addr;
 };
 
 #ifdef __cplusplus
@@ -22,6 +23,7 @@ extern "C" {
 
 	extern int	h_errno;
 	struct hostent*	gethostbyname(const char *name);
+	struct hostent*	gethostbyaddr(const char *addr, socklen_t len, int type);
 	void		herror(const char *s);
 	const char*	hstrerror(int err);
 

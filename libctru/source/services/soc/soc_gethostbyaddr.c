@@ -6,7 +6,7 @@ static struct hostent SOC_hostent;
 static char           *SOC_hostent_results[MAX_HOSTENT_RESULTS+1];
 static char           *SOC_hostent_alias = NULL;
 
-struct hostent* gethostbyname(const char *name)
+struct hostent* gethostbyaddr(const char *addr, socklen_t len, int type)
 {
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -15,11 +15,12 @@ struct hostent* gethostbyname(const char *name)
 
 	h_errno = 0;
 
-	cmdbuf[0] = 0x000D0082;
-	cmdbuf[1] = strlen(name)+1;
-	cmdbuf[2] = sizeof(outbuf);
-	cmdbuf[3] = ((strlen(name)+1) << 14) | 0xC02;
-	cmdbuf[4] = (u32)name;
+	cmdbuf[0] = 0x000E00C2;
+	cmdbuf[1] = len;
+	cmdbuf[2] = type;
+	cmdbuf[3] = sizeof(outbuf);
+	cmdbuf[4] = (len << 14) | 0x1002;
+	cmdbuf[5] = (u32)addr;
 
 	saved_threadstorage[0] = cmdbuf[0x100>>2];
 	saved_threadstorage[1] = cmdbuf[0x104>>2];
@@ -35,13 +36,13 @@ struct hostent* gethostbyname(const char *name)
 
 
 	cmdbuf[0x100>>2] = saved_threadstorage[0];
-        cmdbuf[0x104>>2] = saved_threadstorage[1];
+	cmdbuf[0x104>>2] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret == 0)
 		ret = _net_convert_error(cmdbuf[2]);
 
-        if(ret < 0) {
+	if(ret < 0) {
 		/* TODO: set h_errno based on ret */
 		h_errno = HOST_NOT_FOUND;
 		return NULL;
@@ -68,3 +69,4 @@ struct hostent* gethostbyname(const char *name)
 
 	return &SOC_hostent;
 }
+
