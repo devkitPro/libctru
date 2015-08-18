@@ -30,8 +30,8 @@ void GPUCMD_Finalize();
 //tex param
 #define GPU_TEXTURE_MAG_FILTER(v) (((v)&0x1)<<1) //takes a GPU_TEXTURE_FILTER_PARAM
 #define GPU_TEXTURE_MIN_FILTER(v) (((v)&0x1)<<2) //takes a GPU_TEXTURE_FILTER_PARAM
-#define GPU_TEXTURE_WRAP_S(v) (((v)&0x3)<<8) //takes a GPU_TEXTURE_WRAP_PARAM
-#define GPU_TEXTURE_WRAP_T(v) (((v)&0x3)<<12) //takes a GPU_TEXTURE_WRAP_PARAM
+#define GPU_TEXTURE_WRAP_S(v) (((v)&0x3)<<12) //takes a GPU_TEXTURE_WRAP_PARAM
+#define GPU_TEXTURE_WRAP_T(v) (((v)&0x3)<<8) //takes a GPU_TEXTURE_WRAP_PARAM
 
 typedef enum
 {

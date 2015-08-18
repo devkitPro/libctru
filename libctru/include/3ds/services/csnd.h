@@ -147,6 +147,10 @@ void CSND_SetCapRegs(u32 capUnit, u32 flags, u32 addr, u32 size);
 Result CSND_SetDspFlags(bool waitDone);
 Result CSND_UpdateInfo(bool waitDone);
 
+/**
+ * @param vol The volume, ranges from 0.0 to 1.0 included
+ * @param pan The pan, ranges from -1.0 to 1.0 included
+ */
 Result csndPlaySound(int chn, u32 flags, u32 sampleRate, float vol, float pan, void* data0, void* data1, u32 size);
 
 void csndGetDspFlags(u32* outSemFlags, u32* outIrqFlags); // Requires previous CSND_UpdateInfo()
