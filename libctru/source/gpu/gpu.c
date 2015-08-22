@@ -463,6 +463,11 @@ void GPU_SetFaceCulling(GPU_CULLMODE mode)
 	GPUCMD_AddWrite(GPUREG_FACECULLING_CONFIG, mode&0x3); 
 }
 
+void GPU_SetCombinerBufferWrite(u8 rgb_config, u8 alpha_config)
+{
+    GPUCMD_AddMaskedWrite(GPUREG_TEXENV_BUFFER_CONFIG, 0x2, (rgb_config << 8) | (alpha_config << 12));
+}
+
 const u8 GPU_TEVID[]={0xC0,0xC8,0xD0,0xD8,0xF0,0xF8};
 
 void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor)
