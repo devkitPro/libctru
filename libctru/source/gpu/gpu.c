@@ -330,9 +330,9 @@ void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref)
 	GPUCMD_AddWrite(GPUREG_ALPHATEST_CONFIG, (enable&1)|((function&7)<<4)|(ref<<8));
 }
 
-void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace)
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 input_mask, u8 write_mask)
 {
-	GPUCMD_AddWrite(GPUREG_STENCILTEST_CONFIG, (enable&1)|((function&7)<<4)|(replace<<8)|(ref<<16)|(mask<<24));
+	GPUCMD_AddWrite(GPUREG_STENCILTEST_CONFIG, (enable&1)|((function&7)<<4)|(write_mask<<8)|(ref<<16)|(input_mask<<24));
 }
 
 void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass)

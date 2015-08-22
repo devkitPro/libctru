@@ -93,10 +93,14 @@ typedef enum
 
 typedef enum
 {
-	GPU_KEEP = 0, 		// keep destination value
-	GPU_AND_NOT = 1, 	// destination & ~source
-	GPU_XOR = 5,		// destination ^ source
-	// 2 is the same as 1. Other values are too weird to even be usable.
+	GPU_STENCIL_KEEP = 0,       // old_stencil
+	GPU_STENCIL_ZERO = 1,       // 0
+	GPU_STENCIL_REPLACE = 2,    // ref
+	GPU_STENCIL_INCR = 3,       // old_stencil + 1 saturated to [0, 255]
+	GPU_STENCIL_DECR = 4,       // old_stencil - 1 saturated to [0, 255]
+	GPU_STENCIL_INVERT = 5,     // ~old_stencil
+	GPU_STENCIL_INCR_WRAP = 6,  // old_stencil + 1
+	GPU_STENCIL_DECR_WRAP = 7   // old_stencil - 1
 } GPU_STENCILOP;
 
 typedef enum
@@ -259,7 +263,7 @@ void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h);
 void GPU_DepthMap(float zScale, float zOffset);
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask); // GPU_WRITEMASK values can be ORed together
-void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace);
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 input_mask, u8 write_mask);
 void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass);
 void GPU_SetFaceCulling(GPU_CULLMODE mode);
 
