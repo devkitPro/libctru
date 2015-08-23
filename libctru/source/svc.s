@@ -270,7 +270,7 @@ svcDuplicateHandle:
 .type svcGetSystemTick, %function
 svcGetSystemTick:
 	svc 0x28
-	bx lr
+	bx  lr
 
 .global svcGetSystemInfo
 .type svcGetSystemInfo, %function
@@ -315,7 +315,7 @@ svcConnectToPort:
 .type svcSendSyncRequest, %function
 svcSendSyncRequest:
 	svc 0x32
-	bx lr
+	bx  lr
 
 .global svcOpenProcess
 .type svcOpenProcess, %function
@@ -324,8 +324,7 @@ svcOpenProcess:
 	svc 0x33
 	pop {r2}
 	str r1, [r2]
-	bx lr
-
+	bx  lr
 
 .global svcOpenThread
 .type svcOpenThread, %function
@@ -334,8 +333,7 @@ svcOpenThread:
 	svc 0x34
 	pop {r2}
 	str r1, [r2]
-	bx lr
-
+	bx  lr
 	
 .global svcGetProcessId
 .type svcGetProcessId, %function
@@ -345,7 +343,6 @@ svcGetProcessId:
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
-
 
 .global svcGetProcessIdOfThread
 .type svcGetProcessIdOfThread, %function
@@ -365,6 +362,12 @@ svcGetThreadId:
 	str r1, [r3]
 	bx  lr
 
+.global svcBreak
+.type svcBreak, %function
+svcBreak:
+	svc 0x3C
+	bx  lr
+
 .global svcOutputDebugString
 .type svcOutputDebugString, %function
 svcOutputDebugString:
@@ -381,7 +384,66 @@ svcCreatePort:
 	ldr r3, [sp, #4]
 	str r2, [r3]
 	add sp, sp, #8
-	bx lr
+	bx  lr
+
+.global svcAcceptSession
+.type svcAcceptSession, %function
+svcAcceptSession:
+	str r0, [sp, #-4]!
+	svc 0x4A
+	ldr r2, [sp]
+	str r1, [r2]
+	add sp, sp, #4
+	bx  lr
+
+.global svcReplyAndReceive
+.type svcReplyAndReceive, %function
+svcReplyAndReceive:
+	str r0, [sp, #-4]!
+	svc 0x4F
+	ldr r2, [sp]
+	str r1, [r2]
+	add sp, sp, #4
+	bx  lr
+
+.global svcInvalidateProcessDataCache
+.type svcInvalidateProcessDataCache, %function
+svcInvalidateProcessDataCache:
+	svc 0x52
+	bx  lr
+
+.global svcFlushProcessDataCache
+.type svcFlushProcessDataCache, %function
+svcFlushProcessDataCache:
+	svc 0x54
+	bx  lr
+
+.global svcStartInterProcessDma
+.type svcStartInterProcessDma, %function
+svcStartInterProcessDma:
+	stmfd sp!, {r0, r4, r5}
+	ldr r0, [sp, #0xC]
+	ldr r4, [sp, #0x10]
+	ldr r5, [sp, #0x14]
+	svc 0x55
+	ldmfd sp!, {r2, r4, r5}
+	str r1, [r2]
+	bx  lr
+
+.global svcStopDma
+.type svcStopDma, %function
+svcStopDma:
+	svc 0x56
+	bx  lr
+
+.global svcGetDmaState
+.type svcGetDmaState, %function
+svcGetDmaState:
+	str r0, [sp, #-4]!
+	svc 0x57
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
 
 .global svcDebugActiveProcess
 .type svcDebugActiveProcess, %function
@@ -390,31 +452,31 @@ svcDebugActiveProcess:
 	svc 0x60
 	pop {r2}
 	str r1, [r2]
-	bx lr
+	bx  lr
 
 .global svcBreakDebugProcess
 .type svcBreakDebugProcess, %function
 svcBreakDebugProcess:
 	svc 0x61
-	bx lr
+	bx  lr
 
 .global svcTerminateDebugProcess
 .type svcTerminateDebugProcess, %function
 svcTerminateDebugProcess:
 	svc 0x62
-	bx lr
+	bx  lr
 
 .global svcGetProcessDebugEvent
 .type svcGetProcessDebugEvent, %function
 svcGetProcessDebugEvent:
 	svc 0x63
-	bx lr
+	bx  lr
 	
 .global svcContinueDebugEvent
 .type svcContinueDebugEvent, %function
 svcContinueDebugEvent:
 	svc 0x64
-	bx lr
+	bx  lr
 
 .global svcGetProcessList
 .type svcGetProcessList, %function
@@ -426,13 +488,13 @@ svcGetProcessList:
 	ldr r3, [sp, #4]
 	str r2, [r3]
 	add sp, sp, #8
-	bx lr
+	bx  lr
 
 .global svcReadProcessMemory
 .type svcReadProcessMemory, %function
 svcReadProcessMemory:
 	svc 0x6A
-	bx lr
+	bx  lr
 
 .global svcWriteProcessMemory
 .type svcWriteProcessMemory, %function
@@ -448,25 +510,37 @@ svcControlProcessMemory:
 	ldr r5, [sp, #0xC]
 	svc 0x70
 	pop {r4-r5}
-	bx lr
+	bx  lr
 
 .global svcMapProcessMemory
 .type svcMapProcessMemory, %function
 svcMapProcessMemory:
 	svc 0x71
-	bx lr
+	bx  lr
 
 .global svcUnmapProcessMemory
 .type svcUnmapProcessMemory, %function
 svcUnmapProcessMemory:
 	svc 0x72
-	bx lr
+	bx  lr
+
+.global svcTerminateProcess
+.type svcTerminateProcess, %function
+svcTerminateProcess:
+	svc 0x76
+	bx  lr
 
 .global svcBackdoor
 .type svcBackdoor, %function
 svcBackdoor:
 	svc 0x7B
-	bx lr
+	bx  lr
+
+.global svcKernelSetState
+.type svcKernelSetState, %function
+svcKernelSetState:
+	svc 0x7C
+	bx  lr
 
 .global svcQueryProcessMemory
 .type svcQueryProcessMemory, %function
@@ -479,4 +553,4 @@ svcQueryProcessMemory:
 	str r5, [r6]
 	add sp, sp, #8
 	pop {r4-r6}
-	bx lr
+	bx  lr
