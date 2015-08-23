@@ -485,7 +485,7 @@ void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16
 	GPUCMD_AddIncrementalWrites(GPUREG_0000|GPU_TEVID[id], param, 0x00000005);
 }
 
-void GPU_DrawArray(GPU_Primitive_t primitive, u32 n)
+void GPU_DrawArray(GPU_Primitive_t primitive, u32 n, u32 first)
 {
 	//set primitive type
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x2, primitive);
@@ -494,6 +494,8 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 n)
 	GPUCMD_AddWrite(GPUREG_INDEXBUFFER_CONFIG, 0x80000000);
 	//pass number of vertices
 	GPUCMD_AddWrite(GPUREG_NUMVERTICES, n);
+	//set first vertex
+	GPUCMD_AddWrite(GPUREG_DRAW_VERTEX_OFFSET, first);
 
 	//all the following except 0x000F022E might be useless
 	GPUCMD_AddMaskedWrite(GPUREG_0253, 0x1, 0x00000001);
@@ -513,7 +515,9 @@ void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n)
 	GPUCMD_AddWrite(GPUREG_INDEXBUFFER_CONFIG, 0x80000000|((u32)indexArray));
 	//pass number of vertices
 	GPUCMD_AddWrite(GPUREG_NUMVERTICES, n);
-
+    
+	GPUCMD_AddWrite(GPUREG_DRAW_VERTEX_OFFSET, 0x00000000);
+    
 	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x2, 0x00000100);
 	GPUCMD_AddMaskedWrite(GPUREG_0253, 0x2, 0x00000100);
 
