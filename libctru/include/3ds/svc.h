@@ -265,6 +265,16 @@ Result svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op,
  */
 Result svcControlProcessMemory(Handle process, u32 addr0, u32 addr1, u32 size, u32 type, u32 perm);
 
+/**
+ * @brief Creates a block of shared memory
+ * @param memblock Pointer to store the handle of the block
+ * @param addr Address of the memory to map, page-aligned. So its alignment must be 0x1000.
+ * @param size Size of the memory to map, a multiple of 0x1000.
+ * @param my_perm Memory permissions for the current process
+ * @param my_perm Memory permissions for the other processes
+ *
+ * @note The shared memory block, and its rights, are destroyed when the handle is closed.
+ */
 Result svcCreateMemoryBlock(Handle* memblock, u32 addr, u32 size, MemPerm my_perm, MemPerm other_perm);
 Result svcMapMemoryBlock(Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm);
 Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
