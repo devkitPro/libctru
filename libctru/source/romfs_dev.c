@@ -195,7 +195,7 @@ _fail2:
 _fail1:
 	free(dirHashTable);
 _fail0:
-	svcCloseHandle(romFS_file);
+	FSFILE_Close(romFS_file);
 	return 10;
 }
 
@@ -205,7 +205,7 @@ Result romfsExit(void)
 	romFS_active = false;
 
 	RemoveDevice("romfs");
-	svcCloseHandle(romFS_file);
+	FSFILE_Close(romFS_file);
 	free(dirHashTable);
 	free(fileHashTable);
 	free(dirTable);
