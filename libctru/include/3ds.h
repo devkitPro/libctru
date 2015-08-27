@@ -45,6 +45,7 @@ extern "C" {
 #include <3ds/gpu/shaderProgram.h>
 
 #include <3ds/sdmc.h>
+#include <3ds/romfs.h>
 
 #ifdef __cplusplus
 }
