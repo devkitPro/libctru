@@ -1,0 +1,2 @@
+The path to this file contains UTF-16
+characters that fall outside ASCII.
