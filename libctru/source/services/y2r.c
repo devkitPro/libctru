@@ -130,7 +130,7 @@ Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, s16 transfer_unit, 
 	cmdbuf[3] = transfer_unit;
 	cmdbuf[4] = transfer_gap;
 	cmdbuf[5] = 0;
-	cmdbuf[6] = 0xFFFF8001;
+	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
 	return cmdbuf[1];
@@ -146,7 +146,7 @@ Result Y2RU_SetSendingU(const void* src_buf, u32 image_size, s16 transfer_unit, 
 	cmdbuf[3] = transfer_unit;
 	cmdbuf[4] = transfer_gap;
 	cmdbuf[5] = 0;
-	cmdbuf[6] = 0xFFFF8001;
+	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
 	return cmdbuf[1];
@@ -162,7 +162,7 @@ Result Y2RU_SetSendingV(const void* src_buf, u32 image_size, s16 transfer_unit, 
 	cmdbuf[3] = transfer_unit;
 	cmdbuf[4] = transfer_gap;
 	cmdbuf[5] = 0;
-	cmdbuf[6] = 0xFFFF8001;
+	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
 	return cmdbuf[1];
@@ -178,7 +178,7 @@ Result Y2RU_SetSendingYUYV(const void* src_buf, u32 image_size, s16 transfer_uni
 	cmdbuf[3] = transfer_unit;
 	cmdbuf[4] = transfer_gap;
 	cmdbuf[5] = 0;
-	cmdbuf[6] = 0xFFFF8001;
+	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
 	return cmdbuf[1];
@@ -238,7 +238,7 @@ Result Y2RU_SetReceiving(void* dst_buf, u32 image_size, s16 transfer_unit, s16 t
 	cmdbuf[3] = transfer_unit;
 	cmdbuf[4] = transfer_gap;
 	cmdbuf[5] = 0;
-	cmdbuf[6] = 0xFFFF8001;
+	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
 	return cmdbuf[1];

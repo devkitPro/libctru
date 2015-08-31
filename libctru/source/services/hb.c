@@ -23,7 +23,7 @@ Result HB_FlushInvalidateCache(void)
 	cmdbuf[0] = 0x00010042;
 	cmdbuf[1] = 0x00000000;
 	cmdbuf[2] = 0x00000000;
-	cmdbuf[3] = 0xFFFF8001;
+	cmdbuf[3] = CUR_PROCESS_HANDLE;
 
 	if((ret = svcSendSyncRequest(hbHandle))!=0) return ret;
 	
