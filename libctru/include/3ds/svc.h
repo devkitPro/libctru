@@ -233,6 +233,11 @@ static inline u32* getThreadCommandBuffer(void)
 	return (u32*)((u8*)getThreadLocalStorage() + 0x80);
 }
 
+static inline u32* getThreadStaticBuffers(void)
+{
+	return (u32*)((u8*)getThreadLocalStorage() + 0x180);
+}
+
 ///@name Memory management
 ///@{
 
