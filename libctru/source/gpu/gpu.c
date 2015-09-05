@@ -229,40 +229,65 @@ void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numr
 	GPUCMD_AddWrites(GPUREG_VSH_FLOATUNIFORM_DATA+regOffset, data, numreg*4);
 }
 
-//TODO : fix
-u32 f32tof24(float f)
+// f24 has:
+//  - 1 sign bit
+//  - 7 exponent bits
+//  - 16 mantissa bits
+static u32 f32tof24(float f)
 {
-	if(!f)return 0;
-	u32 v=*((u32*)&f);
-	u8 s=v>>31;
-	u32 exp=((v>>23)&0xFF)-0x40;
-	u32 man=(v>>7)&0xFFFF;
+	u32 i;
+	memcpy(&i, &f, 4);
 
-	if(exp>=0)return man|(exp<<16)|(s<<23);
-	else return s<<23;
+	u32 mantissa = (i << 9) >>  9;
+	s32 exponent = (i << 1) >> 24;
+	u32 sign     = (i << 0) >> 31;
+
+	// Truncate mantissa
+	mantissa >>= 7;
+
+	// Re-bias exponent
+	exponent = exponent - 127 + 63;
+	if (exponent < 0)
+	{
+		// Underflow: flush to zero
+		return sign << 23;
+	}
+	else if (exponent > 0x7F)
+	{
+		// Overflow: saturate to infinity
+		return sign << 23 | 0x7F << 16;
+	}
+
+	return sign << 23 | exponent << 16 | mantissa;
 }
 
-u32 computeInvValue(u32 val)
+// f31 has:
+//  - 1 sign bit
+//  - 7 exponent bits
+//  - 23 mantissa bits
+static u32 f32tof31(float f)
 {
-	//usual values
-	if(val==240)return 0x38111111;
-	if(val==480)return 0x37111111;
-	if(val==400)return 0x3747ae14;
-	//but let's not limit ourselves to the usual
-	float fval=2.0/val;
-	u32 tmp1,tmp2;
-	u32 tmp3=*((u32*)&fval);
-	tmp1=(tmp3<<9)>>9;
-	tmp2=tmp3&(~0x80000000);
-	if(tmp2)
+	u32 i;
+	memcpy(&i, &f, 4);
+
+	u32 mantissa = (i << 9) >>  9;
+	s32 exponent = (i << 1) >> 24;
+	u32 sign     = (i << 0) >> 31;
+
+	// Re-bias exponent
+	exponent = exponent - 127 + 63;
+	if (exponent < 0)
 	{
-		tmp1=(tmp3<<9)>>9;
-		int tmp=((tmp3<<1)>>24)-0x40;
-		if(tmp<0)return ((tmp3>>31)<<30)<<1;
-		else tmp2=tmp;
+		// Underflow: flush to zero
+		return sign << 30;
 	}
-	tmp3>>=31;
-	return (tmp1|(tmp2<<23)|(tmp3<<30))<<1;
+	else if (exponent > 0x7F)
+	{
+		// Overflow: saturate to infinity
+		return sign << 30 | 0x7F << 23;
+	}
+
+	return sign << 30 | exponent << 23 | mantissa;
 }
 
 //takes PAs as arguments
@@ -288,9 +313,9 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_AddWrite(GPUREG_011B, 0x00000000); //?
 
 	param[0x0]=f32tof24(fw/2);
-	param[0x1]=computeInvValue(fw);
+	param[0x1]=f32tof31(2.0f / fw) << 1;
 	param[0x2]=f32tof24(fh/2);
-	param[0x3]=computeInvValue(fh);
+	param[0x3]=f32tof31(2.0f / fh) << 1;
 	GPUCMD_AddIncrementalWrites(GPUREG_0041, param, 0x00000004);
 
 	GPUCMD_AddWrite(GPUREG_0068, (y<<16)|(x&0xFFFF));
