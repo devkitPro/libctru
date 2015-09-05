@@ -111,9 +111,9 @@ dist-src:
 
 dist: dist-src dist-bin
 
-install: dist-bin
-	mkdir -p $(DEVKITPRO)/libctru
-	bzip2 -cd libctru-$(VERSION).tar.bz2 | tar -x -C $(DEVKITPRO)/libctru
+install:
+	@mkdir -p $(DESTDIR)$(DEVKITPRO)/libctru
+	@cp -r include lib default_icon.png $(DESTDIR)$(DEVKITPRO)/libctru
 
 dox:
 	@doxygen Doxyfile
