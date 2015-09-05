@@ -6,6 +6,7 @@
 #include <3ds/svc.h>
 #include <3ds/linear.h>
 #include <3ds/vram.h>
+#include <3ds/gpu/gx.h>
 
 GSP_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
 

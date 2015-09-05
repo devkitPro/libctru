@@ -14,10 +14,10 @@ void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset);
 void GPUCMD_SetBufferOffset(u32 offset);
 void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset);
 void GPUCMD_AddRawCommands(u32* cmd, u32 size);
-void GPUCMD_Run(u32* gxbuf);
-void GPUCMD_FlushAndRun(u32* gxbuf);
+void GPUCMD_Run(void);
+void GPUCMD_FlushAndRun(void);
 void GPUCMD_Add(u32 header, u32* param, u32 paramlength);
-void GPUCMD_Finalize();
+void GPUCMD_Finalize(void);
 
 u32 f32tof24(float f);
 u32 computeInvValue(u32 val);

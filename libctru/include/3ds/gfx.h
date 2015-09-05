@@ -147,4 +147,3 @@ u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* hei
 extern u8* gfxTopLeftFramebuffers[2];
 extern u8* gfxTopRightFramebuffers[2];
 extern u8* gfxBottomFramebuffers[2];
-extern u32* gxCmdBuf;

@@ -138,7 +138,7 @@ void GPU_Reset(u32* gxbuf, u32* gpuBuf, u32 gpuBufSize)
 	for(i=0;i<gpuResetSequenceLength;i++)GPUCMD_AddSingleParam(gpuResetSequence[i*2],gpuResetSequence[i*2+1]);
 
 	GPUCMD_Finalize();
-	GPUCMD_Run(gpuBuf);
+	//GPUCMD_Run(gpuBuf);
 	GPUCMD_SetBufferOffset(0);
 }
 

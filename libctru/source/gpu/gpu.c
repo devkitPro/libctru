@@ -40,20 +40,20 @@ void GPUCMD_AddRawCommands(u32* cmd, u32 size)
 	gpuCmdBufOffset+=size;
 }
 
-void GPUCMD_Run(u32* gxbuf)
+void GPUCMD_Run(void)
 {
-	GX_SetCommandList_First(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, NULL, 0, NULL, 0);
-	GX_SetCommandList_Last(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
+	GX_SetCommandList_First(gpuCmdBuf, gpuCmdBufOffset*4, NULL, 0, NULL, 0);
+	GX_SetCommandList_Last(gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
 }
 
 extern u32 __linear_heap_size;
 extern u32 __linear_heap;
 
-void GPUCMD_FlushAndRun(u32* gxbuf)
+void GPUCMD_FlushAndRun(void)
 {
 	//take advantage of GX_SetCommandList_First to flush gsp heap
-	GX_SetCommandList_First(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, (u32 *) __linear_heap, __linear_heap_size, NULL, 0);
-	GX_SetCommandList_Last(gxbuf, gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
+	GX_SetCommandList_First(gpuCmdBuf, gpuCmdBufOffset*4, (u32 *) __linear_heap, __linear_heap_size, NULL, 0);
+	GX_SetCommandList_Last(gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
 }
 
 void GPUCMD_Add(u32 header, u32* param, u32 paramlength)
@@ -81,7 +81,7 @@ void GPUCMD_Add(u32 header, u32* param, u32 paramlength)
 	if(paramlength&1)gpuCmdBuf[gpuCmdBufOffset++]=0x00000000; //alignment
 }
 
-void GPUCMD_Finalize()
+void GPUCMD_Finalize(void)
 {
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x8, 0x00000000);
 	GPUCMD_AddWrite(GPUREG_0111, 0x00000001);
