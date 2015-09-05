@@ -4,6 +4,7 @@
 
 Handle	SOCU_handle = 0;
 Handle	socMemhandle = 0;
+int h_errno = 0;
 
 //This is based on the array from libogc network_wii.c.
 static u8 _net_error_code_map[] = {
