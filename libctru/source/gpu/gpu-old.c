@@ -58,9 +58,9 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_AddWrite(GPUREG_011B, 0x00000000); //?
 
 	param[0x0]=f32tof24(fw/2);
-	param[0x1]=computeInvValue(fw);
+	param[0x1]=f32tof31(2.0f / fw) << 1;
 	param[0x2]=f32tof24(fh/2);
-	param[0x3]=computeInvValue(fh);
+	param[0x3]=f32tof31(2.0f / fh) << 1;
 	GPUCMD_AddIncrementalWrites(GPUREG_0041, param, 0x00000004);
 
 	GPUCMD_AddWrite(GPUREG_0068, (y<<16)|(x&0xFFFF));
