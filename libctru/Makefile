@@ -42,7 +42,7 @@ INCLUDES	:=	include
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard
 
 CFLAGS	:=	-g -Wall -Werror -O2 -mword-relocations \
-			-fno-strict-aliasing \
+			-ffunction-sections -fno-strict-aliasing \
 			-fomit-frame-pointer -ffast-math \
 			$(ARCH)
 
