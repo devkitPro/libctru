@@ -294,7 +294,7 @@ void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 para
 void GPU_SetTextureBorderColor(GPU_TEXUNIT unit,u32 borderColor);
 void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor);
 
-void GPU_DrawArray(GPU_Primitive_t primitive, u32 n, u32 first);
+void GPU_DrawArray(GPU_Primitive_t primitive, u32 first, u32 count);
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n);
 void GPU_FinishDrawing();
 

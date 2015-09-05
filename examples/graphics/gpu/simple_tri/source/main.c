@@ -76,7 +76,7 @@ static void sceneRender(void)
 	GPU_SetFloatUniformMatrix(GPU_VERTEX_SHADER, uLoc_projection, &projection);
 
 	// Draw the VBO
-	GPU_DrawArray(GPU_TRIANGLES, vertex_list_count);
+	GPU_DrawArray(GPU_TRIANGLES, 0, vertex_list_count);
 }
 
 static void sceneExit(void)

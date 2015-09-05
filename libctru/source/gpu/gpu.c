@@ -485,7 +485,7 @@ void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16
 	GPUCMD_AddIncrementalWrites(GPUREG_0000|GPU_TEVID[id], param, 0x00000005);
 }
 
-void GPU_DrawArray(GPU_Primitive_t primitive, u32 n, u32 first)
+void GPU_DrawArray(GPU_Primitive_t primitive, u32 first, u32 count)
 {
 	//set primitive type
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x2, primitive);
@@ -493,7 +493,7 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 n, u32 first)
 	//index buffer address register should be cleared (except bit 31) before drawing
 	GPUCMD_AddWrite(GPUREG_INDEXBUFFER_CONFIG, 0x80000000);
 	//pass number of vertices
-	GPUCMD_AddWrite(GPUREG_NUMVERTICES, n);
+	GPUCMD_AddWrite(GPUREG_NUMVERTICES, count);
 	//set first vertex
 	GPUCMD_AddWrite(GPUREG_DRAW_VERTEX_OFFSET, first);
 
