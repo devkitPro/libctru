@@ -38,7 +38,3 @@ Result shaderProgramFree(shaderProgram_s* sp);
 Result shaderProgramSetVsh(shaderProgram_s* sp, DVLE_s* dvle);
 Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride);
 Result shaderProgramUse(shaderProgram_s* sp);
-
-void GPU_SetShaderOutmap(u32 outmapData[8]);
-void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
-void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);

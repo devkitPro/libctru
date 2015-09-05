@@ -4,6 +4,10 @@
 #include <3ds/gpu/registers.h>
 #include <3ds/gpu/shaderProgram.h>
 
+static void GPU_SetShaderOutmap(u32 outmapData[8]);
+static void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
+static void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
+
 Result shaderInstanceInit(shaderInstance_s* si, DVLE_s* dvle)
 {
 	if(!si || !dvle)return -1;

@@ -7,7 +7,7 @@
 #define GPU_TEXTURE_WRAP_T(v) (((v)&0x3)<<8) //takes a GPU_TEXTURE_WRAP_PARAM
 
 // Combiner buffer write config
-#define GPU_TEV_BUFFER_WRITE_CONFIG(stage0, stage1, stage2, stage3) (stage0 | (stage1 << 1) | (stage2 << 2) | (stage3 << 3))
+#define GPU_TEV_BUFFER_WRITE_CONFIG(stage0, stage1, stage2, stage3) ((stage0) | ((stage1) << 1) | ((stage2) << 2) | ((stage3) << 3))
 
 typedef enum
 {
