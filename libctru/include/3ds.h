@@ -41,6 +41,7 @@ extern "C" {
 
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
+#include <3ds/gpu/gpu-old.h>
 #include <3ds/gpu/shbin.h>
 #include <3ds/gpu/shaderProgram.h>
 

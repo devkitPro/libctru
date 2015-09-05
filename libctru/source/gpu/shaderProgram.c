@@ -225,3 +225,34 @@ Result shaderProgramUse(shaderProgram_s* sp)
 
 	return 0;
 }
+
+void GPU_SetShaderOutmap(u32 outmapData[8])
+{
+	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x1, outmapData[0]-1);
+	GPUCMD_AddIncrementalWrites(GPUREG_SH_OUTMAP_TOTAL, outmapData, 8);
+}
+
+void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length)
+{
+	if(!data)return;
+
+	int regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
+
+	GPUCMD_AddWrite(GPUREG_VSH_CODETRANSFER_CONFIG+regOffset, offset);
+
+	int i;
+	for(i=0;i<length;i+=0x80)GPUCMD_AddWrites(GPUREG_VSH_CODETRANSFER_DATA+regOffset, &data[i], ((length-i)<0x80)?(length-i):0x80);
+
+	GPUCMD_AddWrite(GPUREG_VSH_CODETRANSFER_END+regOffset, 0x00000001);
+}
+
+void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length)
+{
+	if(!data)return;
+
+	int regOffset=(type==GPU_GEOMETRY_SHADER)?(-0x30):(0x0);
+
+	GPUCMD_AddWrite(GPUREG_VSH_OPDESCS_CONFIG+regOffset, offset);
+
+	GPUCMD_AddWrites(GPUREG_VSH_OPDESCS_DATA+regOffset, data, length);
+}

@@ -44,7 +44,13 @@ typedef void (*ThreadFunc)(void *);
 #define BIT(n) (1U<<(n))
 
 //! aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
-#define ALIGN(m)	__attribute__((aligned (m)))
-
+#define ALIGN(m)   __attribute__((aligned(m)))
 //! packs a struct (and other types?) so it won't include padding bytes.
-#define PACKED __attribute__ ((packed))
+#define PACKED     __attribute__((packed))
+
+//! flags a function as deprecated.
+#ifndef LIBCTRU_NO_DEPRECATION
+#define DEPRECATED __attribute__ ((deprecated))
+#else
+#define DEPRECATED
+#endif
