@@ -10,7 +10,7 @@ static Handle iru_sharedmem_handle=0;
 static u32 *iru_sharedmem = NULL;
 static u32 iru_sharedmem_size = 0;
 
-Result irucmd_Initialize()
+Result irucmd_Initialize(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -23,7 +23,7 @@ Result irucmd_Initialize()
 	return ret;
 }
 
-Result irucmd_Shutdown()
+Result irucmd_Shutdown(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -52,7 +52,7 @@ Result irucmd_StartSendTransfer(u8 *buf, u32 size)
 	return ret;
 }
 
-Result irucmd_WaitSendTransfer()
+Result irucmd_WaitSendTransfer(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -177,7 +177,7 @@ Result IRU_Initialize(u32 *sharedmem_addr, u32 sharedmem_size)
 	return ret;
 }
 
-Result IRU_Shutdown()
+Result IRU_Shutdown(void)
 {
 	Result ret = 0;
 
@@ -195,7 +195,7 @@ Result IRU_Shutdown()
 	return 0;
 }
 
-Handle IRU_GetServHandle()
+Handle IRU_GetServHandle(void)
 {
 	return iru_handle;
 }

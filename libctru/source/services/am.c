@@ -8,7 +8,7 @@
 
 static Handle amHandle = 0;
 
-Result amInit()
+Result amInit(void)
 {
 	if(srvGetServiceHandle(&amHandle, "am:net") == 0)
 		return (Result)0;
@@ -19,12 +19,12 @@ Result amInit()
 	else return srvGetServiceHandle(&amHandle, "am:app");
 }
 
-Result amExit()
+Result amExit(void)
 {
 	return svcCloseHandle(amHandle);
 }
 
-Handle *amGetSessionHandle()
+Handle *amGetSessionHandle(void)
 {
 	return &amHandle;
 }
@@ -179,7 +179,7 @@ Result AM_DeleteAppTitle(u8 mediatype, u64 titleID)
 	return (Result)cmdbuf[1];
 }
 
-Result AM_InstallNativeFirm()
+Result AM_InstallNativeFirm(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();

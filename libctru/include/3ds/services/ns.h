@@ -4,8 +4,8 @@
 	Requires access to "ns:s" service
 */
 
-Result nsInit();
-Result nsExit();
+Result nsInit(void);
+Result nsExit(void);
 
 /* NS_LaunchTitle()
   titleid			TitleId of title to launch, if 0, gamecard assumed

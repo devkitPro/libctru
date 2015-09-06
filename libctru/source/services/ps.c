@@ -6,12 +6,12 @@
 
 static Handle psHandle;
 
-Result psInit()
+Result psInit(void)
 {
 	return srvGetServiceHandle(&psHandle, "ps:ps");
 }
 
-Result psExit()
+Result psExit(void)
 {
 	return svcCloseHandle(psHandle);
 }

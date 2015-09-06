@@ -54,7 +54,7 @@ Result MIC_Initialize(u32 *sharedmem, u32 sharedmem_size, u8 control, u8 recordi
 	return 0;
 }
 
-Result MIC_Shutdown()
+Result MIC_Shutdown(void)
 {
 	Result ret=0;
 
@@ -84,7 +84,7 @@ Result MIC_Shutdown()
 	return 0;
 }
 
-u32 MIC_GetSharedMemOffsetValue()
+u32 MIC_GetSharedMemOffsetValue(void)
 {
 	u32 pos = 0;
 
@@ -137,7 +137,7 @@ Result MIC_MapSharedMem(Handle handle, u32 size)
 	return (Result)cmdbuf[1];
 }
 
-Result MIC_UnmapSharedMem()
+Result MIC_UnmapSharedMem(void)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -166,7 +166,7 @@ Result MIC_cmd3_Initialize(u8 unk0, u8 unk1, u32 sharedmem_baseoffset, u32 share
 	return (Result)cmdbuf[1];
 }
 
-Result MIC_cmd5()
+Result MIC_cmd5(void)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();

@@ -53,7 +53,7 @@ cleanup1:
 	return ret;
 }
 
-void irrstExit()
+void irrstExit(void)
 {
 	if(!irrstUsed)return;
 
@@ -88,7 +88,7 @@ u32 irrstCheckSectionUpdateTime(vu32 *sharedmem_section, u32 id)
 	return 0;
 }
 
-void irrstScanInput()
+void irrstScanInput(void)
 {
 	if(!irrstUsed)return;
 	
@@ -105,7 +105,7 @@ void irrstScanInput()
 	}
 }
 
-u32 irrstKeysHeld()
+u32 irrstKeysHeld(void)
 {
 	if(irrstUsed)return kHeld;
 	return 0;

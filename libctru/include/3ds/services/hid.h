@@ -76,12 +76,12 @@ extern Handle hidMemHandle;
 extern vu32* hidSharedMem;
 
 Result hidInit(u32* sharedMem);
-void hidExit();
+void hidExit(void);
 
-void hidScanInput();
-u32 hidKeysHeld();
-u32 hidKeysDown();
-u32 hidKeysUp();
+void hidScanInput(void);
+u32 hidKeysHeld(void);
+u32 hidKeysDown(void);
+u32 hidKeysUp(void);
 void hidTouchRead(touchPosition* pos);
 void hidCircleRead(circlePosition* pos);
 void hidAccelRead(accelVector* vector);
@@ -98,9 +98,9 @@ void hidWaitForEvent(HID_Event id, bool nextEvent);
 #define circleRead hidCircleRead
 
 Result HIDUSER_GetHandles(Handle* outMemHandle, Handle *eventpad0, Handle *eventpad1, Handle *eventaccel, Handle *eventgyro, Handle *eventdebugpad);
-Result HIDUSER_EnableAccelerometer();
-Result HIDUSER_DisableAccelerometer();
-Result HIDUSER_EnableGyroscope();
-Result HIDUSER_DisableGyroscope();
+Result HIDUSER_EnableAccelerometer(void);
+Result HIDUSER_DisableAccelerometer(void);
+Result HIDUSER_EnableGyroscope(void);
+Result HIDUSER_DisableGyroscope(void);
 Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff);
 Result HIDUSER_GetSoundVolume(u8 *volume); //Return the volume slider value (0-63)

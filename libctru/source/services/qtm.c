@@ -12,7 +12,7 @@ Handle qtmHandle;
 
 static bool qtmInitialized = false;
 
-Result qtmInit()
+Result qtmInit(void)
 {
 	Result ret=0;
 
@@ -25,7 +25,7 @@ Result qtmInit()
 	return 0;
 }
 
-void qtmExit()
+void qtmExit(void)
 {
 	if(!qtmInitialized)return;
 
@@ -33,7 +33,7 @@ void qtmExit()
 	qtmInitialized = false;
 }
 
-bool qtmCheckInitialized()
+bool qtmCheckInitialized(void)
 {
 	return qtmInitialized;
 }

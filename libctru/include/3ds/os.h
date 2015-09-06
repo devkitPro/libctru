@@ -38,7 +38,7 @@ const char* osStrError(u32 error);
  *
  * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
  */
-u32 osGetFirmVersion();
+u32 osGetFirmVersion(void);
 
 /**
  * @return the kernel version
@@ -49,12 +49,12 @@ u32 osGetFirmVersion();
  * if(osGetKernelVersion() > SYSTEM_VERSION(2,46,0)) printf("You are running 9.0 or higher\n");
  * @endcode
  */
-u32 osGetKernelVersion();
+u32 osGetKernelVersion(void);
 
 /**
  * @return number of milliseconds since 1st Jan 1900 00:00.
  */
-u64 osGetTime();
+u64 osGetTime(void);
 
 /**
  * @brief Returns the Wifi signal strength.
@@ -72,4 +72,4 @@ u64 osGetTime();
  *
  * @return the Wifi signal strength
  */
-u8 osGetWifiStrength();
+u8 osGetWifiStrength(void);

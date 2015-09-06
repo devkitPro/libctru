@@ -15,9 +15,9 @@ typedef struct {
 	u32 unk_x2c[5];//"Not used by System_Settings."
 } qtmHeadtrackingInfo;
 
-Result qtmInit();
-void qtmExit();
-bool qtmCheckInitialized();
+Result qtmInit(void);
+void qtmExit(void);
+bool qtmCheckInitialized(void);
 
 Result qtmGetHeadtrackingInfo(u64 val, qtmHeadtrackingInfo *out);//val is normally 0.
 bool qtmCheckHeadFullyDetected(qtmHeadtrackingInfo *info);

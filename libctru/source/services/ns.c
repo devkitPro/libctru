@@ -6,12 +6,12 @@
 
 static Handle nsHandle;
 
-Result nsInit()
+Result nsInit(void)
 {
 	return srvGetServiceHandle(&nsHandle, "ns:s");	
 }
 
-Result nsExit()
+Result nsExit(void)
 {
 	return svcCloseHandle(nsHandle);
 }

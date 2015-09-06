@@ -28,8 +28,8 @@ typedef enum
 	Requires access to "ps:ps" service
 */
 
-Result psInit();
-Result psExit();
+Result psInit(void);
+Result psExit(void);
 
 /* PS_EncryptDecryptAes()
 About: Is an interface for the AES Engine, you can only use predetermined keyslots though.

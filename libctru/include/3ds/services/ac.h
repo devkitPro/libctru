@@ -1,7 +1,7 @@
 #pragma once
 
-Result acInit();
-Result acExit();
+Result acInit(void);
+Result acExit(void);
 
 Result ACU_GetWifiStatus(Handle* servhandle, u32 *out);
-Result ACU_WaitInternetConnection();
+Result ACU_WaitInternetConnection(void);

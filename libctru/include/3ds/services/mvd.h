@@ -38,7 +38,7 @@ typedef struct {
 void mvdstdGenerateDefaultConfig(mvdstdConfig *config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1_colorconv);
 
 Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput output_type, u32 size);//The input size isn't used when type==MVDTYPE_COLORFORMATCONV. Video processing / H.264 isn't supported currently.
-Result mvdstdShutdown();
+Result mvdstdShutdown(void);
 
 Result mvdstdSetConfig(mvdstdConfig *config);
 Result mvdstdProcessFrame(mvdstdConfig *config, u32 *h264_vaddr_inframe, u32 h264_inframesize, u32 h264_frameid);

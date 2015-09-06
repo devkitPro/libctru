@@ -19,11 +19,11 @@ typedef struct {
 
 static Handle newsHandle = 0;
 
-Result newsInit() {
+Result newsInit(void) {
 	return srvGetServiceHandle(&newsHandle, "news:u");
 }
 
-Result newsExit() {
+Result newsExit(void) {
 	return svcCloseHandle(newsHandle);
 }
 

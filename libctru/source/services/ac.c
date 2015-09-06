@@ -6,14 +6,14 @@
 
 static Handle acHandle;
 
-Result acInit()
+Result acInit(void)
 {
 	Result ret = srvGetServiceHandle(&acHandle, "ac:u");
 	if(!ret)return ret;
 	return srvGetServiceHandle(&acHandle, "ac:i");
 }
 
-Result acExit()
+Result acExit(void)
 {
 	return svcCloseHandle(acHandle);
 }
@@ -82,7 +82,7 @@ Result ACU_GetWifiStatus(Handle* servhandle, u32 *out)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_WaitInternetConnection()
+Result ACU_WaitInternetConnection(void)
 {
 	Handle servhandle = 0;
 	Result ret=0;

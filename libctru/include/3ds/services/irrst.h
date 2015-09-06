@@ -10,10 +10,10 @@ extern Handle irrstMemHandle;
 extern vu32* irrstSharedMem;
 
 Result irrstInit(u32* sharedMem);
-void irrstExit();
+void irrstExit(void);
 
-void irrstScanInput();
-u32 irrstKeysHeld();
+void irrstScanInput(void);
+u32 irrstKeysHeld(void);
 void irrstCstickRead(circlePosition* pos);
 
 void irrstWaitForEvent(bool nextEvent);

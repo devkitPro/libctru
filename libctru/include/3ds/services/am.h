@@ -14,9 +14,9 @@ typedef struct
 } TitleList;
 
 
-Result amInit();
-Result amExit();
-Handle *amGetSessionHandle();
+Result amInit(void);
+Result amExit(void);
+Handle *amGetSessionHandle(void);
 
 /* AM_GetTitleCount()
 About: Gets the number of titles for a given mediatype
@@ -107,7 +107,7 @@ Result AM_DeleteAppTitle(u8 mediatype, u64 titleID);
 /* AM_InstallNativeFirm()
 About: Installs NATIVE_FIRM to NAND (firm0:/ & firm1:/) from a CXI
 */
-Result AM_InstallNativeFirm();
+Result AM_InstallNativeFirm(void);
 
 /* AM_GetTitleProductCode()
 About: Gets the product code of a title based on its title id.

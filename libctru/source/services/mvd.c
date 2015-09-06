@@ -34,7 +34,7 @@ static Result mvdstdipc_Initialize(u32 *buf, u32 bufsize, Handle kprocess)
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_Shutdown()
+static Result mvdstdipc_Shutdown(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x00020000; //request header code
@@ -45,7 +45,7 @@ static Result mvdstdipc_Shutdown()
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_cmd18()
+static Result mvdstdipc_cmd18(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x00180000; //request header code
@@ -56,7 +56,7 @@ static Result mvdstdipc_cmd18()
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_cmd19()
+static Result mvdstdipc_cmd19(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x00190000; //request header code
@@ -67,7 +67,7 @@ static Result mvdstdipc_cmd19()
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_cmd1a()
+static Result mvdstdipc_cmd1a(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x001A0000; //request header code
@@ -173,7 +173,7 @@ Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput 
 	return 0;
 }
 
-Result mvdstdShutdown()
+Result mvdstdShutdown(void)
 {
 	if(!mvdstdInitialized)return 0;
 

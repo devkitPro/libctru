@@ -5,8 +5,8 @@
 */
 
 
-Result newsInit();
-Result newsExit();
+Result newsInit(void);
+Result newsExit(void);
 
 /* NEWSU_AddNotification()
 About: Adds a notification to the home menu Notifications applet.

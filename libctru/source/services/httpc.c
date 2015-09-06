@@ -6,7 +6,7 @@
 
 Handle __httpc_servhandle = 0;
 
-Result httpcInit()
+Result httpcInit(void)
 {
 	Result ret=0;
 
@@ -21,7 +21,7 @@ Result httpcInit()
 	return 0;
 }
 
-void httpcExit()
+void httpcExit(void)
 {
 	if(__httpc_servhandle==0)return;
 

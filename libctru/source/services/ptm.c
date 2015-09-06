@@ -7,12 +7,12 @@
 
 static Handle ptmHandle;
 
-Result ptmInit()
+Result ptmInit(void)
 {
 	return srvGetServiceHandle(&ptmHandle, "ptm:u");	
 }
 
-Result ptmExit()
+Result ptmExit(void)
 {
 	return svcCloseHandle(ptmHandle);
 }

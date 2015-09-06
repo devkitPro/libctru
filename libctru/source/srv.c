@@ -73,7 +73,7 @@ void __destroy_handle_list(void) {
 }
 
 
-Result srvInit()
+Result srvInit(void)
 {
 	Result rc = 0;
 
@@ -89,7 +89,7 @@ Result srvInit()
 	return rc;
 }
 
-Result srvExit()
+Result srvExit(void)
 {
 	if(g_srv_handle != 0)svcCloseHandle(g_srv_handle);
 
@@ -97,12 +97,12 @@ Result srvExit()
 	return 0;
 }
 
-Handle *srvGetSessionHandle()
+Handle *srvGetSessionHandle(void)
 {
 	return &g_srv_handle;
 }
 
-Result srvRegisterClient()
+Result srvRegisterClient(void)
 {
 	Result rc = 0;
 	
@@ -170,7 +170,7 @@ Result srvUnregisterService(const char* name)
 }
 
 // Old srv:pm interface, will only work on systems where srv:pm was a port (<7.X)
-Result srvPmInit()
+Result srvPmInit(void)
 {	
 	Result rc = 0;
 	

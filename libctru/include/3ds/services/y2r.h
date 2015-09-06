@@ -118,7 +118,7 @@ typedef struct
  *
  * This will internally get the handle of the service, and on success call Y2RU_DriverInitialize.
  */
-Result y2rInit();
+Result y2rInit(void);
 
 
 /**
@@ -126,7 +126,7 @@ Result y2rInit();
  *
  * This will internally call Y2RU_DriverFinalize and close the handle of the service.
  */
-Result y2rExit();
+Result y2rExit(void);
 
 
 /**

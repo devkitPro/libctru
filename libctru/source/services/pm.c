@@ -7,12 +7,12 @@
 
 static Handle pmHandle;
 
-Result pmInit()
+Result pmInit(void)
 {
 	return srvGetServiceHandle(&pmHandle, "pm:app");	
 }
 
-Result pmExit()
+Result pmExit(void)
 {
 	return svcCloseHandle(pmHandle);
 }

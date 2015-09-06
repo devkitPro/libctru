@@ -12,8 +12,8 @@ typedef enum{
 
 #define HTTPC_RESULTCODE_DOWNLOADPENDING 0xd840a02b
 
-Result httpcInit();
-void httpcExit();
+Result httpcInit(void);
+void httpcExit(void);
 
 Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy);//use_defaultproxy should be zero normally, unless you don't want HTTPC_SetProxyDefault() to be used automatically.
 Result httpcCloseContext(httpcContext *context);

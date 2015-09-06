@@ -63,7 +63,7 @@ cleanup1:
 	return ret;
 }
 
-void hidExit()
+void hidExit(void)
 {
 	if(!hidInitialised) return;
 
@@ -110,7 +110,7 @@ u32 hidCheckSectionUpdateTime(vu32 *sharedmem_section, u32 id)
 	return 0;
 }
 
-void hidScanInput()
+void hidScanInput(void)
 {
 	u32 Id=0;
 
@@ -160,17 +160,17 @@ void hidScanInput()
 	}
 }
 
-u32 hidKeysHeld()
+u32 hidKeysHeld(void)
 {
 	return kHeld;
 }
 
-u32 hidKeysDown()
+u32 hidKeysDown(void)
 {
 	return kDown;
 }
 
-u32 hidKeysUp()
+u32 hidKeysUp(void)
 {
 	return kUp;
 }
@@ -214,7 +214,7 @@ Result HIDUSER_GetHandles(Handle* outMemHandle, Handle *eventpad0, Handle *event
 	return cmdbuf[1];
 }
 
-Result HIDUSER_EnableAccelerometer()
+Result HIDUSER_EnableAccelerometer(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x110000; //request header code
@@ -225,7 +225,7 @@ Result HIDUSER_EnableAccelerometer()
 	return cmdbuf[1];
 }
 
-Result HIDUSER_DisableAccelerometer()
+Result HIDUSER_DisableAccelerometer(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x120000; //request header code
@@ -236,7 +236,7 @@ Result HIDUSER_DisableAccelerometer()
 	return cmdbuf[1];
 }
 
-Result HIDUSER_EnableGyroscope()
+Result HIDUSER_EnableGyroscope(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x130000; //request header code
@@ -247,7 +247,7 @@ Result HIDUSER_EnableGyroscope()
 	return cmdbuf[1];
 }
 
-Result HIDUSER_DisableGyroscope()
+Result HIDUSER_DisableGyroscope(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=0x140000; //request header code

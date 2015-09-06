@@ -4,8 +4,8 @@
 	Requires access to "pm:app" service
 */
 
-Result pmInit();
-Result pmExit();
+Result pmInit(void);
+Result pmExit(void);
 
 /* PM_LaunchTitle()
 About: Launches a title
