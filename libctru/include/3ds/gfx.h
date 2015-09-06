@@ -44,7 +44,7 @@ typedef enum
  *
  * @note You should always call @ref gfxExit once done to free the memory and services
  */
-void gfxInitDefault();
+void gfxInitDefault(void);
 
 /**
  * @brief Initializes the LCD framebuffers
@@ -66,7 +66,7 @@ void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomForm
  *
  * Just call it when you're done.
  */
-void gfxExit();
+void gfxExit(void);
 ///@}
 
 ///@name Control
@@ -108,7 +108,7 @@ void gfxSetDoubleBuffering(gfxScreen_t screen, bool doubleBuffering);
  * Use this if the data within your framebuffers changes a lot and that you want to make sure everything was updated correctly.
  * This shouldn't be needed and has a significant overhead.
  */
-void gfxFlushBuffers();
+void gfxFlushBuffers(void);
 
 /**
  * @brief Swaps the buffers and sets the gsp state
@@ -117,7 +117,7 @@ void gfxFlushBuffers();
  * LCD rendering should start as soon as the gsp state is set.
  * When using the GPU, call @ref gfxSwapBuffers instead.
  */
-void gfxSwapBuffers();
+void gfxSwapBuffers(void);
 
 /**
  * @brief Swaps the framebuffers
@@ -125,7 +125,7 @@ void gfxSwapBuffers();
  * This is the version to be used with the GPU since the GPU will use the gsp shared memory,
  * so the gsp state mustn't be set directly by the user.
  */
-void gfxSwapBuffersGpu();
+void gfxSwapBuffersGpu(void);
 
 ///@}
 

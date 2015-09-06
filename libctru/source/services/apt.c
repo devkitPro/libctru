@@ -106,7 +106,7 @@ void aptInitCaptureInfo(u32 *ns_capinfo)
 	memset(&gspcapinfo, 0, sizeof(GSP_CaptureInfo));
 
 	// Get display-capture info from GSP.
-	GSPGPU_ImportDisplayCaptureInfo(NULL, &gspcapinfo);
+	GSPGPU_ImportDisplayCaptureInfo(&gspcapinfo);
 
 	// Fill in display-capture info for NS.
 	if(gspcapinfo.screencapture[0].framebuf0_vaddr != gspcapinfo.screencapture[0].framebuf1_vaddr)ns_capinfo[1] = 1;
@@ -212,7 +212,7 @@ void aptReturnToMenu(void)
 	aptCloseSession();
 
 	// Save Vram
-	GSPGPU_SaveVramSysArea(NULL);
+	GSPGPU_SaveVramSysArea();
 
 	// Capture screen.
 	memset(__ns_capinfo, 0, 0x20);
@@ -231,7 +231,7 @@ void aptReturnToMenu(void)
 	aptCloseSession();
 
 	// Release GSP module.
-	GSPGPU_ReleaseRight(NULL);
+	GSPGPU_ReleaseRight();
 
 	// Jump to menu!
 	aptOpenSession();
@@ -296,8 +296,8 @@ void aptAppletClosed(void)
 {
 	aptAppletUtility_Exit_RetToApp(1);
 
-	GSPGPU_AcquireRight(NULL, 0x0);
-	GSPGPU_RestoreVramSysArea(NULL);
+	GSPGPU_AcquireRight(0x0);
+	GSPGPU_RestoreVramSysArea();
 
 	svcClearEvent(aptStatusEvent);
 	aptSetStatus(APP_RUNNING);
@@ -361,7 +361,7 @@ static void __handle_notification(void) {
 	case APTSIGNAL_WAKEUP:
 		if(aptGetStatus() == APP_SLEEPMODE)
 		{
-			if(aptStatusBeforeSleep == APP_RUNNING)GSPGPU_SetLcdForceBlack(NULL, 0);
+			if(aptStatusBeforeSleep == APP_RUNNING)GSPGPU_SetLcdForceBlack(0);
 
 			// Restore old aptStatus.
 			aptSetStatus(aptStatusBeforeSleep);
@@ -397,8 +397,8 @@ static bool __handle_incoming_parameter(void) {
 	case 0xB: // Just returned from menu.
 		if (aptStatusMutex)
 		{
-			GSPGPU_AcquireRight(NULL, 0x0);
-			GSPGPU_RestoreVramSysArea(NULL);
+			GSPGPU_AcquireRight(0x0);
+			GSPGPU_RestoreVramSysArea();
 			aptAppletUtility_Exit_RetToApp(0);
 			aptSetStatus(APP_RUNNING);
 		} else
@@ -1230,7 +1230,7 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 	aptSetStatus(APP_SUSPENDED);
 
 	// Save Vram
-	GSPGPU_SaveVramSysArea(NULL);
+	GSPGPU_SaveVramSysArea();
 
 	// Capture screen.
 	memset(__ns_capinfo, 0, 0x20);
@@ -1243,7 +1243,7 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 	aptCloseSession();
 
 	// Release GSP module.
-	GSPGPU_ReleaseRight(NULL);
+	GSPGPU_ReleaseRight();
 
 	return 0;
 }

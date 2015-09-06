@@ -48,11 +48,11 @@ typedef enum
 	GSPEVENT_MAX, // used to know how many events there are
 } GSP_Event;
 
-Result gspInit();
-void gspExit();
+Result gspInit(void);
+void gspExit(void);
 
 Result gspInitEventHandler(Handle gspEvent, vu8* gspSharedMem, u8 gspThreadId);
-void gspExitEventHandler();
+void gspExitEventHandler(void);
 void gspWaitForEvent(GSP_Event id, bool nextEvent);
 #define gspWaitForPSC0() gspWaitForEvent(GSPEVENT_PSC0, false)
 #define gspWaitForPSC1() gspWaitForEvent(GSPEVENT_PSC1, false)
@@ -63,19 +63,19 @@ void gspWaitForEvent(GSP_Event id, bool nextEvent);
 #define gspWaitForP3D() gspWaitForEvent(GSPEVENT_P3D, false)
 #define gspWaitForDMA() gspWaitForEvent(GSPEVENT_DMA, false)
 
-Result GSPGPU_AcquireRight(Handle *handle, u8 flags);
-Result GSPGPU_ReleaseRight(Handle *handle);
-Result GSPGPU_ImportDisplayCaptureInfo(Handle* handle, GSP_CaptureInfo *captureinfo);
-Result GSPGPU_SaveVramSysArea(Handle* handle);
-Result GSPGPU_RestoreVramSysArea(Handle* handle);
-Result GSPGPU_SetLcdForceBlack(Handle *handle, u8 flags);
-Result GSPGPU_SetBufferSwap(Handle* handle, u32 screenid, GSP_FramebufferInfo *framebufinfo);
-Result GSPGPU_FlushDataCache(Handle *handle, u8* adr, u32 size);
-Result GSPGPU_InvalidateDataCache(Handle* handle, u8* adr, u32 size);
-Result GSPGPU_WriteHWRegs(Handle *handle, u32 regAddr, u32* data, u8 size);
-Result GSPGPU_WriteHWRegsWithMask(Handle* handle, u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize);
-Result GSPGPU_ReadHWRegs(Handle *handle, u32 regAddr, u32* data, u8 size);
-Result GSPGPU_RegisterInterruptRelayQueue(Handle *handle, Handle eventHandle, u32 flags, Handle* outMemHandle, u8* threadID);
-Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle);
-Result GSPGPU_TriggerCmdReqQueue(Handle *handle);
-Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* handle);
+Result GSPGPU_AcquireRight(u8 flags);
+Result GSPGPU_ReleaseRight(void);
+Result GSPGPU_ImportDisplayCaptureInfo(GSP_CaptureInfo *captureinfo);
+Result GSPGPU_SaveVramSysArea(void);
+Result GSPGPU_RestoreVramSysArea(void);
+Result GSPGPU_SetLcdForceBlack(u8 flags);
+Result GSPGPU_SetBufferSwap(u32 screenid, GSP_FramebufferInfo *framebufinfo);
+Result GSPGPU_FlushDataCache(const void* adr, u32 size);
+Result GSPGPU_InvalidateDataCache(const void* adr, u32 size);
+Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size);
+Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize);
+Result GSPGPU_ReadHWRegs(u32 regAddr, u32* data, u8 size);
+Result GSPGPU_RegisterInterruptRelayQueue(Handle eventHandle, u32 flags, Handle* outMemHandle, u8* threadID);
+Result GSPGPU_UnregisterInterruptRelayQueue(void);
+Result GSPGPU_TriggerCmdReqQueue(void);
+Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8]);
