@@ -90,14 +90,20 @@ void GPUCMD_Finalize(void)
 	GPUCMD_AddWrite(GPUREG_FINALIZE, 0x12345678); //not the cleanest way of guaranteeing 0x10-byte size but whatever good enough for now
 }
 
+static inline u32 floatrawbits(float f)
+{
+	union { float f; u32 i; } s;
+	s.f = f;
+	return s.i;
+}
+
 // f24 has:
 //  - 1 sign bit
 //  - 7 exponent bits
 //  - 16 mantissa bits
 u32 f32tof24(float f)
 {
-	u32 i;
-	memcpy(&i, &f, 4);
+	u32 i = floatrawbits(f);
 
 	u32 mantissa = (i << 9) >>  9;
 	s32 exponent = (i << 1) >> 24;
@@ -128,8 +134,7 @@ u32 f32tof24(float f)
 //  - 23 mantissa bits
 u32 f32tof31(float f)
 {
-	u32 i;
-	memcpy(&i, &f, 4);
+	u32 i = floatrawbits(f);
 
 	u32 mantissa = (i << 9) >>  9;
 	s32 exponent = (i << 1) >> 24;

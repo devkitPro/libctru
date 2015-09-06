@@ -44,7 +44,7 @@ Result hidInit(u32* sharedMem)
 	hidSharedMem=sharedMem;
 	if((ret=svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
 
-	APT_CheckNew3DS(NULL, &val);
+	APT_CheckNew3DS(&val);
 
 	if(val)
 	{
@@ -74,7 +74,7 @@ void hidExit()
 	svcCloseHandle(hidMemHandle);
 	svcCloseHandle(hidHandle);
 
-	APT_CheckNew3DS(NULL, &val);
+	APT_CheckNew3DS(&val);
 
 	if(val)
 	{
