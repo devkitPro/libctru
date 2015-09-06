@@ -58,7 +58,7 @@ void draw_startup()
 	}
 
 	memset(gfxtopadr, 0, 0x46500);
-	GSPGPU_FlushDataCache(NULL, inaddr, 0x46500);
+	GSPGPU_FlushDataCache(inaddr, 0x46500);
 
 	printstring("mvd example\n");
 
@@ -79,7 +79,7 @@ void draw_startup()
 
 	svcSleepThread(1000000000);//Not sure how to determine when frame processing finishes.
 
-	GSPGPU_InvalidateDataCache(NULL, outaddr, 0x100000);
+	GSPGPU_InvalidateDataCache(outaddr, 0x100000);
 
 	f = fopen("sdmc:/mvd_outdata.bin", "w");
 	if(f)

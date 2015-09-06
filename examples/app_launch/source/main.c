@@ -29,9 +29,9 @@ int main()
 			// Open an APT session so we can talk to the APT service
 			aptOpenSession();
 			// Prepare for the app launch
-			APT_PrepareToDoAppJump(NULL, 0, 0x0004001000022400LL, 0); // *EUR* camera app title ID
+			APT_PrepareToDoAppJump(0, 0x0004001000022400LL, 0); // *EUR* camera app title ID
 			// Tell APT to trigger the app launch and set the status of this app to exit
-			APT_DoAppJump(NULL, 0x300 /* size of buf0 */, 0x20 /* size of buf1 */, buf0, buf1);
+			APT_DoAppJump(0x300 /* size of buf0 */, 0x20 /* size of buf1 */, buf0, buf1);
 			// Close the APT session because we don't need APT anymore
 			aptCloseSession();
 		}
