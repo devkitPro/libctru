@@ -137,7 +137,7 @@ Result romfsInit(void)
 		FS_archive arch = { ARCH_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0, 0 };
 		FS_path path = { PATH_WCHAR, units+1, (u8*)__utf16path };
 
-		Result rc = FSUSER_OpenFileDirectly(NULL, &romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
+		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
 		if (rc) return rc;
 
 		_3DSX_Header hdr;
@@ -155,7 +155,7 @@ Result romfsInit(void)
 		FS_archive arch = { ARCH_ROMFS, { PATH_EMPTY, 1, (u8*)"" }, 0, 0 };
 		FS_path path = { PATH_BINARY, sizeof(zeros), zeros };
 
-		Result rc = FSUSER_OpenFileDirectly(NULL, &romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
+		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
 		if (rc) return rc;
 	}
 

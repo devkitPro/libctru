@@ -227,7 +227,7 @@ Result sdmcInit(void)
   if(sdmcInitialised)
     return rc;
 
-  rc = FSUSER_OpenArchive(NULL, &sdmcArchive);
+  rc = FSUSER_OpenArchive(&sdmcArchive);
   if(rc == 0)
   {
 
@@ -287,7 +287,7 @@ Result sdmcExit(void)
 
   if(!sdmcInitialised) return rc;
 
-  rc = FSUSER_CloseArchive(NULL, &sdmcArchive);
+  rc = FSUSER_CloseArchive(&sdmcArchive);
   if(rc == 0)
   {
     RemoveDevice("sdmc");
@@ -364,7 +364,7 @@ sdmc_open(struct _reent *r,
   /* Test O_EXCL. */
   if((flags & O_CREAT) && (flags & O_EXCL))
   {
-    rc = FSUSER_CreateFile(NULL, sdmcArchive, fs_path, 0);
+    rc = FSUSER_CreateFile(sdmcArchive, fs_path, 0);
     if(rc != 0)
     {
       r->_errno = sdmc_translate_error(rc);
@@ -377,7 +377,7 @@ sdmc_open(struct _reent *r,
     attributes |= FS_ATTRIBUTE_READONLY;*/
 
   /* open the file */
-  rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, fs_path,
+  rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path,
                        sdmc_flags, attributes);
   if(rc == 0)
   {
@@ -667,7 +667,7 @@ sdmc_stat(struct _reent *r,
   if(fs_path.data == NULL)
     return -1;
 
-  if((rc = FSUSER_OpenFile(NULL, &fd, sdmcArchive, fs_path,
+  if((rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path,
                            FS_OPEN_READ, FS_ATTRIBUTE_NONE)) == 0)
   {
     sdmc_file_t tmpfd = { .fd = fd };
@@ -676,7 +676,7 @@ sdmc_stat(struct _reent *r,
 
     return rc;
   }
-  else if((rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, fs_path)) == 0)
+  else if((rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path)) == 0)
   {
     memset(st, 0, sizeof(struct stat));
     st->st_nlink = 1;
@@ -726,7 +726,7 @@ sdmc_unlink(struct _reent *r,
   if(fs_path.data == NULL)
     return -1;
 
-  rc = FSUSER_DeleteFile(NULL, sdmcArchive, fs_path);
+  rc = FSUSER_DeleteFile(sdmcArchive, fs_path);
   if(rc == 0)
     return 0;
 
@@ -754,7 +754,7 @@ sdmc_chdir(struct _reent *r,
   if(fs_path.data == NULL)
     return -1;
 
-  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, fs_path);
+  rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path);
   if(rc == 0)
   {
     FSDIR_Close(fd);
@@ -795,11 +795,11 @@ sdmc_rename(struct _reent *r,
   if(fs_path_new.data == NULL)
     return -1;
 
-  rc = FSUSER_RenameFile(NULL, sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
+  rc = FSUSER_RenameFile(sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
   if(rc == 0)
     return 0;
 
-  rc = FSUSER_RenameDirectory(NULL, sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
+  rc = FSUSER_RenameDirectory(sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
   if(rc == 0)
     return 0;
 
@@ -830,7 +830,7 @@ sdmc_mkdir(struct _reent *r,
 
   /* TODO: Use mode to set directory attributes. */
 
-  rc = FSUSER_CreateDirectory(NULL, sdmcArchive, fs_path);
+  rc = FSUSER_CreateDirectory(sdmcArchive, fs_path);
   if(rc == 0)
     return 0;
 
@@ -865,7 +865,7 @@ sdmc_diropen(struct _reent *r,
   sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
 
   /* open the directory */
-  rc = FSUSER_OpenDirectory(NULL, &fd, sdmcArchive, fs_path);
+  rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path);
   if(rc == 0)
   {
     dir->fd = fd;
@@ -1002,7 +1002,6 @@ sdmc_statvfs(struct _reent  *r,
   u8    writable = 0;
 
   rc = FSUSER_GetSdmcArchiveResource(NULL,
-                                     NULL,
                                      &clusterSize,
                                      &numClusters,
                                      &freeClusters);
@@ -1021,7 +1020,7 @@ sdmc_statvfs(struct _reent  *r,
     buf->f_flag    = ST_NOSUID;
     buf->f_namemax = 0; //??? how to get
 
-    rc = FSUSER_IsSdmcWritable(NULL, &writable);
+    rc = FSUSER_IsSdmcWritable(&writable);
     if(rc != 0 || !writable)
       buf->f_flag |= ST_RDONLY;
 
@@ -1147,7 +1146,7 @@ sdmc_rmdir(struct _reent *r,
   if(fs_path.data == NULL)
     return -1;
 
-  rc = FSUSER_DeleteDirectory(NULL, sdmcArchive, fs_path);
+  rc = FSUSER_DeleteDirectory(sdmcArchive, fs_path);
   if(rc == 0)
     return 0;
 

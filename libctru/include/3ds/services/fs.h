@@ -129,27 +129,27 @@ typedef struct
 
 Result fsInit(void);
 Result fsExit(void);
-Handle *fsGetSessionHandle();
+Handle *fsGetSessionHandle(void);
 
 FS_path FS_makePath(FS_pathType type, const char  *path);
 
-Result FSUSER_Initialize(Handle* handle);
-Result FSUSER_OpenArchive(Handle* handle, FS_archive* archive);
-Result FSUSER_OpenDirectory(Handle* handle, Handle* out, FS_archive archive, FS_path dirLowPath);
-Result FSUSER_OpenFile(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
-Result FSUSER_OpenFileDirectly(Handle* handle, Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
-Result FSUSER_CloseArchive(Handle* handle, FS_archive* archive);
-Result FSUSER_CreateFile(Handle* handle, FS_archive archive, FS_path fileLowPath, u32 fileSize);
-Result FSUSER_CreateDirectory(Handle* handle, FS_archive archive, FS_path dirLowPath);
-Result FSUSER_DeleteFile(Handle *handle, FS_archive archive, FS_path fileLowPath);
-Result FSUSER_DeleteDirectory(Handle *handle, FS_archive archive, FS_path dirLowPath);
-Result FSUSER_DeleteDirectoryRecursively(Handle *handle, FS_archive archive, FS_path dirLowPath);
-Result FSUSER_RenameFile(Handle *handle, FS_archive srcArchive, FS_path srcFileLowPath, FS_archive destArchive, FS_path destFileLowPath);
-Result FSUSER_RenameDirectory(Handle *handle, FS_archive srcArchive, FS_path srcDirLowPath, FS_archive destArchive, FS_path destDirLowPath);
-Result FSUSER_GetSdmcArchiveResource(Handle *handle, u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
-Result FSUSER_GetNandArchiveResource(Handle *handle, u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
-Result FSUSER_IsSdmcDetected(Handle *handle, u8 *detected);
-Result FSUSER_IsSdmcWritable(Handle *handle, u8 *writable);
+Result FSUSER_Initialize(void);
+Result FSUSER_OpenArchive(FS_archive* archive);
+Result FSUSER_OpenDirectory(Handle* out, FS_archive archive, FS_path dirLowPath);
+Result FSUSER_OpenFile(Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
+Result FSUSER_OpenFileDirectly(Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
+Result FSUSER_CloseArchive(FS_archive* archive);
+Result FSUSER_CreateFile(FS_archive archive, FS_path fileLowPath, u32 fileSize);
+Result FSUSER_CreateDirectory(FS_archive archive, FS_path dirLowPath);
+Result FSUSER_DeleteFile(FS_archive archive, FS_path fileLowPath);
+Result FSUSER_DeleteDirectory(FS_archive archive, FS_path dirLowPath);
+Result FSUSER_DeleteDirectoryRecursively(FS_archive archive, FS_path dirLowPath);
+Result FSUSER_RenameFile(FS_archive srcArchive, FS_path srcFileLowPath, FS_archive destArchive, FS_path destFileLowPath);
+Result FSUSER_RenameDirectory(FS_archive srcArchive, FS_path srcDirLowPath, FS_archive destArchive, FS_path destDirLowPath);
+Result FSUSER_GetSdmcArchiveResource(u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
+Result FSUSER_GetNandArchiveResource(u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
+Result FSUSER_IsSdmcDetected(u8 *detected);
+Result FSUSER_IsSdmcWritable(u8 *writable);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, void *buffer, u32 size);
