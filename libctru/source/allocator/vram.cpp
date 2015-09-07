@@ -59,7 +59,7 @@ void* vramMemAlign(size_t size, size_t alignment)
 
 void* vramAlloc(size_t size)
 {
-	return vramMemAlign(size, 16);
+	return vramMemAlign(size, 0x80);
 }
 
 void* vramRealloc(void* mem, size_t size)

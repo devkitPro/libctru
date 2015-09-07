@@ -61,7 +61,7 @@ void* linearMemAlign(size_t size, size_t alignment)
 
 void* linearAlloc(size_t size)
 {
-	return linearMemAlign(size, 16);
+	return linearMemAlign(size, 0x80);
 }
 
 void* linearRealloc(void* mem, size_t size)
