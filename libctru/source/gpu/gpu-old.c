@@ -42,8 +42,8 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	float fw=(float)w;
 	float fh=(float)h;
 
-	GPUCMD_AddWrite(GPUREG_0111, 0x00000001);
-	GPUCMD_AddWrite(GPUREG_0110, 0x00000001);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_FLUSH, 0x00000001);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_INVALIDATE, 0x00000001);
 
 	u32 f116e=0x01000000|(((h-1)&0xFFF)<<12)|(w&0xFFF);
 
@@ -52,18 +52,18 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	param[0x2]=f116e;
 	GPUCMD_AddIncrementalWrites(GPUREG_DEPTHBUFFER_LOC, param, 0x00000003);
 
-	GPUCMD_AddWrite(GPUREG_006E, f116e);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_DIM2, f116e);
 	GPUCMD_AddWrite(GPUREG_DEPTHBUFFER_FORMAT, 0x00000003); //depth buffer format
 	GPUCMD_AddWrite(GPUREG_COLORBUFFER_FORMAT, 0x00000002); //color buffer format
-	GPUCMD_AddWrite(GPUREG_011B, 0x00000000); //?
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_BLOCK32, 0x00000000); //?
 
 	param[0x0]=f32tof24(fw/2);
 	param[0x1]=f32tof31(2.0f / fw) << 1;
 	param[0x2]=f32tof24(fh/2);
 	param[0x3]=f32tof31(2.0f / fh) << 1;
-	GPUCMD_AddIncrementalWrites(GPUREG_0041, param, 0x00000004);
+	GPUCMD_AddIncrementalWrites(GPUREG_VIEWPORT_WIDTH, param, 0x00000004);
 
-	GPUCMD_AddWrite(GPUREG_0068, (y<<16)|(x&0xFFFF));
+	GPUCMD_AddWrite(GPUREG_VIEWPORT_XY, (y<<16)|(x&0xFFFF));
 
 	param[0x0]=0x00000000;
 	param[0x1]=0x00000000;
@@ -75,7 +75,7 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	param[0x1]=0x0000000F;
 	param[0x2]=0x00000002;
 	param[0x3]=0x00000002;
-	GPUCMD_AddIncrementalWrites(GPUREG_0112, param, 0x00000004);
+	GPUCMD_AddIncrementalWrites(GPUREG_COLORBUFFER_READ, param, 0x00000004);
 }
 
 void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h)
@@ -102,12 +102,12 @@ void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref)
 
 void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 input_mask, u8 write_mask)
 {
-	GPUCMD_AddWrite(GPUREG_STENCILTEST_CONFIG, (enable&1)|((function&7)<<4)|(write_mask<<8)|(ref<<16)|(input_mask<<24));
+	GPUCMD_AddWrite(GPUREG_STENCIL_TEST, (enable&1)|((function&7)<<4)|(write_mask<<8)|(ref<<16)|(input_mask<<24));
 }
 
 void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass)
 {
-	GPUCMD_AddWrite(GPUREG_STENCILOP_CONFIG, sfail | (dfail << 4) | (pass << 8));
+	GPUCMD_AddWrite(GPUREG_STENCIL_ACTION, sfail | (dfail << 4) | (pass << 8));
 }
 
 void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask)
@@ -120,13 +120,13 @@ void GPU_SetAlphaBlending(GPU_BLENDEQUATION colorEquation, GPU_BLENDEQUATION alp
 	GPU_BLENDFACTOR alphaSrc, GPU_BLENDFACTOR alphaDst)
 {
 	GPUCMD_AddWrite(GPUREG_BLEND_CONFIG, colorEquation | (alphaEquation<<8) | (colorSrc<<16) | (colorDst<<20) | (alphaSrc<<24) | (alphaDst<<28));
-	GPUCMD_AddMaskedWrite(GPUREG_COLOROUTPUT_CONFIG, 0x2, 0x00000100);
+	GPUCMD_AddMaskedWrite(GPUREG_BLEND_ENABLE, 0x2, 0x00000100);
 }
 
 void GPU_SetColorLogicOp(GPU_LOGICOP op)
 {
-	GPUCMD_AddWrite(GPUREG_COLORLOGICOP_CONFIG, op);
-	GPUCMD_AddMaskedWrite(GPUREG_COLOROUTPUT_CONFIG, 0x2, 0x00000000);
+	GPUCMD_AddWrite(GPUREG_LOGICOP_CONFIG, op);
+	GPUCMD_AddMaskedWrite(GPUREG_BLEND_ENABLE, 0x2, 0x00000000);
 }
 
 void GPU_SetBlendingColor(u8 r, u8 g, u8 b, u8 a)
@@ -137,7 +137,7 @@ void GPU_SetBlendingColor(u8 r, u8 g, u8 b, u8 a)
 void GPU_SetTextureEnable(GPU_TEXUNIT units)
 {
 	GPUCMD_AddMaskedWrite(GPUREG_006F, 0x2, units<<8); 			// enables texcoord outputs
-	GPUCMD_AddWrite(GPUREG_TEXUNITS_CONFIG, 0x00011000|units);	// enables texture units
+	GPUCMD_AddWrite(GPUREG_TEXUNIT_ENABLE, 0x00011000|units);	// enables texture units
 }
 
 void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 param, GPU_TEXCOLOR colorType)
@@ -235,7 +235,7 @@ void GPU_SetFaceCulling(GPU_CULLMODE mode)
 
 void GPU_SetCombinerBufferWrite(u8 rgb_config, u8 alpha_config)
 {
-    GPUCMD_AddMaskedWrite(GPUREG_TEXENV_BUFFER_CONFIG, 0x2, (rgb_config << 8) | (alpha_config << 12));
+    GPUCMD_AddMaskedWrite(GPUREG_TEXENV_UPDATE_BUFFER, 0x2, (rgb_config << 8) | (alpha_config << 12));
 }
 
 const u8 GPU_TEVID[]={0xC0,0xC8,0xD0,0xD8,0xF0,0xF8};
@@ -259,13 +259,13 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 first, u32 count)
 {
 	//set primitive type
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x2, primitive);
-	GPUCMD_AddMaskedWrite(GPUREG_025F, 0x2, 0x00000001);
+	GPUCMD_AddMaskedWrite(GPUREG_RESTART_PRIMITIVE, 0x2, 0x00000001);
 	//index buffer address register should be cleared (except bit 31) before drawing
 	GPUCMD_AddWrite(GPUREG_INDEXBUFFER_CONFIG, 0x80000000);
 	//pass number of vertices
 	GPUCMD_AddWrite(GPUREG_NUMVERTICES, count);
 	//set first vertex
-	GPUCMD_AddWrite(GPUREG_DRAW_VERTEX_OFFSET, first);
+	GPUCMD_AddWrite(GPUREG_VERTEX_OFFSET, first);
 
 	//all the following except 0x000F022E might be useless
 	GPUCMD_AddMaskedWrite(GPUREG_0253, 0x1, 0x00000001);
@@ -273,20 +273,20 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 first, u32 count)
 	GPUCMD_AddWrite(GPUREG_DRAWARRAYS, 0x00000001);
 	GPUCMD_AddMaskedWrite(GPUREG_0245, 0x1, 0x00000001);
 	GPUCMD_AddWrite(GPUREG_0231, 0x00000001);
-	GPUCMD_AddWrite(GPUREG_0111, 0x00000001);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_FLUSH, 0x00000001);
 }
 
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n)
 {
 	//set primitive type
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x2, primitive);
-	GPUCMD_AddMaskedWrite(GPUREG_025F, 0x2, 0x00000001);
+	GPUCMD_AddMaskedWrite(GPUREG_RESTART_PRIMITIVE, 0x2, 0x00000001);
 	//index buffer (TODO : support multiple types)
 	GPUCMD_AddWrite(GPUREG_INDEXBUFFER_CONFIG, 0x80000000|((u32)indexArray));
 	//pass number of vertices
 	GPUCMD_AddWrite(GPUREG_NUMVERTICES, n);
 	
-	GPUCMD_AddWrite(GPUREG_DRAW_VERTEX_OFFSET, 0x00000000);
+	GPUCMD_AddWrite(GPUREG_VERTEX_OFFSET, 0x00000000);
 	
 	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x2, 0x00000100);
 	GPUCMD_AddMaskedWrite(GPUREG_0253, 0x2, 0x00000100);
@@ -296,12 +296,12 @@ void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n)
 	GPUCMD_AddMaskedWrite(GPUREG_0245, 0x1, 0x00000001);
 	GPUCMD_AddWrite(GPUREG_0231, 0x00000001);
 	
-	// CHECKME: does this one also require command 0x0111 at the end?
+	// CHECKME: does this one also require GPUREG_FRAMEBUFFER_FLUSH at the end?
 }
 
 void GPU_FinishDrawing()
 {
-	GPUCMD_AddWrite(GPUREG_0111, 0x00000001);
-	GPUCMD_AddWrite(GPUREG_0110, 0x00000001);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_FLUSH, 0x00000001);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_INVALIDATE, 0x00000001);
 	GPUCMD_AddWrite(GPUREG_0063, 0x00000001);
 }

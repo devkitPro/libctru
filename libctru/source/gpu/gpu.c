@@ -83,8 +83,8 @@ void GPUCMD_Add(u32 header, u32* param, u32 paramlength)
 void GPUCMD_Finalize(void)
 {
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x8, 0x00000000);
-	GPUCMD_AddWrite(GPUREG_0111, 0x00000001);
-	GPUCMD_AddWrite(GPUREG_0110, 0x00000001);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_FLUSH, 0x00000001);
+	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_INVALIDATE, 0x00000001);
 	GPUCMD_AddWrite(GPUREG_FINALIZE, 0x12345678);
 	GPUCMD_AddWrite(GPUREG_FINALIZE, 0x12345678); //not the cleanest way of guaranteeing 0x10-byte size but whatever good enough for now
 }
