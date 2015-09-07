@@ -23,7 +23,7 @@ Result GX_RequestDma(u32* src, u32* dst, u32 length)
 	return GSPGPU_SubmitGxCommand(gxCmdBuf, gxCommand);
 }
 
-Result GX_SetCommandList_Last(u32* buf0a, u32 buf0s, u8 flags)
+Result GX_ProcessCommandList(u32* buf0a, u32 buf0s, u8 flags)
 {
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x01; //CommandID
@@ -36,7 +36,7 @@ Result GX_SetCommandList_Last(u32* buf0a, u32 buf0s, u8 flags)
 	return GSPGPU_SubmitGxCommand(gxCmdBuf, gxCommand);
 }
 
-Result GX_SetMemoryFill(u32* buf0a, u32 buf0v, u32* buf0e, u16 control0, u32* buf1a, u32 buf1v, u32* buf1e, u16 control1)
+Result GX_MemoryFill(u32* buf0a, u32 buf0v, u32* buf0e, u16 control0, u32* buf1a, u32 buf1v, u32* buf1e, u16 control1)
 {
 	u32 gxCommand[0x8];
 	// gxCommand[0]=0x02; //CommandID
@@ -53,7 +53,7 @@ Result GX_SetMemoryFill(u32* buf0a, u32 buf0v, u32* buf0e, u16 control0, u32* bu
 }
 
 // Flags, for applications this is 0x1001000 for the main screen, and 0x1000 for the sub screen.
-Result GX_SetDisplayTransfer(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 flags)
+Result GX_DisplayTransfer(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 flags)
 {
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x03; //CommandID
@@ -67,7 +67,7 @@ Result GX_SetDisplayTransfer(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32
 	return GSPGPU_SubmitGxCommand(gxCmdBuf, gxCommand);
 }
 
-Result GX_SetTextureCopy(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 size, u32 flags)
+Result GX_TextureCopy(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 size, u32 flags)
 {
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x04; //CommandID
@@ -82,7 +82,7 @@ Result GX_SetTextureCopy(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 siz
 	return GSPGPU_SubmitGxCommand(gxCmdBuf, gxCommand);
 }
 
-Result GX_SetCommandList_First(u32* buf0a, u32 buf0s, u32* buf1a, u32 buf1s, u32* buf2a, u32 buf2s)
+Result GX_FlushCacheRegions(u32* buf0a, u32 buf0s, u32* buf1a, u32 buf1s, u32* buf2a, u32 buf2s)
 {
 	u32 gxCommand[0x8];
 	gxCommand[0]=0x05; //CommandID

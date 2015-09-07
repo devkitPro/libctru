@@ -27,7 +27,7 @@ void gpuExit(void)
 
 void gpuClearBuffers(u32 clearColor)
 {
-	GX_SetMemoryFill(
+	GX_MemoryFill(
 		colorBuf, clearColor, &colorBuf[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH,
 		depthBuf, 0,          &depthBuf[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);
 	gspWaitForPSC0(); // Wait for the fill to complete
@@ -71,7 +71,7 @@ void gpuFrameEnd(void)
 	gspWaitForP3D(); // Wait for the rendering to complete
 
 	// Transfer the GPU output to the framebuffer
-	GX_SetDisplayTransfer(
+	GX_DisplayTransfer(
 		colorBuf, GX_BUFFER_DIM(240, 400),
 		(u32*)gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), GX_BUFFER_DIM(240, 400),
 		DISPLAY_TRANSFER_FLAGS);
