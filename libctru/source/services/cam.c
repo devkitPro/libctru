@@ -7,7 +7,7 @@
 Handle camHandle;
 static bool initialized = false;
 
-Result camInit() {
+Result camInit(void) {
 	Result ret = 0;
 
 	if (initialized) return 0;
@@ -25,7 +25,7 @@ Result camInit() {
 	return 0;
 }
 
-Result camExit() {
+Result camExit(void) {
 	Result ret = 0;
 
 	if (initialized)
@@ -678,7 +678,7 @@ Result CAMU_PlayShutterSound(CAMU_ShutterSoundType sound) {
 	return cmdbuf[1];
 }
 
-Result CAMU_DriverInitialize() {
+Result CAMU_DriverInitialize(void) {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x00390000;
@@ -687,7 +687,7 @@ Result CAMU_DriverInitialize() {
 	return cmdbuf[1];
 }
 
-Result CAMU_DriverFinalize() {
+Result CAMU_DriverFinalize(void) {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x003A0000;

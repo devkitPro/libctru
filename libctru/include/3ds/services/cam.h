@@ -286,14 +286,14 @@ typedef struct {
  *
  * This will internally get the handle of the service, and on success call CAMU_DriverInitialize.
  */
-Result camInit();
+Result camInit(void);
 
 /**
  * @brief Closes the cam service.
  *
  * This will internally call CAMU_DriverFinalize and close the handle of the service.
  */
-Result camExit();
+Result camExit(void);
 
 /// Begins capture on the specified camera port.
 Result CAMU_StartCapture(CAMU_Port port);
@@ -543,10 +543,10 @@ Result CAMU_GetSuitableY2rStandardCoefficient(Y2R_StandardCoefficient* coefficie
 Result CAMU_PlayShutterSound(CAMU_ShutterSoundType sound);
 
 ///Initializes the camera driver.
-Result CAMU_DriverInitialize();
+Result CAMU_DriverInitialize(void);
 
 ///Finalizes the camera driver.
-Result CAMU_DriverFinalize();
+Result CAMU_DriverFinalize(void);
 
 /**
  * @brief Gets the current activated camera.
