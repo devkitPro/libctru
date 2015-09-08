@@ -6,6 +6,7 @@ extern "C" {
 
 //might be missing some
 #include <3ds/types.h>
+#include <3ds/ipc.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/linear.h>
