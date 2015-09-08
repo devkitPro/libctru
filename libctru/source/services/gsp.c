@@ -184,7 +184,7 @@ Result GSPGPU_FlushDataCache(const void* adr, u32 size)
 	cmdbuf[1]=(u32)adr;
 	cmdbuf[2]=size;
 	cmdbuf[3]=0x0;
-	cmdbuf[4]=0xffff8001;
+	cmdbuf[4]=CUR_PROCESS_HANDLE;
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
@@ -200,7 +200,7 @@ Result GSPGPU_InvalidateDataCache(const void* adr, u32 size)
 	cmdbuf[1] = (u32)adr;
 	cmdbuf[2] = size;
 	cmdbuf[3] = 0;
-	cmdbuf[4] = 0xFFFF8001;
+	cmdbuf[4] = CUR_PROCESS_HANDLE;
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
@@ -265,7 +265,7 @@ Result GSPGPU_AcquireRight(u8 flags)
 	cmdbuf[0]=0x160042; //request header code
 	cmdbuf[1]=flags;
 	cmdbuf[2]=0x0;
-	cmdbuf[3]=0xffff8001;
+	cmdbuf[3]=CUR_PROCESS_HANDLE;
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;

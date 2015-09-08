@@ -6,6 +6,7 @@ extern "C" {
 
 //might be missing some
 #include <3ds/types.h>
+#include <3ds/ipc.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/linear.h>
@@ -21,6 +22,7 @@ extern "C" {
 #include <3ds/services/cfgnor.h>
 #include <3ds/services/cfgu.h>
 #include <3ds/services/csnd.h>
+#include <3ds/services/dsp.h>
 #include <3ds/services/fs.h>
 #include <3ds/services/gsp.h>
 #include <3ds/services/hid.h>

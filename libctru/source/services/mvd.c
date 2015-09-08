@@ -84,7 +84,7 @@ Result mvdstdSetConfig(mvdstdConfig *config)
 	cmdbuf[0] = 0x001E0044; //request header code
 	cmdbuf[1] = sizeof(mvdstdConfig);
 	cmdbuf[2] = 0;
-	cmdbuf[3] = 0xffff8001;
+	cmdbuf[3] = CUR_PROCESS_HANDLE;
 	cmdbuf[4] = (sizeof(mvdstdConfig)<<4) | 10;
 	cmdbuf[5] = (u32)config;
 
@@ -151,7 +151,7 @@ Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput 
 	mvdstd_workbuf = linearAlloc(mvdstd_workbufsize);
 	if(mvdstd_workbuf==NULL)return -1;
 
-	ret = mvdstdipc_Initialize((u32*)osConvertOldLINEARMemToNew((u32)mvdstd_workbuf), mvdstd_workbufsize, 0xffff8001);
+	ret = mvdstdipc_Initialize((u32*)osConvertOldLINEARMemToNew((u32)mvdstd_workbuf), mvdstd_workbufsize, CUR_PROCESS_HANDLE);
 	if(ret<0)
 	{
 		svcCloseHandle(mvdstdHandle);

@@ -8,6 +8,9 @@
 #include "types.h"
 
 
+/// Pseudo handle for the current process
+#define CUR_PROCESS_HANDLE 0xFFFF8001
+
 ///@name Memory management
 ///@{
 
@@ -88,6 +91,9 @@ typedef enum {
 typedef enum {
 	THREADINFO_TYPE_UNKNOWN
 } ThreadInfoType;
+
+/// Pseudo handle for the current thread
+#define CUR_THREAD_HANDLE 0xFFFF8000
 
 ///@}
 
@@ -225,6 +231,11 @@ static inline void* getThreadLocalStorage(void)
 static inline u32* getThreadCommandBuffer(void)
 {
 	return (u32*)((u8*)getThreadLocalStorage() + 0x80);
+}
+
+static inline u32* getThreadStaticBuffers(void)
+{
+	return (u32*)((u8*)getThreadLocalStorage() + 0x180);
 }
 
 ///@name Memory management
