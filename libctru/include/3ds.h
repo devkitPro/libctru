@@ -19,6 +19,7 @@ extern "C" {
 #include <3ds/services/ac.h>
 #include <3ds/services/am.h>
 #include <3ds/services/apt.h>
+#include <3ds/services/cam.h>
 #include <3ds/services/cfgnor.h>
 #include <3ds/services/cfgu.h>
 #include <3ds/services/csnd.h>
