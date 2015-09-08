@@ -22,6 +22,7 @@ extern "C" {
 #include <3ds/services/cfgnor.h>
 #include <3ds/services/cfgu.h>
 #include <3ds/services/csnd.h>
+#include <3ds/services/dsp.h>
 #include <3ds/services/fs.h>
 #include <3ds/services/gsp.h>
 #include <3ds/services/hid.h>
