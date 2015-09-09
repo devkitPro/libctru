@@ -3,6 +3,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/ns.h>
+#include <3ds/ipc.h>
 
 static Handle nsHandle;
 
@@ -21,7 +22,7 @@ Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000200C0;
+	cmdbuf[0] = IPC_MakeHeader(0x2,3,0); // 0x200C0
 	cmdbuf[1] = titleid & 0xffffffff;
 	cmdbuf[2] = (titleid >> 32) & 0xffffffff;
 	cmdbuf[3] = launch_flags;
@@ -39,7 +40,7 @@ Result NS_RebootToTitle(u8 mediatype, u64 titleid)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x00100180;
+	cmdbuf[0] = IPC_MakeHeader(0x10,6,0); // 0x100180
 	cmdbuf[1] = 0x1;
 	cmdbuf[2] = titleid & 0xffffffff;
 	cmdbuf[3] = (titleid >> 32) & 0xffffffff;
