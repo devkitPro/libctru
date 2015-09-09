@@ -101,9 +101,9 @@ Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pR
 Result APT_GetAppletProgramInfo(u32 id, u32 flags, u16 *titleversion);
 Result APT_GetProgramID(u64* pProgramID);
 Result APT_PrepareToJumpToHomeMenu(void);
-Result APT_JumpToHomeMenu(u32 a, u32 b, u32 c);
+Result APT_JumpToHomeMenu(const u8 *param, size_t paramSize, Handle handle);
 Result APT_PrepareToJumpToApplication(u32 a);
-Result APT_JumpToApplication(u32 a, u32 b, u32 c);
+Result APT_JumpToApplication(const u8 *param, size_t paramSize, Handle handle);
 Result APT_IsRegistered(NS_APPID appID, u8* out);
 Result APT_InquireNotification(u32 appID, u8* signalType);
 Result APT_NotifyToWait(NS_APPID appID);
@@ -115,7 +115,7 @@ Result APT_SendCaptureBufferInfo(u32 bufferSize, u32* buffer);
 Result APT_ReplySleepQuery(NS_APPID appID, u32 a);
 Result APT_ReplySleepNotificationComplete(NS_APPID appID);
 Result APT_PrepareToCloseApplication(u8 a);
-Result APT_CloseApplication(u32 a, u32 b, u32 c);
+Result APT_CloseApplication(const u8 *param, size_t paramSize, Handle handle);
 Result APT_SetAppCpuTimeLimit(u32 percent);
 Result APT_GetAppCpuTimeLimit(u32 *percent);
 Result APT_CheckNew3DS_Application(u8 *out);// Note: this function is unreliable, see: http://3dbrew.org/wiki/APT:PrepareToStartApplication
