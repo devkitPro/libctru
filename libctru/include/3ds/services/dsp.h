@@ -13,8 +13,8 @@ typedef enum {
 
 
 typedef enum {
-	DSP_PIPE_INPUT = 0, ///< DSP to ARM
-	DSP_PIPE_OUTPUT = 1 ///< ARM to DSP
+	DSP_PIPE_INPUT  = 0, ///< DSP to ARM
+	DSP_PIPE_OUTPUT = 1  ///< ARM to DSP
 } DSP_PipeDirection;
 
 /**
@@ -90,17 +90,18 @@ Result DSP_RegisterInterruptEvents(Handle handle,u32 interrupt,u32 channel);
 
 
 /**
- * @param channel ?????? TODO usually 2
- * @param buffer The buffer that will store the values read from the pipe
- * @param length Length of the buffer
+ * @param channel     unknown. Usually 2
+ * @param peer        unknown. Usually 0
+ * @param buffer      The buffer that will store the values read from the pipe
+ * @param length      Length of the buffer
  * @param length_read Number of bytes read by the command
  */
-Result DSP_ReadPipeIfPossible(u32 channel, u8 const *buffer, u16 length, u16* length_read);
+Result DSP_ReadPipeIfPossible(u32 channel,u32 peer, u8 const *buffer, u16 length, u16* length_read);
 
 /**
- * @param channel ?????? TODO usually 2
- * @param buffer The message to send to the DSP process
- * @param length Length of the message
+ * @param channel unknown. Usually 2
+ * @param buffer  The message to send to the DSP process
+ * @param length  Length of the message
  */
 Result DSP_WriteProcessPipe(u32 channel,u8 const* buffer,u32 length);
 

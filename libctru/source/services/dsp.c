@@ -4,19 +4,17 @@
 #include <3ds/ipc.h>
 #include <3ds/services/dsp.h>
 
-Handle dspHandle = 0;
+static Handle dspHandle = 0;
 
 
 Result dspInit(void)
 {
 	Result ret = 0;
-
 	if (dspHandle == 0)
 	{
 		ret = srvGetServiceHandle(&dspHandle, "dsp::DSP");
 		if (ret < 0) return ret;
 	}
-	if (ret < 0) return ret;
 	DSP_UnloadComponent();
 	return 0;
 }
@@ -40,7 +38,7 @@ Result DSP_GetHeadphoneStatus(bool* is_inserted)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
-	cmdbuf[0] = IPC_MakeHeader(0x001F,0,0);
+	cmdbuf[0] = IPC_MakeHeader(0x1F,0,0);
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 	*is_inserted = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
@@ -148,44 +146,37 @@ Result DSP_RegisterInterruptEvents(Handle handle, u32 interrupt, u32 channel)
 }
 
 
-Result DSP_ReadPipeIfPossibleEx(u32 channel,u32 unk1, u8 const *buffer, u16 length, u16* length_read)
+Result DSP_ReadPipeIfPossible(u32 channel,u32 peer, u8 const *buffer, u16 length, u16* length_read)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x10,3,0);
 	cmdbuf[1] = channel;
-	cmdbuf[2] = unk1;
+	cmdbuf[2] = peer;
 	cmdbuf[3] = length;
 
-	u32 * staticbufs = cmdbuf + 0x100;
+	u32 * staticbufs = getThreadStaticBuffers();
 
-	u32 saved1 = staticbufs[0x0];
-	u32 saved2 = staticbufs[0x4];
+	u32 saved1 = staticbufs[0];
+	u32 saved2 = staticbufs[1];
 
-	staticbufs[0] = (length<<14) | 2;
-	staticbufs[4] = (u32)buffer;
+	staticbufs[0] = IPC_Desc_StaticBuffer(length,0);
+	staticbufs[1] = (u32)buffer;
 
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 
 	staticbufs[0] = saved1;
-	staticbufs[4] = saved2;
+	staticbufs[1] = saved2;
 
 	*length_read = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
-}
-
-//TODO change DSP_ReadPipeIfPossibleEx into DSP_ReadPipeIfPossible once unk1 is figured out
-//However it seems that it is always used with value 0
-Result DSP_ReadPipeIfPossible(u32 channel, u8 const *buffer, u16 length, u16* length_read)
-{
-	return DSP_ReadPipeIfPossibleEx(channel,0,buffer,length, length_read);
 }
 
 Result DSP_WriteProcessPipe(u32 channel, u8 const *buffer, u32 length)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
-	cmdbuf[0] = IPC_MakeHeader(0xd,2,2);
+	cmdbuf[0] = IPC_MakeHeader(0xD,2,2);
 	cmdbuf[1] = channel;
 	cmdbuf[2] = length;
 	cmdbuf[3] = IPC_Desc_StaticBuffer(length,1);
@@ -198,7 +189,7 @@ Result DSP_ConvertProcessAddressFromDspDram(u32 dsp_address, u32 *arm_address)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
-	cmdbuf[0] = IPC_MakeHeader(0xc,1,0);
+	cmdbuf[0] = IPC_MakeHeader(0xC,1,0);
 	cmdbuf[1] = dsp_address;
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 	*arm_address = cmdbuf[2];
