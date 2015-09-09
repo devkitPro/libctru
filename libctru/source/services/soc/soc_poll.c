@@ -3,6 +3,7 @@
 #include <poll.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <3ds/ipc.h>
 
 int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
@@ -35,18 +36,19 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 		tmp_fds[i].revents = 0;
 	}
 
-	cmdbuf[0] = 0x00140084;
+	cmdbuf[0] = IPC_MakeHeader(0x14,2,4); // 0x140084
 	cmdbuf[1] = (u32)nfds;
 	cmdbuf[2] = (u32)timeout;
-	cmdbuf[3] = 0x20;
-	cmdbuf[5] = (size<<14) | 0x2802;
+	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[5] = IPC_Desc_StaticBuffer(size,10);
 	cmdbuf[6] = (u32)tmp_fds;
 
-	saved_threadstorage[0] = cmdbuf[0x100>>2];
-	saved_threadstorage[1] = cmdbuf[0x104>>2];
+	u32 * staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
 
-	cmdbuf[0x100>>2] = (size<<14) | 2;
-	cmdbuf[0x104>>2] = (u32)tmp_fds;
+	staticbufs[0] = IPC_Desc_StaticBuffer(size,0);
+	staticbufs[1] = (u32)tmp_fds;
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {
@@ -55,8 +57,8 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 		return ret;
 	}
 
-	cmdbuf[0x100>>2] = saved_threadstorage[0];
-        cmdbuf[0x104>>2] = saved_threadstorage[1];
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret == 0)

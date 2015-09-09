@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <errno.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen)
 {
@@ -13,13 +14,13 @@ int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t
 		return -1;
 	}
 
-	cmdbuf[0] = 0x00120104;
+	cmdbuf[0] = IPC_MakeHeader(0x12,4,4); // 0x120104
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)level;
 	cmdbuf[3] = (u32)optname;
 	cmdbuf[4] = (u32)optlen;
-	cmdbuf[5] = 0x20;
-	cmdbuf[7] = (optlen<<14) | 0x2402;
+	cmdbuf[5] = IPC_Desc_CurProcessHandle();
+	cmdbuf[7] = IPC_Desc_StaticBuffer(optlen,9);
 	cmdbuf[8] = (u32)optval;
 
 	ret = svcSendSyncRequest(SOCU_handle);

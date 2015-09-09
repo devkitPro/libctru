@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <errno.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 ssize_t socuipc_cmd9(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen)
 {
@@ -27,15 +28,15 @@ ssize_t socuipc_cmd9(int sockfd, const void *buf, size_t len, int flags, const s
 		memcpy(&tmpaddr[2], &dest_addr->sa_data, tmp_addrlen-2);
 	}
 
-	cmdbuf[0] = 0x00090106;
+	cmdbuf[0] = IPC_MakeHeader(0x9,4,6); // 0x90106
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)len;
 	cmdbuf[3] = (u32)flags;
 	cmdbuf[4] = (u32)tmp_addrlen;
-	cmdbuf[5] = 0x20;
-	cmdbuf[7] = (tmp_addrlen<<14) | 0x402;
+	cmdbuf[5] = IPC_Desc_CurProcessHandle();
+	cmdbuf[7] = IPC_Desc_StaticBuffer(tmp_addrlen,1);
 	cmdbuf[8] = (u32)tmpaddr;
-	cmdbuf[9] = (((u32)len)<<4) | 10;
+	cmdbuf[9] = IPC_Desc_Buffer(len,IPC_BUFFER_R);
 	cmdbuf[10] = (u32)buf;
 
 	ret = svcSendSyncRequest(SOCU_handle);
@@ -81,15 +82,15 @@ ssize_t socuipc_cmda(int sockfd, const void *buf, size_t len, int flags, const s
 		memcpy(&tmpaddr[2], &dest_addr->sa_data, tmp_addrlen-2);
 	}
 
-	cmdbuf[0] = 0x000A0106;
+	cmdbuf[0] = IPC_MakeHeader(0xA,4,6); // 0xA0106
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)len;
 	cmdbuf[3] = (u32)flags;
 	cmdbuf[4] = (u32)tmp_addrlen;
-	cmdbuf[5] = 0x20;
-	cmdbuf[7] = (((u32)len)<<14) | 0x802;
+	cmdbuf[5] = IPC_Desc_CurProcessHandle();
+	cmdbuf[7] = IPC_Desc_StaticBuffer(len,2);
 	cmdbuf[8] = (u32)buf;
-	cmdbuf[9] = (tmp_addrlen<<14) | 0x402;
+	cmdbuf[9] = IPC_Desc_StaticBuffer(tmp_addrlen,1);
 	cmdbuf[10] = (u32)tmpaddr;
 
 	ret = svcSendSyncRequest(SOCU_handle);

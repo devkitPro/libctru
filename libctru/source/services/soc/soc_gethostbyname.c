@@ -1,5 +1,6 @@
 #include "soc_common.h"
 #include <netdb.h>
+#include <3ds/ipc.h>
 
 #define MAX_HOSTENT_RESULTS 16
 static struct hostent SOC_hostent;
@@ -15,17 +16,18 @@ struct hostent* gethostbyname(const char *name)
 
 	h_errno = 0;
 
-	cmdbuf[0] = 0x000D0082;
+	cmdbuf[0] = IPC_MakeHeader(0xD,2,2); // 0xD0082
 	cmdbuf[1] = strlen(name)+1;
 	cmdbuf[2] = sizeof(outbuf);
 	cmdbuf[3] = ((strlen(name)+1) << 14) | 0xC02;
 	cmdbuf[4] = (u32)name;
 
-	saved_threadstorage[0] = cmdbuf[0x100>>2];
-	saved_threadstorage[1] = cmdbuf[0x104>>2];
+	u32 * staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
 
-	cmdbuf[0x100>>2] = (sizeof(outbuf) << 14) | 2;
-	cmdbuf[0x104>>2] = (u32)outbuf;
+	staticbufs[0] = IPC_Desc_StaticBuffer(sizeof(outbuf),0);
+	staticbufs[1] = (u32)outbuf;
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {
@@ -33,9 +35,8 @@ struct hostent* gethostbyname(const char *name)
 		return NULL;
 	}
 
-
-	cmdbuf[0x100>>2] = saved_threadstorage[0];
-        cmdbuf[0x104>>2] = saved_threadstorage[1];
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret == 0)

@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <errno.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 int shutdown(int sockfd, int shutdown_type)
 {
@@ -13,10 +14,10 @@ int shutdown(int sockfd, int shutdown_type)
 		return -1;
 	}
 
-	cmdbuf[0] = 0x000C0082;
+	cmdbuf[0] = IPC_MakeHeader(0xC,2,2); // 0xC0082
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)shutdown_type;
-	cmdbuf[3] = 0x20;
+	cmdbuf[3] = IPC_Desc_CurProcessHandle();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {

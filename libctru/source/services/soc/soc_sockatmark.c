@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <errno.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 int sockatmark(int sockfd)
 {
@@ -13,9 +14,9 @@ int sockatmark(int sockfd)
 		return -1;
 	}
 
-	cmdbuf[0] = 0x00150042;
+	cmdbuf[0] = IPC_MakeHeader(0x15,1,2); // 0x150042
 	cmdbuf[1] = (u32)sockfd;
-	cmdbuf[2] = 0x20;
+	cmdbuf[2] = IPC_Desc_CurProcessHandle();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {

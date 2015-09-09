@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <errno.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -31,11 +32,11 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	tmpaddr[1] = addr->sa_family;
 	memcpy(&tmpaddr[2], &addr->sa_data, tmp_addrlen-2);
 
-	cmdbuf[0] = 0x00060084;
+	cmdbuf[0] = IPC_MakeHeader(0x6,2,4); // 0x60084
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)addrlen;
-	cmdbuf[3] = 0x20;
-	cmdbuf[5] = (((u32)tmp_addrlen)<<14) | 2;
+	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[5] = IPC_Desc_StaticBuffer(tmp_addrlen,0);
 	cmdbuf[6] = (u32)tmpaddr;
 
 	ret = svcSendSyncRequest(SOCU_handle);

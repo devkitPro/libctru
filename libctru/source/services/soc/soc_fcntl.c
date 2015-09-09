@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <3ds/ipc.h>
 
 #define O_NONBLOCK_3DS 0x4
 
@@ -63,11 +64,11 @@ int fcntl(int sockfd, int cmd, ...)
 		arg = to_3ds(arg);
 	}
 
-	cmdbuf[0] = 0x001300C2;
+	cmdbuf[0] = IPC_MakeHeader(0x13,3,2); // 0x1300C2
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)cmd;
 	cmdbuf[3] = (u32)arg;
-	cmdbuf[4] = 0x20;
+	cmdbuf[4] = IPC_Desc_CurProcessHandle();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {
