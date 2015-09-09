@@ -3,6 +3,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/ac.h>
+#include <3ds/ipc.h>
 
 static Handle acHandle;
 
@@ -22,21 +23,21 @@ Result acExit(void)
 Result ACU_CreateDefaultConfig(Handle* servhandle, u32 *ptr)
 {
 	if(!servhandle)servhandle=&acHandle;
-	u32 tmp0, tmp1;
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
 
-	tmp0 = cmdbuf[0x100>>2];
-	tmp1 = cmdbuf[0x104>>2];
+	u32 savedValue0 = staticbufs[0];
+	u32 savedValue1 = staticbufs[1];
 
-	cmdbuf[0] = 0x00010000;
-	cmdbuf[0x100>>2] = 0x00800002;
-	cmdbuf[0x104>>2] = (u32)ptr;
+	cmdbuf[0] = IPC_MakeHeader(0x1,0,0); // 0x00010000
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x200,0);
+	staticbufs[1] = (u32)ptr;
 
 	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
 
-	cmdbuf[0x100>>2] = tmp0;
-	cmdbuf[0x104>>2] = tmp1;
+	staticbufs[0] = savedValue0;
+	staticbufs[1] = savedValue1;
 
 	return (Result)cmdbuf[1];
 }
@@ -45,24 +46,24 @@ Result ACU_CreateDefaultConfig(Handle* servhandle, u32 *ptr)
 Result ACU_cmd26(Handle* servhandle, u32 *ptr, u8 val)
 {
 	if(!servhandle)servhandle=&acHandle;
-	u32 tmp0, tmp1;
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
 
-	tmp0 = cmdbuf[0x100>>2];
-	tmp1 = cmdbuf[0x104>>2];
+	u32 savedValue0 = staticbufs[0];
+	u32 savedValue1 = staticbufs[1];
 
-	cmdbuf[0] = 0x00260042;
+	cmdbuf[0] = IPC_MakeHeader(0x26,1,2); // 0x00260042
 	cmdbuf[1] = (u32)val;
-	cmdbuf[0x100>>2] = 0x00800002;
-	cmdbuf[0x104>>2] = (u32)ptr;
-	cmdbuf[2] = 0x00800002;
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x200,0);
+	staticbufs[1] = (u32)ptr;
+	cmdbuf[2] = IPC_Desc_StaticBuffer(0x200,0);
 	cmdbuf[3] = (u32)ptr;
 
 	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
 
-	cmdbuf[0x100>>2] = tmp0;
-	cmdbuf[0x104>>2] = tmp1;
+	staticbufs[0] = savedValue0;
+	staticbufs[1] = savedValue1;
 
 	return (Result)cmdbuf[1];
 }
@@ -73,7 +74,7 @@ Result ACU_GetWifiStatus(Handle* servhandle, u32 *out)
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000D0000;
+	cmdbuf[0] = IPC_MakeHeader(0xD,0,0); // 0x000D0000
 
 	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
 
