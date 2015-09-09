@@ -9,6 +9,7 @@
 #include <3ds/services/apt.h>
 #include <3ds/services/hid.h>
 #include <3ds/services/irrst.h>
+#include <3ds/ipc.h>
 
 Handle hidHandle;
 Handle hidMemHandle;
@@ -198,7 +199,7 @@ void hidGyroRead(angularRate* rate)
 Result HIDUSER_GetHandles(Handle* outMemHandle, Handle *eventpad0, Handle *eventpad1, Handle *eventaccel, Handle *eventgyro, Handle *eventdebugpad)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0xa0000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0xA,0,0); // 0xA0000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
@@ -217,7 +218,7 @@ Result HIDUSER_GetHandles(Handle* outMemHandle, Handle *eventpad0, Handle *event
 Result HIDUSER_EnableAccelerometer(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x110000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x11,0,0); // 0x110000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
@@ -228,7 +229,7 @@ Result HIDUSER_EnableAccelerometer(void)
 Result HIDUSER_DisableAccelerometer(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x120000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x12,0,0); // 0x120000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
@@ -239,7 +240,7 @@ Result HIDUSER_DisableAccelerometer(void)
 Result HIDUSER_EnableGyroscope(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x130000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x13,0,0); // 0x130000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
@@ -250,7 +251,7 @@ Result HIDUSER_EnableGyroscope(void)
 Result HIDUSER_DisableGyroscope(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x140000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x14,0,0); // 0x140000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
@@ -261,7 +262,7 @@ Result HIDUSER_DisableGyroscope(void)
 Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x150000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x15,0,0); // 0x150000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
@@ -274,7 +275,7 @@ Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff)
 Result HIDUSER_GetSoundVolume(u8 *volume)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x170000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x17,0,0); // 0x170000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(hidHandle)))return ret;
