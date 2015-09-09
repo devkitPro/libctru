@@ -17,8 +17,13 @@ typedef enum
 
 /**
  * @brief Command header to be used for IPC
- * @param normal_params    Number of normal parameters. Up to 63.
- * @param translate_params Number of translate parameters. Up to 63.
+ * @param normal_params    Size of the normal parameters in words. Up to 63.
+ * @param translate_params Size of the translate parameters in words. Up to 63.
+ *
+ * Normal parameters are sent directly to the process while the translate parameters might go through modifications and checks by the kernel.
+ * The translate parameters are described by headers generated with the IPC_Desc_* functions.
+ *
+ * @note While #normal_params is equivalent to the number of normal parameters, #translate_params includes the size occupied by the translate parameters headers.
  */
 static inline u32 IPC_MakeHeader(u16 command_id, unsigned normal_params, unsigned translate_params)
 {
