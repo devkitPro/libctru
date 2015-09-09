@@ -3,6 +3,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/ps.h>
+#include <3ds/ipc.h>
 
 static Handle psHandle;
 
@@ -23,7 +24,7 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_typ
 
 	u32 *_iv = (u32*)iv;
 
-	cmdbuf[0] = 0x000401C4;
+	cmdbuf[0] = IPC_MakeHeader(0x4,7,4); // 0x401C4
 	cmdbuf[1] = size;
 	cmdbuf[2] = _iv[0];
 	cmdbuf[3] = _iv[1];
@@ -31,9 +32,9 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_typ
 	cmdbuf[5] = _iv[3];
 	cmdbuf[6] = aes_algo;
 	cmdbuf[7] = key_type;
-	cmdbuf[8] = (size << 0x8) | 0x4;
+	cmdbuf[8] = IPC_Desc_PXIBuffer(size,0,false);
 	cmdbuf[9] = (u32)in;
-	cmdbuf[10] = (size << 0x8) | 0x14;
+	cmdbuf[10] = IPC_Desc_PXIBuffer(size,1,false);
 	cmdbuf[11] = (u32)out;
 
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
@@ -53,7 +54,7 @@ Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_s
 
 	u32 *_nonce = (u32*)nonce;
 
-	cmdbuf[0] = 0x00050284;
+	cmdbuf[0] = IPC_MakeHeader(0x5,10,4); // 0x50284
 	cmdbuf[1] = in_size;
 	cmdbuf[2] = out_size;
 	cmdbuf[3] = mac_data_len;
@@ -64,9 +65,9 @@ Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_s
 	cmdbuf[8] = _nonce[2];
 	cmdbuf[9] = aes_algo;
 	cmdbuf[10] = key_type;
-	cmdbuf[8] = (in_size << 0x8) | 0x4;
+	cmdbuf[8] = IPC_Desc_PXIBuffer(in_size,0,false);
 	cmdbuf[9] = (u32)in;
-	cmdbuf[10] = (out_size << 0x8) | 0x14;
+	cmdbuf[10] = IPC_Desc_PXIBuffer(out_size,1,false);
 	cmdbuf[11] = (u32)out;
 
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
@@ -79,7 +80,7 @@ Result PS_GetLocalFriendCodeSeed(u64* seed)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000A0000;
+	cmdbuf[0] = IPC_MakeHeader(0xA,0,0); // 0xA0000
 
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
 
@@ -93,7 +94,7 @@ Result PS_GetDeviceId(u32* device_id)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000B0000;
+	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0xB0000
 
 	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
 
