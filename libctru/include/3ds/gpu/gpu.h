@@ -19,6 +19,8 @@ void GPUCMD_FlushAndRun(void);
 void GPUCMD_Add(u32 header, u32* param, u32 paramlength);
 void GPUCMD_Finalize(void);
 
+u32 f32tof16(float f);
+u32 f32tof20(float f);
 u32 f32tof24(float f);
 u32 f32tof31(float f);
 

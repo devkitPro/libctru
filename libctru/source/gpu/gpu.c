@@ -96,6 +96,68 @@ static inline u32 floatrawbits(float f)
 	return s.i;
 }
 
+// f16 has:
+//  - 1 sign bit
+//  - 5 exponent bits
+//  - 10 mantissa bits
+u32 f32tof16(float f)
+{
+	u32 i = floatrawbits(f);
+
+	u32 mantissa = (i << 9) >>  9;
+	s32 exponent = (i << 1) >> 24;
+	u32 sign     = (i << 0) >> 31;
+
+	// Truncate mantissa
+	mantissa >>= 13;
+
+	// Re-bias exponent
+	exponent = exponent - 127 + 15;
+	if (exponent < 0)
+	{
+		// Underflow: flush to zero
+		return sign << 15;
+	}
+	else if (exponent > 0x1F)
+	{
+		// Overflow: saturate to infinity
+		return sign << 15 | 0x1F << 10;
+	}
+
+	return sign << 15 | exponent << 10 | mantissa;
+}
+
+// f20 has:
+//  - 1 sign bit
+//  - 7 exponent bits
+//  - 12 mantissa bits
+u32 f32tof20(float f)
+{
+	u32 i = floatrawbits(f);
+
+	u32 mantissa = (i << 9) >>  9;
+	s32 exponent = (i << 1) >> 24;
+	u32 sign     = (i << 0) >> 31;
+
+	// Truncate mantissa
+	mantissa >>= 11;
+
+	// Re-bias exponent
+	exponent = exponent - 127 + 63;
+	if (exponent < 0)
+	{
+		// Underflow: flush to zero
+		return sign << 19;
+	}
+	else if (exponent > 0x7F)
+	{
+		// Overflow: saturate to infinity
+		return sign << 19 | 0x7F << 12;
+	}
+
+	return sign << 19 | exponent << 12 | mantissa;
+}
+
 // f24 has:
 //  - 1 sign bit
 //  - 7 exponent bits

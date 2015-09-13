@@ -82,8 +82,8 @@ static void sceneRender(void)
 	// Upload the projection matrix
 	GPU_SetFloatUniformMatrix(GPU_GEOMETRY_SHADER, uLoc_projection, &projection);
 
-	// Draw the VBO - GPU_UNKPRIM allows the geoshader to control primitive emission
-	GPU_DrawArray(GPU_UNKPRIM, 0, vertex_list_count);
+	// Draw the VBO - GPU_GEOMETRY_PRIM allows the geoshader to control primitive emission
+	GPU_DrawArray(GPU_GEOMETRY_PRIM, 0, vertex_list_count);
 }
 
 static void sceneExit(void)
