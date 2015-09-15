@@ -81,6 +81,50 @@ void gspWaitForEvent(GSP_Event id, bool nextEvent)
 		svcClearEvent(gspEvents[id]);
 }
 
+static int popInterrupt()
+{
+	int curEvt;
+	u32 strexFailed;
+	do {
+		union {
+			struct {
+				u8 cur;
+				u8 count;
+				u8 err;
+				u8 unused;
+			};
+			u32 as_u32;
+		} header;
+
+		u32* gsp_header_ptr = (u32*)(gspEventData + 0);
+
+		// Do a load on all header fields as an atomic unit
+		__asm__ volatile (
+				"ldrex %[result], %[addr]" :
+				[result]"=r"(header.as_u32) :
+				[addr]"Q"(*gsp_header_ptr));
+
+		if (__builtin_expect(header.count == 0, 0)) {
+			__asm__ volatile ("clrex");
+			return -1;
+		}
+
+		curEvt = gspEventData[0xC + header.cur];
+
+		header.cur += 1;
+		if (header.cur >= 0x34) header.cur -= 0x34;
+		header.count -= 1;
+		header.err = 0; // Should this really be set?
+
+		__asm__ volatile (
+				"strex %[result], %[val], %[addr]" :
+				[result]"=&r"(strexFailed), [addr]"=Q"(*gsp_header_ptr) :
+				[val]"r"(header.as_u32));
+	} while (__builtin_expect(strexFailed, 0));
+
+	return curEvt;
+}
+
 void gspEventThreadMain(void *arg)
 {
 	while (gspRunEvents)
@@ -88,24 +132,18 @@ void gspEventThreadMain(void *arg)
 		svcWaitSynchronization(gspEvent, U64_MAX);
 		svcClearEvent(gspEvent);
 
-		int count = gspEventData[1];
-		int cur = gspEventData[0];
-		int last = cur + count;
-		while (last >= 0x34) last -= 0x34;
-		int i;
-		for (i = 0; i < count; i ++)
+		while (true)
 		{
-			int curEvt = gspEventData[0xC + cur];
-			cur ++;
-			if (cur >= 0x34) cur -= 0x34;
-			if (curEvt >= GSPEVENT_MAX) continue;
-			svcSignalEvent(gspEvents[curEvt]);
-			gspEventCounts[curEvt]++;
-		}
+			int curEvt = popInterrupt();
 
-		gspEventData[0] = last;
-		gspEventData[1] -= count;
-		gspEventData[2] = 0;
+			if (curEvt == -1)
+				break;
+
+			if (curEvt < GSPEVENT_MAX) {
+				svcSignalEvent(gspEvents[curEvt]);
+				gspEventCounts[curEvt]++;
+			}
+		}
 	}
 	svcExitThread();
 }
