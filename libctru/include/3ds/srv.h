@@ -4,6 +4,7 @@ Result srvInit(void);
 Result srvExit(void);
 Handle *srvGetSessionHandle(void);
 Result srvRegisterClient(void);
+Result srvGetServiceHandleDirect(Handle* out, const char* name);
 Result srvGetServiceHandle(Handle* out, const char* name);
 Result srvRegisterService(Handle* out, const char* name, int maxSessions);
 Result srvUnregisterService(const char* name);

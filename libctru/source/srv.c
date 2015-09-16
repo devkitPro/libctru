@@ -116,19 +116,10 @@ Result srvRegisterClient(void)
 	return cmdbuf[1];
 }
 
-Result srvGetServiceHandle(Handle* out, const char* name)
+Result srvGetServiceHandleDirect(Handle* out, const char* name)
 {
 	Result rc = 0;
 
-	/* Look in service-list given to us by loader. If we find find a match,
-	   we return it. */
-	Handle h = __get_handle_from_list(name);
-
-	if(h != 0) {
-		return svcDuplicateHandle(out, h);
-	}
-
-	/* Normal request to service manager. */
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x50100;
 	strcpy((char*) &cmdbuf[1], name);
@@ -139,6 +130,20 @@ Result srvGetServiceHandle(Handle* out, const char* name)
 
 	*out = cmdbuf[3];
 	return cmdbuf[1];
+}
+
+Result srvGetServiceHandle(Handle* out, const char* name)
+{
+	/* Look in service-list given to us by loader. If we find find a match,
+	   we return it. */
+	Handle h = __get_handle_from_list(name);
+
+	if(h != 0) {
+		return svcDuplicateHandle(out, h);
+	}
+
+	/* Normal request to service manager. */
+	return srvGetServiceHandleDirect(out, name);
 }
 
 Result srvRegisterService(Handle* out, const char* name, int maxSessions)
