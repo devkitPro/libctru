@@ -48,7 +48,7 @@ fsInit(void)
 	if (fsInitialised) return ret;
 
 	if((ret=srvGetServiceHandle(&fsuHandle, "fs:USER"))!=0)return ret;
-	if(__get_handle_from_list("fs:USER")==0)ret=FSUSER_Initialize();
+	if(__get_handle_from_list("fs:USER")==0)ret=FSUSER_Initialize(fsuHandle);
 
 	fsInitialised = true;
 
@@ -82,6 +82,8 @@ Handle *fsGetSessionHandle(void)
  *
  *  @returns error
  *
+ *  @param[in]  handle     fs:USER service handle
+ *
  *  @internal
  *
  *  #### Request
@@ -99,19 +101,15 @@ Handle *fsGetSessionHandle(void)
  *  1          | Result code
  */
 Result
-FSUSER_Initialize(void)
+FSUSER_Initialize(Handle handle)
 {
-	// don't run command if we got handle from the list
-	if(fsuHandle != 0 && __get_handle_from_list("fs:USER")!=0)
-		return 0;
-
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = 0x08010002;
 	cmdbuf[1] = 0x20;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if((ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	return cmdbuf[1];

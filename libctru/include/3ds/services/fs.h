@@ -133,7 +133,7 @@ Handle *fsGetSessionHandle(void);
 
 FS_path FS_makePath(FS_pathType type, const char  *path);
 
-Result FSUSER_Initialize(void);
+Result FSUSER_Initialize(Handle handle);
 Result FSUSER_OpenArchive(FS_archive* archive);
 Result FSUSER_OpenDirectory(Handle* out, FS_archive archive, FS_path dirLowPath);
 Result FSUSER_OpenFile(Handle* out, FS_archive archive, FS_path fileLowPath, u32 openflags, u32 attributes);
