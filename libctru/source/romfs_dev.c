@@ -111,6 +111,8 @@ typedef struct
 	u32 fsOffset;
 } _3DSX_Header;
 
+static Result romfsInitCommon(void);
+
 Result romfsInit(void)
 {
 	if (romFS_active) return 0;
@@ -159,6 +161,23 @@ Result romfsInit(void)
 		if (rc) return rc;
 	}
 
+	return romfsInitCommon();
+
+_fail0:
+	FSFILE_Close(romFS_file);
+	return 10;
+}
+
+Result romfsInitFromFile(Handle file, u32 offset)
+{
+	if (romFS_active) return 0;
+	romFS_file = file;
+	romFS_offset = offset;
+	return romfsInitCommon();
+}
+
+Result romfsInitCommon(void)
+{
 	if (_romfs_read(0, &romFS_header, sizeof(romFS_header)) != sizeof(romFS_header))
 		goto _fail0;
 
