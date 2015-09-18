@@ -31,4 +31,5 @@ typedef struct
 } romfs_file;
 
 Result romfsInit(void);
+Result romfsInitFromFile(Handle file, u32 offset);
 Result romfsExit(void);
