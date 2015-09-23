@@ -149,14 +149,14 @@ void hidScanInput()
 	if(Id>7)Id=7;
 	if(hidCheckSectionUpdateTime(&hidSharedMem[66], Id)==0)
 	{
-		aVec = *(accelVector*)&hidSharedMem[66 + 8 + Id*2];
+		aVec = ((accelVector*)&hidSharedMem[66 + 8])[Id];
 	}
 
 	Id = hidSharedMem[86 + 4];//Gyroscope
 	if(Id>31)Id=31;
 	if(hidCheckSectionUpdateTime(&hidSharedMem[86], Id)==0)
 	{
-		gRate = *(angularRate*)&hidSharedMem[86 + 8 + Id*2];
+		gRate = ((angularRate*)&hidSharedMem[86 + 8])[Id];
 	}
 }
 
