@@ -97,6 +97,7 @@ Result APT_Finalize(Handle* handle, NS_APPID appId);
 Result APT_HardwareResetAsync(Handle* handle);
 Result APT_Enable(Handle* handle, u32 a);
 Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid);
+Result APT_GetAppletProgramInfo(Handle* handle, u32 id, u32 flags, u16 *titleversion);
 Result APT_PrepareToJumpToHomeMenu(Handle* handle);
 Result APT_JumpToHomeMenu(Handle* handle, u32 a, u32 b, u32 c);
 Result APT_PrepareToJumpToApplication(Handle* handle, u32 a);
