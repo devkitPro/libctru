@@ -792,6 +792,21 @@ Result APT_GetAppletManInfo(u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu
 	return cmdbuf[1];
 }
 
+Result APT_GetAppletProgramInfo(u32 id, u32 flags, u16 *titleversion)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x004D0080; //request header code
+	cmdbuf[1]=id;
+	cmdbuf[2]=flags;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+
+	if(titleversion)*titleversion=cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
 Result APT_IsRegistered(NS_APPID appID, u8* out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
