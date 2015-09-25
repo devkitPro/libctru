@@ -6,7 +6,6 @@
 
 static Handle dspHandle = 0;
 
-
 Result dspInit(void)
 {
 	Result ret = 0;
@@ -22,7 +21,7 @@ Result dspInit(void)
 Result dspExit(void)
 {
 	Result ret = 0;
-//No need to call unload, it will be done automatically by closing the handle
+	//No need to call unload, it will be done automatically by closing the handle
 	if (dspHandle != 0)
 	{
 		ret = svcCloseHandle(dspHandle);
@@ -32,7 +31,6 @@ Result dspExit(void)
 
 	return 0;
 }
-
 
 Result DSP_GetHeadphoneStatus(bool* is_inserted)
 {
@@ -44,13 +42,12 @@ Result DSP_GetHeadphoneStatus(bool* is_inserted)
 	return cmdbuf[1];
 }
 
-
-Result DSP_FlushDataCache(u32 address, u32 size)
+Result DSP_FlushDataCache(const void* address, u32 size)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x13,2,2);
-	cmdbuf[1] = address;
+	cmdbuf[1] = (u32)address;
 	cmdbuf[2] = size;
 	cmdbuf[3] = IPC_Desc_SharedHandles(1);
 	cmdbuf[4] = CUR_PROCESS_HANDLE;
@@ -58,21 +55,18 @@ Result DSP_FlushDataCache(u32 address, u32 size)
 	return cmdbuf[1];
 }
 
-
-Result DSP_InvalidateDataCache(u32 address, u32 size)
+Result DSP_InvalidateDataCache(const void* address, u32 size)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x14,2,2);
-	cmdbuf[1] = address;
+	cmdbuf[1] = (u32)address;
 	cmdbuf[2] = size;
 	cmdbuf[3] = IPC_Desc_SharedHandles(1);
 	cmdbuf[4] = CUR_PROCESS_HANDLE;
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 	return cmdbuf[1];
 }
-
-
 
 Result DSP_SetSemaphore(u16 value)
 {
@@ -83,8 +77,6 @@ Result DSP_SetSemaphore(u16 value)
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 	return cmdbuf[1];
 }
-
-
 
 Result DSP_SetSemaphoreMask(u16 mask)
 {
@@ -106,7 +98,7 @@ Result DSP_GetSemaphoreHandle(Handle* semaphore)
 	return cmdbuf[1];
 }
 
-Result DSP_LoadComponent(u8 const* component,u32 size,u16 prog_mask,u16 data_mask,bool * is_loaded)
+Result DSP_LoadComponent(const void* component, u32 size, u16 prog_mask, u16 data_mask, bool* is_loaded)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -120,8 +112,6 @@ Result DSP_LoadComponent(u8 const* component,u32 size,u16 prog_mask,u16 data_mas
 	*is_loaded = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
-
-
 
 Result DSP_UnloadComponent(void)
 {
@@ -145,8 +135,7 @@ Result DSP_RegisterInterruptEvents(Handle handle, u32 interrupt, u32 channel)
 	return cmdbuf[1];
 }
 
-
-Result DSP_ReadPipeIfPossible(u32 channel,u32 peer, u8 const *buffer, u16 length, u16* length_read)
+Result DSP_ReadPipeIfPossible(u32 channel, u32 peer, void* buffer, u16 length, u16* length_read)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -168,11 +157,12 @@ Result DSP_ReadPipeIfPossible(u32 channel,u32 peer, u8 const *buffer, u16 length
 	staticbufs[0] = saved1;
 	staticbufs[1] = saved2;
 
-	*length_read = cmdbuf[2] & 0xFFFF;
+	if (length_read)
+		*length_read = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
 }
 
-Result DSP_WriteProcessPipe(u32 channel, u8 const *buffer, u32 length)
+Result DSP_WriteProcessPipe(u32 channel, const void* buffer, u32 length)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -180,12 +170,12 @@ Result DSP_WriteProcessPipe(u32 channel, u8 const *buffer, u32 length)
 	cmdbuf[1] = channel;
 	cmdbuf[2] = length;
 	cmdbuf[3] = IPC_Desc_StaticBuffer(length,1);
-	cmdbuf[4] = (u32) buffer;
+	cmdbuf[4] = (u32)buffer;
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 	return cmdbuf[1];
 }
 
-Result DSP_ConvertProcessAddressFromDspDram(u32 dsp_address, u32 *arm_address)
+Result DSP_ConvertProcessAddressFromDspDram(u32 dsp_address, u32* arm_address)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -196,18 +186,18 @@ Result DSP_ConvertProcessAddressFromDspDram(u32 dsp_address, u32 *arm_address)
 	return cmdbuf[1];
 }
 
-Result DSP_RecvData(u16 regNo, u16 * value)
+Result DSP_RecvData(u16 regNo, u16* value)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
-	cmdbuf[0] = IPC_MakeHeader(0x1,1,0) ;
+	cmdbuf[0] = IPC_MakeHeader(0x1,1,0);
 	cmdbuf[1] = regNo;
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 	*value = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
 }
 
-Result DSP_RecvDataIsReady(u16 regNo, bool * is_ready)
+Result DSP_RecvDataIsReady(u16 regNo, bool* is_ready)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -217,7 +207,6 @@ Result DSP_RecvDataIsReady(u16 regNo, bool * is_ready)
 	*is_ready = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
-
 
 // Writes data to the reg regNo
 // *(_WORD *)(8 * regNo + 0x1ED03024) = value
@@ -232,7 +221,7 @@ Result DSP_SendData(u16 regNo, u16 value)
 	return cmdbuf[1];
 }
 
-Result DSP_SendDataIsEmpty(u16 regNo, bool * is_empty)
+Result DSP_SendDataIsEmpty(u16 regNo, bool* is_empty)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -242,4 +231,3 @@ Result DSP_SendDataIsEmpty(u16 regNo, bool * is_empty)
 	*is_empty = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
-
