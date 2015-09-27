@@ -1,5 +1,32 @@
 #pragma once
 
+typedef enum
+{
+	CFG_REGION_JPN = 0,
+	CFG_REGION_USA = 1,
+	CFG_REGION_EUR = 2,
+	CFG_REGION_AUS = 3,
+	CFG_REGION_CHN = 4,
+	CFG_REGION_KOR = 5,
+	CFG_REGION_TWN = 6,
+} CFG_Region;
+
+typedef enum
+{
+	CFG_LANGUAGE_JP = 0,
+	CFG_LANGUAGE_EN = 1,
+	CFG_LANGUAGE_FR = 2,
+	CFG_LANGUAGE_DE = 3,
+	CFG_LANGUAGE_IT = 4,
+	CFG_LANGUAGE_ES = 5,
+	CFG_LANGUAGE_ZH = 6,
+	CFG_LANGUAGE_KO = 7,
+	CFG_LANGUAGE_NL = 8,
+	CFG_LANGUAGE_PT = 9,
+	CFG_LANGUAGE_RU = 10,
+	CFG_LANGUAGE_TW = 11,
+} CFG_Langage;
+
 Result initCfgu(void);
 Result exitCfgu(void);
 
