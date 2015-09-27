@@ -33,6 +33,9 @@ void GPUCMD_Finalize();
 #define GPU_TEXTURE_WRAP_S(v) (((v)&0x3)<<12) //takes a GPU_TEXTURE_WRAP_PARAM
 #define GPU_TEXTURE_WRAP_T(v) (((v)&0x3)<<8) //takes a GPU_TEXTURE_WRAP_PARAM
 
+// Combiner buffer write config
+#define GPU_TEV_BUFFER_WRITE_CONFIG(stage0, stage1, stage2, stage3) (stage0 | (stage1 << 1) | (stage2 << 2) | (stage3 << 3))
+
 typedef enum
 {
 	GPU_NEAREST = 0x0,
@@ -93,10 +96,14 @@ typedef enum
 
 typedef enum
 {
-	GPU_KEEP = 0, 		// keep destination value
-	GPU_AND_NOT = 1, 	// destination & ~source
-	GPU_XOR = 5,		// destination ^ source
-	// 2 is the same as 1. Other values are too weird to even be usable.
+	GPU_STENCIL_KEEP = 0,       // old_stencil
+	GPU_STENCIL_ZERO = 1,       // 0
+	GPU_STENCIL_REPLACE = 2,    // ref
+	GPU_STENCIL_INCR = 3,       // old_stencil + 1 saturated to [0, 255]
+	GPU_STENCIL_DECR = 4,       // old_stencil - 1 saturated to [0, 255]
+	GPU_STENCIL_INVERT = 5,     // ~old_stencil
+	GPU_STENCIL_INCR_WRAP = 6,  // old_stencil + 1
+	GPU_STENCIL_DECR_WRAP = 7   // old_stencil - 1
 } GPU_STENCILOP;
 
 typedef enum
@@ -184,6 +191,7 @@ typedef enum{
 	GPU_TEXTURE1 = 0x04,
 	GPU_TEXTURE2 = 0x05,
 	GPU_TEXTURE3 = 0x06,
+	GPU_PREVIOUS_BUFFER = 0x0D,
 	GPU_CONSTANT = 0x0E,
 	GPU_PREVIOUS = 0x0F,
 }GPU_TEVSRC;
@@ -259,9 +267,11 @@ void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h);
 void GPU_DepthMap(float zScale, float zOffset);
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref);
 void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask); // GPU_WRITEMASK values can be ORed together
-void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace);
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 input_mask, u8 write_mask);
 void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass);
 void GPU_SetFaceCulling(GPU_CULLMODE mode);
+// Only the first four tev stages can write to the combiner buffer, use GPU_TEV_BUFFER_WRITE_CONFIG to build the parameters
+void GPU_SetCombinerBufferWrite(u8 rgb_config, u8 alpha_config);
 
 // these two can't be used together
 void GPU_SetAlphaBlending(GPU_BLENDEQUATION colorEquation, GPU_BLENDEQUATION alphaEquation, 
@@ -281,10 +291,10 @@ void GPU_SetTexture(GPU_TEXUNIT unit, u32* data, u16 width, u16 height, u32 para
 /**
  * @param borderColor The color used for the border when using the @ref GPU_CLAMP_TO_BORDER wrap mode
  */
- void GPU_SetTextureBorderColor(GPU_TEXUNIT unit,u32 borderColor);
+void GPU_SetTextureBorderColor(GPU_TEXUNIT unit,u32 borderColor);
 void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor);
 
-void GPU_DrawArray(GPU_Primitive_t primitive, u32 n);
+void GPU_DrawArray(GPU_Primitive_t primitive, u32 first, u32 count);
 void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n);
 void GPU_FinishDrawing();
 

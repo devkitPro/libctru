@@ -229,40 +229,65 @@ void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numr
 	GPUCMD_AddWrites(GPUREG_VSH_FLOATUNIFORM_DATA+regOffset, data, numreg*4);
 }
 
-//TODO : fix
-u32 f32tof24(float f)
+// f24 has:
+//  - 1 sign bit
+//  - 7 exponent bits
+//  - 16 mantissa bits
+static u32 f32tof24(float f)
 {
-	if(!f)return 0;
-	u32 v=*((u32*)&f);
-	u8 s=v>>31;
-	u32 exp=((v>>23)&0xFF)-0x40;
-	u32 man=(v>>7)&0xFFFF;
+	u32 i;
+	memcpy(&i, &f, 4);
 
-	if(exp>=0)return man|(exp<<16)|(s<<23);
-	else return s<<23;
+	u32 mantissa = (i << 9) >>  9;
+	s32 exponent = (i << 1) >> 24;
+	u32 sign     = (i << 0) >> 31;
+
+	// Truncate mantissa
+	mantissa >>= 7;
+
+	// Re-bias exponent
+	exponent = exponent - 127 + 63;
+	if (exponent < 0)
+	{
+		// Underflow: flush to zero
+		return sign << 23;
+	}
+	else if (exponent > 0x7F)
+	{
+		// Overflow: saturate to infinity
+		return sign << 23 | 0x7F << 16;
+	}
+
+	return sign << 23 | exponent << 16 | mantissa;
 }
 
-u32 computeInvValue(u32 val)
+// f31 has:
+//  - 1 sign bit
+//  - 7 exponent bits
+//  - 23 mantissa bits
+static u32 f32tof31(float f)
 {
-	//usual values
-	if(val==240)return 0x38111111;
-	if(val==480)return 0x37111111;
-	if(val==400)return 0x3747ae14;
-	//but let's not limit ourselves to the usual
-	float fval=2.0/val;
-	u32 tmp1,tmp2;
-	u32 tmp3=*((u32*)&fval);
-	tmp1=(tmp3<<9)>>9;
-	tmp2=tmp3&(~0x80000000);
-	if(tmp2)
+	u32 i;
+	memcpy(&i, &f, 4);
+
+	u32 mantissa = (i << 9) >>  9;
+	s32 exponent = (i << 1) >> 24;
+	u32 sign     = (i << 0) >> 31;
+
+	// Re-bias exponent
+	exponent = exponent - 127 + 63;
+	if (exponent < 0)
 	{
-		tmp1=(tmp3<<9)>>9;
-		int tmp=((tmp3<<1)>>24)-0x40;
-		if(tmp<0)return ((tmp3>>31)<<30)<<1;
-		else tmp2=tmp;
+		// Underflow: flush to zero
+		return sign << 30;
 	}
-	tmp3>>=31;
-	return (tmp1|(tmp2<<23)|(tmp3<<30))<<1;
+	else if (exponent > 0x7F)
+	{
+		// Overflow: saturate to infinity
+		return sign << 30 | 0x7F << 23;
+	}
+
+	return sign << 30 | exponent << 23 | mantissa;
 }
 
 //takes PAs as arguments
@@ -288,9 +313,9 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_AddWrite(GPUREG_011B, 0x00000000); //?
 
 	param[0x0]=f32tof24(fw/2);
-	param[0x1]=computeInvValue(fw);
+	param[0x1]=f32tof31(2.0f / fw) << 1;
 	param[0x2]=f32tof24(fh/2);
-	param[0x3]=computeInvValue(fh);
+	param[0x3]=f32tof31(2.0f / fh) << 1;
 	GPUCMD_AddIncrementalWrites(GPUREG_0041, param, 0x00000004);
 
 	GPUCMD_AddWrite(GPUREG_0068, (y<<16)|(x&0xFFFF));
@@ -330,9 +355,9 @@ void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref)
 	GPUCMD_AddWrite(GPUREG_ALPHATEST_CONFIG, (enable&1)|((function&7)<<4)|(ref<<8));
 }
 
-void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 mask, u8 replace)
+void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 input_mask, u8 write_mask)
 {
-	GPUCMD_AddWrite(GPUREG_STENCILTEST_CONFIG, (enable&1)|((function&7)<<4)|(replace<<8)|(ref<<16)|(mask<<24));
+	GPUCMD_AddWrite(GPUREG_STENCILTEST_CONFIG, (enable&1)|((function&7)<<4)|(write_mask<<8)|(ref<<16)|(input_mask<<24));
 }
 
 void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass)
@@ -463,6 +488,11 @@ void GPU_SetFaceCulling(GPU_CULLMODE mode)
 	GPUCMD_AddWrite(GPUREG_FACECULLING_CONFIG, mode&0x3); 
 }
 
+void GPU_SetCombinerBufferWrite(u8 rgb_config, u8 alpha_config)
+{
+    GPUCMD_AddMaskedWrite(GPUREG_TEXENV_BUFFER_CONFIG, 0x2, (rgb_config << 8) | (alpha_config << 12));
+}
+
 const u8 GPU_TEVID[]={0xC0,0xC8,0xD0,0xD8,0xF0,0xF8};
 
 void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16 alphaOperands, GPU_COMBINEFUNC rgbCombine, GPU_COMBINEFUNC alphaCombine, u32 constantColor)
@@ -480,7 +510,7 @@ void GPU_SetTexEnv(u8 id, u16 rgbSources, u16 alphaSources, u16 rgbOperands, u16
 	GPUCMD_AddIncrementalWrites(GPUREG_0000|GPU_TEVID[id], param, 0x00000005);
 }
 
-void GPU_DrawArray(GPU_Primitive_t primitive, u32 n)
+void GPU_DrawArray(GPU_Primitive_t primitive, u32 first, u32 count)
 {
 	//set primitive type
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x2, primitive);
@@ -488,7 +518,9 @@ void GPU_DrawArray(GPU_Primitive_t primitive, u32 n)
 	//index buffer address register should be cleared (except bit 31) before drawing
 	GPUCMD_AddWrite(GPUREG_INDEXBUFFER_CONFIG, 0x80000000);
 	//pass number of vertices
-	GPUCMD_AddWrite(GPUREG_NUMVERTICES, n);
+	GPUCMD_AddWrite(GPUREG_NUMVERTICES, count);
+	//set first vertex
+	GPUCMD_AddWrite(GPUREG_DRAW_VERTEX_OFFSET, first);
 
 	//all the following except 0x000F022E might be useless
 	GPUCMD_AddMaskedWrite(GPUREG_0253, 0x1, 0x00000001);
@@ -508,7 +540,9 @@ void GPU_DrawElements(GPU_Primitive_t primitive, u32* indexArray, u32 n)
 	GPUCMD_AddWrite(GPUREG_INDEXBUFFER_CONFIG, 0x80000000|((u32)indexArray));
 	//pass number of vertices
 	GPUCMD_AddWrite(GPUREG_NUMVERTICES, n);
-
+    
+	GPUCMD_AddWrite(GPUREG_DRAW_VERTEX_OFFSET, 0x00000000);
+    
 	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x2, 0x00000100);
 	GPUCMD_AddMaskedWrite(GPUREG_0253, 0x2, 0x00000100);
 

@@ -113,7 +113,7 @@ dist: dist-src dist-bin
 
 install: dist-bin
 	mkdir -p $(DEVKITPRO)/libctru
-	bzip2 -cd libctru-$(VERSION).tar.bz2 | tar -x -C $(DEVKITPRO)/libctru
+	bzip2 -cd libctru-$(VERSION).tar.bz2 | tar -xf - -C $(DEVKITPRO)/libctru
 
 dox:
 	@doxygen Doxyfile

@@ -265,11 +265,25 @@ Result svcControlMemory(u32* addr_out, u32 addr0, u32 addr1, u32 size, MemOp op,
  */
 Result svcControlProcessMemory(Handle process, u32 addr0, u32 addr1, u32 size, u32 type, u32 perm);
 
+/**
+ * @brief Creates a block of shared memory
+ * @param memblock Pointer to store the handle of the block
+ * @param addr Address of the memory to map, page-aligned. So its alignment must be 0x1000.
+ * @param size Size of the memory to map, a multiple of 0x1000.
+ * @param my_perm Memory permissions for the current process
+ * @param my_perm Memory permissions for the other processes
+ *
+ * @note The shared memory block, and its rights, are destroyed when the handle is closed.
+ */
 Result svcCreateMemoryBlock(Handle* memblock, u32 addr, u32 size, MemPerm my_perm, MemPerm other_perm);
 Result svcMapMemoryBlock(Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm);
 Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
 Result svcUnmapMemoryBlock(Handle memblock, u32 addr);
+
+Result svcStartInterProcessDma(Handle* dma, Handle dstProcess, void* dst, Handle srcProcess, const void* src, u32 size, void* dmaConfig);
+Result svcStopDma(Handle dma);
+Result svcGetDmaState(void* dmaState, Handle dma);
 /**
  * @brief Memory information query
  * @param addr Virtual memory address
@@ -279,6 +293,9 @@ Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 a
 
 Result svcCreateAddressArbiter(Handle *arbiter);
 Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
+
+Result svcInvalidateProcessDataCache(Handle process, void* addr, u32 size);
+Result svcFlushProcessDataCache(Handle process, void const* addr, u32 size);
 
 Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
 Result svcWriteProcessMemory(Handle debug, const void* buffer, u32 addr, u32 size);
@@ -295,6 +312,7 @@ Result svcWriteProcessMemory(Handle debug, const void* buffer, u32 addr, u32 siz
  */
 Result svcOpenProcess(Handle* process, u32 processId);
 void svcExitProcess() __attribute__((noreturn));
+Result svcTerminateProcess(Handle process);
 
 Result svcGetProcessInfo(s64* out, Handle process, u32 type);
 Result svcGetProcessId(u32 *out, Handle handle);
@@ -312,7 +330,7 @@ Result svcConnectToPort(volatile Handle* out, const char* portName);
  * @param arg             The argument passed to @p entrypoint
  * @param stack_top       The top of the thread's stack. Must be 0x8 bytes mem-aligned.
  * @param thread_priority Low values gives the thread higher priority.
- *                        For userland app, this has to be withing the range [0x18;0x3F]
+ *                        For userland apps, this has to be within the range [0x18;0x3F]
  * @param processor_id    The id of the processor the thread should be ran on. Those are labelled starting from 0.
  *                        For old 3ds it has to be <2, and for new 3DS <4.
  *                        Value -1 means all CPUs and -2 read from the Exheader.
@@ -355,7 +373,7 @@ Result svcGetThreadPriority(s32 *out, Handle handle);
 
 /**
  * @brief Changes the priority of a thread
- * @param prio For userland apps, this has to be withing the range [0x18;0x3F]
+ * @param prio For userland apps, this has to be within the range [0x18;0x3F]
  *
  * Low values gives the thread higher priority.
  */
@@ -396,14 +414,20 @@ Result svcGetThreadInfo(s64* out, Handle thread, ThreadInfoType type);
 ///@{
 Result svcCreateMutex(Handle* mutex, bool initially_locked);
 Result svcReleaseMutex(Handle handle);
+
 Result svcCreateSemaphore(Handle* semaphore, s32 initial_count, s32 max_count);
 Result svcReleaseSemaphore(s32* count, Handle semaphore, s32 release_count);
+
 Result svcCreateEvent(Handle* event, u8 reset_type);
 Result svcSignalEvent(Handle handle);
 Result svcClearEvent(Handle handle);
+
 Result svcWaitSynchronization(Handle handle, s64 nanoseconds);
 Result svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
+
 Result svcSendSyncRequest(Handle session);
+Result svcAcceptSession(Handle* session, Handle port);
+Result svcReplyAndReceive(s32* index, Handle* handles, s32 handleCount, Handle replyTarget);
 ///@}
 
 ///@name Time
@@ -420,11 +444,13 @@ u64    svcGetSystemTick();
 Result svcCloseHandle(Handle handle);
 Result svcDuplicateHandle(Handle* out, Handle original);
 Result svcGetSystemInfo(s64* out, u32 type, s32 param);
+Result svcKernelSetState(u32 type, u32 param0, u32 param1, u32 param2);
 ///@}
 
 
 ///@name Debugging
 ///@{
+void svcBreak(UserBreakType breakReason);
 Result svcOutputDebugString(const char* str, int length);
 Result svcDebugActiveProcess(Handle* debug, u32 processId);
 Result svcBreakDebugProcess(Handle debug);

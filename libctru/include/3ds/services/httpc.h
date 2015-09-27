@@ -23,7 +23,7 @@ Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size);
 Result httpcGetRequestState(httpcContext *context, httpcReqStatus* out);
 Result httpcGetDownloadSizeState(httpcContext *context, u32* downloadedsize, u32* contentsize);
 Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);//delay isn't used yet. This writes the HTTP status code from the server to out.
-
+Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u32 valuebuf_maxsize);
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize);//The *entire* content must be downloaded before using httpcCloseContext(), otherwise httpcCloseContext() will hang.
 
 //Using the below functions directly is not recommended, use the above functions. See also the http example.
@@ -38,5 +38,6 @@ Result HTTPC_BeginRequest(Handle handle, Handle contextHandle);
 Result HTTPC_ReceiveData(Handle handle, Handle contextHandle, u8* buffer, u32 size);
 Result HTTPC_GetRequestState(Handle handle, Handle contextHandle, httpcReqStatus* out);
 Result HTTPC_GetDownloadSizeState(Handle handle, Handle contextHandle, u32* downloadedsize, u32* contentsize);
+Result HTTPC_GetResponseHeader(Handle handle, Handle contextHandle, char* name, char* value, u32 valuebuf_maxsize);
 Result HTTPC_GetResponseStatusCode(Handle handle, Handle contextHandle, u32* out);
 

@@ -17,10 +17,11 @@ typedef enum
 	ps_KEYSLOT_31,
 	ps_KEYSLOT_38,
 	ps_KEYSLOT_32,
-	ps_KEYSLOT_39,
+	ps_KEYSLOT_39_DLP,
 	ps_KEYSLOT_2E,
 	ps_KEYSLOT_INVALID,
-	ps_KEYSLOT_36
+	ps_KEYSLOT_36,
+	ps_KEYSLOT_39_NFC
 } ps_aes_keytypes;
 
 /*

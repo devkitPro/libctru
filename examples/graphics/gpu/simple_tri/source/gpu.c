@@ -45,7 +45,7 @@ void gpuFrameBegin(void)
 	// Configure some boilerplate
 	GPU_SetFaceCulling(GPU_CULL_BACK_CCW);
 	GPU_SetStencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
-	GPU_SetStencilOp(GPU_KEEP, GPU_KEEP, GPU_KEEP);
+	GPU_SetStencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
 	GPU_SetBlendingColor(0,0,0,0);
 	GPU_SetDepthTestAndWriteMask(true, GPU_GREATER, GPU_WRITE_ALL);
 

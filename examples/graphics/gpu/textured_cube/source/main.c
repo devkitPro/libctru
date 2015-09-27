@@ -186,7 +186,7 @@ static void sceneRender(void)
 	GPU_SetFloatUniform(GPU_VERTEX_SHADER, uLoc_lightClr,     (u32*)(float[]){1.0f,  1.0f, 1.0f, 1.0f}, 1);
 
 	// Draw the VBO
-	GPU_DrawArray(GPU_TRIANGLES, vertex_list_count);
+	GPU_DrawArray(GPU_TRIANGLES, 0, vertex_list_count);
 }
 
 static void sceneExit(void)
