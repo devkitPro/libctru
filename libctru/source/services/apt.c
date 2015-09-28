@@ -798,6 +798,25 @@ Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32
 	return cmdbuf[1];
 }
 
+Result APT_GetAppletInfo(Handle* handle, NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pRegistered, u8* pLoadState, u32* pAttributes)
+{
+	if(!handle)handle=&aptuHandle;
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=0x00060040; //request header code
+	cmdbuf[1]=appID;
+
+	Result ret=0;
+	if((ret=svcSendSyncRequest(*handle)))return ret;
+
+	if(pProgramID)*pProgramID=(u64)cmdbuf[2]|((u64)cmdbuf[3]<<32);
+	if(pMediaType)*pMediaType=cmdbuf[4];
+	if(pRegistered)*pRegistered=cmdbuf[5];
+	if(pLoadState)*pLoadState=cmdbuf[6];
+	if(pAttributes)*pAttributes=cmdbuf[7];
+
+	return cmdbuf[1];
+}
+
 Result APT_GetAppletProgramInfo(Handle* handle, u32 id, u32 flags, u16 *titleversion)
 {
 	if(!handle)handle=&aptuHandle;
