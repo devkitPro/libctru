@@ -76,12 +76,15 @@ typedef struct {
 } PageInfo;
 
 typedef enum {
-	ARBITER_FREE            = 0,
-	ARBITER_ACQUIRE         = 1,
-	ARBITER_KERNEL2         = 2,
-	ARBITER_ACQUIRE_TIMEOUT = 3,
-	ARBITER_KERNEL4         = 4,
+	ARBITRATION_SIGNAL                                  = 0, ///< Signal #value threads for wake-up.
+	ARBITRATION_WAIT_IF_LESS_THAN                       = 1, ///< If the memory at the address is strictly lower than #value, then wait for signal.
+	ARBITRATION_DECREMENT_AND_WAIT_IF_LESS_THAN         = 2, ///< If the memory at the address is strictly lower than #value, then decrement it and wait for signal.
+	ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT               = 3, ///< If the memory at the address is strictly lower than #value, then wait for signal or timeout.
+	ARBITRATION_DECREMENT_AND_WAIT_IF_LESS_THAN_TIMEOUT = 4, ///< If the memory at the address is strictly lower than #value, then decrement it and wait for signal or timeout.
 } ArbitrationType;
+
+/// Special value to signal all the threads
+#define ARBITRATION_SIGNAL_ALL (-1)
 
 ///@}
 
@@ -302,8 +305,6 @@ Result svcGetDmaState(void* dmaState, Handle dma);
 Result svcQueryMemory(MemInfo* info, PageInfo* out, u32 addr);
 Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
 
-Result svcCreateAddressArbiter(Handle *arbiter);
-Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
 
 Result svcInvalidateProcessDataCache(Handle process, void* addr, u32 size);
 Result svcFlushProcessDataCache(Handle process, void const* addr, u32 size);
@@ -435,6 +436,31 @@ Result svcClearEvent(Handle handle);
 
 Result svcWaitSynchronization(Handle handle, s64 nanoseconds);
 Result svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
+
+/**
+ * @brief Creates an address arbiter
+ * @sa svcArbitrateAddress
+ */
+Result svcCreateAddressArbiter(Handle *arbiter);
+
+/**
+ * @brief Arbitrate an address, can be used for synchronization
+ * @param arbiter Handle of the arbiter
+ * @param addr A pointer to a s32 value.
+ * @param type Type of action to be performed by the arbiter
+ * @param value Number of threads to signal if using @ref ARBITRATION_SIGNAL, or the value used for comparison.
+ *
+ * This will perform an arbitration based on #type. The comparisons are done between #value and the value at the address #addr.
+ *
+ * @code
+ * s32 val=0;
+ * // Does *nothing* since val >= 0
+ * svcCreateAddressArbiter(arbiter,&val,ARBITRATION_WAIT_IF_LESS_THAN,0,0);
+ * // Thread will wait for a signal or wake up after 10000000 nanoseconds because val < 1.
+ * svcCreateAddressArbiter(arbiter,&val,ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT,1,10000000ULL);
+ * @endcode
+ */
+Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
 
 Result svcSendSyncRequest(Handle session);
 Result svcAcceptSession(Handle* session, Handle port);
