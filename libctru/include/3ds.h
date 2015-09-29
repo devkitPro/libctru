@@ -12,6 +12,7 @@ extern "C" {
 #include <3ds/linear.h>
 #include <3ds/vram.h>
 #include <3ds/os.h>
+#include <3ds/synchronization.h>
 #include <3ds/gfx.h>
 #include <3ds/console.h>
 #include <3ds/util/utf.h>
