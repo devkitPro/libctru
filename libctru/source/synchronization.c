@@ -16,25 +16,6 @@ void __sync_fini(void)
 		svcCloseHandle(arbiter);
 }
 
-static inline void __clrex(void)
-{
-	__asm__ __volatile__("clrex");
-}
-
-static inline s32 __ldrex(s32* addr)
-{
-	s32 val;
-	__asm__ __volatile__("ldrex %[val], [%[addr]]" : [val] "=r" (val) : [addr] "r" (addr));
-	return val;
-}
-
-static inline bool __strex(s32* addr, s32 val)
-{
-	bool res;
-	__asm__ __volatile__("strex %[res], %[val], [%[addr]]" : [res] "=&r" (res) : [val] "r" (val), [addr] "r" (addr));
-	return res;
-}
-
 void LightLock_Init(LightLock* lock)
 {
 	do
