@@ -18,6 +18,8 @@ void __appInit();
 void __ctru_exit(int rc);
 int __libctru_gtod(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
 
+Result __sync_init(void) __attribute__((weak));
+
 void __attribute__((weak)) __libctru_init(void (*retAddr)(void))
 {
 
@@ -26,6 +28,9 @@ void __attribute__((weak)) __libctru_init(void (*retAddr)(void))
     __syscalls.gettod_r = __libctru_gtod;
 
 	__system_retAddr = __service_ptr ? retAddr : NULL;
+
+	if (__sync_init)
+		__sync_init();
 
 	__system_allocateHeaps();
 

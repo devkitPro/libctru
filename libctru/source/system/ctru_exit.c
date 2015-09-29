@@ -11,6 +11,8 @@ void __appExit();
 
 void __libc_fini_array(void);
 
+Result __sync_fini(void) __attribute__((weak));
+
 void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 {
 	u32 tmp=0;
@@ -23,6 +25,9 @@ void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 
 	// Close some handles
 	__destroy_handle_list();
+
+	if (__sync_fini)
+		__sync_fini();
 
 	// Jump to the loader if it provided a callback
 	if (__system_retAddr)
