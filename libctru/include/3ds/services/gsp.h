@@ -51,6 +51,9 @@ typedef enum
 Result gspInit();
 void gspExit();
 
+Result gspLcdInit();
+void gspLcdExit();
+
 Result gspInitEventHandler(Handle gspEvent, vu8* gspSharedMem, u8 gspThreadId);
 void gspExitEventHandler();
 void gspWaitForEvent(GSP_Event id, bool nextEvent);
@@ -79,3 +82,7 @@ Result GSPGPU_RegisterInterruptRelayQueue(Handle *handle, Handle eventHandle, u3
 Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle);
 Result GSPGPU_TriggerCmdReqQueue(Handle *handle);
 Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* handle);
+
+// 1 = top, 2 = bottom, 3 = both
+Result GSPLCD_PowerOffBacklight(u32 screen);
+Result GSPLCD_PowerOnBacklight(u32 screen);
