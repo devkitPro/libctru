@@ -33,7 +33,7 @@ _begin:
 		if (val < 0)
 		{
 			__clrex();
-			svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+			svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_DECREMENT_AND_WAIT_IF_LESS_THAN, 0, 0);
 			goto _begin; // Try locking again
 		}
 	} while (__strex(lock, -val));
@@ -45,7 +45,14 @@ void LightLock_Unlock(LightLock* lock)
 	do
 		val = -__ldrex(lock);
 	while (__strex(lock, val));
-	svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_SIGNAL, 1, 0);
+	if (val > 1)
+	{
+		// Wake up exactly one thread
+		do
+			val = __ldrex(lock);
+		while (__strex(lock, val-1));
+		svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_SIGNAL, 1, 0);
+	}
 }
 
 void RecursiveLock_Init(RecursiveLock* lock)
