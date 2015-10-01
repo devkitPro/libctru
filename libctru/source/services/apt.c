@@ -848,7 +848,6 @@ Result APT_GetProgramID(Handle* handle, u64* pProgramID)
 
 	if(pProgramID)
 	{
-		*pProgramID = 0;
 		if(ret==0) *pProgramID=((u64)cmdbuf[3]<<32)|cmdbuf[2];
 	}
 
