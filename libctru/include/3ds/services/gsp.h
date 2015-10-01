@@ -48,6 +48,13 @@ typedef enum
 	GSPEVENT_MAX, // used to know how many events there are
 } GSP_Event;
 
+typedef enum
+{
+	GSPLCD_TOP=1,
+	GSPLCD_BOTTOM=2,
+	GSPLCD_BOTH=3,
+}GSPLCD_Screens;
+
 Result gspInit();
 void gspExit();
 
