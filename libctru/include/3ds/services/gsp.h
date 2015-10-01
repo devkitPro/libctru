@@ -50,9 +50,9 @@ typedef enum
 
 typedef enum
 {
-	GSPLCD_TOP=1,
-	GSPLCD_BOTTOM=2,
-	GSPLCD_BOTH=3,
+	GSPLCD_TOP    = BIT(0),
+	GSPLCD_BOTTOM = BIT(1),
+	GSPLCD_BOTH   = GSPLCD_TOP | GSPLCD_BOTTOM,
 }GSPLCD_Screens;
 
 Result gspInit();
@@ -90,6 +90,5 @@ Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle);
 Result GSPGPU_TriggerCmdReqQueue(Handle *handle);
 Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* handle);
 
-// 1 = top, 2 = bottom, 3 = both
-Result GSPLCD_PowerOffBacklight(u32 screen);
-Result GSPLCD_PowerOnBacklight(u32 screen);
+Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen);
+Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen);

@@ -443,7 +443,7 @@ void gspLcdExit()
 	if(gspLcdHandle)svcCloseHandle(gspLcdHandle);
 }
 
-Result GSPLCD_PowerOffBacklight(u32 screen)
+Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -455,7 +455,7 @@ Result GSPLCD_PowerOffBacklight(u32 screen)
 	return ret;
 }
 
-Result GSPLCD_PowerOnBacklight(u32 screen)
+Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
