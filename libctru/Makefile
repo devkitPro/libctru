@@ -27,6 +27,7 @@ BUILD		:=	build
 SOURCES		:=	source \
 			source/allocator \
 			source/gpu \
+			source/ndsp \
 			source/services \
 			source/services/soc \
 			source/util/rbtree \
