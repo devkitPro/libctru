@@ -1,5 +1,6 @@
 #include "ndsp-internal.h"
 #include <3ds/services/cfgu.h>
+#include <3ds/services/fs.h>
 
 #define NDSP_THREAD_STACK_SIZE 0x1000
 
@@ -12,6 +13,7 @@ static u32 droppedFrames, frameCount;
 static const void* componentBin;
 static u32 componentSize;
 static u16 componentProgMask, componentDataMask;
+static bool componentFree;
 
 static aptHookCookie aptCookie;
 
@@ -375,14 +377,83 @@ void ndspUseComponent(const void* binary, u32 size, u16 progMask, u16 dataMask)
 	componentSize = size;
 	componentProgMask = progMask;
 	componentDataMask = dataMask;
+	componentFree = false;
+}
+
+bool ndspFindAndLoadComponent(void)
+{
+	extern Handle __get_handle_from_list(const char* name);
+	Result rc;
+	Handle rsrc;
+	void* bin;
+
+	componentProgMask = 0xFF;
+	componentDataMask = 0xFF;
+
+	// Try loading the DSP component from the filesystem
+	do
+	{
+		static const char dsp_filename[] = "/3ds/dspfirm.cdc";
+		FS_archive arch = { ARCH_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0, 0 };
+		FS_path path = { PATH_CHAR, sizeof(dsp_filename), (u8*)dsp_filename };
+
+		rc = FSUSER_OpenFileDirectly(&rsrc, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
+		if (rc) break;
+
+		u64 size = 0;
+		rc = FSFILE_GetSize(rsrc, &size);
+		if (rc) { FSFILE_Close(rsrc); break; }
+
+		bin = malloc(size);
+		if (!bin) { FSFILE_Close(rsrc); break; }
+
+		u32 dummy = 0;
+		rc = FSFILE_Read(rsrc, &dummy, 0, bin, size);
+		FSFILE_Close(rsrc);
+		if (rc) { free(bin); return false; }
+
+		componentBin = bin;
+		componentSize = size;
+		componentFree = true;
+		return true;
+	} while (0);
+
+	// Try loading the DSP component from hb:ndsp
+	rsrc = __get_handle_from_list("hb:ndsp");
+	if (rsrc) do
+	{
+		extern u32 fake_heap_end;
+		u32 mapAddr = (fake_heap_end+0xFFF) &~ 0xFFF;
+		rc = svcMapMemoryBlock(rsrc, mapAddr, 0x3, 0x3);
+		if (rc) break;
+
+		componentSize = *(u32*)(mapAddr + 0x104);
+		bin = malloc(componentSize);
+		if (bin)
+			memcpy(bin, (void*)mapAddr, componentSize);
+		svcUnmapMemoryBlock(rsrc, mapAddr);
+		if (!bin) break;
+
+		componentBin = bin;
+		componentFree = true;
+		return true;
+	} while (0);
+
+	return false;
 }
 
 static int ndspRefCount = 0;
 
 Result ndspInit(void)
 {
-	Result rc;
+	Result rc = 0;
 	if (ndspRefCount++) return 0;
+
+	if (!componentBin && !ndspFindAndLoadComponent())
+	{
+		rc = 1018 | (41 << 10) | (4 << 21) | (27 << 27);
+		goto _fail0;
+	}
 
 	LightLock_Init(&ndspMutex);
 	ndspInitMaster();
@@ -418,6 +489,12 @@ _fail2:
 	ndspFinalize(false);
 _fail1:
 	dspExit();
+	if (componentFree)
+	{
+		free((void*)componentBin);
+		componentBin = NULL;
+	}
+_fail0:
 	ndspRefCount--;
 	return rc;
 }
@@ -433,6 +510,11 @@ void ndspExit(void)
 	aptUnhook(&aptCookie);
 	ndspFinalize(false);
 	dspExit();
+	if (componentFree)
+	{
+		free((void*)componentBin);
+		componentBin = NULL;
+	}
 }
 
 u32 ndspGetDroppedFrames(void)

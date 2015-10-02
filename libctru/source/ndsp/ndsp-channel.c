@@ -371,7 +371,7 @@ void ndspiReadChnState(void)
 					chn->wavBufCount--;
 					bool shouldBreak = seqId == 0 && (wb->sequence_id == st->lastSeqId || st->lastSeqId == 0);
 					wb = wb->next;
-					if (shouldBreak || chn->wavBufCount == 0)
+					if (!wb || shouldBreak || chn->wavBufCount == 0)
 						break;
 				}
 				if (seqId == 0)
