@@ -450,9 +450,10 @@ Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen)
 	cmdbuf[0] = 0x00120040;
 	cmdbuf[1] = screen;
 
-	Result ret = svcSendSyncRequest(gspLcdHandle);
+	Result ret=0;
+	if ((ret = svcSendSyncRequest(gspLcdHandle)))return ret;
 
-	return ret;
+	return cmdbuf[1];
 }
 
 Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen)
@@ -462,7 +463,8 @@ Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen)
 	cmdbuf[0] = 0x00110040;
 	cmdbuf[1] = screen;
 
-	Result ret = svcSendSyncRequest(gspLcdHandle);
+	Result ret=0;
+	if ((ret = svcSendSyncRequest(gspLcdHandle)))return ret;
 
-	return ret;
+	return cmdbuf[1];
 }
