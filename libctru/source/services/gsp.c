@@ -12,6 +12,7 @@
 #define GSP_EVENT_STACK_SIZE 0x1000
 
 Handle gspGpuHandle=0;
+Handle gspLcdHandle=0;
 Handle gspEvents[GSPEVENT_MAX];
 vu32 gspEventCounts[GSPEVENT_MAX];
 u64 gspEventStack[GSP_EVENT_STACK_SIZE/sizeof(u64)]; //u64 so that it's 8-byte aligned
@@ -399,4 +400,40 @@ Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8])
 
 	if(totalCommands==1)return GSPGPU_TriggerCmdReqQueue();
 	return 0;
+}
+
+Result gspLcdInit(void)
+{
+	return srvGetServiceHandle(&gspLcdHandle, "gsp::Lcd");
+}
+
+void gspLcdExit(void)
+{
+	if(gspLcdHandle)svcCloseHandle(gspLcdHandle);
+}
+
+Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00120040;
+	cmdbuf[1] = screen;
+
+	Result ret=0;
+	if ((ret = svcSendSyncRequest(gspLcdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x00110040;
+	cmdbuf[1] = screen;
+
+	Result ret=0;
+	if ((ret = svcSendSyncRequest(gspLcdHandle)))return ret;
+
+	return cmdbuf[1];
 }
