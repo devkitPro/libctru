@@ -7,6 +7,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/irrst.h>
+#include <3ds/ipc.h>
 
 // used to determine whether or not we should do IRRST_Initialize
 Handle __get_handle_from_list(char* name);
@@ -119,7 +120,7 @@ void irrstCstickRead(circlePosition* pos)
 Result IRRST_GetHandles(Handle* outMemHandle, Handle* outEventHandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x00010000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x1,0,0); // 0x10000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(irrstHandle)))return ret;
@@ -133,7 +134,7 @@ Result IRRST_GetHandles(Handle* outMemHandle, Handle* outEventHandle)
 Result IRRST_Initialize(u32 unk1, u8 unk2)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x00020080; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x2,2,0); // 0x20080
 	cmdbuf[1]=unk1;
 	cmdbuf[2]=unk2;
 
@@ -146,7 +147,7 @@ Result IRRST_Initialize(u32 unk1, u8 unk2)
 Result IRRST_Shutdown(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x00030000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x3,0,0); // 0x30000
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(irrstHandle)))return ret;

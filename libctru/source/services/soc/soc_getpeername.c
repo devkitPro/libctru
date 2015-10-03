@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <errno.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
@@ -15,16 +16,17 @@ int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 		return -1;
 	}
 
-	cmdbuf[0] = 0x00180082;
+	cmdbuf[0] = IPC_MakeHeader(0x18,2,2); // 0x180082
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = 0x1c;
-	cmdbuf[3] = 0x20;
+	cmdbuf[3] = IPC_Desc_CurProcessHandle();
 
-	saved_threadstorage[0] = cmdbuf[0x100>>2];
-	saved_threadstorage[1] = cmdbuf[0x104>>2];
+	u32 * staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
 
-	cmdbuf[0x100>>2] = (0x1c<<14) | 2;
-	cmdbuf[0x104>>2] = (u32)tmpaddr;
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x1c,0);
+	staticbufs[1] = (u32)tmpaddr;
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {
@@ -32,8 +34,8 @@ int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 		return ret;
 	}
 
-	cmdbuf[0x100>>2] = saved_threadstorage[0];
-	cmdbuf[0x104>>2] = saved_threadstorage[1];
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret == 0)

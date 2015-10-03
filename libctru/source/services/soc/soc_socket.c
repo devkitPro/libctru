@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <sys/iosupport.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 int socket(int domain, int type, int protocol)
 {
@@ -10,11 +11,11 @@ int socket(int domain, int type, int protocol)
 	__handle *handle;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000200C2;
+	cmdbuf[0] = IPC_MakeHeader(0x2,3,2); // 0x200C2
 	cmdbuf[1] = domain;
 	cmdbuf[2] = type;
 	cmdbuf[3] = protocol;
-	cmdbuf[4] = 0x20;
+	cmdbuf[4] = IPC_Desc_CurProcessHandle();
 
 	dev = FindDevice("soc:");
 	if(dev < 0) {

@@ -9,6 +9,7 @@
 #include <3ds/srv.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/gsp.h>
+#include <3ds/ipc.h>
 
 
 #define APT_HANDLER_STACKSIZE (0x1000)
@@ -714,7 +715,7 @@ void aptSignalReadyForSleep(void)
 Result APT_GetLockHandle(u16 flags, Handle* lockHandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x10040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x1,1,0); // 0x10040
 	cmdbuf[1]=flags;
 	
 	Result ret=0;
@@ -728,7 +729,7 @@ Result APT_GetLockHandle(u16 flags, Handle* lockHandle)
 Result APT_Initialize(NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x20080; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x2,2,0); // 0x20080
 	cmdbuf[1]=appId;
 	cmdbuf[2]=0x0;
 	
@@ -744,7 +745,7 @@ Result APT_Initialize(NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2
 Result APT_Finalize(NS_APPID appId)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x40040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x4,1,0); // 0x40040
 	cmdbuf[1]=appId;
 	
 	Result ret=0;
@@ -755,7 +756,7 @@ Result APT_Finalize(NS_APPID appId)
 Result APT_HardwareResetAsync()
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x4E0000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x4E,0,0); // 0x4E0000
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -766,7 +767,7 @@ Result APT_HardwareResetAsync()
 Result APT_Enable(u32 a)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x30040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x3,1,0); // 0x30040
 	cmdbuf[1]=a;
 	
 	Result ret=0;
@@ -778,7 +779,7 @@ Result APT_Enable(u32 a)
 Result APT_GetAppletManInfo(u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x00050040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x5,1,0); // 0x50040
 	cmdbuf[1]=inval;
 	
 	Result ret=0;
@@ -795,7 +796,7 @@ Result APT_GetAppletManInfo(u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu
 Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pRegistered, u8* pLoadState, u32* pAttributes)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x00060040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x6,1,0); // 0x60040
 	cmdbuf[1]=appID;
 
 	Result ret=0;
@@ -813,7 +814,7 @@ Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pR
 Result APT_GetAppletProgramInfo(u32 id, u32 flags, u16 *titleversion)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x004D0080; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x4D,2,0); // 0x4D0080
 	cmdbuf[1]=id;
 	cmdbuf[2]=flags;
 
@@ -828,8 +829,8 @@ Result APT_GetAppletProgramInfo(u32 id, u32 flags, u16 *titleversion)
 Result APT_GetProgramID(u64* pProgramID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0] = 0x00580002; //request header code
-	cmdbuf[1] = 0x20;
+	cmdbuf[0] = IPC_MakeHeader(0x58,0,2); // 0x580002
+	cmdbuf[1] = IPC_Desc_CurProcessHandle();
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -847,7 +848,7 @@ Result APT_GetProgramID(u64* pProgramID)
 Result APT_IsRegistered(NS_APPID appID, u8* out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x90040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x9,1,0); // 0x90040
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
@@ -861,7 +862,7 @@ Result APT_IsRegistered(NS_APPID appID, u8* out)
 Result APT_InquireNotification(u32 appID, u8* signalType)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0xB0040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0xB,1,0); // 0xB0040
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
@@ -872,10 +873,10 @@ Result APT_InquireNotification(u32 appID, u8* signalType)
 	return cmdbuf[1];
 }
 
-Result APT_PrepareToJumpToHomeMenu()
+Result APT_PrepareToJumpToHomeMenu(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x2b0000; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x2B,0,0); // 0x2B0000
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -883,25 +884,26 @@ Result APT_PrepareToJumpToHomeMenu()
 	return cmdbuf[1];
 }
 
-Result APT_JumpToHomeMenu(u32 a, u32 b, u32 c)
+Result APT_JumpToHomeMenu(const u8 *param, size_t paramSize, Handle handle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x2C0044; //request header code
-	cmdbuf[1]=a;
-	cmdbuf[2]=b;
-	cmdbuf[3]=c;
-	cmdbuf[4]=(b<<14)|2;
-	
+	cmdbuf[0]=IPC_MakeHeader(0x2C,1,4); // 0x2C0044
+	cmdbuf[1]=paramSize;
+	cmdbuf[2]=IPC_Desc_SharedHandles(1);
+	cmdbuf[3]=handle;
+	cmdbuf[4]=IPC_Desc_StaticBuffer(paramSize,0);
+	cmdbuf[5]= (u32) param;
+
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
-	
+
 	return cmdbuf[1];
 }
 
 Result APT_PrepareToJumpToApplication(u32 a)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x230040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x23,1,0); // 0x230040
 	cmdbuf[1]=a;
 
 	Result ret=0;
@@ -910,14 +912,15 @@ Result APT_PrepareToJumpToApplication(u32 a)
 	return cmdbuf[1];
 }
 
-Result APT_JumpToApplication(u32 a, u32 b, u32 c)
+Result APT_JumpToApplication(const u8 *param, size_t paramSize, Handle handle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x240044; //request header code
-	cmdbuf[1]=a;
-	cmdbuf[2]=b;
-	cmdbuf[3]=c;
-	cmdbuf[4]=(b<<14)|2;
+	cmdbuf[0]=IPC_MakeHeader(0x24,1,4); // 0x240044
+	cmdbuf[1]=paramSize;
+	cmdbuf[2]=IPC_Desc_SharedHandles(1);
+	cmdbuf[3]=handle;
+	cmdbuf[4]=IPC_Desc_StaticBuffer(paramSize,0);
+	cmdbuf[5]= (u32) param;
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -928,7 +931,7 @@ Result APT_JumpToApplication(u32 a, u32 b, u32 c)
 Result APT_NotifyToWait(NS_APPID appID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x430040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x43,1,0); // 0x430040
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
@@ -940,15 +943,16 @@ Result APT_NotifyToWait(NS_APPID appID)
 Result APT_AppletUtility(u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x4B00C2; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x4B,3,2); // 0x4B00C2
 	cmdbuf[1]=a;
 	cmdbuf[2]=size1;
 	cmdbuf[3]=size2;
-	cmdbuf[4]=(size1<<14)|0x402;
+	cmdbuf[4]=IPC_Desc_StaticBuffer(size1,1);
 	cmdbuf[5]=(u32)buf1;
-	
-	cmdbuf[0+0x100/4]=(size2<<14)|2;
-	cmdbuf[1+0x100/4]=(u32)buf2;
+
+	u32 *staticbufs = getThreadStaticBuffers();
+	staticbufs[0]=IPC_Desc_StaticBuffer(size2,0);
+	staticbufs[1]=(u32)buf2;
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -961,12 +965,13 @@ Result APT_AppletUtility(u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* bu
 Result APT_GlanceParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0xE0080; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0xE,2,0); // 0xE0080
 	cmdbuf[1]=appID;
 	cmdbuf[2]=bufferSize;
-	
-	cmdbuf[0+0x100/4]=(bufferSize<<14)|2;
-	cmdbuf[1+0x100/4]=(u32)buffer;
+
+	u32 *staticbufs = getThreadStaticBuffers();
+	staticbufs[0]=IPC_Desc_StaticBuffer(bufferSize,0);
+	staticbufs[1]=(u32)buffer;
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -980,12 +985,13 @@ Result APT_GlanceParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* act
 Result APT_ReceiveParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0xD0080; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0xD,2,0); // 0xD0080
 	cmdbuf[1]=appID;
 	cmdbuf[2]=bufferSize;
-	
-	cmdbuf[0+0x100/4]=(bufferSize<<14)|2;
-	cmdbuf[1+0x100/4]=(u32)buffer;
+
+	u32 *staticbufs = getThreadStaticBuffers();
+	staticbufs[0]=IPC_Desc_StaticBuffer(bufferSize,0);
+	staticbufs[1]=(u32)buffer;
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -1000,16 +1006,16 @@ Result APT_SendParameter(NS_APPID src_appID, NS_APPID dst_appID, u32 bufferSize,
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000C0104; //request header code
+	cmdbuf[0] = IPC_MakeHeader(0xC,4,4); // 0xC0104
 	cmdbuf[1] = src_appID;
 	cmdbuf[2] = dst_appID;
 	cmdbuf[3] = signalType;
 	cmdbuf[4] = bufferSize;
 
-	cmdbuf[5]=0x0;
+	cmdbuf[5] = IPC_Desc_SharedHandles(1);
 	cmdbuf[6] = paramhandle;
 	
-	cmdbuf[7] = (bufferSize<<14) | 2;
+	cmdbuf[7] = IPC_Desc_StaticBuffer(bufferSize,0);
 	cmdbuf[8] = (u32)buffer;
 	
 	Result ret=0;
@@ -1022,9 +1028,9 @@ Result APT_SendCaptureBufferInfo(u32 bufferSize, u32* buffer)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x00400042; //request header code
+	cmdbuf[0] = IPC_MakeHeader(0x40,1,2); // 0x400042
 	cmdbuf[1] = bufferSize;
-	cmdbuf[2] = (bufferSize<<14) | 2;
+	cmdbuf[2] = IPC_Desc_StaticBuffer(bufferSize,0);
 	cmdbuf[3] = (u32)buffer;
 	
 	Result ret=0;
@@ -1036,7 +1042,7 @@ Result APT_SendCaptureBufferInfo(u32 bufferSize, u32* buffer)
 Result APT_ReplySleepQuery(NS_APPID appID, u32 a)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x3E0080; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x3E,2,0); // 0x3E0080
 	cmdbuf[1]=appID;
 	cmdbuf[2]=a;
 	
@@ -1049,7 +1055,7 @@ Result APT_ReplySleepQuery(NS_APPID appID, u32 a)
 Result APT_ReplySleepNotificationComplete(NS_APPID appID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x3F0040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x3F,1,0); // 0x3F0040
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
@@ -1061,7 +1067,7 @@ Result APT_ReplySleepNotificationComplete(NS_APPID appID)
 Result APT_PrepareToCloseApplication(u8 a)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x220040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x22,1,0); // 0x220040
 	cmdbuf[1]=a;
 	
 	Result ret=0;
@@ -1070,15 +1076,15 @@ Result APT_PrepareToCloseApplication(u8 a)
 	return cmdbuf[1];
 }
 
-Result APT_CloseApplication(u32 a, u32 b, u32 c)
+Result APT_CloseApplication(const u8 *param, size_t paramSize, Handle handle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x270044; //request header code
-	cmdbuf[1]=a;
-	cmdbuf[2]=0x0;
-	cmdbuf[3]=b;
-	cmdbuf[4]=(a<<14)|2;
-	cmdbuf[5]=c;
+	cmdbuf[0]=IPC_MakeHeader(0x27,1,4); // 0x270044
+	cmdbuf[1]=paramSize;
+	cmdbuf[2]=IPC_Desc_SharedHandles(1);
+	cmdbuf[3]=handle;
+	cmdbuf[4]=IPC_Desc_StaticBuffer(paramSize,0);
+	cmdbuf[5]= (u32) param;
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -1090,7 +1096,7 @@ Result APT_CloseApplication(u32 a, u32 b, u32 c)
 Result APT_SetAppCpuTimeLimit(u32 percent)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x4F0080;
+	cmdbuf[0]=IPC_MakeHeader(0x4F,2,0); // 0x4F0080
 	cmdbuf[1]=1;
 	cmdbuf[2]=percent;
 	
@@ -1103,7 +1109,7 @@ Result APT_SetAppCpuTimeLimit(u32 percent)
 Result APT_GetAppCpuTimeLimit(u32 *percent)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x500040;
+	cmdbuf[0]=IPC_MakeHeader(0x50,1,0); // 0x500040
 	cmdbuf[1]=1;
 	
 	Result ret=0;
@@ -1118,7 +1124,7 @@ Result APT_GetAppCpuTimeLimit(u32 *percent)
 Result APT_CheckNew3DS_Application(u8 *out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x01010000;
+	cmdbuf[0]=IPC_MakeHeader(0x101,0,0); // 0x1010000
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -1137,7 +1143,7 @@ Result APT_CheckNew3DS_Application(u8 *out)
 Result APT_CheckNew3DS_System(u8 *out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x01020000;
+	cmdbuf[0]=IPC_MakeHeader(0x102,0,0); // 0x1020000
 	
 	Result ret=0;
 	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
@@ -1180,7 +1186,7 @@ Result APT_CheckNew3DS(u8 *out)
 Result APT_PrepareToDoAppJump(u8 flags, u64 programID, u8 mediatype)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x310100; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x31,4,0); // 0x310100
 	cmdbuf[1]=flags;
 	cmdbuf[2]=(u32)programID;
 	cmdbuf[3]=(u32)(programID>>32);
@@ -1195,12 +1201,12 @@ Result APT_PrepareToDoAppJump(u8 flags, u64 programID, u8 mediatype)
 Result APT_DoAppJump(u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Ptr)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x320084; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x32,2,4); // 0x320084
 	cmdbuf[1]=NSbuf0Size;
 	cmdbuf[2]=NSbuf1Size;
-	cmdbuf[3]=(NSbuf0Size<<14)|2;
+	cmdbuf[3]=IPC_Desc_StaticBuffer(NSbuf0Size,0);
 	cmdbuf[4]=(u32)NSbuf0Ptr;
-	cmdbuf[5]=(NSbuf1Size<<14)|0x802;
+	cmdbuf[5]=IPC_Desc_StaticBuffer(NSbuf1Size,2);
 	cmdbuf[6]=(u32)NSbuf1Ptr;
 	
 	Result ret=0;
@@ -1212,7 +1218,7 @@ Result APT_DoAppJump(u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Pt
 Result APT_PrepareToStartLibraryApplet(NS_APPID appID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x180040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x18,1,0); // 0x180040
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
@@ -1224,12 +1230,12 @@ Result APT_PrepareToStartLibraryApplet(NS_APPID appID)
 Result APT_StartLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x1E0084; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x1E,2,4); // 0x1E0084
 	cmdbuf[1]=appID;
 	cmdbuf[2]=parambufsize;
-	cmdbuf[3]=0;
+	cmdbuf[3]=IPC_Desc_SharedHandles(1);
 	cmdbuf[4]=inhandle;
-	cmdbuf[5]=(parambufsize<<14)|2;
+	cmdbuf[5]=IPC_Desc_StaticBuffer(parambufsize,0);
 	cmdbuf[6]=(u32)parambuf;
 	
 	Result ret=0;
@@ -1303,7 +1309,7 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 Result APT_PrepareToStartSystemApplet(NS_APPID appID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0]=0x00190040; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x19,1,0); // 0x190040
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
@@ -1315,12 +1321,12 @@ Result APT_PrepareToStartSystemApplet(NS_APPID appID)
 Result APT_StartSystemApplet(NS_APPID appID, u32 bufSize, Handle applHandle, u8 *buf)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
-	cmdbuf[0] = 0x001F0084; //request header code
+	cmdbuf[0] = IPC_MakeHeader(0x1F,2,4); // 0x001F0084
 	cmdbuf[1] = appID;
 	cmdbuf[2] = bufSize;
-	cmdbuf[3] = 0;
+	cmdbuf[3] = IPC_Desc_SharedHandles(1);
 	cmdbuf[4] = applHandle;
-	cmdbuf[5] = (bufSize<<14) | 2;
+	cmdbuf[5] = IPC_Desc_StaticBuffer(bufSize,0);
 	cmdbuf[6] = (u32)buf;
 	
 	Result ret=0;

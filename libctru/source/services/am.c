@@ -5,6 +5,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/am.h>
+#include <3ds/ipc.h>
 
 static Handle amHandle = 0;
 
@@ -34,7 +35,7 @@ Result AM_GetTitleCount(u8 mediatype, u32 *count)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x00010040;
+	cmdbuf[0] = IPC_MakeHeader(0x1,1,0); // 0x00010040
 	cmdbuf[1] = mediatype;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
@@ -49,10 +50,10 @@ Result AM_GetTitleIdList(u8 mediatype, u32 count, u64 *titleIDs)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x00020082;
+	cmdbuf[0] = IPC_MakeHeader(0x2,2,2); // 0x00020082
 	cmdbuf[1] = count;
 	cmdbuf[2] = mediatype;
-	cmdbuf[3] = ((count*8) << 4) | 12;
+	cmdbuf[3] = IPC_Desc_Buffer(count*sizeof(u64),IPC_BUFFER_W);
 	cmdbuf[4] = (u32)titleIDs;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
@@ -65,12 +66,12 @@ Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, TitleList *
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x00030084;
+	cmdbuf[0] = IPC_MakeHeader(0x3,2,4); // 0x00030084
 	cmdbuf[1] = mediatype;
 	cmdbuf[2] = titleCount;
-	cmdbuf[3] = ((titleCount*8)<<4) | 10;
+	cmdbuf[3] = IPC_Desc_Buffer(titleCount*sizeof(u64),IPC_BUFFER_R);
 	cmdbuf[4] = (u32)titleIdList;
-	cmdbuf[5] = ((sizeof(TitleList)*titleCount)<<4) | 12;
+	cmdbuf[5] = IPC_Desc_Buffer(titleCount*sizeof(TitleList),IPC_BUFFER_W);
 	cmdbuf[6] = (u32)titleList;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
@@ -83,7 +84,7 @@ Result AM_GetDeviceId(u32 *deviceID)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000A0000;
+	cmdbuf[0] = IPC_MakeHeader(0xA,0,0); // 0x000A0000
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
 
@@ -97,7 +98,7 @@ Result AM_StartCiaInstall(u8 mediatype, Handle *ciaHandle)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x04020040;
+	cmdbuf[0] = IPC_MakeHeader(0x402,1,0); // 0x04020040
 	cmdbuf[1] = mediatype;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
@@ -112,7 +113,7 @@ Result AM_StartDlpChildCiaInstall(Handle *ciaHandle)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x04030000;
+	cmdbuf[0] = IPC_MakeHeader(0x403,0,0); // 0x04030000
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
 
@@ -126,8 +127,8 @@ Result AM_CancelCIAInstall(Handle *ciaHandle)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x04040002;
-	cmdbuf[1] = 0x10;
+	cmdbuf[0] = IPC_MakeHeader(0x404,0,2); // 0x04040002
+	cmdbuf[1] = IPC_Desc_MoveHandles(1);
 	cmdbuf[2] = *ciaHandle;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
@@ -140,8 +141,8 @@ Result AM_FinishCiaInstall(u8 mediatype, Handle *ciaHandle)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x04050002;
-	cmdbuf[1] = 0x10;
+	cmdbuf[0] = IPC_MakeHeader(0x405,0,2); // 0x04050002
+	cmdbuf[1] = IPC_Desc_MoveHandles(1);
 	cmdbuf[2] = *ciaHandle;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
@@ -154,7 +155,7 @@ Result AM_DeleteTitle(u8 mediatype, u64 titleID)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x041000C0;
+	cmdbuf[0] = IPC_MakeHeader(0x410,3,0); // 0x041000C0
 	cmdbuf[1] = mediatype;
 	cmdbuf[2] = titleID & 0xffffffff;
 	cmdbuf[3] = (u32)(titleID >> 32);
@@ -169,7 +170,7 @@ Result AM_DeleteAppTitle(u8 mediatype, u64 titleID)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000400C0;
+	cmdbuf[0] = IPC_MakeHeader(0x4,3,0); // 0x000400C0
 	cmdbuf[1] = mediatype;
 	cmdbuf[2] = titleID & 0xffffffff;
 	cmdbuf[3] = (u32)(titleID >> 32);
@@ -184,7 +185,7 @@ Result AM_InstallNativeFirm(void)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x040F0000;
+	cmdbuf[0] = IPC_MakeHeader(0x40F,0,0); // 0x040F0000
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
 
@@ -196,7 +197,7 @@ Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	
-	cmdbuf[0] = 0x000500C0;
+	cmdbuf[0] = IPC_MakeHeader(0x5,3,0); // 0x000500C0
 	cmdbuf[1] = mediatype;
 	cmdbuf[2] = titleID & 0xffffffff;
 	cmdbuf[3] = (u32)(titleID >> 32);
@@ -214,9 +215,9 @@ Result AM_GetCiaFileInfo(u8 mediatype, TitleList *titleEntry, Handle fileHandle)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	
-	cmdbuf[0] = 0x04080042;
+	cmdbuf[0] = IPC_MakeHeader(0x408,1,2); // 0x04080042
 	cmdbuf[1] = mediatype;
-	cmdbuf[2] = 0;
+	cmdbuf[2] = IPC_Desc_SharedHandles(1);
 	cmdbuf[3] = fileHandle;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;

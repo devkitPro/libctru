@@ -1,6 +1,7 @@
 #include "soc_common.h"
 #include <errno.h>
 #include <sys/socket.h>
+#include <3ds/ipc.h>
 
 static int     soc_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
 static int     soc_close(struct _reent *r, int fd);
@@ -43,10 +44,10 @@ static Result socu_cmd1(Handle memhandle, u32 memsize)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x00010044;
+	cmdbuf[0] = IPC_MakeHeader(0x1,1,4); // 0x10044
 	cmdbuf[1] = memsize;
-	cmdbuf[2] = 0x20;
-	cmdbuf[4] = 0;
+	cmdbuf[2] = IPC_Desc_CurProcessHandle();
+	cmdbuf[4] = IPC_Desc_SharedHandles(1);
 	cmdbuf[5] = memhandle;
 
 	ret = svcSendSyncRequest(SOCU_handle);
@@ -111,7 +112,7 @@ Result SOC_Shutdown(void)
 	svcCloseHandle(socMemhandle);
 	socMemhandle = 0;
 
-	cmdbuf[0] = 0x00190000;
+	cmdbuf[0] = IPC_MakeHeader(0x19,0,0); // 0x190000
 
 	ret = svcSendSyncRequest(SOCU_handle);
 
@@ -146,9 +147,9 @@ soc_close(struct _reent *r,
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000B0042;
+	cmdbuf[0] = IPC_MakeHeader(0xB,1,2); // 0xB0042
 	cmdbuf[1] = (u32)sockfd;
-	cmdbuf[2] = 0x20;
+	cmdbuf[2] = IPC_Desc_CurProcessHandle();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {

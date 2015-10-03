@@ -4,6 +4,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/news.h>
+#include <3ds/ipc.h>
 
 typedef struct {
 	bool dataSet;
@@ -40,17 +41,17 @@ Result NEWSU_AddNotification(const u16* title, u32 titleLength, const u16* messa
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = 0x000100C8;
+	cmdbuf[0] = IPC_MakeHeader(0x1,3,8); // 0x100C8
 	cmdbuf[1] = sizeof(NotificationHeader);
 	cmdbuf[2] = (messageLength + 1) * sizeof(u16);
 	cmdbuf[3] = imageSize;
-	cmdbuf[4] = 0x20;
+	cmdbuf[4] = IPC_Desc_CurProcessHandle();
 	cmdbuf[5] = 0; // Process ID, Filled automatically by the ARM11 kernel.
-	cmdbuf[6] = (sizeof(NotificationHeader) << 4) | 10;
+	cmdbuf[6] = IPC_Desc_Buffer(sizeof(NotificationHeader),IPC_BUFFER_R);
 	cmdbuf[7] = (u32) &header;
-	cmdbuf[8] = (((messageLength + 1) * sizeof(u16)) << 4) | 10;
+	cmdbuf[8] = IPC_Desc_Buffer((messageLength + 1) * sizeof(u16),IPC_BUFFER_R);
 	cmdbuf[9] = (u32) message;
-	cmdbuf[10] = (imageSize << 4) | 10;
+	cmdbuf[10] = IPC_Desc_Buffer(imageSize,IPC_BUFFER_R);
 	cmdbuf[11] = (u32) imageData;
 
 	if((ret = svcSendSyncRequest(newsHandle))!=0) return ret;

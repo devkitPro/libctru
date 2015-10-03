@@ -7,6 +7,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/qtm.h>
+#include <3ds/ipc.h>
 
 Handle qtmHandle;
 
@@ -44,8 +45,9 @@ Result qtmGetHeadtrackingInfo(u64 val, qtmHeadtrackingInfo *out)
 
 	if(!qtmInitialized)return -1;
 
-	cmdbuf[0]=0x00020080; //request header code
-	memcpy(&cmdbuf[1], &val, 8);
+	cmdbuf[0]=IPC_MakeHeader(0x2,2,0); // 0x20080
+	cmdbuf[1] = val&0xFFFFFFFF;
+	cmdbuf[2] = val>>32;
 
 	Result ret=0;
 	if((ret=svcSendSyncRequest(qtmHandle)))return ret;
