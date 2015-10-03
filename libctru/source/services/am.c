@@ -61,7 +61,7 @@ Result AM_GetTitleIdList(u8 mediatype, u32 count, u64 *titleIDs)
 	return (Result)cmdbuf[1];
 }
 
-Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, TitleList *titleList)
+Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, AM_TitleEntry *titleList)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -71,7 +71,7 @@ Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, TitleList *
 	cmdbuf[2] = titleCount;
 	cmdbuf[3] = IPC_Desc_Buffer(titleCount*sizeof(u64),IPC_BUFFER_R);
 	cmdbuf[4] = (u32)titleIdList;
-	cmdbuf[5] = IPC_Desc_Buffer(titleCount*sizeof(TitleList),IPC_BUFFER_W);
+	cmdbuf[5] = IPC_Desc_Buffer(titleCount*sizeof(AM_TitleEntry),IPC_BUFFER_W);
 	cmdbuf[6] = (u32)titleList;
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
@@ -210,7 +210,7 @@ Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode)
 	return (Result)cmdbuf[1];
 }
 
-Result AM_GetCiaFileInfo(u8 mediatype, TitleList *titleEntry, Handle fileHandle)
+Result AM_GetCiaFileInfo(u8 mediatype, AM_TitleEntry *titleEntry, Handle fileHandle)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -222,7 +222,7 @@ Result AM_GetCiaFileInfo(u8 mediatype, TitleList *titleEntry, Handle fileHandle)
 
 	if((ret = svcSendSyncRequest(amHandle))!=0) return ret;
 
-	if(titleEntry) memcpy(titleEntry, &cmdbuf[2], sizeof(TitleList));
+	if(titleEntry) memcpy(titleEntry, &cmdbuf[2], sizeof(AM_TitleEntry));
 
 	return (Result)cmdbuf[1];
 }

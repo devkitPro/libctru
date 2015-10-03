@@ -9,9 +9,9 @@ typedef struct
 {
 	u64 titleID;
 	u64 size;
-	u16 titleVersion;
-	u8 unknown2[6];
-} TitleList;
+	u16 version;
+	u8 unk[6];
+} AM_TitleEntry;
 
 
 Result amInit(void);
@@ -48,9 +48,9 @@ About: Get a list with details about the installed titles
   mediatype    mediatype of title
   titleCount   number of titles to list
 	titleIdList  pointer to a title ID list
-	titleList    pointer for the output TitleList array
+	titleList    pointer for the output AM_TitleEntry array
 */
-Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, TitleList *titleList);
+Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, AM_TitleEntry *titleList);
 
 /**** Title Install Methods ****/
 /* AM_StartCiaInstall()
@@ -119,10 +119,10 @@ About: Gets the product code of a title based on its title id.
 Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode);
 
 /* AM_GetCiaFileInfo()
-About: Reads a CIA file and returns a TitleList entry for it.
+About: Reads a CIA file and returns a AM_TitleEntry instance for it.
 
   mediatype		destination mediatype
-  titleEntry		ptr to a TitleList entry
+  titleEntry		ptr to a AM_TitleEntry instance
   fileHandle		a fs:USER file handle for a CIA file
 */
-Result AM_GetCiaFileInfo(u8 mediatype, TitleList *titleEntry, Handle fileHandle);
+Result AM_GetCiaFileInfo(u8 mediatype, AM_TitleEntry *titleEntry, Handle fileHandle);
