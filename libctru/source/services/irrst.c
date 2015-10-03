@@ -6,6 +6,7 @@
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/mappable.h>
 #include <3ds/services/irrst.h>
 
 // used to determine whether or not we should do IRRST_Initialize
@@ -21,11 +22,10 @@ static u32 kHeld;
 static circlePosition csPos;
 static bool irrstUsed = false;
 
-Result irrstInit(u32* sharedMem)
+Result irrstInit()
 {
 	if(irrstUsed)return 0;
 
-	if(!sharedMem)sharedMem=(u32*)IRRST_SHAREDMEM_DEFAULT;
 	Result ret=0;
 
 	// Request service.
@@ -37,8 +37,14 @@ Result irrstInit(u32* sharedMem)
 	// Initialize ir:rst
 	if(__get_handle_from_list("ir:rst")==0)ret=IRRST_Initialize(10, 0);
 
-	// Map ir:rst shared memory at addr "sharedMem".
-	irrstSharedMem=sharedMem;
+	// Map ir:rst shared memory.
+	irrstSharedMem=(vu32*)mappableAlloc(0x98);
+	if(!irrstSharedMem)
+	{
+		ret = -1;
+		goto cleanup1;
+	}
+
 	if((ret=svcMapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
 
 	// Reset internal state.
@@ -48,6 +54,11 @@ Result irrstInit(u32* sharedMem)
 
 cleanup2:
 	svcCloseHandle(irrstMemHandle);
+	if(irrstSharedMem != NULL)
+	{
+		mappableFree((void*) irrstSharedMem);
+		irrstSharedMem = NULL;
+	}
 cleanup1:
 	svcCloseHandle(irrstHandle);
 	return ret;
@@ -64,6 +75,12 @@ void irrstExit()
 	if(__get_handle_from_list("ir:rst")==0) IRRST_Shutdown();
 	svcCloseHandle(irrstMemHandle);
 	svcCloseHandle(irrstHandle);
+
+	if(irrstSharedMem != NULL)
+	{
+		mappableFree((void*) irrstSharedMem);
+		irrstSharedMem = NULL;
+	}
 }
 
 void irrstWaitForEvent(bool nextEvent)

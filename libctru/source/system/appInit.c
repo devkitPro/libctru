@@ -10,7 +10,7 @@ void __attribute__((weak)) __appInit() {
 	// Initialize services
 	srvInit();
 	aptInit();
-	hidInit(NULL);
+	hidInit();
 
 	fsInit();
 	sdmcInit();
