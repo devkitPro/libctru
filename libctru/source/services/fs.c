@@ -1051,6 +1051,49 @@ FSUSER_IsSdmcDetected(Handle *handle,
 	return cmdbuf[1];
 }
 
+/*! Close an open file
+ *
+ *  @param[in]  handle   fs:USER handle
+ *  @param[out] mediatype Output curent process mediatype
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x08680000]
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ */
+Result
+FSUSER_GetMediaType(Handle *handle,
+					u8* mediatype)
+{
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32* cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x08680000;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	if(mediatype)
+		*mediatype = cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
 /*! Check if SD card is writable
  *
  *  @param[in]  handle   fs:USER handle
