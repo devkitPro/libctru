@@ -99,6 +99,7 @@ Result APT_Enable(Handle* handle, u32 a);
 Result APT_GetAppletManInfo(Handle* handle, u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid);
 Result APT_GetAppletInfo(Handle* handle, NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pRegistered, u8* pLoadState, u32* pAttributes);
 Result APT_GetAppletProgramInfo(Handle* handle, u32 id, u32 flags, u16 *titleversion);
+Result APT_GetProgramID(Handle* handle, u64* pProgramID);
 Result APT_PrepareToJumpToHomeMenu(Handle* handle);
 Result APT_JumpToHomeMenu(Handle* handle, u32 a, u32 b, u32 c);
 Result APT_PrepareToJumpToApplication(Handle* handle, u32 a);
