@@ -123,7 +123,7 @@ Result srvGetServiceHandleDirect(Handle* out, const char* name)
 
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x5,4,0); // 0x50100
-	strncpy((char*) &cmdbuf[1], name,2);
+	strncpy((char*) &cmdbuf[1], name,8);
 	cmdbuf[3] = strlen(name);
 	cmdbuf[4] = 0x0;
 	
@@ -151,7 +151,7 @@ Result srvRegisterService(Handle* out, const char* name, int maxSessions)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x3,4,0); // 0x30100
-	strncpy((char*) &cmdbuf[1], name,2);
+	strncpy((char*) &cmdbuf[1], name,8);
 	cmdbuf[3] = strlen(name);
 	cmdbuf[4] = maxSessions;
 	
@@ -166,7 +166,7 @@ Result srvUnregisterService(const char* name)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x4,3,0); // 0x400C0
-	strncpy((char*) &cmdbuf[1], name,2);
+	strncpy((char*) &cmdbuf[1], name,8);
 	cmdbuf[3] = strlen(name);
 	
 	Result rc;
