@@ -150,6 +150,7 @@ Result FSUSER_GetSdmcArchiveResource(u32 *sectorSize, u32 *clusterSize, u32 *num
 Result FSUSER_GetNandArchiveResource(u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
 Result FSUSER_IsSdmcDetected(u8 *detected);
 Result FSUSER_IsSdmcWritable(u8 *writable);
+Result FSUSER_GetMediaType(u8* mediatype);
 
 Result FSFILE_Close(Handle handle);
 Result FSFILE_Read(Handle handle, u32 *bytesRead, u64 offset, void *buffer, u32 size);
