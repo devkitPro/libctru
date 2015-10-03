@@ -1051,7 +1051,7 @@ FSUSER_IsSdmcDetected(Handle *handle,
 	return cmdbuf[1];
 }
 
-/*! Close an open file
+/*! Get curent process mediatype
  *
  *  @param[in]  handle   fs:USER handle
  *  @param[out] mediatype Output curent process mediatype
