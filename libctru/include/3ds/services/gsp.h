@@ -48,8 +48,18 @@ typedef enum
 	GSPEVENT_MAX, // used to know how many events there are
 } GSP_Event;
 
+typedef enum
+{
+	GSPLCD_TOP    = BIT(0),
+	GSPLCD_BOTTOM = BIT(1),
+	GSPLCD_BOTH   = GSPLCD_TOP | GSPLCD_BOTTOM,
+}GSPLCD_Screens;
+
 Result gspInit();
 void gspExit();
+
+Result gspLcdInit();
+void gspLcdExit();
 
 Result gspInitEventHandler(Handle gspEvent, vu8* gspSharedMem, u8 gspThreadId);
 void gspExitEventHandler();
@@ -79,3 +89,6 @@ Result GSPGPU_RegisterInterruptRelayQueue(Handle *handle, Handle eventHandle, u3
 Result GSPGPU_UnregisterInterruptRelayQueue(Handle* handle);
 Result GSPGPU_TriggerCmdReqQueue(Handle *handle);
 Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8], Handle* handle);
+
+Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen);
+Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen);
