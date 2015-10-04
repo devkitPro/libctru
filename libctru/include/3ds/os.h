@@ -34,14 +34,14 @@ u32 osConvertOldLINEARMemToNew(u32 addr);
 const char* osStrError(u32 error);
 
 /**
- * @return the Firm version
+ * @return The Firm version
  *
  * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
  */
 u32 osGetFirmVersion(void);
 
 /**
- * @return the kernel version
+ * @return The kernel version
  *
  * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
  *
@@ -52,7 +52,7 @@ u32 osGetFirmVersion(void);
 u32 osGetKernelVersion(void);
 
 /**
- * @return number of milliseconds since 1st Jan 1900 00:00.
+ * @return The number of milliseconds since 1st Jan 1900 00:00.
  */
 u64 osGetTime(void);
 

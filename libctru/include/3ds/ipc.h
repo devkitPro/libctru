@@ -7,11 +7,12 @@
 
 #include <3ds/types.h>
 
+//! IPC buffer access rights.
 typedef enum
 {
-	IPC_BUFFER_R  = BIT(1),
-	IPC_BUFFER_W  = BIT(2),
-	IPC_BUFFER_RW = IPC_BUFFER_R | IPC_BUFFER_W
+	IPC_BUFFER_R  = BIT(1),                     ///< Readable
+	IPC_BUFFER_W  = BIT(2),                     ///< Writable
+	IPC_BUFFER_RW = IPC_BUFFER_R | IPC_BUFFER_W ///< Readable and Writable
 } IPC_BufferRights;
 
 

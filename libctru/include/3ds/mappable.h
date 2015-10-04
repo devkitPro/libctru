@@ -4,8 +4,6 @@
  */
 #pragma once
 
-// Functions for allocating/deallocating mappable memory
-
 /**
  * @brief Allocates a page-aligned buffer.
  * @param size Size of the buffer to allocate.

@@ -1,3 +1,7 @@
+/**
+ * @file utf.h
+ * @brief UTF conversion functions.
+ */
 #pragma once
 
 #include <stdint.h>

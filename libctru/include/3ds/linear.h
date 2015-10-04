@@ -4,8 +4,6 @@
  */
 #pragma once
 
-// Functions for allocating/deallocating memory from linear heap
-
 /**
  * @brief Allocates a 0x80-byte aligned buffer.
  * @param size Size of the buffer to allocate.

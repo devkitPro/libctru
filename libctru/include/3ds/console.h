@@ -1,5 +1,3 @@
-
-
 /*! \file console.h
     \brief 3ds stdio support.
 
