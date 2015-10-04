@@ -6,6 +6,7 @@
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/mappable.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/hid.h>
 #include <3ds/services/irrst.h>
@@ -26,14 +27,12 @@ static angularRate gRate;
 
 static bool hidInitialised;
 
-Result hidInit(u32* sharedMem)
+Result hidInit(void)
 {
 	u8 val=0;
 	Result ret=0;
 
 	if(hidInitialised) return ret;
-
-	if(!sharedMem)sharedMem=(u32*)HID_SHAREDMEM_DEFAULT;
 
 	// Request service.
 	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")) && (ret=srvGetServiceHandle(&hidHandle, "hid:SPVR")))return ret;
@@ -41,15 +40,21 @@ Result hidInit(u32* sharedMem)
 	// Get sharedmem handle.
 	if((ret=HIDUSER_GetHandles(&hidMemHandle, &hidEvents[HIDEVENT_PAD0], &hidEvents[HIDEVENT_PAD1], &hidEvents[HIDEVENT_Accel], &hidEvents[HIDEVENT_Gyro], &hidEvents[HIDEVENT_DebugPad]))) goto cleanup1;
 
-	// Map HID shared memory at addr "sharedMem".
-	hidSharedMem=sharedMem;
+	// Map HID shared memory.
+	hidSharedMem=(vu32*)mappableAlloc(0x2b0);
+	if(!hidSharedMem)
+	{
+		ret = -1;
+		goto cleanup1;
+	}
+
 	if((ret=svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
 
 	APT_CheckNew3DS(&val);
 
 	if(val)
 	{
-		ret = irrstInit(NULL);
+		ret = irrstInit();
 	}
 
 	// Reset internal state.
@@ -59,6 +64,11 @@ Result hidInit(u32* sharedMem)
 
 cleanup2:
 	svcCloseHandle(hidMemHandle);
+	if(hidSharedMem != NULL)
+	{
+		mappableFree((void*) hidSharedMem);
+		hidSharedMem = NULL;
+	}
 cleanup1:
 	svcCloseHandle(hidHandle);
 	return ret;
@@ -80,6 +90,12 @@ void hidExit(void)
 	if(val)
 	{
 		irrstExit();
+	}
+
+	if(hidSharedMem != NULL)
+	{
+		mappableFree((void*) hidSharedMem);
+		hidSharedMem = NULL;
 	}
 	
 	hidInitialised = false;

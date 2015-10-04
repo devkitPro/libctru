@@ -5,6 +5,7 @@
 #include <3ds/gfx.h>
 #include <3ds/svc.h>
 #include <3ds/linear.h>
+#include <3ds/mappable.h>
 #include <3ds/vram.h>
 #include <3ds/gpu/gx.h>
 
@@ -117,7 +118,7 @@ void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomForm
 
 	gspInit();
 
-	gfxSharedMemory=(u8*)0x10002000;
+	gfxSharedMemory=(u8*)mappableAlloc(0x1000);
 
 	GSPGPU_AcquireRight(0x0);
 
@@ -192,6 +193,12 @@ void gfxExit(void)
 	GSPGPU_UnregisterInterruptRelayQueue();
 
 	svcCloseHandle(gspSharedMemHandle);
+	if(gfxSharedMemory != NULL)
+	{
+		mappableFree(gfxSharedMemory);
+		gfxSharedMemory = NULL;
+	}
+
 	svcCloseHandle(gspEvent);
 
 	GSPGPU_ReleaseRight();

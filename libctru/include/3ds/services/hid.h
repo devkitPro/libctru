@@ -2,8 +2,6 @@
 
 //See also: http://3dbrew.org/wiki/HID_Services http://3dbrew.org/wiki/HID_Shared_Memory
 
-#define HID_SHAREDMEM_DEFAULT (0x10000000)
-
 typedef enum
 {
 	KEY_A       = BIT(0),
@@ -75,7 +73,7 @@ typedef enum
 extern Handle hidMemHandle;
 extern vu32* hidSharedMem;
 
-Result hidInit(u32* sharedMem);
+Result hidInit(void);
 void hidExit(void);
 
 void hidScanInput(void);

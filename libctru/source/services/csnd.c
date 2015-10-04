@@ -3,6 +3,7 @@
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/mappable.h>
 #include <3ds/os.h>
 #include <3ds/services/csnd.h>
 #include <3ds/ipc.h>
@@ -119,7 +120,6 @@ Result CSND_Reset(void)
 Result csndInit(void)
 {
 	Result ret=0;
-	csndSharedMem = (vu32*)CSND_SHAREDMEM_DEFAULT;
 
 	// TODO: proper error handling!
 
@@ -134,17 +134,33 @@ Result csndInit(void)
 	csndSharedMemSize = csndOffsets[3] + 0x3C;                 // Total size of the CSND shared memory
 
 	ret = CSND_Initialize();
-	if (ret != 0) return ret;
+	if (ret != 0) goto cleanup1;
+
+	csndSharedMem = (vu32*)mappableAlloc(csndSharedMemSize);
+	if(!csndSharedMem)
+	{
+		ret = -1;
+		goto cleanup1;
+	}
 
 	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, 3, 0x10000000);
-	if (ret != 0) return ret;
+	if (ret != 0) goto cleanup2;
 
 	memset((void*)csndSharedMem, 0, csndSharedMemSize);
 
 	ret = CSND_AcquireSoundChannels(&csndChannels);
-	if (ret != 0) return ret;
+	if (!ret) return 0;
 
-	return 0;
+cleanup2:
+	svcCloseHandle(csndSharedMemBlock);
+	if(csndSharedMem != NULL)
+	{
+		mappableFree((void*) csndSharedMem);
+		csndSharedMem = NULL;
+	}
+cleanup1:
+	svcCloseHandle(csndHandle);
+	return ret;
 }
 
 Result csndExit(void)
@@ -162,6 +178,13 @@ Result csndExit(void)
 
 	ret = CSND_Shutdown();
 	svcCloseHandle(csndHandle);
+
+	if(csndSharedMem != NULL)
+	{
+		mappableFree((void*) csndSharedMem);
+		csndSharedMem = NULL;
+	}
+
 	return ret;
 }
 

@@ -4,12 +4,10 @@
 
 #include "3ds/services/hid.h" // for circlePosition definition
 
-#define IRRST_SHAREDMEM_DEFAULT (0x1000A000)
-
 extern Handle irrstMemHandle;
 extern vu32* irrstSharedMem;
 
-Result irrstInit(u32* sharedMem);
+Result irrstInit(void);
 void irrstExit(void);
 
 void irrstScanInput(void);
