@@ -4,10 +4,10 @@
  */
 #pragma once
 
-//! Initializes the service API.
+/// Initializes the service API.
 Result srvInit(void);
 
-//! Exits the service API.
+/// Exits the service API.
 Result srvExit(void);
 
 /**
@@ -16,7 +16,7 @@ Result srvExit(void);
  */
 Handle *srvGetSessionHandle(void);
 
-//! Registers the current process as a client to the service API.
+/// Registers the current process as a client to the service API.
 Result srvRegisterClient(void);
 
 /**
@@ -47,7 +47,7 @@ Result srvRegisterService(Handle* out, const char* name, int maxSessions);
  */
 Result srvUnregisterService(const char* name);
 
-//! Initializes the srv:pm port.
+/// Initializes the srv:pm port.
 Result srvPmInit(void);
 
 /**

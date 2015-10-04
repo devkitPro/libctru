@@ -32,9 +32,7 @@ typedef enum
 	GX_TRANSFER_SCALE_XY = 2, ///< 2x2 anti-aliasing
 } GX_TRANSFER_SCALE;
 
-/**
- * @brief GX transfer control flags
- */
+/// GX transfer control flags
 typedef enum
 {
 	GX_FILL_TRIGGER     = 0x001, ///< Trigger the PPF event

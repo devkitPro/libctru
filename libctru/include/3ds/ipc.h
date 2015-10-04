@@ -7,7 +7,7 @@
 
 #include <3ds/types.h>
 
-//! IPC buffer access rights.
+/// IPC buffer access rights.
 typedef enum
 {
 	IPC_BUFFER_R  = BIT(1),                     ///< Readable

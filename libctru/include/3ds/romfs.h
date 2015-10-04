@@ -6,7 +6,7 @@
 
 #include <3ds/types.h>
 
-//! RomFS header.
+/// RomFS header.
 typedef struct
 {
 	u32 headerSize;        ///< Size of the header.
@@ -21,7 +21,7 @@ typedef struct
 	u32 fileDataOff;       ///< Offset of the file data.
 } romfs_header;
 
-//! RomFS directory.
+/// RomFS directory.
 typedef struct
 {
 	u32 parent;    ///< Offset of the parent directory.
@@ -33,7 +33,7 @@ typedef struct
 	u16 name[];    ///< Name. (UTF-16)
 } romfs_dir;
 
-//! RomFS file.
+/// RomFS file.
 typedef struct
 {
 	u32 parent;   ///< Offset of the parent directory.
@@ -45,7 +45,7 @@ typedef struct
 	u16 name[];   ///< Name. (UTF-16)
 } romfs_file;
 
-//! Initializes the RomFS driver.
+/// Initializes the RomFS driver.
 Result romfsInit(void);
 
 /**
@@ -55,5 +55,5 @@ Result romfsInit(void);
  */
 Result romfsInitFromFile(Handle file, u32 offset);
 
-//! Exits the RomFS driver.
+/// Exits the RomFS driver.
 Result romfsExit(void);

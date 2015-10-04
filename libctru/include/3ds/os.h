@@ -13,20 +13,20 @@
 #define GET_VERSION_REVISION(version) (((version)>> 8)&0xFF)
 
 /**
- * Converts an address from virtual (process) memory to physical memory.
+ * @brief Converts an address from virtual (process) memory to physical memory.
  * It is sometimes required by services or when using the GPU command buffer.
  */
 u32 osConvertVirtToPhys(u32 vaddr);
 
 /**
- * Converts 0x14* vmem to 0x30*.
+ * @brief Converts 0x14* vmem to 0x30*.
  * @return The input address when it's already within the new vmem.
  * @return 0 when outside of either LINEAR mem areas.
  */
 u32 osConvertOldLINEARMemToNew(u32 addr);
 
 /**
- * @brief Basic information about a service error.
+ * @brief Retreives basic information about a service error.
  * @return A string of the summary of an error.
  *
  * This can be used to get some details about an error returned by a service call.
@@ -34,14 +34,16 @@ u32 osConvertOldLINEARMemToNew(u32 addr);
 const char* osStrError(u32 error);
 
 /**
- * @return The Firm version
+ * @brief Gets the system's FIRM version.
+ * @return The FIRM version.
  *
  * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
  */
 u32 osGetFirmVersion(void);
 
 /**
- * @return The kernel version
+ * @brief Gets the system's kernel version.
+ * @return The kernel version.
  *
  * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
  *
@@ -52,6 +54,7 @@ u32 osGetFirmVersion(void);
 u32 osGetKernelVersion(void);
 
 /**
+ * @brief Gets the current time.
  * @return The number of milliseconds since 1st Jan 1900 00:00.
  */
 u64 osGetTime(void);

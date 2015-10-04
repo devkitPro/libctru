@@ -6,8 +6,8 @@
 
 #include <3ds/types.h>
 
-//! Initializes the SDMC driver.
+/// Initializes the SDMC driver.
 Result sdmcInit(void);
 
-//! Exits the SDMC driver.
+/// Exits the SDMC driver.
 Result sdmcExit(void);

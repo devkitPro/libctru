@@ -37,7 +37,7 @@ typedef enum {
 	MEMOP_ALLOC_LINEAR   = MEMOP_LINEAR_FLAG | MEMOP_ALLOC, ///< Allocates linear memory.
 } MemOp;
 
-//! The state of a memory block.
+/// The state of a memory block.
 typedef enum {
 	MEMSTATE_FREE       = 0,  ///< Free memory
 	MEMSTATE_RESERVED   = 1,  ///< Reserved memory
@@ -53,7 +53,7 @@ typedef enum {
 	MEMSTATE_LOCKED     = 11  ///< Locked memory
 } MemState;
 
-//! Memory permission flags
+/// Memory permission flags
 typedef enum {
 	MEMPERM_READ     = 1,         ///< Readable
 	MEMPERM_WRITE    = 2,         ///< Writable
@@ -61,7 +61,7 @@ typedef enum {
 	MEMPERM_DONTCARE = 0x10000000 ///< Don't care
 } MemPerm;
 
-//! Memory information.
+/// Memory information.
 typedef struct {
     u32 base_addr; ///< Base address.
     u32 size;      ///< Size.
@@ -69,12 +69,12 @@ typedef struct {
     u32 state;     ///< Memory state. See @ref MemState
 } MemInfo;
 
-//! Memory page information.
+/// Memory page information.
 typedef struct {
     u32 flags; ///< Page flags.
 } PageInfo;
 
-//! Arbitration modes.
+/// Arbitration modes.
 typedef enum {
 	ARBITRATION_SIGNAL                                  = 0, ///< Signal #value threads for wake-up.
 	ARBITRATION_WAIT_IF_LESS_THAN                       = 1, ///< If the memory at the address is strictly lower than #value, then wait for signal.
@@ -91,7 +91,7 @@ typedef enum {
 ///@name Multithreading
 ///@{
 
-//! Types of thread info.
+/// Types of thread info.
 typedef enum {
 	THREADINFO_TYPE_UNKNOWN ///< Unknown.
 } ThreadInfoType;
@@ -105,13 +105,13 @@ typedef enum {
 ///@name Debugging
 ///@{
 
-//! Reasons for a process event.
+/// Reasons for a process event.
 typedef enum {
 	REASON_CREATE = 1, ///< Process created.
 	REASON_ATTACH = 2  ///< Process attached.
 } ProcessEventReason;
 
-//! Event relating to a process.
+/// Event relating to a process.
 typedef struct {
 	u64 program_id;      ///< ID of the program.
 	u8  process_name[8]; ///< Name of the process.
@@ -119,26 +119,26 @@ typedef struct {
 	u32 reason;          ///< Reason for the event. See @ref ProcessEventReason
 } ProcessEvent;
 
-//! Reasons for an exit process event.
+/// Reasons for an exit process event.
 typedef enum {
 	EXITPROCESS_EVENT_NONE                = 0, ///< No reason.
 	EXITPROCESS_EVENT_TERMINATE           = 1, ///< Process terminated.
 	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2  ///< Unhandled exception occurred.
 } ExitProcessEventReason;
 
-//! Event relating to the exiting of a process.
+/// Event relating to the exiting of a process.
 typedef struct {
 	u32 reason; ///< Reason for exiting. See @ref ExitProcessEventReason
 } ExitProcessEvent;
 
-//! Event relating to the creation of a thread.
+/// Event relating to the creation of a thread.
 typedef struct {
 	u32 creator_thread_id; ///< ID of the creating thread.
 	u32 base_addr;         ///< Base address.
 	u32 entry_point;       ///< Entry point of the thread.
 } CreateThreadEvent;
 
-//! Reasons for an exit thread event.
+/// Reasons for an exit thread event.
 typedef enum {
 	EXITTHREAD_EVENT_NONE              = 0, ///< No reason.
 	EXITTHREAD_EVENT_TERMINATE         = 1, ///< Thread terminated.
@@ -146,19 +146,19 @@ typedef enum {
 	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3  ///< Process terminated.
 } ExitThreadEventReason;
 
-//! Event relating to the exiting of a thread.
+/// Event relating to the exiting of a thread.
 typedef struct {
 	u32 reason; ///< Reason for exiting. See @ref ExitThreadEventReason
 } ExitThreadEvent;
 
-//! Reasons for a user break.
+/// Reasons for a user break.
 typedef enum {
 	USERBREAK_PANIC  = 0, ///< Panic.
 	USERBREAK_ASSERT = 1, ///< Assertion failed.
 	USERBREAK_USER   = 2  ///< User related.
 } UserBreakType;
 
-//! Reasons for an exception event.
+/// Reasons for an exception event.
 typedef enum {
 	EXC_EVENT_UNDEFINED_INSTRUCTION = 0, ///< Undefined instruction.   arg: (None)
 	EXC_EVENT_UNKNOWN1              = 1, ///< Unknown.                 arg: (None)
@@ -171,31 +171,31 @@ typedef enum {
 	EXC_EVENT_UNDEFINED_SYSCALL     = 8  ///< Undefined syscall.       arg: attempted syscall
 } ExceptionEventType;
 
-//! Event relating to exceptions.
+/// Event relating to exceptions.
 typedef struct {
 	u32 type;     ///< Type of event. See @ref ExceptionEventType
 	u32 address;  ///< Address of the exception.
 	u32 argument; ///< Event argument. See @ref ExceptionEventType
 } ExceptionEvent;
 
-//! Event relating to the scheduler.
+/// Event relating to the scheduler.
 typedef struct {
 	u64 clock_tick; ///< Clock tick that the event occurred.
 } SchedulerInOutEvent;
 
-//! Event relating to syscalls.
+/// Event relating to syscalls.
 typedef struct {
 	u64 clock_tick; ///< Clock tick that the event occurred.
 	u32 syscall;    ///< Syscall sent/received.
 } SyscallInOutEvent;
 
-//! Event relating to debug output.
+/// Event relating to debug output.
 typedef struct {
 	u32 string_addr; ///< Address of the outputted string.
 	u32 string_size; ///< Size of the outputted string.
 } OutputStringEvent;
 
-//! Event relating to the mapping of memory.
+/// Event relating to the mapping of memory.
 typedef struct {
 	u32 mapped_addr; ///< Mapped address.
 	u32 mapped_size; ///< Mapped size.
@@ -203,7 +203,7 @@ typedef struct {
 	u32 memstate;    ///< Memory state. See @ref MemState
 } MapEvent;
 
-//! Debug event type.
+/// Debug event type.
 typedef enum {
 	DBG_EVENT_PROCESS        = 0,  ///< Process event.
 	DBG_EVENT_CREATE_THREAD  = 1,  ///< Thread creation event.
@@ -220,7 +220,7 @@ typedef enum {
 	DBG_EVENT_MAP            = 12  ///< Map event.
 } DebugEventType;
 
-//! Information about a debug event.
+/// Information about a debug event.
 typedef struct {
 	u32 type;       ///< Type of event. See @ref DebugEventType
 	u32 thread_id;  ///< ID of the thread.
@@ -441,7 +441,7 @@ Result svcWriteProcessMemory(Handle debug, const void* buffer, u32 addr, u32 siz
  */
 Result svcOpenProcess(Handle* process, u32 processId);
 
-//! Exits the current process.
+/// Exits the current process.
 void svcExitProcess() __attribute__((noreturn));
 
 /**
@@ -535,7 +535,7 @@ void svcExitThread(void) __attribute__((noreturn));
  */
 void svcSleepThread(s64 ns);
 
-//! Retrieves the priority of a thread.
+/// Retrieves the priority of a thread.
 Result svcGetThreadPriority(s32 *out, Handle handle);
 
 /**

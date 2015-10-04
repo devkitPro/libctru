@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-//! brief Retreives an rbtree item.
+/// brief Retreives an rbtree item.
 #define rbtree_item(ptr, type, member) \
   ((type*)(((char*)ptr) - offsetof(type, member)))
 
@@ -18,14 +18,14 @@ typedef void (*rbtree_node_destructor_t)(rbtree_node_t *Node);      ///< rbtree 
 typedef int  (*rbtree_node_comparator_t)(const rbtree_node_t *lhs,
                                          const rbtree_node_t *rhs); ///< rbtree node comparator.
 
-//! An rbtree node.
+/// An rbtree node.
 struct rbtree_node
 {
   uintptr_t      parent_color; ///< Parent color.
   rbtree_node_t  *child[2];    ///< Node children.
 };
 
-//! An rbtree.
+/// An rbtree.
 struct rbtree
 {
   rbtree_node_t            *root;      ///< Root node.

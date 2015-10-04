@@ -4,10 +4,10 @@
  */
 #pragma once
 
-//! A light lock.
+/// A light lock.
 typedef s32 LightLock;
 
-//! A recursive lock.
+/// A recursive lock.
 typedef struct
 {
 	LightLock lock; ///< Inner light lock.
@@ -15,7 +15,7 @@ typedef struct
 	u32 counter;    ///< Lock count.
 } RecursiveLock;
 
-//! Performs a clrex operation.
+/// Performs a clrex operation.
 static inline void __clrex(void)
 {
 	__asm__ __volatile__("clrex");

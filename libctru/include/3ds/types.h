@@ -8,10 +8,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-//! The maximum value of a u64.
+/// The maximum value of a u64.
 #define U64_MAX	UINT64_MAX
 
-//! Possible media types.
+/// Possible media types.
 typedef enum
 {
 	mediatype_NAND,     ///< NAND
@@ -43,15 +43,15 @@ typedef u32 Handle;                 ///< Resource handle.
 typedef s32 Result;                 ///< Function result.
 typedef void (*ThreadFunc)(void *); ///< Thread entrypoint function.
 
-//! Creates a bitmask from a bit number.
+/// Creates a bitmask from a bit number.
 #define BIT(n) (1U<<(n))
 
-//! aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
+/// aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
 #define ALIGN(m)   __attribute__((aligned(m)))
-//! packs a struct (and other types?) so it won't include padding bytes.
+/// packs a struct (and other types?) so it won't include padding bytes.
 #define PACKED     __attribute__((packed))
 
-//! flags a function as deprecated.
+/// flags a function as deprecated.
 #ifndef LIBCTRU_NO_DEPRECATION
 #define DEPRECATED __attribute__ ((deprecated))
 #else
