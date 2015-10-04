@@ -1,31 +1,40 @@
+/**
+ * @file apt.h
+ * @brief APT service.
+ */
 #pragma once
 
 // TODO : find a better place to put this
 #define RUNFLAG_APTWORKAROUND (BIT(0))
 #define RUNFLAG_APTREINIT (BIT(1))
 
+/**
+ * @brief NS Application IDs.
+ *
+ * Retreived from http://3dbrew.org/wiki/NS_and_APT_Services#AppIDs
+ */
 typedef enum{
-	APPID_HOMEMENU = 0x101, // Home Menu
-	APPID_CAMERA = 0x110, // Camera applet
-	APPID_FRIENDS_LIST = 0x112, // Friends List applet
-	APPID_GAME_NOTES = 0x113, // Game Notes applet
-	APPID_WEB = 0x114, // Internet Browser
-	APPID_INSTRUCTION_MANUAL = 0x115, // Instruction Manual applet
-	APPID_NOTIFICATIONS = 0x116, // Notifications applet
-	APPID_MIIVERSE = 0x117, // Miiverse applet (olv)
-	APPID_MIIVERSE_POSTING = 0x118, // Miiverse posting applet (solv3)
-	APPID_AMIIBO_SETTINGS = 0x119, // Amiibo settings applet (cabinet)
-	APPID_APPLICATION = 0x300, // Application
-	APPID_ESHOP = 0x301, // eShop (tiger)
-	APPID_SOFTWARE_KEYBOARD = 0x401, // Software Keyboard
-	APPID_APPLETED = 0x402, // appletEd
-	APPID_PNOTE_AP = 0x404, // PNOTE_AP
-	APPID_SNOTE_AP = 0x405, // SNOTE_AP
-	APPID_ERROR = 0x406, // error
-	APPID_MINT = 0x407, // mint
-	APPID_EXTRAPAD = 0x408, // extrapad
-	APPID_MEMOLIB = 0x409, // memolib
-}NS_APPID; // cf http://3dbrew.org/wiki/NS_and_APT_Services#AppIDs
+	APPID_HOMEMENU = 0x101,           ///< Home Menu
+	APPID_CAMERA = 0x110,             ///< Camera applet
+	APPID_FRIENDS_LIST = 0x112,       ///< Friends List applet
+	APPID_GAME_NOTES = 0x113,         ///< Game Notes applet
+	APPID_WEB = 0x114,                ///< Internet Browser
+	APPID_INSTRUCTION_MANUAL = 0x115, ///< Instruction Manual applet
+	APPID_NOTIFICATIONS = 0x116,      ///< Notifications applet
+	APPID_MIIVERSE = 0x117,           ///< Miiverse applet (olv)
+	APPID_MIIVERSE_POSTING = 0x118,   ///< Miiverse posting applet (solv3)
+	APPID_AMIIBO_SETTINGS = 0x119,    ///< Amiibo settings applet (cabinet)
+	APPID_APPLICATION = 0x300,        ///< Application
+	APPID_ESHOP = 0x301,              ///< eShop (tiger)
+	APPID_SOFTWARE_KEYBOARD = 0x401,  ///< Software Keyboard
+	APPID_APPLETED = 0x402,           ///< appletEd
+	APPID_PNOTE_AP = 0x404,           ///< PNOTE_AP
+	APPID_SNOTE_AP = 0x405,           ///< SNOTE_AP
+	APPID_ERROR = 0x406,              ///< error
+	APPID_MINT = 0x407,               ///< mint
+	APPID_EXTRAPAD = 0x408,           ///< extrapad
+	APPID_MEMOLIB = 0x409,            ///< memolib
+}NS_APPID;
 
 typedef enum{
 	APP_NOTINITIALIZED,
@@ -80,13 +89,26 @@ void aptOpenSession(void);
 void aptCloseSession(void);
 void aptSetStatus(APP_STATUS status);
 APP_STATUS aptGetStatus(void);
-u32 aptGetStatusPower(void);//This can be used when the status is APP_SUSPEND* to check how the return-to-menu was triggered: 0 = home-button, 1 = power-button.
+/**
+ * @brief Checks the what triggered a return-to-menu, when the status is APT_SUSPEND.
+ * @return 0 = home-button, 1 = power-button.
+ */
+u32 aptGetStatusPower(void);
 void aptSetStatusPower(u32 status);
-void aptReturnToMenu(void);//This should be called by the user application when aptGetStatus() returns APP_SUSPENDING, not calling this will result in return-to-menu being disabled with the status left at APP_SUSPENDING. This function will not return until the system returns to the application, or when the status was changed to APP_EXITING.
+/**
+ * @brief Triggers a return to the home menu.
+ *
+ * This should be called by the user application when aptGetStatus() returns APP_SUSPENDING, not calling this will result in return-to-menu being disabled with the status left at APP_SUSPENDING. This function will not return until the system returns to the application, or when the status was changed to APP_EXITING.
+ */
+void aptReturnToMenu(void);
 void aptWaitStatusEvent(void);
 void aptSignalReadyForSleep(void);
 NS_APPID aptGetMenuAppID(void);
-bool aptMainLoop(void); // Use like this in your main(): while (aptMainLoop()) { your code here... }
+/**
+ * @brief Processes the current APT status. Generally used within a main loop.
+ * @return Whether the application is closing.
+ */
+bool aptMainLoop(void);
 
 void aptHook(aptHookCookie* cookie, aptHookFn callback, void* param);
 void aptUnhook(aptHookCookie* cookie);
@@ -118,14 +140,27 @@ Result APT_PrepareToCloseApplication(u8 a);
 Result APT_CloseApplication(const u8 *param, size_t paramSize, Handle handle);
 Result APT_SetAppCpuTimeLimit(u32 percent);
 Result APT_GetAppCpuTimeLimit(u32 *percent);
-Result APT_CheckNew3DS_Application(u8 *out);// Note: this function is unreliable, see: http://3dbrew.org/wiki/APT:PrepareToStartApplication
+/**
+ * @brief Checks whether the system is a New 3DS.
+ * Note: this function is unreliable, see: http://3dbrew.org/wiki/APT:PrepareToStartApplication
+ * @param out Pointer to write the New 3DS flag to.
+ */
+Result APT_CheckNew3DS_Application(u8 *out);
 Result APT_CheckNew3DS_System(u8 *out);
 Result APT_CheckNew3DS(u8 *out);
 Result APT_PrepareToDoAppJump(u8 flags, u64 programID, u8 mediatype);
 Result APT_DoAppJump(u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Ptr);
 Result APT_PrepareToStartLibraryApplet(NS_APPID appID);
 Result APT_StartLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
-Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);//This should be used for launching library applets, this uses the above APT_StartLibraryApplet/APT_PrepareToStartLibraryApplet funcs + apt*Session(). parambuf is used for APT params input, when the applet closes the output param block is copied here. This is not usable from the homebrew launcher. This is broken: when the applet does get launched at all, the applet process doesn't actually get terminated when the applet gets closed.
+/**
+ * @brief Launches a library applet.
+ * Note: This is not usable from the homebrew launcher. This is broken: when the applet does get launched at all, the applet process doesn't actually get terminated when the applet gets closed.
+ * @param appID ID of the applet to launch.
+ * @param inhandle Handle to pass to the applet.
+ * @param parambuf Buffer containing applet input parameters.
+ * @param parambufsize Size of parambuf.
+ */
+Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
 Result APT_PrepareToStartSystemApplet(NS_APPID appID);
 Result APT_StartSystemApplet(NS_APPID appID, u32 bufSize, Handle applHandle, u8 *buf);
 

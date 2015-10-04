@@ -1,3 +1,7 @@
+/**
+ * @file httpc.h
+ * @brief HTTP service.
+ */
 #pragma once
 
 typedef struct {
@@ -15,16 +19,36 @@ typedef enum{
 Result httpcInit(void);
 void httpcExit(void);
 
-Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy);//use_defaultproxy should be zero normally, unless you don't want HTTPC_SetProxyDefault() to be used automatically.
+/**
+ * @brief Opens an HTTP context.
+ * @param context Context to open.
+ * @param url URL to connect to.
+ * @param use_defaultproxy Whether the default proxy should be used (0 for default)
+ */
+Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy);
 Result httpcCloseContext(httpcContext *context);
 Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value);
 Result httpcBeginRequest(httpcContext *context);
 Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size);
 Result httpcGetRequestState(httpcContext *context, httpcReqStatus* out);
 Result httpcGetDownloadSizeState(httpcContext *context, u32* downloadedsize, u32* contentsize);
-Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);//delay isn't used yet. This writes the HTTP status code from the server to out.
+/**
+ * @brief Gets the response code of the HTTP context.
+ * @param context Context to get the response code of.
+ * @param out Pointer to write the response code to.
+ * @param delay Delay to wait for the status code. Not used yet.
+ */
+Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);
 Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u32 valuebuf_maxsize);
-Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize);//The *entire* content must be downloaded before using httpcCloseContext(), otherwise httpcCloseContext() will hang.
+/**
+ * @brief Downloads data from the HTTP context into a buffer.
+ * The *entire* content must be downloaded before using httpcCloseContext(), otherwise httpcCloseContext() will hang.
+ * @param context Context to download data from.
+ * @param buffer Buffer to write data to.
+ * @param size Size of the buffer.
+ * @param downloadedsize Pointer to write the size of the downloaded data to.
+ */
+Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize);
 
 //Using the below functions directly is not recommended, use the above functions. See also the http example.
 

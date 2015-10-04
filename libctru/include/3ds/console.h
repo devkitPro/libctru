@@ -29,7 +29,7 @@ typedef bool(* ConsolePrint)(void* con, int c);
 //! a font struct for the console.
 typedef struct ConsoleFont
 {
-	u8* gfx;			//!< A pointer to the font graphics
+	u8* gfx;		//!< A pointer to the font graphics
 	u16 asciiOffset;	//!<  Offset to the first valid character in the font table
 	u16 numChars;		//!< Number of characters in the font graphics
 

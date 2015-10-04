@@ -1,21 +1,30 @@
+/**
+ * @file ns.h
+ * @brief NS (Nintendo Shell) service.
+ */
 #pragma once
 
-/*
-	Requires access to "ns:s" service
-*/
-
+/**
+ * @brief Initializes NS.
+ */
 Result nsInit(void);
+
+/**
+ * @brief Exits NS.
+ */
 Result nsExit(void);
 
-/* NS_LaunchTitle()
-  titleid			TitleId of title to launch, if 0, gamecard assumed
-  launch_flags		use if you know of any
-  procid			ptr to where the process id of the launched title will be written to, leave a NULL, if you don't care
-*/
+/**
+ * @brief Launches a title.
+ * @param titleid ID of the title to launch, or 0 for gamecard.
+ * @param launch_flags Flags used when launching the title.
+ * @param procid Pointer to write the process ID of the launched title to.
+ */
 Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid);
 
-/* NS_RebootToTitle()
-  mediatype			mediatype for title
-  titleid			TitleId of title to launch
-*/
+/**
+ * @brief Reboots to a title.
+ * @param mediatype Mediatype of the title.
+ * @param titleid ID of the title to launch.
+ */
 Result NS_RebootToTitle(u8 mediatype, u64 titleid);
