@@ -1,3 +1,7 @@
+/**
+ * @file shaderProgram.h
+ * @brief Functions for working with shaders.
+ */
 #pragma once
 
 #include <3ds/types.h>
@@ -9,7 +13,9 @@ typedef struct
 	u32 data[3];
 }float24Uniform_s;
 
-// this structure describes an instance of either a vertex or geometry shader
+/**
+ * @brief Describes an instance of either a vertex or geometry shader.
+ */
 typedef struct
 {
 	DVLE_s* dvle;
@@ -19,7 +25,9 @@ typedef struct
 	u8 numFloat24Uniforms;
 }shaderInstance_s;
 
-// this structure describes an instance of a full shader program
+/**
+ * @brief Describes an instance of a full shader program.
+ */
 typedef struct
 {
 	shaderInstance_s* vertexShader;

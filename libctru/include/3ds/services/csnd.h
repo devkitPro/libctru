@@ -1,11 +1,18 @@
+/**
+ * @file csnd.h
+ * @brief CSND service.
+ */
 #pragma once
+
 #include <3ds/types.h>
 
 #define CSND_NUM_CHANNELS 32
 
 #define CSND_TIMER(n) (0x3FEC3FC / ((u32)(n)))
 
-// Convert a vol-pan pair into a left/right volume pair used by the hardware
+/**
+ * @brief Converts a vol-pan pair into a left/right volume pair used by the hardware.
+ */
 static inline u32 CSND_VOL(float vol, float pan)
 {
 	if (vol < 0.0) vol = 0.0;
@@ -22,10 +29,10 @@ static inline u32 CSND_VOL(float vol, float pan)
 
 enum
 {
-	CSND_ENCODING_PCM8 = 0,
-	CSND_ENCODING_PCM16,
-	CSND_ENCODING_ADPCM, // IMA-ADPCM
-	CSND_ENCODING_PSG, // Similar to DS?
+	CSND_ENCODING_PCM8 = 0, ///< PCM8
+	CSND_ENCODING_PCM16,    ///< PCM16
+	CSND_ENCODING_ADPCM,    ///< IMA-ADPCM
+	CSND_ENCODING_PSG,      ///< Similar to DS?
 };
 
 enum
@@ -61,17 +68,19 @@ enum
 	CAPTURE_ENABLE = BIT(15),
 };
 
-// Duty cycles for a PSG channel
+/**
+ * @brief Duty cycles for a PSG channel.
+ */
 enum
 {
-	DutyCycle_0  = 7, /*!<  0.0% duty cycle */
-	DutyCycle_12 = 0, /*!<  12.5% duty cycle */
-	DutyCycle_25 = 1, /*!<  25.0% duty cycle */
-	DutyCycle_37 = 2, /*!<  37.5% duty cycle */
-	DutyCycle_50 = 3, /*!<  50.0% duty cycle */
-	DutyCycle_62 = 4, /*!<  62.5% duty cycle */
-	DutyCycle_75 = 5, /*!<  75.0% duty cycle */
-	DutyCycle_87 = 6  /*!<  87.5% duty cycle */
+	DutyCycle_0  = 7, ///< 0.0% duty cycle
+	DutyCycle_12 = 0, ///< 12.5% duty cycle
+	DutyCycle_25 = 1, ///< 25.0% duty cycle
+	DutyCycle_37 = 2, ///< 37.5% duty cycle
+	DutyCycle_50 = 3, ///< 50.0% duty cycle
+	DutyCycle_62 = 4, ///< 62.5% duty cycle
+	DutyCycle_75 = 5, ///< 75.0% duty cycle
+	DutyCycle_87 = 6  ///< 87.5% duty cycle
 };
 
 typedef union
@@ -110,13 +119,26 @@ extern u32 csndChannels; // Bitmask of channels that are allowed for usage
 Result CSND_AcquireCapUnit(u32* capUnit);
 Result CSND_ReleaseCapUnit(u32 capUnit);
 
-Result CSND_Reset(void); // Currently breaks sound, don't use for now!
+/**
+ * @brief Resets CSND.
+ * Note: Currently breaks sound, don't use for now!
+ */
+Result CSND_Reset(void);
 
 Result csndInit(void);
 Result csndExit(void);
 
-u32* csndAddCmd(int cmdid); // Adds a command to the list and returns the buffer to which write its arguments.
-void csndWriteCmd(int cmdid, u8* cmdparams); // As above, but copies the arguments from an external buffer
+/**
+ * @brief Adds a command to the list and returns the buffer to write its arguments to.
+ * @param cmdid ID of the command to add.
+ */
+u32* csndAddCmd(int cmdid);
+/**
+ * @brief Adds a command to the list and copies its arguments from a buffer.
+ * @param cmdid ID of the command to add.
+ * @param cmdparams Buffer containing the command's parameters.
+ */
+void csndWriteCmd(int cmdid, u8* cmdparams);
 Result csndExecCmds(bool waitDone);
 
 void CSND_SetPlayStateR(u32 channel, u32 value);
@@ -147,14 +169,30 @@ Result CSND_SetDspFlags(bool waitDone);
 Result CSND_UpdateInfo(bool waitDone);
 
 /**
- * @param vol The volume, ranges from 0.0 to 1.0 included
- * @param pan The pan, ranges from -1.0 to 1.0 included
+ * @brief Plays a sound.
+ * @param chn Channel to play the sound on.
+ * @param flags Flags containing information about the sound.
+ * @param sampleRate Sample rate of the sound.
+ * @param vol The volume, ranges from 0.0 to 1.0 included.
+ * @param pan The pan, ranges from -1.0 to 1.0 included.
+ * @param data0 First block of sound data.
+ * @param data1 Second block of sound data. Used as a loop destination.
+ * @param size Size of the sound data.
  */
 Result csndPlaySound(int chn, u32 flags, u32 sampleRate, float vol, float pan, void* data0, void* data1, u32 size);
 
-void csndGetDspFlags(u32* outSemFlags, u32* outIrqFlags); // Requires previous CSND_UpdateInfo()
-CSND_ChnInfo* csndGetChnInfo(u32 channel); // Requires previous CSND_UpdateInfo()
-CSND_CapInfo* csndGetCapInfo(u32 capUnit); // Requires previous CSND_UpdateInfo()
+/**
+ * Note: Requires previous CSND_UpdateInfo()
+ */
+void csndGetDspFlags(u32* outSemFlags, u32* outIrqFlags);
+/**
+ * Note: Requires previous CSND_UpdateInfo()
+ */
+CSND_ChnInfo* csndGetChnInfo(u32 channel);
+/**
+ * Note: Requires previous CSND_UpdateInfo()
+ */
+CSND_CapInfo* csndGetCapInfo(u32 capUnit);
 
 Result csndGetState(u32 channel, CSND_ChnInfo* out);
 Result csndIsPlaying(u32 channel, u8* status);

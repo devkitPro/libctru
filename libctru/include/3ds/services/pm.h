@@ -1,51 +1,53 @@
+/**
+ * @file pm.h
+ * @brief PM (Process Manager) service.
+ */
 #pragma once
 
-/*
-	Requires access to "pm:app" service
-*/
-
+/**
+ * @brief Initializes PM.
+ */
 Result pmInit(void);
+
+/**
+ * @brief Exits PM.
+ */
 Result pmExit(void);
 
-/* PM_LaunchTitle()
-About: Launches a title
-
-  mediatype		mediatype of title
-  titleid		TitleId of title to launch
-  launch_flags	use if you know of any
-*/
+/**
+ * @brief Launches a title.
+ * @param mediatype Mediatype of the title.
+ * @param titleid ID of the title.
+ * @param launch_flags Flags to launch the title with.
+ */
 Result PM_LaunchTitle(u8 mediatype, u64 titleid, u32 launch_flags);
 
-/* PM_GetTitleExheaderFlags()
-About: Writes to a buffer the launch flags (8 bytes) from a title exheader.
-
-  mediatype		mediatype of title
-  titleid		TitleId of title
-  out			ptr to where the flags should be written to
-*/
+/**
+ * @brief Gets launch flags from a title's exheader.
+ * @param mediatype Mediatype of the title.
+ * @param titleid ID of the title.
+ * @param out Pointer to write the launch flags to.
+ */
 Result PM_GetTitleExheaderFlags(u8 mediatype, u64 titleid, u8* out);
 
-/* PM_SetFIRMLaunchParams()
-About: Sets the FIRM launch params from in
-
-  size			size of FIRM launch params
-  in			ptr to location of FIRM launch params
-*/
+/**
+ * @brief Sets the current FIRM launch parameters.
+ * @param size Size of the FIRM launch parameter buffer.
+ * @param in Buffer to retreive the launch parameters from.
+ */
 Result PM_SetFIRMLaunchParams(u32 size, u8* in);
 
-/* PM_GetFIRMLaunchParams()
-About: Sets the FIRM launch params from in
-
-  size			size of buffer to store FIRM launch params
-  out			ptr to location to write FIRM launch params
-*/
+/**
+ * @brief Gets the current FIRM launch parameters.
+ * @param size Size of the FIRM launch parameter buffer.
+ * @param out Buffer to write the launch parameters to.
+ */
 Result PM_GetFIRMLaunchParams(u32 size, u8* out);
 
-/* PM_SetFIRMLaunchParams()
-About: Same as PM_SetFIRMLaunchParams(), but also triggers a FIRM launch
-
-  firm_titleid_low	TitleID low of firm title to launch
-  size				size of FIRM launch params
-  in				ptr to location of FIRM launch params
-*/
+/**
+ * @brief Sets the current FIRM launch parameters.
+ * @param firm_titleid_low Low Title ID of the FIRM title to launch.
+ * @param size Size of the FIRM launch parameter buffer.
+ * @param in Buffer to retreive the launch parameters from.
+ */
 Result PM_LaunchFIRMSetParams(u32 firm_titleid_low, u32 size, u8* in);

@@ -1,28 +1,35 @@
+/**
+ * @file gsp.h
+ * @brief GSP service.
+ */
 #pragma once
 
 #define GSP_REBASE_REG(r) ((r)-0x1EB00000)
 
 typedef struct
 {
-	u32 active_framebuf;//"0=first, 1=second"
-	u32 *framebuf0_vaddr;//"Framebuffer virtual address, for the main screen this is the 3D left framebuffer"
-	u32 *framebuf1_vaddr;//"For the main screen: 3D right framebuffer address"
-	u32 framebuf_widthbytesize;//"Value for 0x1EF00X90, controls framebuffer width"
-	u32 format;//"Framebuffer format, this u16 is written to the low u16 for LCD register 0x1EF00X70."
-	u32 framebuf_dispselect;//"Value for 0x1EF00X78, controls which framebuffer is displayed"
-	u32 unk;//"?"
+	u32 active_framebuf;        ///< "0=first, 1=second"
+	u32 *framebuf0_vaddr;       ///< "Framebuffer virtual address, for the main screen this is the 3D left framebuffer"
+	u32 *framebuf1_vaddr;       ///< "For the main screen: 3D right framebuffer address"
+	u32 framebuf_widthbytesize; ///< "Value for 0x1EF00X90, controls framebuffer width"
+	u32 format;                 ///< "Framebuffer format, this u16 is written to the low u16 for LCD register 0x1EF00X70."
+	u32 framebuf_dispselect;    ///< "Value for 0x1EF00X78, controls which framebuffer is displayed"
+	u32 unk;                    ///< "?"
 } GSP_FramebufferInfo;
 
 typedef enum
 {
-	GSP_RGBA8_OES=0, //pixel_size = 4-bytes
-	GSP_BGR8_OES=1, //pixel_size = 3-bytes
-	GSP_RGB565_OES=2, //pixel_size = 2-bytes
-	GSP_RGB5_A1_OES=3, //pixel_size = 2-bytes
-	GSP_RGBA4_OES=4 //pixel_size = 2-bytes
+	GSP_RGBA8_OES=0,   ///< pixel_size = 4-bytes
+	GSP_BGR8_OES=1,    ///< pixel_size = 3-bytes
+	GSP_RGB565_OES=2,  ///< pixel_size = 2-bytes
+	GSP_RGB5_A1_OES=3, ///< pixel_size = 2-bytes
+	GSP_RGBA4_OES=4    ///< pixel_size = 2-bytes
 }GSP_FramebufferFormats;
 
-typedef struct//See this for GSP_CaptureInfoEntry and GSP_CaptureInfo: http://3dbrew.org/wiki/GSPGPU:ImportDisplayCaptureInfo
+/**
+ * See this for GSP_CaptureInfoEntry and GSP_CaptureInfo: http://3dbrew.org/wiki/GSPGPU:ImportDisplayCaptureInfo
+ */
+typedef struct
 {
 	u32 *framebuf0_vaddr;
 	u32 *framebuf1_vaddr;
@@ -37,15 +44,15 @@ typedef struct
 
 typedef enum
 {
-	GSPEVENT_PSC0 = 0,	// memory fill completed
+	GSPEVENT_PSC0 = 0, ///< memory fill completed
 	GSPEVENT_PSC1,
 	GSPEVENT_VBlank0,
 	GSPEVENT_VBlank1,
-	GSPEVENT_PPF,		// display transfer finished
-	GSPEVENT_P3D,		// command list processing finished
+	GSPEVENT_PPF,      ///< display transfer finished
+	GSPEVENT_P3D,      ///< command list processing finished
 	GSPEVENT_DMA,
 
-	GSPEVENT_MAX, // used to know how many events there are
+	GSPEVENT_MAX,      ///< used to know how many events there are
 } GSP_Event;
 
 typedef enum

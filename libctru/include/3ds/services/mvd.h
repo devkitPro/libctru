@@ -1,3 +1,7 @@
+/**
+ * @file mvd.h
+ * @brief MVD service.
+ */
 #pragma once
 
 //New3DS-only, see also: http://3dbrew.org/wiki/MVD_Services
@@ -37,7 +41,15 @@ typedef struct {
 
 void mvdstdGenerateDefaultConfig(mvdstdConfig *config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1_colorconv);
 
-Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput output_type, u32 size);//The input size isn't used when type==MVDTYPE_COLORFORMATCONV. Video processing / H.264 isn't supported currently.
+/**
+ * @brief Initializes MVDSTD.
+ * Video processing / H.264 isn't supported currently.
+ * @param mode Mode to initialize MVDSTD to.
+ * @param input_type Type of input to process.
+ * @param output_type Type of output to produce.
+ * @param size Size of data to process. Not used when type == MVDTYPE_COLORFORMATCONV.
+ */
+Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput output_type, u32 size);
 Result mvdstdShutdown(void);
 
 Result mvdstdSetConfig(mvdstdConfig *config);

@@ -1,6 +1,16 @@
+/**
+ * @file ir.h
+ * @brief IR service.
+ */
 #pragma once
 
-Result IRU_Initialize(u32 *sharedmem_addr, u32 sharedmem_size);//The permissions for the specified memory is set to RO. This memory must be already mapped.
+/**
+ * @brief Initializes IRU.
+ * The permissions for the specified memory is set to RO. This memory must be already mapped.
+ * @param sharedmem_addr Address of the shared memory block to use.
+ * @param sharedmem_size Size of the shared memory block.
+ */
+Result IRU_Initialize(u32 *sharedmem_addr, u32 sharedmem_size);
 Result IRU_Shutdown(void);
 Handle IRU_GetServHandle(void);
 Result IRU_SendData(u8 *buf, u32 size, u32 wait);
