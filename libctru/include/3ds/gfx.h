@@ -13,10 +13,11 @@
 #define RGB565(r,g,b)  (((b)&0x1f)|(((g)&0x3f)<<5)|(((r)&0x1f)<<11))
 #define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
+/// Available screens.
 typedef enum
 {
-	GFX_TOP = 0,
-	GFX_BOTTOM = 1
+	GFX_TOP = 0,   ///< Top screen
+	GFX_BOTTOM = 1 ///< Bottom screen
 }gfxScreen_t;
 
 /**
@@ -29,7 +30,6 @@ typedef enum
 {
 	GFX_LEFT = 0, ///< Left eye framebuffer
 	GFX_RIGHT = 1,///< Right eye framebuffer
-	// GFX_BOTTOM = 0
 }gfx3dSide_t;
 
 

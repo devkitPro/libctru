@@ -2,7 +2,6 @@
  * @file svc.h
  * @brief Syscall wrappers.
  */
-
 #pragma once
 
 #include "types.h"
@@ -27,54 +26,55 @@ typedef enum {
 	MEMOP_UNMAP   = 5, ///< Mirror unmapping
 	MEMOP_PROT    = 6, ///< Change protection
 
-	MEMOP_REGION_APP    = 0x100,
-	MEMOP_REGION_SYSTEM = 0x200,
-	MEMOP_REGION_BASE   = 0x300,
+	MEMOP_REGION_APP    = 0x100, ///< APPLICATION memory region.
+	MEMOP_REGION_SYSTEM = 0x200, ///< SYSTEM memory region.
+	MEMOP_REGION_BASE   = 0x300, ///< BASE memory region.
 
 	MEMOP_OP_MASK     = 0xFF,
 	MEMOP_REGION_MASK = 0xF00,
 	MEMOP_LINEAR_FLAG = 0x10000, ///< Flag for linear memory operations
 
-	MEMOP_ALLOC_LINEAR   = MEMOP_LINEAR_FLAG | MEMOP_ALLOC,
-
+	MEMOP_ALLOC_LINEAR   = MEMOP_LINEAR_FLAG | MEMOP_ALLOC, ///< Allocates linear memory.
 } MemOp;
 
+/// The state of a memory block.
 typedef enum {
-	MEMSTATE_FREE       = 0,
-	MEMSTATE_RESERVED   = 1,
-	MEMSTATE_IO         = 2,
-	MEMSTATE_STATIC     = 3,
-	MEMSTATE_CODE       = 4,
-	MEMSTATE_PRIVATE    = 5,
-	MEMSTATE_SHARED     = 6,
-	MEMSTATE_CONTINUOUS = 7,
-	MEMSTATE_ALIASED    = 8,
-	MEMSTATE_ALIAS      = 9,
-	MEMSTATE_ALIASCODE  = 10,
-	MEMSTATE_LOCKED     = 11
+	MEMSTATE_FREE       = 0,  ///< Free memory
+	MEMSTATE_RESERVED   = 1,  ///< Reserved memory
+	MEMSTATE_IO         = 2,  ///< I/O memory
+	MEMSTATE_STATIC     = 3,  ///< Static memory
+	MEMSTATE_CODE       = 4,  ///< Code memory
+	MEMSTATE_PRIVATE    = 5,  ///< Private memory
+	MEMSTATE_SHARED     = 6,  ///< Shared memory
+	MEMSTATE_CONTINUOUS = 7,  ///< Continuous memory
+	MEMSTATE_ALIASED    = 8,  ///< Aliased memory
+	MEMSTATE_ALIAS      = 9,  ///< Alias memory
+	MEMSTATE_ALIASCODE  = 10, ///< Aliased code memory
+	MEMSTATE_LOCKED     = 11  ///< Locked memory
 } MemState;
 
-/**
- * @brief Memory permission flags
- */
+/// Memory permission flags
 typedef enum {
-	MEMPERM_READ     = 1,
-	MEMPERM_WRITE    = 2,
-	MEMPERM_EXECUTE  = 4,
-	MEMPERM_DONTCARE = 0x10000000
+	MEMPERM_READ     = 1,         ///< Readable
+	MEMPERM_WRITE    = 2,         ///< Writable
+	MEMPERM_EXECUTE  = 4,         ///< Executable
+	MEMPERM_DONTCARE = 0x10000000 ///< Don't care
 } MemPerm;
 
+/// Memory information.
 typedef struct {
-    u32 base_addr;
-    u32 size;
-    u32 perm;  ///< See @ref MemPerm
-    u32 state; ///< See @ref MemState
+    u32 base_addr; ///< Base address.
+    u32 size;      ///< Size.
+    u32 perm;      ///< Memory permissions. See @ref MemPerm
+    u32 state;     ///< Memory state. See @ref MemState
 } MemInfo;
 
+/// Memory page information.
 typedef struct {
-    u32 flags;
+    u32 flags; ///< Page flags.
 } PageInfo;
 
+/// Arbitration modes.
 typedef enum {
 	ARBITRATION_SIGNAL                                  = 0, ///< Signal #value threads for wake-up.
 	ARBITRATION_WAIT_IF_LESS_THAN                       = 1, ///< If the memory at the address is strictly lower than #value, then wait for signal.
@@ -91,8 +91,9 @@ typedef enum {
 ///@name Multithreading
 ///@{
 
+/// Types of thread info.
 typedef enum {
-	THREADINFO_TYPE_UNKNOWN
+	THREADINFO_TYPE_UNKNOWN ///< Unknown.
 } ThreadInfoType;
 
 /// Pseudo handle for the current thread
@@ -103,127 +104,148 @@ typedef enum {
 
 ///@name Debugging
 ///@{
+
+/// Reasons for a process event.
 typedef enum {
-	REASON_CREATE = 1,
-	REASON_ATTACH = 2
+	REASON_CREATE = 1, ///< Process created.
+	REASON_ATTACH = 2  ///< Process attached.
 } ProcessEventReason;
 
+/// Event relating to a process.
 typedef struct {
-	u64 program_id;
-	u8  process_name[8];
-	u32 process_id;
-	u32 reason;          ///< See @ref ProcessEventReason
+	u64 program_id;      ///< ID of the program.
+	u8  process_name[8]; ///< Name of the process.
+	u32 process_id;      ///< ID of the process.
+	u32 reason;          ///< Reason for the event. See @ref ProcessEventReason
 } ProcessEvent;
 
+/// Reasons for an exit process event.
 typedef enum {
-	EXITPROCESS_EVENT_NONE                = 0,
-	EXITPROCESS_EVENT_TERMINATE           = 1,
-	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2
+	EXITPROCESS_EVENT_NONE                = 0, ///< No reason.
+	EXITPROCESS_EVENT_TERMINATE           = 1, ///< Process terminated.
+	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2  ///< Unhandled exception occurred.
 } ExitProcessEventReason;
 
+/// Event relating to the exiting of a process.
 typedef struct {
-	u32 reason; ///< See @ref ExitProcessEventReason
+	u32 reason; ///< Reason for exiting. See @ref ExitProcessEventReason
 } ExitProcessEvent;
 
+/// Event relating to the creation of a thread.
 typedef struct {
-	u32 creator_thread_id;
-	u32 base_addr;
-	u32 entry_point;
+	u32 creator_thread_id; ///< ID of the creating thread.
+	u32 base_addr;         ///< Base address.
+	u32 entry_point;       ///< Entry point of the thread.
 } CreateThreadEvent;
 
+/// Reasons for an exit thread event.
 typedef enum {
-	EXITTHREAD_EVENT_NONE              = 0,
-	EXITTHREAD_EVENT_TERMINATE         = 1,
-	EXITTHREAD_EVENT_UNHANDLED_EXC     = 2,
-	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3
+	EXITTHREAD_EVENT_NONE              = 0, ///< No reason.
+	EXITTHREAD_EVENT_TERMINATE         = 1, ///< Thread terminated.
+	EXITTHREAD_EVENT_UNHANDLED_EXC     = 2, ///< Unhandled exception occurred.
+	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3  ///< Process terminated.
 } ExitThreadEventReason;
 
+/// Event relating to the exiting of a thread.
 typedef struct {
-	u32 reason; ///< See @ref ExitThreadEventReason
+	u32 reason; ///< Reason for exiting. See @ref ExitThreadEventReason
 } ExitThreadEvent;
 
+/// Reasons for a user break.
 typedef enum {
-	USERBREAK_PANIC  = 0,
-	USERBREAK_ASSERT = 1,
-	USERBREAK_USER   = 2
+	USERBREAK_PANIC  = 0, ///< Panic.
+	USERBREAK_ASSERT = 1, ///< Assertion failed.
+	USERBREAK_USER   = 2  ///< User related.
 } UserBreakType;
 
+/// Reasons for an exception event.
 typedef enum {
-	EXC_EVENT_UNDEFINED_INSTRUCTION = 0, ///< arg: (None)
-	EXC_EVENT_UNKNOWN1              = 1, ///< arg: (None)
-	EXC_EVENT_UNKNOWN2              = 2, ///< arg: address
-	EXC_EVENT_UNKNOWN3              = 3, ///< arg: address
-	EXC_EVENT_ATTACH_BREAK          = 4, ///< arg: (None)
-	EXC_EVENT_BREAKPOINT            = 5, ///< arg: (None)
-	EXC_EVENT_USER_BREAK            = 6, ///< arg: @ref UserBreakType
-	EXC_EVENT_DEBUGGER_BREAK        = 7, ///< arg: (None)
-	EXC_EVENT_UNDEFINED_SYSCALL     = 8  ///< arg: attempted syscall
+	EXC_EVENT_UNDEFINED_INSTRUCTION = 0, ///< Undefined instruction.   arg: (None)
+	EXC_EVENT_UNKNOWN1              = 1, ///< Unknown.                 arg: (None)
+	EXC_EVENT_UNKNOWN2              = 2, ///< Unknown.                 arg: address
+	EXC_EVENT_UNKNOWN3              = 3, ///< Unknown.                 arg: address
+	EXC_EVENT_ATTACH_BREAK          = 4, ///< Attached break.          arg: (None)
+	EXC_EVENT_BREAKPOINT            = 5, ///< Breakpoint reached.      arg: (None)
+	EXC_EVENT_USER_BREAK            = 6, ///< User break occurred.     arg: @ref UserBreakType
+	EXC_EVENT_DEBUGGER_BREAK        = 7, ///< Debugger break occurred. arg: (None)
+	EXC_EVENT_UNDEFINED_SYSCALL     = 8  ///< Undefined syscall.       arg: attempted syscall
 } ExceptionEventType;
 
+/// Event relating to exceptions.
 typedef struct {
-	u32 type;     ///< See @ref ExceptionEventType
-	u32 address;
-	u32 argument; ///< See @ref ExceptionEventType
+	u32 type;     ///< Type of event. See @ref ExceptionEventType
+	u32 address;  ///< Address of the exception.
+	u32 argument; ///< Event argument. See @ref ExceptionEventType
 } ExceptionEvent;
 
+/// Event relating to the scheduler.
 typedef struct {
-	u64 clock_tick;
+	u64 clock_tick; ///< Clock tick that the event occurred.
 } SchedulerInOutEvent;
 
+/// Event relating to syscalls.
 typedef struct {
-	u64 clock_tick;
-	u32 syscall;
+	u64 clock_tick; ///< Clock tick that the event occurred.
+	u32 syscall;    ///< Syscall sent/received.
 } SyscallInOutEvent;
 
+/// Event relating to debug output.
 typedef struct {
-	u32 string_addr;
-	u32 string_size;
+	u32 string_addr; ///< Address of the outputted string.
+	u32 string_size; ///< Size of the outputted string.
 } OutputStringEvent;
 
+/// Event relating to the mapping of memory.
 typedef struct {
-	u32 mapped_addr;
-	u32 mapped_size;
-	u32 memperm;
-	u32 memstate;
+	u32 mapped_addr; ///< Mapped address.
+	u32 mapped_size; ///< Mapped size.
+	u32 memperm;     ///< Memory permissions. See @ref MemPerm
+	u32 memstate;    ///< Memory state. See @ref MemState
 } MapEvent;
 
+/// Debug event type.
 typedef enum {
-	DBG_EVENT_PROCESS        = 0,
-	DBG_EVENT_CREATE_THREAD  = 1,
-	DBG_EVENT_EXIT_THREAD    = 2,
-	DBG_EVENT_EXIT_PROCESS   = 3,
-	DBG_EVENT_EXCEPTION      = 4,
-	DBG_EVENT_DLL_LOAD       = 5,
-	DBG_EVENT_DLL_UNLOAD     = 6,
-	DBG_EVENT_SCHEDULE_IN    = 7,
-	DBG_EVENT_SCHEDULE_OUT   = 8,
-	DBG_EVENT_SYSCALL_IN     = 9,
-	DBG_EVENT_SYSCALL_OUT    = 10,
-	DBG_EVENT_OUTPUT_STRING  = 11,
-	DBG_EVENT_MAP            = 12
+	DBG_EVENT_PROCESS        = 0,  ///< Process event.
+	DBG_EVENT_CREATE_THREAD  = 1,  ///< Thread creation event.
+	DBG_EVENT_EXIT_THREAD    = 2,  ///< Thread exit event.
+	DBG_EVENT_EXIT_PROCESS   = 3,  ///< Process exit event.
+	DBG_EVENT_EXCEPTION      = 4,  ///< Exception event.
+	DBG_EVENT_DLL_LOAD       = 5,  ///< DLL load event.
+	DBG_EVENT_DLL_UNLOAD     = 6,  ///< DLL unload event.
+	DBG_EVENT_SCHEDULE_IN    = 7,  ///< Schedule in event.
+	DBG_EVENT_SCHEDULE_OUT   = 8,  ///< Schedule out event.
+	DBG_EVENT_SYSCALL_IN     = 9,  ///< Syscall in event.
+	DBG_EVENT_SYSCALL_OUT    = 10, ///< Syscall out event.
+	DBG_EVENT_OUTPUT_STRING  = 11, ///< Output string event.
+	DBG_EVENT_MAP            = 12  ///< Map event.
 } DebugEventType;
 
+/// Information about a debug event.
 typedef struct {
-	u32 type;		///< See @ref DebugEventType
-	u32 thread_id;
-	u32 unknown[2];
+	u32 type;       ///< Type of event. See @ref DebugEventType
+	u32 thread_id;  ///< ID of the thread.
+	u32 unknown[2]; ///< Unknown data.
 	union {
-		ProcessEvent process;
-		CreateThreadEvent create_thread;
-		ExitThreadEvent exit_thread;
-		ExitProcessEvent exit_process;
-		ExceptionEvent exception;
+		ProcessEvent process;            ///< Process event data.
+		CreateThreadEvent create_thread; ///< Thread creation event data.
+		ExitThreadEvent exit_thread;     ///< Thread exit event data.
+		ExitProcessEvent exit_process;   ///< Process exit event data.
+		ExceptionEvent exception;        ///< Exception event data.
 		/* TODO: DLL_LOAD */
 		/* TODO: DLL_UNLOAD */
-		SchedulerInOutEvent scheduler;
-		SyscallInOutEvent syscall;
-		OutputStringEvent output_string;
-		MapEvent map;
+		SchedulerInOutEvent scheduler;   ///< Schedule in/out event data.
+		SyscallInOutEvent syscall;       ///< Syscall in/out event data.
+		OutputStringEvent output_string; ///< Output string event data.
+		MapEvent map;                    ///< Map event data.
 	};
 } DebugEventInfo;
 
 ///@}
 
+/**
+ * @brief Gets the thread local storage buffer.
+ * @return The thread local storage bufger.
+ */
 static inline void* getThreadLocalStorage(void)
 {
 	void* ret;
@@ -231,11 +253,19 @@ static inline void* getThreadLocalStorage(void)
 	return ret;
 }
 
+/**
+ * @brief Gets the thread command buffer.
+ * @return The thread command bufger.
+ */
 static inline u32* getThreadCommandBuffer(void)
 {
 	return (u32*)((u8*)getThreadLocalStorage() + 0x80);
 }
 
+/**
+ * @brief Gets the thread static buffer.
+ * @return The thread static bufger.
+ */
 static inline u32* getThreadStaticBuffers(void)
 {
 	return (u32*)((u8*)getThreadLocalStorage() + 0x180);
@@ -243,7 +273,6 @@ static inline u32* getThreadStaticBuffers(void)
 
 ///@name Memory management
 ///@{
-
 /**
  * @brief Controls memory mapping
  * @param[out] addr_out The virtual address resulting from the operation. Usually the same as addr0.
@@ -281,55 +310,183 @@ Result svcControlProcessMemory(Handle process, u32 addr0, u32 addr1, u32 size, u
 
 /**
  * @brief Creates a block of shared memory
- * @param memblock Pointer to store the handle of the block
+ * @param[out] memblock Pointer to store the handle of the block
  * @param addr Address of the memory to map, page-aligned. So its alignment must be 0x1000.
  * @param size Size of the memory to map, a multiple of 0x1000.
  * @param my_perm Memory permissions for the current process
- * @param my_perm Memory permissions for the other processes
+ * @param other_perm Memory permissions for the other processes
  *
  * @note The shared memory block, and its rights, are destroyed when the handle is closed.
  */
 Result svcCreateMemoryBlock(Handle* memblock, u32 addr, u32 size, MemPerm my_perm, MemPerm other_perm);
+
+/**
+ * @brief Maps a block of shared memory
+ * @param memblock Handle of the block
+ * @param addr Address of the memory to map, page-aligned. So its alignment must be 0x1000.
+ * @param my_perm Memory permissions for the current process
+ * @param other_perm Memory permissions for the other processes
+ *
+ * @note The shared memory block, and its rights, are destroyed when the handle is closed.
+ */
 Result svcMapMemoryBlock(Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm);
+
+/**
+ * @brief Maps a block of process memory.
+ * @param process Handle of the process.
+ * @param startAddr Start address of the memory to map.
+ * @param endAddr End address of the memory to map.
+ */
 Result svcMapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
+
+/**
+ * @brief Unmaps a block of process memory.
+ * @param process Handle of the process.
+ * @param startAddr Start address of the memory to unmap.
+ * @param endAddr End address of the memory to unmap.
+ */
 Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 endAddr);
+
+/**
+ * @brief Unmaps a block of shared memory
+ * @param memblock Handle of the block
+ * @param addr Address of the memory to unmap, page-aligned. So its alignment must be 0x1000.
+ */
 Result svcUnmapMemoryBlock(Handle memblock, u32 addr);
 
-Result svcStartInterProcessDma(Handle* dma, Handle dstProcess, void* dst, Handle srcProcess, const void* src, u32 size, void* dmaConfig);
-Result svcStopDma(Handle dma);
-Result svcGetDmaState(void* dmaState, Handle dma);
 /**
- * @brief Memory information query
- * @param addr Virtual memory address
+ * @brief Begins an inter-process DMA.
+ * @param[out] dma Pointer to output the handle of the DMA to.
+ * @param dstProcess Destination process.
+ * @param dst Buffer to write data to.
+ * @param srcprocess Source process.
+ * @param src Buffer to read data from.
+ * @param size Size of the data to DMA.
+ * @param dmaConfig DMA configuration data.
+ */
+Result svcStartInterProcessDma(Handle* dma, Handle dstProcess, void* dst, Handle srcProcess, const void* src, u32 size, void* dmaConfig);
+
+/**
+ * @brief Terminates an inter-process DMA.
+ * @param dma Handle of the DMA.
+ */
+Result svcStopDma(Handle dma);
+
+/**
+ * @brief Gets the state of an inter-process DMA.
+ * @param[out] dmaState Pointer to output the state of the DMA to.
+ * @param dma Handle of the DMA.
+ */
+Result svcGetDmaState(void* dmaState, Handle dma);
+
+/**
+ * @brief Queries memory information.
+ * @param[out] info Pointer to output memory info to.
+ * @param out Pointer to output page info to.
+ * @param addr Virtual memory address to query.
  */
 Result svcQueryMemory(MemInfo* info, PageInfo* out, u32 addr);
+
+/**
+ * @brief Queries process memory information.
+ * @param[out] info Pointer to output memory info to.
+ * @param[out] out Pointer to output page info to.
+ * @param process Process to query memory from.
+ * @param addr Virtual memory address to query.
+ */
 Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
 
-
+/**
+ * @brief Invalidates a process's data cache.
+ * @param process Handle of the process.
+ * @param addr Address to invalidate.
+ * @param size Size of the memory to invalidate.
+ */
 Result svcInvalidateProcessDataCache(Handle process, void* addr, u32 size);
+
+/**
+ * @brief Flushes a process's data cache.
+ * @param process Handle of the process.
+ * @param addr Address to flush.
+ * @param size Size of the memory to flush.
+ */
 Result svcFlushProcessDataCache(Handle process, void const* addr, u32 size);
 
+/**
+ * @brief Reads from a process's memory.
+ * @param buffer Buffer to read data to.
+ * @param debug Debug handle of the process.
+ * @param addr Address to read from.
+ * @param size Size of the memory to read.
+ */
 Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
+
+/**
+ * @brief Writes to a process's memory.
+ * @param debug Debug handle of the process.
+ * @param buffer Buffer to write data from.
+ * @param addr Address to write to.
+ * @param size Size of the memory to write.
+ */
 Result svcWriteProcessMemory(Handle debug, const void* buffer, u32 addr, u32 size);
 ///@}
 
 
 ///@name Process management
 ///@{
-
 /**
  * @brief Gets the handle of a process.
  * @param[out] process   The handle of the process
  * @param      processId The ID of the process to open
  */
 Result svcOpenProcess(Handle* process, u32 processId);
+
+/// Exits the current process.
 void svcExitProcess() __attribute__((noreturn));
+
+/**
+ * @brief Terminates a process.
+ * @param process Handle of the process to terminate.
+ */
 Result svcTerminateProcess(Handle process);
 
+/**
+ * @brief Gets information about a process.
+ * @param[out] out Pointer to output process info to.
+ * @param process Handle of the process to get information about.
+ * @param type Type of information to retreieve.
+ */
 Result svcGetProcessInfo(s64* out, Handle process, u32 type);
+
+/**
+ * @brief Gets the ID of a process.
+ * @param[out] out Pointer to output the process ID to.
+ * @param handle Handle of the process to get the ID of.
+ */
 Result svcGetProcessId(u32 *out, Handle handle);
+
+/**
+ * @brief Gets a list of running processes.
+ * @param[out] processCount Pointer to output the process count to.
+ * @param[out] processIds Pointer to output the process IDs to.
+ * @param processIdMaxCount Maximum number of process IDs.
+ */
 Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCount);
+
+/**
+ * @brief Creates a port.
+ * @param[out] portServer Pointer to output the port server handle to.
+ * @param[out] portClient Pointer to output the port client handle to.
+ * @param name Name of the port.
+ * @param maxSessions Maximum number of sessions that can connect to the port.
+ */
 Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s32 maxSessions);
+
+/**
+ * @brief Connects to a port.
+ * @param[out] out Pointer to output the port handle to.
+ * @param portName Name of the port.
+ */
 Result svcConnectToPort(volatile Handle* out, const char* portName);
 ///@}
 
@@ -378,9 +535,7 @@ void svcExitThread(void) __attribute__((noreturn));
  */
 void svcSleepThread(s64 ns);
 
-/**
- * @brief Retrieves the priority of a thread.
- */
+/// Retrieves the priority of a thread.
 Result svcGetThreadPriority(s32 *out, Handle handle);
 
 /**
@@ -390,9 +545,35 @@ Result svcGetThreadPriority(s32 *out, Handle handle);
  * Low values gives the thread higher priority.
  */
 Result svcSetThreadPriority(Handle thread, s32 prio);
+
+/**
+ * @brief Gets a thread's affinity mask.
+ * @param[out] affinitymask Pointer to output the affinity masks to.
+ * @param thread Handle of the thread.
+ * @param processorcount Number of processors.
+ */
 Result svcGetThreadAffinityMask(u8* affinitymask, Handle thread, s32 processorcount);
+
+/**
+ * @brief Sets a thread's affinity mask.
+ * @param thread Handle of the thread.
+ * @param affinitymask Pointer to retreive the affinity masks from.
+ * @param processorcount Number of processors.
+ */
 Result svcSetThreadAffinityMask(Handle thread, u8* affinitymask, s32 processorcount);
+
+/**
+ * @brief Gets a thread's ideal processor.
+ * @param[out] processorid Pointer to output the ID of the thread's ideal processor to.
+ * @param thread Handle of the thread.
+ */
 Result svcGetThreadIdealProcessor(s32* processorid, Handle thread);
+
+/**
+ * Sets a thread's ideal processor.
+ * @param thread Handle of the thread.
+ * @param processorid ID of the thread's ideal processor.
+ */
 Result svcSetThreadIdealProcessor(Handle thread, s32 processorid);
 
 /**
@@ -402,12 +583,16 @@ Result svcSetThreadIdealProcessor(Handle thread, s32 processorid);
 s32    svcGetProcessorID();
 
 /**
- * @param out The thread ID of the thread @p handle.
+ * @brief Gets the ID of a thread.
+ * @param[out] out Pointer to output the thread ID of the thread @p handle to.
+ * @param handle Handle of the thread.
  */
 Result svcGetThreadId(u32 *out, Handle handle);
 
 /**
- * @param out The process ID of the thread @p handle.
+ * @brief Gets the process ID of a thread.
+ * @param[out] out Pointer to output the process ID of the thread @p handle to.
+ * @param handle Handle of the thread.
  * @sa svcOpenProcess
  */
 Result svcGetProcessIdOfThread(u32 *out, Handle handle);
@@ -424,21 +609,74 @@ Result svcGetThreadInfo(s64* out, Handle thread, ThreadInfoType type);
 
 ///@name Synchronization
 ///@{
+/**
+ * @brief Creates a mutex.
+ * @param[out] mutex Pointer to output the handle of the created mutex to.
+ * @param initially_locked Whether the mutex should be initially locked.
+ */
 Result svcCreateMutex(Handle* mutex, bool initially_locked);
+
+/**
+ * @brief Releases a mutex.
+ * @param handle Handle of the mutex.
+ */
 Result svcReleaseMutex(Handle handle);
 
+/**
+ * @brief Creates a semaphore.
+ * @param[out] semaphore Pointer to output the handle of the created semaphore to.
+ * @param initial_count Initial count of the semaphore.
+ * @param max_count Maximum count of the semaphore.
+ */
 Result svcCreateSemaphore(Handle* semaphore, s32 initial_count, s32 max_count);
+
+/**
+ * @brief Releases a semaphore.
+ * @param[out] count Pointer to output the current count of the semaphore to.
+ * @param semaphore Handle of the semaphore.
+ * @param release_count Number to increase the semaphore count by.
+ */
 Result svcReleaseSemaphore(s32* count, Handle semaphore, s32 release_count);
 
+/**
+ * @brief Creates an event handle.
+ * @param[out] event Pointer to output the created event handle to.
+ * @param reset_type Type of reset the event uses.
+ */
 Result svcCreateEvent(Handle* event, u8 reset_type);
+
+/**
+ * @brief Signals an event.
+ * @param handle Handle of the event to signal.
+ */
 Result svcSignalEvent(Handle handle);
+
+/**
+ * @brief Clears an event.
+ * @param handle Handle of the event to clear.
+ */
 Result svcClearEvent(Handle handle);
 
+/**
+ * @brief Waits for synchronization on a handle.
+ * @param handle Handle to wait on.
+ * @param nanoseconds Maximum nanoseconds to wait for.
+ */
 Result svcWaitSynchronization(Handle handle, s64 nanoseconds);
+
+/**
+ * @brief Waits for synchronization on multiple handles.
+ * @param[out] out Pointer to output the index of the synchronized handle to.
+ * @param handles Handles to wait on.
+ * @param handles_num Number of handles.
+ * @param wait_all Whether to wait for synchronization on all handles.
+ * @param nanoseconds Maximum nanoseconds to wait for.
+ */
 Result svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
 
 /**
  * @brief Creates an address arbiter
+ * @param[out] mutex Pointer to output the handle of the created address arbiter to.
  * @sa svcArbitrateAddress
  */
 Result svcCreateAddressArbiter(Handle *arbiter);
@@ -462,40 +700,151 @@ Result svcCreateAddressArbiter(Handle *arbiter);
  */
 Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
 
+/**
+ * @brief Sends a synchronized request to a session handle.
+ * @param session Handle of the session.
+ */
 Result svcSendSyncRequest(Handle session);
+
+/**
+ * @brief Accepts a session.
+ * @param[out] session Pointer to output the created session handle to.
+ * @param port Handle of the port to accept a session from.
+ */
 Result svcAcceptSession(Handle* session, Handle port);
+
+/**
+ * @brief Replies to and receives a new request.
+ * @param index Pointer to the index of the request.
+ * @param handles Session handles to receive requests from.
+ * @param handleCount Number of handles.
+ * @param replyTarget Handle of the session to reply to.
+ */
 Result svcReplyAndReceive(s32* index, Handle* handles, s32 handleCount, Handle replyTarget);
 ///@}
 
 ///@name Time
 ///@{
+/**
+ * @brief Creates a timer.
+ * @param[out] timer Pointer to output the handle of the created timer to.
+ * @param reset_type Type of reset to perform on the timer.
+ */
 Result svcCreateTimer(Handle* timer, u8 reset_type);
+
+/**
+ * @brief Sets a timer.
+ * @param timer Handle of the timer to set.
+ * @param initial Initial value of the timer.
+ * @param interval Interval of the timer.
+ */
 Result svcSetTimer(Handle timer, s64 initial, s64 interval);
+
+/**
+ * @brief Cancels a timer.
+ * @param timer Handle of the timer to cancel.
+ */
 Result svcCancelTimer(Handle timer);
+
+/**
+ * @brief Clears a timer.
+ * @param timer Handle of the timer to clear.
+ */
 Result svcClearTimer(Handle timer);
+
+/**
+ * @brief Gets the current system tick.
+ * @return The current system tick.
+ */
 u64    svcGetSystemTick();
 ///@}
 
 ///@name System
 ///@{
+/**
+ * @brief Closes a handle.
+ * @param handle Handle to close.
+ */
 Result svcCloseHandle(Handle handle);
+
+/**
+ * @brief Duplicates a handle.
+ * @param[out] out Pointer to output the duplicated handle to.
+ * @param original Handle to duplicate.
+ */
 Result svcDuplicateHandle(Handle* out, Handle original);
+
+/**
+ * @brief Gets the system info.
+ * @param[out] out Pointer to output the system info to.
+ * @param type Type of system info to retreive.
+ * @param param Parameter clarifying the system info type.
+ */
 Result svcGetSystemInfo(s64* out, u32 type, s32 param);
+
+/**
+ * @brief Sets the current kernel state.
+ * @param type Type of state to set.
+ * @param param0 First parameter of the state.
+ * @param param1 Second parameter of the state.
+ * @param param2 Third parameter of the state.
+ */
 Result svcKernelSetState(u32 type, u32 param0, u32 param1, u32 param2);
 ///@}
 
 
 ///@name Debugging
 ///@{
+/**
+ * @brief Breaks execution.
+ * @param breakReason Reason for breaking.
+ */
 void svcBreak(UserBreakType breakReason);
+
+/**
+ * @brief Outputs a debug string.
+ * @param str String to output.
+ * @param length Length of the string to output.
+ */
 Result svcOutputDebugString(const char* str, int length);
+/**
+ * @brief Creates a debug handle for an active process.
+ * @param[out] debug Pointer to output the created debug handle to.
+ * @param processId ID of the process to debug.
+ */
 Result svcDebugActiveProcess(Handle* debug, u32 processId);
+
+/**
+ * @brief Breaks a debugged process.
+ * @param debug Debug handle of the process.
+ */
 Result svcBreakDebugProcess(Handle debug);
+
+/**
+ * @brief Terminates a debugged process.
+ * @param debug Debug handle of the process.
+ */
 Result svcTerminateDebugProcess(Handle debug);
+
+/**
+ * @brief Gets the current debug event of a debugged process.
+ * @param[out] info Pointer to output the debug event information to.
+ * @param debug Debug handle of the process.
+ */
 Result svcGetProcessDebugEvent(DebugEventInfo* info, Handle debug);
+
+/**
+ * @brief Continues the current debug event of a debugged process.
+ * @param debug Debug handle of the process.
+ * @param flags Flags to continue with.
+ */
 Result svcContinueDebugEvent(Handle debug, u32 flags);
 ///@}
 
+/**
+ * @brief Executes a function in kernel mode.
+ * @param callback Function to execute.
+ */
 Result svcBackdoor(s32 (*callback)(void));
 
 
