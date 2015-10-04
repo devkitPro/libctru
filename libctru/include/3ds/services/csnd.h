@@ -2,7 +2,6 @@
 #include <3ds/types.h>
 
 #define CSND_NUM_CHANNELS 32
-#define CSND_SHAREDMEM_DEFAULT 0x10004000
 
 #define CSND_TIMER(n) (0x3FEC3FC / ((u32)(n)))
 
