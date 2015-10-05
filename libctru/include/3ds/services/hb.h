@@ -6,23 +6,17 @@
 
 // WARNING ! THIS FILE PROVIDES AN INTERFACE TO A NON-OFFICIAL SERVICE PROVIDED BY NINJHAX
 // BY USING COMMANDS FROM THIS SERVICE YOU WILL LIKELY MAKE YOUR APPLICATION INCOMPATIBLE WITH OTHER HOMEBREW LAUNCHING METHODS
-// A GOOD WAY TO COPE WITH THIS IS TO CHECK THE OUTPUT OF initHb FOR ERRORS
+// A GOOD WAY TO COPE WITH THIS IS TO CHECK THE OUTPUT OF hbInit FOR ERRORS
 
 #include <3ds/types.h>
 
-/**
- * @brief Initializes HB.
- */
+/// Initializes HB.
 Result hbInit();
 
-/**
- * @brief Exits HB.
- */
+/// Exits HB.
 void hbExit();
 
-/**
- * @brief Flushes/invalidates the entire data/instruction cache.
- */
+/// Flushes/invalidates the entire data/instruction cache.
 Result HB_FlushInvalidateCache(void);
 
 /**

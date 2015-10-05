@@ -4,14 +4,10 @@
  */
 #pragma once
 
-/**
- * @brief Initializes NEWS.
- */
+/// Initializes NEWS.
 Result newsInit(void);
 
-/**
- * @brief Exits NEWS.
- */
+/// Exits NEWS.
 Result newsExit(void);
 
 /**

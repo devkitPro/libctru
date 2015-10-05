@@ -5,12 +5,15 @@
  * This header provides functions to configure and manipulate the two screens, including double buffering and 3D activation.
  * It is mainly an abstraction over the gsp service.
  */
-
 #pragma once
+
 #include <3ds/types.h>
 #include <3ds/services/gsp.h>
 
+/// Converts red, green, and blue components to packed RGB565.
 #define RGB565(r,g,b)  (((b)&0x1f)|(((g)&0x3f)<<5)|(((r)&0x1f)<<11))
+
+/// Converts packed RGB8 to packed RGB565.
 #define RGB8_to_565(r,g,b)  (((b)>>3)&0x1f)|((((g)>>2)&0x3f)<<5)|((((r)>>3)&0x1f)<<11)
 
 /// Available screens.
@@ -47,9 +50,10 @@ typedef enum
 void gfxInitDefault(void);
 
 /**
- * @brief Initializes the LCD framebuffers
- * @brief topFormat The format of the top screen framebuffers
- * @brief bottomFormat The format of the bottom screen framebuffers
+ * @brief Initializes the LCD framebuffers.
+ * @param topFormat The format of the top screen framebuffers.
+ * @param bottomFormat The format of the bottom screen framebuffers.
+ * @param vramBuffers Whether to allocate the framebuffers in VRAM.
  *
  * This function will allocate the memory for the framebuffers and open a gsp service session.
  * It will also bind the newly allocated framebuffers to the LCD screen and setup the VBlank event.
@@ -86,12 +90,15 @@ void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format);
 
 /**
  * @brief Gets a screen pixel format.
+ * @param screen Screen to get the pixel format of.
  * @return the pixel format of the chosen screen set by ctrulib.
  */
 GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen);
 
 /**
- * @brief Enables the ctrulib double buffering
+ * @brief Sets whether to use ctrulib's double buffering
+ * @param screen Screen to toggle double buffering for.
+ * @param doubleBuffering Whether to use double buffering.
  *
  * ctrulib is by default using a double buffering scheme.
  * If you do not want to swap one of the screen framebuffers when @ref gfxSwapBuffers or @ref gfxSwapBuffers is called,
@@ -133,10 +140,12 @@ void gfxSwapBuffersGpu(void);
 ///@name Helper
 ///@{
 /**
- * @brief Retrieves a framebuffer information
- * @param width Pointer that will hold the width of the framebuffer in pixels
- * @param height Pointer that will hold the height of the framebuffer in pixels
- * @return a pointer to the current framebuffer of the choosen screen
+ * @brief Retrieves a framebuffer information.
+ * @param screen Screen to retrieve framebuffer information for.
+ * @param side Side of the screen to retrieve framebuffer information for.
+ * @param width Pointer that will hold the width of the framebuffer in pixels.
+ * @param height Pointer that will hold the height of the framebuffer in pixels.
+ * @return A pointer to the current framebuffer of the choosen screen.
  *
  * Please remember that the returned pointer will change after each call to gfxSwapBuffers if double buffering is enabled.
  */

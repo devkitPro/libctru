@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/// brief Retreives an rbtree item.
+/// Retrieves an rbtree item.
 #define rbtree_item(ptr, type, member) \
   ((type*)(((char*)ptr) - offsetof(type, member)))
 

@@ -46,14 +46,15 @@ typedef void (*ThreadFunc)(void *); ///< Thread entrypoint function.
 /// Creates a bitmask from a bit number.
 #define BIT(n) (1U<<(n))
 
-/// aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
+/// Aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
 #define ALIGN(m)   __attribute__((aligned(m)))
-/// packs a struct (and other types?) so it won't include padding bytes.
+/// Packs a struct (and other types?) so it won't include padding bytes.
 #define PACKED     __attribute__((packed))
 
-/// flags a function as deprecated.
 #ifndef LIBCTRU_NO_DEPRECATION
+/// Flags a function as deprecated.
 #define DEPRECATED __attribute__ ((deprecated))
 #else
+/// Flags a function as deprecated.
 #define DEPRECATED
 #endif

@@ -20,6 +20,10 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size);
  */
 Result SOC_Shutdown(void);
 
-/* this is supposed to be in unistd.h but newlib only puts it for cygwin */
+// this is supposed to be in unistd.h but newlib only puts it for cygwin
+/**
+ * @brief Gets the system's host ID.
+ * @return The system's host ID.
+ */
 long gethostid(void);
 

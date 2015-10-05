@@ -4,14 +4,10 @@
  */
 #pragma once
 
-/**
- * @brief Initializes NS.
- */
+/// Initializes NS.
 Result nsInit(void);
 
-/**
- * @brief Exits NS.
- */
+/// Exits NS.
 Result nsExit(void);
 
 /**

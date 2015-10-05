@@ -346,6 +346,10 @@ Result Y2RU_IsDoneSendingYUYV(bool* is_done);
  */
 Result Y2RU_IsDoneReceiving(bool* is_done);
 
+/**
+ * @brief Sets currently unknown parameters.
+ * @param params Unknown parameters.
+ */
 Result Y2RU_SetUnknownParams(const u16 params[16]);
 
 /**
@@ -355,14 +359,10 @@ Result Y2RU_SetUnknownParams(const u16 params[16]);
  */
 Result Y2RU_SetConversionParams(const Y2R_ConversionParams* params);
 
-/**
- * @brief Starts the conversion process
- */
+/// Starts the conversion process
 Result Y2RU_StartConversion(void);
 
-/**
- * @brief Cancels the conversion
- */
+/// Cancels the conversion
 Result Y2RU_StopConversion(void);
 
 /**
@@ -372,10 +372,15 @@ Result Y2RU_StopConversion(void);
  */
 Result Y2RU_IsBusyConversion(bool* is_busy);
 
-
-/* Seems to check whether y2r is ready to be used */
+/**
+ * @brief Checks whether y2r is ready to be used.
+ * @param ping Pointer to output y2r's status to.
+ */
 Result Y2RU_PingProcess(u8* ping);
 
+/// Initializes the y2r driver.
 Result Y2RU_DriverInitialize(void);
+
+/// Terminates the y2r driver.
 Result Y2RU_DriverFinalize(void);
 
