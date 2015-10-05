@@ -6,7 +6,6 @@
 
 #include "types.h"
 
-
 /// Pseudo handle for the current process
 #define CUR_PROCESS_HANDLE 0xFFFF8001
 
@@ -30,11 +29,11 @@ typedef enum {
 	MEMOP_REGION_SYSTEM = 0x200, ///< SYSTEM memory region.
 	MEMOP_REGION_BASE   = 0x300, ///< BASE memory region.
 
-	MEMOP_OP_MASK     = 0xFF,
-	MEMOP_REGION_MASK = 0xF00,
+	MEMOP_OP_MASK     = 0xFF,    ///< Operation bitmask.
+	MEMOP_REGION_MASK = 0xF00,   ///< Region bitmask.
 	MEMOP_LINEAR_FLAG = 0x10000, ///< Flag for linear memory operations
 
-	MEMOP_ALLOC_LINEAR   = MEMOP_LINEAR_FLAG | MEMOP_ALLOC, ///< Allocates linear memory.
+	MEMOP_ALLOC_LINEAR = MEMOP_LINEAR_FLAG | MEMOP_ALLOC, ///< Allocates linear memory.
 } MemOp;
 
 /// The state of a memory block.
@@ -283,7 +282,7 @@ static inline u32* getThreadStaticBuffers(void)
  * @param size     The requested size for @ref MEMOP_ALLOC and @ref MEMOP_ALLOC_LINEAR.
  * @param op       Operation flags. See @ref MemOp.
  * @param perm     A combination of @ref MEMPERM_READ and @ref MEMPERM_WRITE. Using MEMPERM_EXECUTE will return an error.
- * 			       Value 0 is used when unmapping memory.
+ *                 Value 0 is used when unmapping memory.
  *
  * If a memory is mapped for two or more addresses, you have to use MEMOP_UNMAP before being able to MEMOP_FREE it.
  * MEMOP_MAP will fail if @p addr1 was already mapped to another address.
@@ -557,7 +556,7 @@ Result svcGetThreadAffinityMask(u8* affinitymask, Handle thread, s32 processorco
 /**
  * @brief Sets a thread's affinity mask.
  * @param thread Handle of the thread.
- * @param affinitymask Pointer to retreive the affinity masks from.
+ * @param affinitymask Pointer to retrieve the affinity masks from.
  * @param processorcount Number of processors.
  */
 Result svcSetThreadAffinityMask(Handle thread, u8* affinitymask, s32 processorcount);
@@ -777,7 +776,7 @@ Result svcDuplicateHandle(Handle* out, Handle original);
 /**
  * @brief Gets the system info.
  * @param[out] out Pointer to output the system info to.
- * @param type Type of system info to retreive.
+ * @param type Type of system info to retrieve.
  * @param param Parameter clarifying the system info type.
  */
 Result svcGetSystemInfo(s64* out, u32 type, s32 param);

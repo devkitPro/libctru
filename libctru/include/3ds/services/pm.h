@@ -4,14 +4,10 @@
  */
 #pragma once
 
-/**
- * @brief Initializes PM.
- */
+/// Initializes PM.
 Result pmInit(void);
 
-/**
- * @brief Exits PM.
- */
+/// Exits PM.
 Result pmExit(void);
 
 /**
@@ -33,7 +29,7 @@ Result PM_GetTitleExheaderFlags(u8 mediatype, u64 titleid, u8* out);
 /**
  * @brief Sets the current FIRM launch parameters.
  * @param size Size of the FIRM launch parameter buffer.
- * @param in Buffer to retreive the launch parameters from.
+ * @param in Buffer to retrieve the launch parameters from.
  */
 Result PM_SetFIRMLaunchParams(u32 size, u8* in);
 
@@ -48,6 +44,6 @@ Result PM_GetFIRMLaunchParams(u32 size, u8* out);
  * @brief Sets the current FIRM launch parameters.
  * @param firm_titleid_low Low Title ID of the FIRM title to launch.
  * @param size Size of the FIRM launch parameter buffer.
- * @param in Buffer to retreive the launch parameters from.
+ * @param in Buffer to retrieve the launch parameters from.
  */
 Result PM_LaunchFIRMSetParams(u32 firm_titleid_low, u32 size, u8* in);

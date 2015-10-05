@@ -4,9 +4,7 @@
  */
 #pragma once
 
-/**
- * @brief PS AES algorithms.
- */
+/// PS AES algorithms.
 typedef enum
 {
 	ps_CBC_ENC, ///< CBC encoding.
@@ -17,9 +15,7 @@ typedef enum
 	ps_CCM_DEC, ///< CCM decoding.
 } ps_aes_algo;
 
-/**
- * @brief PS key slots.
- */
+/// PS key slots.
 typedef enum
 {
 	ps_KEYSLOT_0D,      ///< Key slot 0x0D.
@@ -34,14 +30,10 @@ typedef enum
 	ps_KEYSLOT_39_NFC   ///< Key slot 0x39. (NFC)
 } ps_aes_keytypes;
 
-/**
- * @brief Initializes PS.
- */
+/// Initializes PS.
 Result psInit(void);
 
-/**
- * @brief Exits PS.
- */
+/// Exits PS.
 Result psExit(void);
 
 /**

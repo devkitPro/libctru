@@ -6,17 +6,13 @@
 
 //See also: http://3dbrew.org/wiki/QTM_Services
 
-/**
- * @brief Head tracking coordinate pair.
- */
+/// Head tracking coordinate pair.
 typedef struct {
 	float x; ///< X coordinate.
 	float y; ///< Y coordinate.
 } qtmHeadtrackingInfoCoord;
 
-/**
- * @brief Head tracking info.
- */
+/// Head tracking info.
 typedef struct {
 	u8 flags[5];                         ///< Flags.
 	u8 padding[3];                       ///< Padding.
@@ -25,14 +21,10 @@ typedef struct {
 	u32 unk_x2c[5];                      ///< Unknown. Not used by System_Settings.
 } qtmHeadtrackingInfo;
 
-/**
- * @brief Initializes QTM.
- */
+/// Initializes QTM.
 Result qtmInit(void);
 
-/**
- * @brief Exits QTM.
- */
+/// Exits QTM.
 void qtmExit(void);
 
 /**

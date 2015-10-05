@@ -7,12 +7,13 @@
 #pragma once
 #include <3ds/types.h>
 
+/// DSP interrupt types.
 typedef enum
 {
-	DSP_INTERRUPT_PIPE = 2
+	DSP_INTERRUPT_PIPE = 2 ///< Pipe interrupt.
 } DSP_InterruptType;
 
-
+/// DSP pipe directions.
 typedef enum
 {
 	DSP_PIPE_INPUT  = 0, ///< DSP to ARM
@@ -34,7 +35,10 @@ Result dspInit(void);
  */
 Result dspExit(void);
 
-///Checks if a headphone is inserted.
+/**
+ * @brief Checks if a headphone is inserted.
+ * @param is_inserted Pointer to output the insertion status to.
+ */
 Result DSP_GetHeadphoneStatus(bool* is_inserted);
 
 /**
@@ -55,13 +59,22 @@ Result DSP_FlushDataCache(const void* address, u32 size);
  */
 Result DSP_InvalidateDataCache(const void* address, u32 size);
 
-///Retrieves the handle of the DSP semaphore
+/**
+ * @brief Retrieves the handle of the DSP semaphore.
+ * @param semaphore Pointer to output the semaphore to.
+ */
 Result DSP_GetSemaphoreHandle(Handle* semaphore);
 
-///Sets the DSP hardware semaphore value
+/**
+ * @brief Sets the DSP hardware semaphore value.
+ * @param value Value to set.
+ */
 Result DSP_SetSemaphore(u16 value);
 
-///Masks the DSP hardware semaphore value
+/**
+ * @brief Masks the DSP hardware semaphore value.
+ * @param mask Mask to apply.
+ */
 Result DSP_SetSemaphoreMask(u16 mask);
 
 /**
@@ -77,12 +90,13 @@ Result DSP_SetSemaphoreMask(u16 mask);
  */
 Result DSP_LoadComponent(const void* component, u32 size, u16 prog_mask, u16 data_mask, bool* is_loaded);
 
-///Stops the DSP by unloading the binary
+///Stops the DSP by unloading the binary.
 Result DSP_UnloadComponent(void);
 
 /**
  * @brief Registers an event handle with the DSP through IPC
- * @param interrut The type of interrupt that will trigger the event. Usual value is DSP_INTERRUPT_PIPE.
+ * @param handle Event handle to register.
+ * @param interrupt The type of interrupt that will trigger the event. Usual value is DSP_INTERRUPT_PIPE.
  * @param channel The pipe channel. Usual value is 2
  *
  * @note It is possible that interrupt are inverted
@@ -90,6 +104,7 @@ Result DSP_UnloadComponent(void);
 Result DSP_RegisterInterruptEvents(Handle handle, u32 interrupt, u32 channel);
 
 /**
+ * @brief Reads a pipe if possible.
  * @param channel     unknown. Usually 2
  * @param peer        unknown. Usually 0
  * @param buffer      The buffer that will store the values read from the pipe
@@ -99,24 +114,31 @@ Result DSP_RegisterInterruptEvents(Handle handle, u32 interrupt, u32 channel);
 Result DSP_ReadPipeIfPossible(u32 channel, u32 peer, void* buffer, u16 length, u16* length_read);
 
 /**
+ * @param Writes to a pipe.
  * @param channel unknown. Usually 2
  * @param buffer  The message to send to the DSP process
  * @param length  Length of the message
  */
 Result DSP_WriteProcessPipe(u32 channel, const void* buffer, u32 length);
 
-///Converts a DSP memory to a virtual address usable by the process
+/**
+ * @brief Converts a DSP memory address to a virtual address usable by the process.
+ * @param dsp_address Address to convert.
+ * @param arm_address Pointer to output the converted address to.
+ */
 Result DSP_ConvertProcessAddressFromDspDram(u32 dsp_address, u32* arm_address);
 
 /**
  * @brief Reads a DSP register
  * @param regNo Offset of the hardware register, base address is 0x1EC40000
+ * @param value Pointer to read the register value to.
  */
 Result DSP_RecvData(u16 regNo, u16* value);
 
 /**
  * @brief Checks if you can read a DSP register
  * @param regNo Offset of the hardware register, base address is 0x1EC40000
+ * @param is_ready Pointer to write the ready status to.
  *
  * @warning This call might hang if the data is not ready. See @ref DSP_SendDataIsEmpty.
  */
@@ -125,6 +147,7 @@ Result DSP_RecvDataIsReady(u16 regNo, bool* is_ready);
 /**
  * @brief Writes to a DSP register
  * @param regNo Offset of the hardware register, base address is 0x1EC40000
+ * @param value Value to write.
  *
  * @warning This call might hang if the SendData is not empty. See @ref DSP_SendDataIsEmpty.
  */
@@ -133,5 +156,6 @@ Result DSP_SendData(u16 regNo, u16 value);
 /**
  * @brief Checks if you can write to a DSP register ?
  * @param regNo Offset of the hardware register, base address is 0x1EC40000
+ * @param is_empty Pointer to write the empty status to.
  */
 Result DSP_SendDataIsEmpty(u16 regNo, bool* is_empty);

@@ -6,10 +6,14 @@
  * functionality provided by stderr.
  *
  * General usage is to initialize the console by:
+ * @code
  * consoleDemoInit()
+ * @endcode
  * or to customize the console usage by:
+ * @code
  * consoleInit()
-*/
+ * @endcode
+ */
 #pragma once
 
 #include <3ds/types.h>
@@ -28,14 +32,13 @@ typedef struct ConsoleFont
 	u8* gfx;         ///< A pointer to the font graphics
 	u16 asciiOffset; ///< Offset to the first valid character in the font table
 	u16 numChars;    ///< Number of characters in the font graphics
-
 }ConsoleFont;
 
 /**
- * @brief console structure used to store the state of a console render context.
+ * @brief Console structure used to store the state of a console render context.
  *
  * Default values from consoleGetDefault();
- * <div class="fixedFont"><pre>
+ * @code
  * PrintConsole defaultConsole =
  * {
  * 	//Font:
@@ -57,13 +60,13 @@ typedef struct ConsoleFont
  *	0,  //print callback
  *	false //console initialized
  * };
- * </pre></div>
+ * @endcode
  */
 typedef struct PrintConsole
 {
-	ConsoleFont font;        ///< Font of the console.
+	ConsoleFont font;        ///< Font of the console
 
-	u16 *frameBuffer;        ///< Framebuffer address.
+	u16 *frameBuffer;        ///< Framebuffer address
 
 	int cursorX;             ///< Current X location of the cursor (as a tile offset by default)
 	int cursorY;             ///< Current Y location of the cursor (as a tile offset by default)
@@ -89,19 +92,19 @@ typedef struct PrintConsole
 	bool consoleInitialised; ///< True if the console is initialized
 }PrintConsole;
 
-#define CONSOLE_COLOR_BOLD	(1<<0)
-#define CONSOLE_COLOR_FAINT	(1<<1)
-#define CONSOLE_ITALIC		(1<<2)
-#define CONSOLE_UNDERLINE	(1<<3)
-#define CONSOLE_BLINK_SLOW	(1<<4)
-#define CONSOLE_BLINK_FAST	(1<<5)
-#define CONSOLE_COLOR_REVERSE	(1<<6)
-#define CONSOLE_CONCEAL		(1<<7)
-#define CONSOLE_CROSSED_OUT	(1<<8)
+#define CONSOLE_COLOR_BOLD	(1<<0) ///< Bold text
+#define CONSOLE_COLOR_FAINT	(1<<1) ///< Faint text
+#define CONSOLE_ITALIC		(1<<2) ///< Italic text
+#define CONSOLE_UNDERLINE	(1<<3) ///< Underlined text
+#define CONSOLE_BLINK_SLOW	(1<<4) ///< Slow blinking text
+#define CONSOLE_BLINK_FAST	(1<<5) ///< Fast blinking text
+#define CONSOLE_COLOR_REVERSE	(1<<6) ///< Reversed color text
+#define CONSOLE_CONCEAL		(1<<7) ///< Concealed text
+#define CONSOLE_CROSSED_OUT	(1<<8) ///< Crossed out text
 
 /// Console debug devices supported by libnds.
 typedef enum {
-	debugDevice_NULL,    ///< swallows prints to stderr
+	debugDevice_NULL,    ///< Swallows prints to stderr
 	debugDevice_3DMOO,   ///< Directs stderr debug statements to 3dmoo
 	debugDevice_CONSOLE, ///< Directs stderr debug statements to 3DS console window
 } debugDevice;
@@ -110,7 +113,7 @@ typedef enum {
  * @brief Loads the font into the console.
  * @param console Pointer to the console to update, if NULL it will update the current console.
  * @param font The font to load.
-*/
+ */
 void consoleSetFont(PrintConsole* console, ConsoleFont* font);
 
 /**
@@ -120,21 +123,21 @@ void consoleSetFont(PrintConsole* console, ConsoleFont* font);
  * @param y Y location of the window.
  * @param width Width of the window.
  * @param height Height of the window.
-*/
+ */
 void consoleSetWindow(PrintConsole* console, int x, int y, int width, int height);
 
 /**
  * @brief Gets a pointer to the console with the default values.
  * This should only be used when using a single console or without changing the console that is returned, otherwise use consoleInit().
  * @return A pointer to the console with the default values.
-*/
+ */
 PrintConsole* consoleGetDefault(void);
 
 /**
  * @brief Make the specified console the render target.
  * @param console A pointer to the console struct (must have been initialized with consoleInit(PrintConsole* console)).
  * @return A pointer to the previous console.
-*/
+ */
 PrintConsole *consoleSelect(PrintConsole* console);
 
 /**
@@ -142,13 +145,13 @@ PrintConsole *consoleSelect(PrintConsole* console);
  * @param screen The screen to use for the console.
  * @param console A pointer to the console data to initialize (if it's NULL, the default console will be used).
  * @return A pointer to the current console.
-*/
+ */
 PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console);
 
 /**
  * @brief Initializes debug console output on stderr to the specified device.
  * @param device The debug device (or devices) to output debug print statements to.
-*/
+ */
 void consoleDebugInit(debugDevice device);
 
 /// Clears the screan by using iprintf("\x1b[2J");

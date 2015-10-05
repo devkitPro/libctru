@@ -15,20 +15,13 @@ typedef struct
 	u8 unk[6];   ///< Unknown title data.
 } AM_TitleEntry;
 
-
-/**
- * @brief Initializes AM.
- */
+/// Initializes AM.
 Result amInit(void);
 
-/**
- * @brief Exits AM.
- */
+/// Exits AM.
 Result amExit(void);
 
-/**
- * @brief Gets the current AM session handle.
- */
+/// Gets the current AM session handle.
 Handle *amGetSessionHandle(void);
 
 /**
@@ -42,7 +35,7 @@ Result AM_GetTitleCount(u8 mediatype, u32 *count);
  * @brief Gets a list of title IDs present in a mediatype.
  * @param mediatype Mediatype to get titles from.
  * @param count Number of title IDs to get.
- * @param titleIDs Buffer to write retreived title IDs to.
+ * @param titleIDs Buffer to write retrieved title IDs to.
  */
 Result AM_GetTitleIdList(u8 mediatype, u32 count, u64 *titleIDs);
 
@@ -56,7 +49,7 @@ Result AM_GetDeviceId(u32 *deviceID);
  * @brief Gets a list of details about installed titles.
  * @param mediatype Mediatype to get titles from.
  * @param titleCount Number of titles to list.
- * @param titleIdList List of title IDs to retreive details for.
+ * @param titleIdList List of title IDs to retrieve details for.
  * @param titleList Buffer to write AM_TitleEntry's to.
  */
 Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, AM_TitleEntry *titleList);
@@ -101,9 +94,7 @@ Result AM_DeleteTitle(u8 mediatype, u64 titleID);
  */
 Result AM_DeleteAppTitle(u8 mediatype, u64 titleID);
 
-/**
- * @brief Installs the current NATIVE_FIRM title to NAND (firm0:/ & firm1:/)
- */
+/// Installs the current NATIVE_FIRM title to NAND (firm0:/ & firm1:/)
 Result AM_InstallNativeFirm(void);
 
 /**
