@@ -28,7 +28,7 @@ typedef struct {
 	mvdstdTypeInput input_type;      ///< Input type.
 	u32 unk_x04;                     ///< Unknown.
 	u32 unk_x08;                     ///< Unknown.
-	u32 inwidth                      ///< Input width.
+	u32 inwidth;                     ///< Input width.
 	u32 inheight;                    ///< Input height.
 	u32 physaddr_colorconv_indata;   ///< Physical address of color conversion input data.
 	u32 unk_x18[0x28>>2];            ///< Unknown.
