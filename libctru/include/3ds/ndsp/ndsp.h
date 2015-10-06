@@ -1,6 +1,6 @@
 /**
  * @file ndsp.h
- * @brief Nintendo default DSP interface.
+ * @brief Interface for Nintendo's default DSP component.
  */
 #pragma once
 
@@ -9,9 +9,9 @@
 /// ADPCM data.
 typedef struct
 {
-	u16 index;    ///< Current sample index(?)
-	s16 history0; ///< First previous sample index(?)
-	s16 history1; ///< Second previous sample index(?)
+	u16 index;    ///< Current predictor index
+	s16 history0; ///< Last outputted PCM16 sample.
+	s16 history1; ///< Second to last outputted PCM16 sample.
 } ndspAdpcmData;
 
 /// Wave buffer type.
@@ -22,25 +22,25 @@ struct tag_ndspWaveBuf
 {
 	union
 	{
-		s8*  data_pcm8;  ///< PCM8 data.
-		s16* data_pcm16; ///< PCM16 data.
-		u8*  data_adpcm; ///< ADPCM data.
+		s8*  data_pcm8;  ///< Pointer to PCM8 sample data.
+		s16* data_pcm16; ///< Pointer to PCM16 sample data.
+		u8*  data_adpcm; ///< Pointer to DSPADPCM sample data.
 		u32  data_vaddr; ///< Data virtual address.
 	};
-	u32 nsamples;              ///< Total samples.
+	u32 nsamples;              ///< Total number of samples (PCM8=bytes, PCM16=halfwords, DSPADPCM=nibbles without frame headers)
 	ndspAdpcmData* adpcm_data; ///< ADPCM data.
 
 	u32  offset;  ///< Buffer offset. Only used for capture.
 	bool looping; ///< Whether to loop the buffer.
 	u8   padding; ///< Padding.
 
-	u16 sequence_id;   ///< Sequence ID. Used internally.
-	ndspWaveBuf* next; ///< Next buffer. Used internally.
+	u16 sequence_id;   ///< Sequence ID. Assigned automatically by ndspChnWaveBufAdd.
+	ndspWaveBuf* next; ///< Next buffer to play. Used internally, do not modify.
 };
 
-/// NDSP callback function. (data = User provided data)
+/// Sound frame callback function. (data = User provided data)
 typedef void (*ndspCallback)(void* data);
-/// NDSP auxiliary callback function. (data = User provided data, nsamples = Number of samples, samples = Sample data)
+/// Auxiliary output callback function. (data = User provided data, nsamples = Number of samples, samples = Sample data)
 typedef void (*ndspAuxCallback)(void* data, int nsamples, void* samples[4]);
 ///@}
 
@@ -62,14 +62,14 @@ Result ndspInit(void);
 void   ndspExit(void);
 
 /**
- * @brief Gets the number of dropped NDSP frames.
- * @return The number of dropped frames.
+ * @brief Gets the number of dropped sound frames.
+ * @return The number of dropped sound frames.
  */
 u32    ndspGetDroppedFrames(void);
 
 /**
- * @brief Gets the total NDSP frame count.
- * @return The total frame count.
+ * @brief Gets the total sound frame count.
+ * @return The total sound frame count.
  */
 u32    ndspGetFrameCount(void);
 ///@}
@@ -107,7 +107,7 @@ void ndspSetOutputCount(int count);
 void ndspSetCapture(ndspWaveBuf* capture);
 
 /**
- * @brief Sets the NDSP frame callback.
+ * @brief Sets the sound frame callback.
  * @param callback Callback to set.
  * @param data User-defined data to pass to the callback.
  */
@@ -138,14 +138,14 @@ void ndspSurroundSetRearRatio(u16 ratio);
 ///@name Auxiliary output
 ///@{
 /**
- * @brief Sets whether an auxiliary output is enabled.
+ * @brief Configures whether an auxiliary output is enabled.
  * @param id ID of the auxiliary output.
  * @param enable Whether to enable the auxiliary output.
  */
 void ndspAuxSetEnable(int id, bool enable);
 
 /**
- * @brief Sets whether an auxiliary output should use front bypass.
+ * @brief Configures whether an auxiliary output should use front bypass.
  * @param id ID of the auxiliary output.
  * @param bypass Whether to use front bypass.
  */
@@ -159,7 +159,7 @@ void ndspAuxSetFrontBypass(int id, bool bypass);
 void ndspAuxSetVolume(int id, float volume);
 
 /**
- * @brief Sets the NDSP frame callback of an auxiliary output.
+ * @brief Sets the callback of an auxiliary output.
  * @param id ID of the auxiliary output.
  * @param callback Callback to set.
  * @param data User-defined data to pass to the callback.

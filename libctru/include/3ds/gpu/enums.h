@@ -19,8 +19,8 @@
 /// Texture filters.
 typedef enum
 {
-	GPU_NEAREST = 0x0, ///< Nearest.
-	GPU_LINEAR  = 0x1, ///< Linear.
+	GPU_NEAREST = 0x0, ///< Nearest-neighbor interpolation.
+	GPU_LINEAR  = 0x1, ///< Linear interpolation.
 } GPU_TEXTURE_FILTER_PARAM;
 
 /// Texture wrap modes.
@@ -255,13 +255,13 @@ typedef enum
 
 /// Creates a light environment layer configuration parameter.
 #define GPU_LIGHT_ENV_LAYER_CONFIG(n) ((n)+((n)==7))
-/// Creates a LC1 shadow bit parameter.
+/// Light shadow disable bits in GPUREG_LIGHT_CONFIG1.
 #define GPU_LC1_SHADOWBIT(n)   BIT(n)
-/// Creates a LC1 spot bit parameter.
+/// Light spot disable bits in GPUREG_LIGHT_CONFIG1.
 #define GPU_LC1_SPOTBIT(n)     BIT((n)+8)
-/// Creates a LC1 LUT bit parameter.
+/// LUT disable bits in GPUREG_LIGHT_CONFIG1.
 #define GPU_LC1_LUTBIT(n)      BIT((n)+16)
-/// Creates a LC1 attenuation bit parameter.
+/// Light distance attenuation disable bits in GPUREG_LIGHT_CONFIG1.
 #define GPU_LC1_ATTNBIT(n)     BIT((n)+24)
 /// Creates a light permutation parameter.
 #define GPU_LIGHTPERM(i,n)     ((n) << (i))
@@ -272,7 +272,7 @@ typedef enum
 /// Creates a light color parameter from red, green, and blue components.
 #define GPU_LIGHTCOLOR(r,g,b)  (((b) & 0xFF) | (((g) << 10) & 0xFF) | (((r) << 20) & 0xFF))
 
-/// FRESNEL options.
+/// Fresnel options.
 typedef enum
 {
 	GPU_NO_FRESNEL            = 0, ///< None.
@@ -285,32 +285,32 @@ typedef enum
 typedef enum
 {
 	GPU_BUMP_NOT_USED = 0, ///< Disabled.
-	GPU_BUMP_AS_BUMP  = 1, ///< Bump as bump.
-	GPU_BUMP_AS_TANG  = 2, ///< Bump as tang.
+	GPU_BUMP_AS_BUMP  = 1, ///< Bump as bump mapping.
+	GPU_BUMP_AS_TANG  = 2, ///< Bump as tangent/normal mapping.
 } GPU_BUMPMODE;
 
 /// LUT IDs.
 typedef enum
 {
-	GPU_LUT_D0 = 0, ///< LUT D0.
-	GPU_LUT_D1 = 1, ///< LUT D1.
-	GPU_LUT_SP = 2, ///< LUT SP.
-	GPU_LUT_FR = 3, ///< LUT FR.
-	GPU_LUT_RB = 4, ///< LUT RB.
-	GPU_LUT_RG = 5, ///< LUT RG.
-	GPU_LUT_RR = 6, ///< LUT RR.
-	GPU_LUT_DA = 7, ///< LUT DA.
+	GPU_LUT_D0 = 0, ///< D0 LUT.
+	GPU_LUT_D1 = 1, ///< D1 LUT.
+	GPU_LUT_SP = 2, ///< Spotlight LUT.
+	GPU_LUT_FR = 3, ///< Fresnel LUT.
+	GPU_LUT_RB = 4, ///< Reflection-Blue LUT.
+	GPU_LUT_RG = 5, ///< Reflection-Green LUT.
+	GPU_LUT_RR = 6, ///< Reflection-Red LUT.
+	GPU_LUT_DA = 7, ///< Distance attenuation LUT.
 } GPU_LIGHTLUTID;
 
 /// LUT inputs.
 typedef enum
 {
-	GPU_LUTINPUT_NH = 0, ///< Input NH.
-	GPU_LUTINPUT_VH = 1, ///< Input VH.
-	GPU_LUTINPUT_NV = 2, ///< Input NV.
-	GPU_LUTINPUT_LN = 3, ///< Input LN.
-	GPU_LUTINPUT_SP = 4, ///< Input SP.
-	GPU_LUTINPUT_CP = 5, ///< Input CP.
+	GPU_LUTINPUT_NH = 0, ///< Normal*HalfVector
+	GPU_LUTINPUT_VH = 1, ///< View*HalfVector
+	GPU_LUTINPUT_NV = 2, ///< Normal*View
+	GPU_LUTINPUT_LN = 3, ///< LightVector*Normal
+	GPU_LUTINPUT_SP = 4, ///< -LightVector*SpotlightVector
+	GPU_LUTINPUT_CP = 5, ///< cosine of phi
 } GPU_LIGHTLUTINPUT;
 
 /// LUT scalers.
@@ -327,9 +327,9 @@ typedef enum
 /// LUT selection.
 typedef enum
 {
-	GPU_LUTSELECT_COMMON = 0, ///< Common.
-	GPU_LUTSELECT_SP     = 1, ///< SP.
-	GPU_LUTSELECT_DA     = 2, ///< DA.
+	GPU_LUTSELECT_COMMON = 0, ///< LUTs that are common to all lights.
+	GPU_LUTSELECT_SP     = 1, ///< Spotlight LUT.
+	GPU_LUTSELECT_DA     = 2, ///< Distance attenuation LUT.
 } GPU_LIGHTLUTSELECT;
 
 /// Supported primitives.
