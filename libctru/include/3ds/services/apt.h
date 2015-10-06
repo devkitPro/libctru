@@ -1,11 +1,13 @@
 /**
  * @file apt.h
- * @brief APT service.
+ * @brief APT (Applet) service.
  */
 #pragma once
 
-// TODO : find a better place to put this
+// TODO: find a better place to put this
+/// APT workaround flag.
 #define RUNFLAG_APTWORKAROUND (BIT(0))
+/// APT reinititalize flag.
 #define RUNFLAG_APTREINIT (BIT(1))
 
 /**
@@ -165,28 +167,185 @@ void aptHook(aptHookCookie* cookie, aptHookFn callback, void* param);
  */
 void aptUnhook(aptHookCookie* cookie);
 
+/**
+ * @brief Gets an APT lock handle.
+ * @param flags Flags to use.
+ * @param lockHandle Pointer to output the lock handle to.
+ */
 Result APT_GetLockHandle(u16 flags, Handle* lockHandle);
+
+/**
+ * @brief Initializes an application's registration with APT.
+ * @param appId ID of the application.
+ * @param eventHandle1 Pointer to output the signal event handle to.
+ * @param eventHandle2 Pointer to output the launch and exit event handle to.
+ */
 Result APT_Initialize(NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
+
+/**
+ * @brief Terminates an application's registration with APT.
+ * @param appID ID of the application.
+ */
 Result APT_Finalize(NS_APPID appId);
+
+/// Asynchronously resets the hardware.
 Result APT_HardwareResetAsync(void);
+
+/**
+ * @brief Enables APT.
+ * @param a Parameter to enable with.
+ */
 Result APT_Enable(u32 a);
+
+/**
+ * @brief Gets applet management info.
+ * @param inval Requested applet type.
+ * @param outval8 Pointer to output the current applet type to.
+ * @param outval32 Pointer to output the requested app ID to.
+ * @param menu_appid Pointer to output the home menu app ID to.
+ * @param active_appid Pointer to output the currently active app ID to.
+ * @param pAttributes Pointer to output the atrributes to.
+ */
 Result APT_GetAppletManInfo(u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid);
+
+/**
+ * @brief Gets an applet's information.
+ * @param appID ID of the applet.
+ * @param pProgramID Pointer to output the program ID to.
+ * @param pMediaType Pointer to output the media type to.
+ * @param pRegistered Pointer to output the registration status to.
+ * @param pLoadState Pointer to output the load state to.
+ * @param pAttributes Pointer to output the atrributes to.
+ */
 Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pRegistered, u8* pLoadState, u32* pAttributes);
+
+/**
+ * @brief Gets an applet's program information.
+ * @param id ID of the applet.
+ * @param flags Flags to use when retreiving the information.
+ * @param titleversion Pointer to output the applet's title version to.
+ *
+ * Flags:
+ * - 0x01: Use AM_ListTitles with NAND media type.
+ * - 0x02: Use AM_ListTitles with SDMC media type.
+ * - 0x04: Use AM_ListTitles with GAMECARD media type.
+ * - 0x10: Input ID is an app ID. Must be set if 0x20 is not.
+ * - 0x20: Input ID is a program ID. Must be set if 0x10 is not.
+ * - 0x100: Sets program ID high to 0x00040000, else it is 0x00040010. Only used when 0x20 is set.
+ */
 Result APT_GetAppletProgramInfo(u32 id, u32 flags, u16 *titleversion);
+
+/**
+ * @brief Gets the current application's program ID.
+ * @param pProgramID Pointer to output the program ID to.
+ */
 Result APT_GetProgramID(u64* pProgramID);
+
+/// Prepares to jump to the home menu.
 Result APT_PrepareToJumpToHomeMenu(void);
+
+/**
+ * @brief Jumps to the home menu.
+ * @param param Parameters to jump with.
+ * @param Size of the parameter buffer.
+ * @param handle Handle to pass.
+ */
 Result APT_JumpToHomeMenu(const u8 *param, size_t paramSize, Handle handle);
+
+/**
+ * @brief Prepares to jump to an application.
+ * @param a Application to jump to.
+ */
 Result APT_PrepareToJumpToApplication(u32 a);
+
+/**
+ * @brief Jumps to an application.
+ * @param param Parameters to jump with.
+ * @param Size of the parameter buffer.
+ * @param handle Handle to pass.
+ */
 Result APT_JumpToApplication(const u8 *param, size_t paramSize, Handle handle);
+
+/**
+ * @brief Gets whether an application is registered.
+ * @param appID ID of the application.
+ * @param out Pointer to output the registration state to.
+ */
 Result APT_IsRegistered(NS_APPID appID, u8* out);
+
+/**
+ * @brief Inquires as to whether a signal has been received.
+ * @param appID ID of the application.
+ * @param signalType Pointer to output the signal type to.
+ */
 Result APT_InquireNotification(u32 appID, u8* signalType);
+
+/**
+ * @brief Notifies an application to wait.
+ * @param appID ID of the application.
+ */
 Result APT_NotifyToWait(NS_APPID appID);
+
+/**
+ * @brief Calls an applet utility function.
+ * @param out Pointer to write output data to.
+ * @param a Utility function to call.
+ * @param size1 Size of the first buffer.
+ * @param buf1 First buffer.
+ * @param size2 Size of the second buffer.
+ * @param buf2 Second buffer.
+ */
 Result APT_AppletUtility(u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2);
+
+/**
+ * @brief Glances at a receieved parameter without removing it from the queue.
+ * @param appID ID of the application.
+ * @param bufferSize Size of the buffer.
+ * @param buffer Buffer to receive to.
+ * @param actualSize Pointer to output the actual received data size to.
+ * @param signalType Pointer to output the signal type to.
+ */
 Result APT_GlanceParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType);
+
+/**
+ * @brief Receives a parameter.
+ * @param appID ID of the application.
+ * @param bufferSize Size of the buffer.
+ * @param buffer Buffer to receive to.
+ * @param actualSize Pointer to output the actual received data size to.
+ * @param signalType Pointer to output the signal type to.
+ */
 Result APT_ReceiveParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType);
+
+/**
+ * @brief Sends a parameter.
+ * @param src_appID ID of the source application.
+ * @param dst_appID ID of the destination application.
+ * @param bufferSize Size of the buffer.
+ * @param buffer Buffer to send.
+ * @param paramhandle Handle to pass.
+ * @param signalType Signal type to send.
+ */
 Result APT_SendParameter(NS_APPID src_appID, NS_APPID dst_appID, u32 bufferSize, u32* buffer, Handle paramhandle, u8 signalType);
+
+/**
+ * @brief Sends capture buffer information.
+ * @param bufferSize Size of the buffer to send.
+ * @param buffer Buffer to send.
+ */
 Result APT_SendCaptureBufferInfo(u32 bufferSize, u32* buffer);
+
+/**
+ * @brief Replies to a sleep query.
+ * @param appID ID of the application.
+ * @param a Parameter to reply with.
+ */
 Result APT_ReplySleepQuery(NS_APPID appID, u32 a);
+
+/**
+ * @brief Replies that a sleep notification has been completed.
+ * @param appID ID of the application.
+ */
 Result APT_ReplySleepNotificationComplete(NS_APPID appID);
 
 /**
@@ -197,9 +356,9 @@ Result APT_PrepareToCloseApplication(u8 a);
 
 /**
  * @brief Closes the application.
- * @param param Parameter to use.
+ * @param param Parameters to close with.
  * @param paramSize Size of param.
- * @param handle Handle to use.
+ * @param handle Handle to pass.
  */
 Result APT_CloseApplication(const u8 *param, size_t paramSize, Handle handle);
 

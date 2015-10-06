@@ -1,3 +1,7 @@
+/**
+ * @file 3ds.h
+ * @brief Central 3DS header. Includes all others.
+ */
 #pragma once
 
 #ifdef __cplusplus
