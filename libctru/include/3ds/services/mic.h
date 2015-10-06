@@ -10,7 +10,7 @@
  * @brief Initializes MIC.
  * @param sharedmem Shared memory block to use. Must be 0x1000-bytes aligned.
  * @param sharedmem_size Size of the shared memory block to use. (audiodata size + 4, aligned to 0x1000-bytes)
- * @param control Control. TODO: Document parameter.
+ * @param control Control value. Bits 0-6 = Amplification.
  * @param unk0 Unknown. Typically 3.
  * @param unk1 Unknown. Typically 1.
  * @param unk2 Unknown. Typically 1.
@@ -72,12 +72,14 @@ Result MIC_GetEventHandle(Handle *handle);
 
 /**
  * Sets the control value.
+ * @note Bits 0-6 = Amplification.
  * @param value Control value to set.
  */
 Result MIC_SetControl(u8 value);
 
 /**
  * Gets the control value.
+ * @note Bits 0-6 = Amplification.
  * @param value Pointer to output the control value to.
  */
 Result MIC_GetControl(u8 *value);
