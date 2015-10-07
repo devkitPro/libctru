@@ -12,7 +12,7 @@ enum
 	NDSP_ENCODING_PCM8 = 0, ///< PCM8
 	NDSP_ENCODING_PCM16,    ///< PCM16
 	NDSP_ENCODING_ADPCM,    ///< DSPADPCM (GameCube format)
-} NDSP_Encoding;
+};
 
 /// Specifies the number of channels used in a sample.
 #define NDSP_CHANNELS(n)  ((u32)(n) & 3)
@@ -35,7 +35,7 @@ enum
 	// Flags
 	NDSP_FRONT_BYPASS             = BIT(4), ///< Front bypass.
 	NDSP_3D_SURROUND_PREPROCESSED = BIT(6), ///< (?) Unknown, under research
-} NDSP_Flags;
+};
 ///@}
 
 ///@name Basic channel operation
