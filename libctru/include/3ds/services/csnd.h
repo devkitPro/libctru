@@ -39,7 +39,7 @@ enum
 	CSND_ENCODING_PCM16,    ///< PCM16
 	CSND_ENCODING_ADPCM,    ///< IMA-ADPCM
 	CSND_ENCODING_PSG,      ///< PSG (Similar to DS?)
-} CSND_Encoding;
+};
 
 /// CSND loop modes.
 enum
@@ -48,7 +48,7 @@ enum
 	CSND_LOOPMODE_NORMAL,     ///< Normal loop.
 	CSND_LOOPMODE_ONESHOT,    ///< Do not loop.
 	CSND_LOOPMODE_NORELOAD,   ///< Don't reload.
-} CSND_LoopMode;
+};
 
 /// Creates a sound channel value from a channel number.
 #define SOUND_CHANNEL(n) ((u32)(n) & 0x1F)
@@ -70,7 +70,7 @@ enum
 	SOUND_FORMAT_ADPCM = SOUND_FORMAT(CSND_ENCODING_ADPCM), ///< ADPCM
 	SOUND_FORMAT_PSG = SOUND_FORMAT(CSND_ENCODING_PSG),     ///< PSG
 	SOUND_ENABLE = BIT(14),                                 ///< Enable sound.
-} CSND_Flag;
+};
 
 /// Capture modes.
 enum
@@ -80,7 +80,7 @@ enum
 	CAPTURE_FORMAT_16BIT = 0,     ///< PCM16
 	CAPTURE_FORMAT_8BIT = BIT(1), ///< PCM8
 	CAPTURE_ENABLE = BIT(15),     ///< Enable capture.
-} CSND_CaptureMode;
+};
 
 /// Duty cycles for a PSG channel.
 enum
@@ -93,7 +93,7 @@ enum
 	DutyCycle_62 = 4, ///< 62.5% duty cycle
 	DutyCycle_75 = 5, ///< 75.0% duty cycle
 	DutyCycle_87 = 6  ///< 87.5% duty cycle
-} CSND_PSGDutyCycles;
+};
 
 /// Channel info.
 typedef union
