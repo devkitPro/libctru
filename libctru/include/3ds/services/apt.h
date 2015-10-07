@@ -64,7 +64,7 @@ enum {
 	APTSIGNAL_UTILITY      = 9,  ///< Utility called.
 	APTSIGNAL_SLEEPSYSTEM  = 10, ///< System sleeping.
 	APTSIGNAL_ERROR        = 11  ///< Error occurred.
-} APT_Signal;
+};
 
 /// APT hook types.
 enum {
@@ -75,7 +75,7 @@ enum {
 	APTHOOK_ONEXIT,        ///< App exiting.
 
 	APTHOOK_COUNT,         ///< Number of APT hook types.
-} APT_HookType;
+};
 
 /// APT hook function.
 typedef void (*aptHookFn)(int hook, void* param);
