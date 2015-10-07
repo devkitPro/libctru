@@ -50,7 +50,7 @@ void LightLock_Unlock(LightLock* lock)
 		// Wake up exactly one thread
 		do
 			val = __ldrex(lock);
-		while (__strex(lock, val-1));
+		while (__strex(lock, val >= 0 ? (val-1) : (val+1)));
 		svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_SIGNAL, 1, 0);
 	}
 }
