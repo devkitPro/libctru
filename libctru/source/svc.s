@@ -1,9 +1,15 @@
 .arm
 .align 4
 
-.global svcControlMemory
-.type svcControlMemory, %function
-svcControlMemory:
+.macro SVC_BEGIN name
+	.section .text.\name, "ax", %progbits
+	.global \name
+	.type \name, %function
+	.align 2
+\name:
+.endm
+
+SVC_BEGIN svcControlMemory
 	push {r0, r4}
 	ldr  r0, [sp, #0x8]
 	ldr  r4, [sp, #0x8+0x4]
@@ -13,9 +19,7 @@ svcControlMemory:
 	ldr  r4, [sp], #4
 	bx   lr
 
-.global svcQueryMemory
-.type svcQueryMemory, %function
-svcQueryMemory:
+SVC_BEGIN svcQueryMemory
 	push {r0, r1, r4-r6}
 	svc  0x02
 	ldr  r6, [sp]
@@ -29,15 +33,11 @@ svcQueryMemory:
 	pop  {r4-r6}
 	bx   lr
 
-.global svcExitProcess
-.type svcExitProcess, %function
-svcExitProcess:
+SVC_BEGIN svcExitProcess
 	svc 0x03
 	bx  lr
 
-.global svcCreateThread
-.type svcCreateThread, %function
-svcCreateThread:
+SVC_BEGIN svcCreateThread
 	push {r0, r4}
 	ldr  r0, [sp, #0x8]
 	ldr  r4, [sp, #0x8+0x4]
@@ -47,150 +47,108 @@ svcCreateThread:
 	ldr  r4, [sp], #4
 	bx   lr
 
-.global svcExitThread
-.type svcExitThread, %function
-svcExitThread:
+SVC_BEGIN svcExitThread
 	svc 0x09
 	bx  lr
 
-.global svcSleepThread
-.type svcSleepThread, %function
-svcSleepThread:
+SVC_BEGIN svcSleepThread
 	svc 0x0A
 	bx  lr
 
-.global svcGetThreadPriority
-.type svcGetThreadPriority, %function
-svcGetThreadPriority:
+SVC_BEGIN svcGetThreadPriority
 	str r0, [sp, #-0x4]!
 	svc 0x0B
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 	
-.global svcSetThreadPriority
-.type svcSetThreadPriority, %function
-svcSetThreadPriority:
+SVC_BEGIN svcSetThreadPriority
 	svc 0x0C
 	bx  lr
 	
-.global svcGetThreadAffinityMask
-.type svcGetThreadAffinityMask, %function
-svcGetThreadAffinityMask:
+SVC_BEGIN svcGetThreadAffinityMask
 	svc 0x0D
 	bx  lr
-	
-.global svcSetThreadAffinityMask
-.type svcSetThreadAffinityMask, %function
-svcSetThreadAffinityMask:
+
+SVC_BEGIN svcSetThreadAffinityMask
 	svc 0x0E
 	bx  lr
 	
-.global svcGetThreadIdealProcessor
-.type svcGetThreadIdealProcessor, %function
-svcGetThreadIdealProcessor:
+SVC_BEGIN svcGetThreadIdealProcessor
 	str r0, [sp, #-0x4]!
 	svc 0x0F
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 	
-.global svcSetThreadIdealProcessor
-.type svcSetThreadIdealProcessor, %function
-svcSetThreadIdealProcessor:
+SVC_BEGIN svcSetThreadIdealProcessor
 	svc 0x10
 	bx  lr
 
-.global svcGetProcessorID
-.type svcGetProcessorID, %function
-svcGetProcessorID:
+SVC_BEGIN svcGetProcessorID
 	svc 0x11
 	bx  lr
 
-.global svcCreateMutex
-.type svcCreateMutex, %function
-svcCreateMutex:
+SVC_BEGIN svcCreateMutex
 	str r0, [sp, #-4]!
 	svc 0x13
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 
-.global svcReleaseMutex
-.type svcReleaseMutex, %function
-svcReleaseMutex:
+SVC_BEGIN svcReleaseMutex
 	svc 0x14
 	bx  lr
 
-.global svcCreateSemaphore
-.type svcCreateSemaphore, %function
-svcCreateSemaphore:
+SVC_BEGIN svcCreateSemaphore
 	push {r0}
 	svc 0x15
 	pop {r3}
 	str r1, [r3]
 	bx  lr
 
-.global svcReleaseSemaphore
-.type svcReleaseSemaphore, %function
-svcReleaseSemaphore:
+SVC_BEGIN svcReleaseSemaphore
 	push {r0}
 	svc  0x16
 	pop  {r3}
 	str  r1, [r3]
 	bx   lr
 
-.global svcCreateEvent
-.type svcCreateEvent, %function
-svcCreateEvent:
+SVC_BEGIN svcCreateEvent
 	str r0, [sp, #-4]!
 	svc 0x17
 	ldr r2, [sp], #4
 	str r1, [r2]
 	bx  lr
 
-.global svcSignalEvent
-.type svcSignalEvent, %function
-svcSignalEvent:
+SVC_BEGIN svcSignalEvent
 	svc 0x18
 	bx  lr
 
-.global svcClearEvent
-.type svcClearEvent, %function
-svcClearEvent:
+SVC_BEGIN svcClearEvent
 	svc 0x19
 	bx  lr
 
-.global svcCreateTimer
-.type svcCreateTimer, %function
-svcCreateTimer:
+SVC_BEGIN svcCreateTimer
 	str r0, [sp, #-4]!
 	svc 0x1A
 	ldr r2, [sp], #4
 	str r1, [r2]
 	bx  lr
 
-.global svcSetTimer
-.type svcSetTimer, %function
-svcSetTimer:
+SVC_BEGIN svcSetTimer
 	svc 0x1B
 	bx  lr
 
-.global svcCancelTimer
-.type svcCancelTimer, %function
-svcCancelTimer:
+SVC_BEGIN svcCancelTimer
 	svc 0x1C
 	bx  lr
 
-.global svcClearTimer
-.type svcClearTimer, %function
-svcClearTimer:
+SVC_BEGIN svcClearTimer
 	svc 0x1D
 	bx  lr
 
-.global svcCreateMemoryBlock
-.type svcCreateMemoryBlock, %function
-svcCreateMemoryBlock:
+SVC_BEGIN svcCreateMemoryBlock
 	str r0, [sp, #-4]!
 	ldr r0, [sp, #4]
 	svc 0x1E
@@ -198,30 +156,22 @@ svcCreateMemoryBlock:
 	str r1, [r2]
 	bx  lr
 
-.global svcMapMemoryBlock
-.type svcMapMemoryBlock, %function
-svcMapMemoryBlock:
+SVC_BEGIN svcMapMemoryBlock
 	svc 0x1F
 	bx  lr
 
-.global svcUnmapMemoryBlock
-.type svcUnmapMemoryBlock, %function
-svcUnmapMemoryBlock:
+SVC_BEGIN svcUnmapMemoryBlock
 	svc 0x20
 	bx  lr
 
-.global svcCreateAddressArbiter
-.type svcCreateAddressArbiter, %function
-svcCreateAddressArbiter:
+SVC_BEGIN svcCreateAddressArbiter
 	push {r0}
 	svc 0x21
 	pop {r2}
 	str r1, [r2]
 	bx  lr
 
-.global svcArbitrateAddress
-.type svcArbitrateAddress, %function
-svcArbitrateAddress:
+SVC_BEGIN svcArbitrateAddress
 	push {r4, r5}
 	add sp, #8
 	ldr r5, [sp]
@@ -231,21 +181,15 @@ svcArbitrateAddress:
 	pop {r4, r5}
 	bx  lr
 
-.global svcCloseHandle
-.type svcCloseHandle, %function
-svcCloseHandle:
+SVC_BEGIN svcCloseHandle
 	svc 0x23
 	bx  lr
 
-.global svcWaitSynchronization
-.type svcWaitSynchronization, %function
-svcWaitSynchronization:
+SVC_BEGIN svcWaitSynchronization
 	svc 0x24
 	bx  lr
 
-.global svcWaitSynchronizationN
-.type svcWaitSynchronizationN, %function
-svcWaitSynchronizationN:
+SVC_BEGIN svcWaitSynchronizationN
 	str r5, [sp, #-4]!
 	str r4, [sp, #-4]!
 	mov r5, r0
@@ -257,24 +201,18 @@ svcWaitSynchronizationN:
 	ldr r5, [sp], #4
 	bx  lr
 
-.global svcDuplicateHandle
-.type svcDuplicateHandle, %function
-svcDuplicateHandle:
+SVC_BEGIN svcDuplicateHandle
 	str r0, [sp, #-0x4]!
 	svc 0x27
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 
-.global svcGetSystemTick
-.type svcGetSystemTick, %function
-svcGetSystemTick:
+SVC_BEGIN svcGetSystemTick
 	svc 0x28
 	bx  lr
 
-.global svcGetSystemInfo
-.type svcGetSystemInfo, %function
-svcGetSystemInfo:
+SVC_BEGIN svcGetSystemInfo
 	str r0, [sp, #-0x4]!
 	svc 0x2A
 	ldr r3, [sp], #4
@@ -282,9 +220,7 @@ svcGetSystemInfo:
 	str r2, [r3,#4]
 	bx  lr
 
-.global svcGetProcessInfo
-.type svcGetProcessInfo, %function
-svcGetProcessInfo:
+SVC_BEGIN svcGetProcessInfo
 	str r0, [sp, #-0x4]!
 	svc 0x2B
 	ldr r3, [sp], #4
@@ -292,9 +228,7 @@ svcGetProcessInfo:
 	str r2, [r3,#4]
 	bx  lr
 
-.global svcGetThreadInfo
-.type svcGetThreadInfo, %function
-svcGetThreadInfo:
+SVC_BEGIN svcGetThreadInfo
 	str r0, [sp, #-0x4]!
 	svc 0x2C
 	ldr r3, [sp], #4
@@ -302,81 +236,61 @@ svcGetThreadInfo:
 	str r2, [r3,#4]
 	bx  lr
 
-.global svcConnectToPort
-.type svcConnectToPort, %function
-svcConnectToPort:
+SVC_BEGIN svcConnectToPort
 	str r0, [sp, #-0x4]!
 	svc 0x2D
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 
-.global svcSendSyncRequest
-.type svcSendSyncRequest, %function
-svcSendSyncRequest:
+SVC_BEGIN svcSendSyncRequest
 	svc 0x32
 	bx  lr
 
-.global svcOpenProcess
-.type svcOpenProcess, %function
-svcOpenProcess:
+SVC_BEGIN svcOpenProcess
 	push {r0}
 	svc 0x33
 	pop {r2}
 	str r1, [r2]
 	bx  lr
 
-.global svcOpenThread
-.type svcOpenThread, %function
-svcOpenThread:
+SVC_BEGIN svcOpenThread
 	push {r0}
 	svc 0x34
 	pop {r2}
 	str r1, [r2]
 	bx  lr
 	
-.global svcGetProcessId
-.type svcGetProcessId, %function
-svcGetProcessId:
+SVC_BEGIN svcGetProcessId
 	str r0, [sp, #-0x4]!
 	svc 0x35
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 
-.global svcGetProcessIdOfThread
-.type svcGetProcessIdOfThread, %function
-svcGetProcessIdOfThread:
+SVC_BEGIN svcGetProcessIdOfThread
 	str r0, [sp, #-0x4]!
 	svc 0x36
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 	
-.global svcGetThreadId
-.type svcGetThreadId, %function
-svcGetThreadId:
+SVC_BEGIN svcGetThreadId
 	str r0, [sp, #-0x4]!
 	svc 0x37
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 
-.global svcBreak
-.type svcBreak, %function
-svcBreak:
+SVC_BEGIN svcBreak
 	svc 0x3C
 	bx  lr
 
-.global svcOutputDebugString
-.type svcOutputDebugString, %function
-svcOutputDebugString:
+SVC_BEGIN svcOutputDebugString
 	svc 0x3D
 	bx  lr
 
-.global svcCreatePort
-.type svcCreatePort, %function
-svcCreatePort:
+SVC_BEGIN svcCreatePort
 	push {r0, r1}
 	svc 0x47
 	ldr r3, [sp, #0]
@@ -386,9 +300,7 @@ svcCreatePort:
 	add sp, sp, #8
 	bx  lr
 
-.global svcAcceptSession
-.type svcAcceptSession, %function
-svcAcceptSession:
+SVC_BEGIN svcAcceptSession
 	str r0, [sp, #-4]!
 	svc 0x4A
 	ldr r2, [sp]
@@ -396,9 +308,7 @@ svcAcceptSession:
 	add sp, sp, #4
 	bx  lr
 
-.global svcReplyAndReceive
-.type svcReplyAndReceive, %function
-svcReplyAndReceive:
+SVC_BEGIN svcReplyAndReceive
 	str r0, [sp, #-4]!
 	svc 0x4F
 	ldr r2, [sp]
@@ -406,21 +316,15 @@ svcReplyAndReceive:
 	add sp, sp, #4
 	bx  lr
 
-.global svcInvalidateProcessDataCache
-.type svcInvalidateProcessDataCache, %function
-svcInvalidateProcessDataCache:
+SVC_BEGIN svcInvalidateProcessDataCache
 	svc 0x52
 	bx  lr
 
-.global svcFlushProcessDataCache
-.type svcFlushProcessDataCache, %function
-svcFlushProcessDataCache:
+SVC_BEGIN svcFlushProcessDataCache
 	svc 0x54
 	bx  lr
 
-.global svcStartInterProcessDma
-.type svcStartInterProcessDma, %function
-svcStartInterProcessDma:
+SVC_BEGIN svcStartInterProcessDma
 	stmfd sp!, {r0, r4, r5}
 	ldr r0, [sp, #0xC]
 	ldr r4, [sp, #0x10]
@@ -430,57 +334,41 @@ svcStartInterProcessDma:
 	str r1, [r2]
 	bx  lr
 
-.global svcStopDma
-.type svcStopDma, %function
-svcStopDma:
+SVC_BEGIN svcStopDma
 	svc 0x56
 	bx  lr
 
-.global svcGetDmaState
-.type svcGetDmaState, %function
-svcGetDmaState:
+SVC_BEGIN svcGetDmaState
 	str r0, [sp, #-4]!
 	svc 0x57
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
 
-.global svcDebugActiveProcess
-.type svcDebugActiveProcess, %function
-svcDebugActiveProcess:
+SVC_BEGIN svcDebugActiveProcess
 	push {r0}
 	svc 0x60
 	pop {r2}
 	str r1, [r2]
 	bx  lr
 
-.global svcBreakDebugProcess
-.type svcBreakDebugProcess, %function
-svcBreakDebugProcess:
+SVC_BEGIN svcBreakDebugProcess
 	svc 0x61
 	bx  lr
 
-.global svcTerminateDebugProcess
-.type svcTerminateDebugProcess, %function
-svcTerminateDebugProcess:
+SVC_BEGIN svcTerminateDebugProcess
 	svc 0x62
 	bx  lr
 
-.global svcGetProcessDebugEvent
-.type svcGetProcessDebugEvent, %function
-svcGetProcessDebugEvent:
+SVC_BEGIN svcGetProcessDebugEvent
 	svc 0x63
 	bx  lr
 	
-.global svcContinueDebugEvent
-.type svcContinueDebugEvent, %function
-svcContinueDebugEvent:
+SVC_BEGIN svcContinueDebugEvent
 	svc 0x64
 	bx  lr
 
-.global svcGetProcessList
-.type svcGetProcessList, %function
-svcGetProcessList:
+SVC_BEGIN svcGetProcessList
 	push {r0, r1}
 	svc 0x65
 	ldr r3, [sp, #0]
@@ -490,21 +378,15 @@ svcGetProcessList:
 	add sp, sp, #8
 	bx  lr
 
-.global svcReadProcessMemory
-.type svcReadProcessMemory, %function
-svcReadProcessMemory:
+SVC_BEGIN svcReadProcessMemory
 	svc 0x6A
 	bx  lr
 
-.global svcWriteProcessMemory
-.type svcWriteProcessMemory, %function
-svcWriteProcessMemory:
+SVC_BEGIN svcWriteProcessMemory
 	svc 0x6B
 	bx  lr
 
-.global svcControlProcessMemory
-.type svcControlProcessMemory, %function
-svcControlProcessMemory:
+SVC_BEGIN svcControlProcessMemory
 	push {r4-r5}
 	ldr r4, [sp, #0x8]
 	ldr r5, [sp, #0xC]
@@ -512,39 +394,27 @@ svcControlProcessMemory:
 	pop {r4-r5}
 	bx  lr
 
-.global svcMapProcessMemory
-.type svcMapProcessMemory, %function
-svcMapProcessMemory:
+SVC_BEGIN svcMapProcessMemory
 	svc 0x71
 	bx  lr
 
-.global svcUnmapProcessMemory
-.type svcUnmapProcessMemory, %function
-svcUnmapProcessMemory:
+SVC_BEGIN svcUnmapProcessMemory
 	svc 0x72
 	bx  lr
 
-.global svcTerminateProcess
-.type svcTerminateProcess, %function
-svcTerminateProcess:
+SVC_BEGIN svcTerminateProcess
 	svc 0x76
 	bx  lr
 
-.global svcBackdoor
-.type svcBackdoor, %function
-svcBackdoor:
+SVC_BEGIN svcBackdoor
 	svc 0x7B
 	bx  lr
 
-.global svcKernelSetState
-.type svcKernelSetState, %function
-svcKernelSetState:
+SVC_BEGIN svcKernelSetState
 	svc 0x7C
 	bx  lr
 
-.global svcQueryProcessMemory
-.type svcQueryProcessMemory, %function
-svcQueryProcessMemory:
+SVC_BEGIN svcQueryProcessMemory
 	push {r0, r1, r4-r6}
 	svc 0x7D
 	ldr r6, [sp]
