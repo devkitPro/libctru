@@ -363,8 +363,10 @@ Result CSND_UpdateInfo(bool waitDone);
  * @param vol The volume, ranges from 0.0 to 1.0 included.
  * @param pan The pan, ranges from -1.0 to 1.0 included.
  * @param data0 First block of sound data.
- * @param data1 Second block of sound data. Used as a loop destination.
+ * @param data1 Second block of sound data. This is the block that will be looped over.
  * @param size Size of the sound data.
+ * 
+ * In this implementation if the loop mode is used, data1 must be in the range [data0 ; data0 + size]. Sound will be played once from data0 to data0 + size and then loop between data1 and data0+size.
  */
 Result csndPlaySound(int chn, u32 flags, u32 sampleRate, float vol, float pan, void* data0, void* data1, u32 size);
 
