@@ -31,7 +31,7 @@ install:
   
 env:
   global:
-    - secure: "ENCRYPTED GH_TOKEN HERE"
+    - secure: "BkEGbVRearmBLntY9WSuFkaiO2qAMMN43qocbkCL18dGbIDJA7vlUXXCKkahdsS5TU9j7xdcybCokmPBuvMCNRvQcDVwDcYbuh+ASmqG8Br1hphUScWPZNkcVSgTcHqNHh2k+05NP6d3vm3utOLgGZt/V5p+XcdGHti86KMeY34="
   
 script:
   - cd $TRAVIS_BUILD_DIR/libctru
