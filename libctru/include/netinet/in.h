@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 
+#define INADDR_LOOPBACK  0x7f000001
 #define INADDR_ANY       0x00000000
 #define INADDR_BROADCAST 0xFFFFFFFF
 #define INADDR_NONE      0xFFFFFFFF
