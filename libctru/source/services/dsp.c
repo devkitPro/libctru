@@ -216,7 +216,7 @@ Result DSP_SendData(u16 regNo, u16 value)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x3,2,0);
 	cmdbuf[1] = regNo;
-	cmdbuf[1] = value;
+	cmdbuf[2] = value;
 	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
 	return cmdbuf[1];
 }
