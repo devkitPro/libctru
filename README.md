@@ -1,24 +1,21 @@
-ctrulib
-=======
+# ctrulib
 
 CTR User Library
 
-library for writing user mode arm11 code for the 3DS (CTR)
+Library for writing user mode arm11 code for the 3DS (CTR)
 
-the goal with this is to create a very straightforward interface with the 3DS's OS.
-it is not meant to provide higher level functions; to put things in perspective, the purpose of ctrulib would be to sit between the OS and a possible port of SDL rather than replace it.
+The goal with this is to create a very straightforward interface with the 3DS's OS.
+It is not meant to provide higher level functions; to put things in perspective, the purpose of ctrulib would be to sit between the OS and a possible port of SDL rather than replace it.
 
-setup
-=======
+# Setup
 
-ctrulib is just a library and needs a toolchain to function. we built ctrulib to be used in conjunction with devkitARM. you may find instructions on how to install devkitARM here : http://devkitpro.org/wiki/Getting_Started
+ctrulib is just a library and needs a toolchain to function. We built ctrulib to be used in conjunction with devkitARM. You may find instructions on how to install devkitARM on [the devkitPro Wiki](http://devkitpro.org/wiki/Getting_Started).
 
-The most recent devkitARM (r43) includes 3DS support and a prebuilt libctru.
+The most recent devkitARM (r44) includes 3DS support and a prebuilt libctru.
 
 To keep up to date with the most recent changes you'll want to checkout ctrulib, build it and install it.
 
-license
-=======
+# License
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any
