@@ -83,3 +83,9 @@ u64 osGetTime(void);
  * These values correspond with the number of wifi bars displayed by Home Menu.
  */
 u8 osGetWifiStrength(void);
+
+/**
+ * @brief Configures the New 3DS speedup.
+ * @param enable Specifies whether to enable or disable the speedup.
+ */
+void osSetSpeedupEnable(bool enable);

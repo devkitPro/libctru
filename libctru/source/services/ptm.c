@@ -6,16 +6,26 @@
 #include <3ds/ipc.h>
 
 
-static Handle ptmHandle;
+static Handle ptmHandle, ptmSysmHandle;
 
 Result ptmInit(void)
 {
-	return srvGetServiceHandle(&ptmHandle, "ptm:u");	
+	return srvGetServiceHandle(&ptmHandle, "ptm:u");
 }
 
 Result ptmExit(void)
 {
 	return svcCloseHandle(ptmHandle);
+}
+
+Result ptmSysmInit(void)
+{
+	return srvGetServiceHandle(&ptmSysmHandle, "ptm:sysm");
+}
+
+Result ptmSysmExit(void)
+{
+	return svcCloseHandle(ptmSysmHandle);
 }
 
 Result PTMU_GetShellState(Handle* servhandle, u8 *out)
@@ -89,6 +99,19 @@ Result PTMU_GetTotalStepCount(Handle* servhandle, u32 *steps)
 	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
 
 	*steps = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result PTMSYSM_ConfigureNew3DSCPU(u8 value)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x818,1,0); // 0x08180040
+	cmdbuf[1] = value;
+
+	if((ret = svcSendSyncRequest(ptmSysmHandle))!=0)return ret;
 
 	return (Result)cmdbuf[1];
 }

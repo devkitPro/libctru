@@ -10,6 +10,12 @@ Result ptmInit(void);
 /// Exits PTM.
 Result ptmExit(void);
 
+/// Initializes ptm:sysm.
+Result ptmSysmInit(void);
+
+/// Exits ptm:sysm.
+Result ptmSysmExit(void);
+
 /**
  * @brief Gets the system's current shell state.
  * @param servhandle Optional pointer to the handle to use.
@@ -44,3 +50,9 @@ Result PTMU_GetPedometerState(Handle* servhandle, u8 *out);
  * @param steps Pointer to write the total step count to.
  */
 Result PTMU_GetTotalStepCount(Handle* servhandle, u32 *steps);
+
+/**
+ * @brief Configures the New 3DS' CPU clock speed and L2 cache.
+ * @param value Bit0: enable higher clock, Bit1: enable L2 cache.
+ */
+Result PTMSYSM_ConfigureNew3DSCPU(u8 value);
