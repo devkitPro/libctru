@@ -73,3 +73,9 @@ u64 osGetTime();
  * @return the Wifi signal strength
  */
 u8 osGetWifiStrength();
+
+/**
+ * @brief Configures the New 3DS speedup.
+ * @param enable Specifies whether to enable or disable the speedup.
+ */
+void osSetSpeedupEnable(bool enable);

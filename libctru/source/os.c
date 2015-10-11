@@ -1,6 +1,7 @@
 #include <3ds/types.h>
 #include <3ds/os.h>
 #include <3ds/svc.h>
+#include <3ds/services/ptm.h>
 
 #include <sys/time.h>
 #include <reent.h>
@@ -26,6 +27,7 @@ static volatile datetime_t* __datetime0 =
 static volatile datetime_t* __datetime1 =
 	(datetime_t*) 0x1FF81040;
 
+__attribute__((weak)) bool __ctru_speedup = false;
 
 //---------------------------------------------------------------------------------
 u32 osConvertVirtToPhys(u32 vaddr) {
@@ -154,4 +156,19 @@ const char* osStrError(u32 error) {
 u8 osGetWifiStrength(void) {
 //---------------------------------------------------------------------------------
 	return *((u8*)0x1FF81066);
+}
+
+void __ctru_speedup_config(void)
+{
+	if (ptmSysmInit()==0)
+	{
+		PTMSYSM_ConfigureNew3DSCPU(__ctru_speedup ? 3 : 0);
+		ptmSysmExit();
+	}
+}
+
+void osSetSpeedupEnable(bool enable)
+{
+	__ctru_speedup = enable;
+	__ctru_speedup_config();
 }

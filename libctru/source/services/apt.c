@@ -62,6 +62,8 @@ __attribute__((weak)) void _aptDebug(int a, int b)
 {
 }
 
+void __ctru_speedup_config(void);
+
 static void aptAppStarted(void);
 
 static bool aptIsReinit(void)
@@ -395,7 +397,7 @@ static bool __handle_incoming_parameter() {
 		aptSetStatus(APP_APPLETCLOSED);
 		return true;
 	case 0xB: // Just returned from menu.
-		if (aptStatusMutex)
+		if (aptGetStatus() != APP_NOTINITIALIZED)
 		{
 			GSPGPU_AcquireRight(NULL, 0x0);
 			GSPGPU_RestoreVramSysArea(NULL);
@@ -462,6 +464,8 @@ Result aptInit(void)
 
 	svcCreateEvent(&aptStatusEvent, 0);
 	svcCreateEvent(&aptSleepSync, 0);
+	svcCreateMutex(&aptStatusMutex, false);
+	aptStatus=0;
 
 	if(!aptIsCrippled())
 	{
@@ -626,10 +630,6 @@ void aptAppStarted()
 {
 	u8 buf1[4], buf2[4];
 
-	svcCreateMutex(&aptStatusMutex, true);
-	aptStatus=0;
-	svcReleaseMutex(aptStatusMutex);
-
 	aptSetStatus(APP_RUNNING);
 
 	if(!aptIsCrippled())
@@ -669,6 +669,8 @@ void aptSetStatus(APP_STATUS status)
 
 	//if(prevstatus != APP_NOTINITIALIZED)
 	//{
+		if(status == APP_RUNNING)
+			__ctru_speedup_config();
 		if(status == APP_RUNNING || status == APP_EXITING || status == APP_APPLETSTARTED || status == APP_APPLETCLOSED)
 			svcSignalEvent(aptStatusEvent);
 	//}
