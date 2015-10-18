@@ -6,6 +6,29 @@
 
 ///@name Data types
 ///@{
+/// Sound output modes.
+enum
+{
+	NDSP_OUTPUT_MONO     = 0, ///< Mono sound
+	NDSP_OUTPUT_STEREO   = 1, ///< Stereo sound
+	NDSP_OUTPUT_SURROUND = 2, ///< 3D Surround sound
+};
+
+// Clipping modes.
+enum
+{
+	NDSP_CLIP_NORMAL = 0, ///< "Normal" clipping mode (?)
+	NDSP_CLIP_SOFT   = 1, ///< "Soft" clipping mode (?)
+};
+
+// Surround speaker positions.
+enum
+{
+	NDSP_SPKPOS_SQUARE = 0, ///<?
+	NDSP_SPKPOS_WIDE   = 1, ///<?
+	NDSP_SPKPOS_NUM    = 2, ///<?
+};
+
 /// ADPCM data.
 typedef struct
 {
@@ -16,6 +39,15 @@ typedef struct
 
 /// Wave buffer type.
 typedef struct tag_ndspWaveBuf ndspWaveBuf;
+
+/// Wave buffer status.
+enum
+{
+	NDSP_WBUF_FREE    = 0, ///< The wave buffer is not queued.
+	NDSP_WBUF_QUEUED  = 1, ///< The wave buffer is queued and has not been played yet.
+	NDSP_WBUF_PLAYING = 2, ///< The wave buffer is playing right now.
+	NDSP_WBUF_DONE    = 3, ///< The wave buffer has finished being played.
+};
 
 /// Wave buffer struct.
 struct tag_ndspWaveBuf
@@ -32,7 +64,7 @@ struct tag_ndspWaveBuf
 
 	u32  offset;  ///< Buffer offset. Only used for capture.
 	bool looping; ///< Whether to loop the buffer.
-	u8   padding; ///< Padding.
+	u8   status;  ///< Queuing/playback status.
 
 	u16 sequence_id;   ///< Sequence ID. Assigned automatically by ndspChnWaveBufAdd.
 	ndspWaveBuf* next; ///< Next buffer to play. Used internally, do not modify.
@@ -84,13 +116,13 @@ void ndspSetMasterVol(float volume);
 
 /**
  * @brief Sets the output mode.
- * @param mode Output mode to set. Defaults to 0.
+ * @param mode Output mode to set. Defaults to NDSP_OUTPUT_STEREO.
  */
 void ndspSetOutputMode(int mode);
 
 /**
  * @brief Sets the clipping mode.
- * @param mode Clipping mode to set. Defaults to 1.
+ * @param mode Clipping mode to set. Defaults to NDSP_CLIP_SOFT.
  */
 void ndspSetClippingMode(int mode);
 
@@ -124,7 +156,7 @@ void ndspSurroundSetDepth(u16 depth);
 
 /**
  * @brief Sets the surround sound position.
- * @param pos Position to set. Defaults to 0.
+ * @param pos Position to set. Defaults to NDSP_SPKPOS_SQUARE.
  */
 void ndspSurroundSetPos(u16 pos);
 

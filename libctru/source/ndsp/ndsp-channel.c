@@ -147,6 +147,7 @@ void ndspChnWaveBufAdd(int id, ndspWaveBuf* buf)
 	if (!buf->nsamples) return;
 
 	buf->next = NULL;
+	buf->status = NDSP_WBUF_QUEUED;
 	LightLock_Lock(&chn->lock);
 
 	if (cb)
@@ -243,16 +244,16 @@ void ndspiUpdateChn(void)
 		if (flags & CFLAG_INTERPTYPE)
 		{
 			st->rim[0] = chn->interpType;
-			if (chn->interpType == 0)
+			if (chn->interpType == NDSP_INTERP_POLYPHASE)
 			{
 				if (chn->rate <= 1.0f)
-					st->rim[1] = 2;
+					st->rim[1] = NDSP_INTERP_NONE;
 				else if (chn->rate <= (4.0f/3))
-					st->rim[1] = 1;
+					st->rim[1] = NDSP_INTERP_LINEAR;
 				else
-					st->rim[1] = 0;
+					st->rim[1] = NDSP_INTERP_POLYPHASE;
 			} else
-				st->rim[1] = 1;
+				st->rim[1] = NDSP_INTERP_LINEAR;
 			stflags |= 0x20000;
 		}
 
@@ -282,6 +283,7 @@ void ndspiUpdateChn(void)
 			if (chn->wavBufCount == 0)
 			{
 				// This is the first buffer - set it up
+				wb->status = NDSP_WBUF_PLAYING;
 				chn->wavBufIdNext = 0;
 				st->seqId = wb->sequence_id;
 				st->sampleCount = ndspiRotateVal(wb->nsamples);
@@ -359,7 +361,6 @@ void ndspiReadChnState(void)
 		{
 			u16 seqId = st->curSeqId;
 			ndspWaveBuf* wb = chn->waveBuf;
-			chn->waveBufSeqPos = seqId;
 			chn->samplePos = ndspiRotateVal(st->samplePos);
 
 			if ((st->flags & 0xFF00) && wb)
@@ -370,15 +371,20 @@ void ndspiReadChnState(void)
 				{
 					chn->wavBufCount--;
 					bool shouldBreak = seqId == 0 && (wb->sequence_id == st->lastSeqId || st->lastSeqId == 0);
+					wb->status = NDSP_WBUF_DONE;
 					wb = wb->next;
 					if (!wb || shouldBreak || chn->wavBufCount == 0)
 						break;
 				}
+				if (wb && wb->status != NDSP_WBUF_DONE)
+					wb->status = NDSP_WBUF_PLAYING;
 				if (seqId == 0)
 					chn->wavBufCount = 0;
 				chn->waveBuf = wb;
+				chn->waveBufSeqPos = seqId;
 				LightLock_Unlock(&chn->lock);
 			}
+
 		}
 		chn->playing = (st->flags & 0xFF) ? true : false;
 	}

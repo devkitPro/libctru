@@ -36,6 +36,15 @@ enum
 	NDSP_FRONT_BYPASS             = BIT(4), ///< Front bypass.
 	NDSP_3D_SURROUND_PREPROCESSED = BIT(6), ///< (?) Unknown, under research
 };
+
+/// Interpolation types.
+enum
+{
+	NDSP_INTERP_POLYPHASE = 0, ///< Polyphase interpolation
+	NDSP_INTERP_LINEAR    = 1, ///< Linear interpolation
+	NDSP_INTERP_NONE      = 2, ///< No interpolation
+};
+
 ///@}
 
 ///@name Basic channel operation
@@ -139,9 +148,9 @@ void ndspChnWaveBufAdd(int id, ndspWaveBuf* buf);
 ///@name IIR filters
 ///@{
 /**
- * @brief Configures whether the IIR mono filter of a channel is enabled.
+ * @brief Configures whether the IIR monopole filter of a channel is enabled.
  * @param id ID of the channel (0..23).
- * @param enable Whether to enable the IIR mono filter.
+ * @param enable Whether to enable the IIR monopole filter.
  */
 void ndspChnIirMonoSetEnable(int id, bool enable);
 //   ndspChnIirMonoSetParams

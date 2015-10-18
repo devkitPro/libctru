@@ -100,7 +100,8 @@ static void ndspInitMaster(void)
 	memset(&ndspMaster, 0, sizeof(ndspMaster));
 	LightLock_Init(&ndspMaster.lock);
 	ndspMaster.masterVol = 1.0f;
-	ndspMaster.clippingMode = 1;
+	ndspMaster.outputMode = NDSP_OUTPUT_STEREO;
+	ndspMaster.clippingMode = NDSP_CLIP_SOFT;
 	ndspMaster.outputCount = 2;
 	ndspMaster.surround.depth = 0x7FFF;
 	ndspMaster.surround.rearRatio = 0x8000;
