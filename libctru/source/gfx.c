@@ -187,7 +187,7 @@ void gfxExit()
 	screenFree(gfxTopLeftFramebuffers[0]);
 
 	//unmap GSP shared mem
-	svcUnmapMemoryBlock(gspSharedMemHandle, 0x10002000);
+	svcUnmapMemoryBlock(gspSharedMemHandle, (u32)gfxSharedMemory);
 
 	GSPGPU_UnregisterInterruptRelayQueue(NULL);
 
