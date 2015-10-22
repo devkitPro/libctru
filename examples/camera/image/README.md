@@ -1,4 +1,4 @@
-camera
+image
 =======
 
 Example for using the camera to take 3D pictures with ctrulib. Press the R button to take a picture - it will be displayed on the top screen.
