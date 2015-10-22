@@ -112,6 +112,31 @@ typedef struct
 	u16 alpha;                              ///< Value passed to @ref Y2RU_SetAlpha
 } Y2R_ConversionParams;
 
+/**
+ * @brief Dithering weights
+ *
+ */
+typedef struct
+{
+	u16 w0_xEven_yEven;
+	u16 w0_xOdd_yEven;
+	u16 w0_xEven_yOdd;
+	u16 w0_xOdd_yOdd;
+	u16 w1_xEven_yEven;
+	u16 w1_xOdd_yEven;
+	u16 w1_xEven_yOdd;
+	u16 w1_xOdd_yOdd;
+	u16 w2_xEven_yEven;
+	u16 w2_xOdd_yEven;
+	u16 w2_xEven_yOdd;
+	u16 w2_xOdd_yOdd;
+	u16 w3_xEven_yEven;
+	u16 w3_xOdd_yEven;
+	u16 w3_xEven_yOdd;
+	u16 w3_xOdd_yOdd;
+} Y2R_DitheringWeightParams;
+
+
 
 /**
  * @brief Initializes the y2r service.
@@ -136,6 +161,7 @@ Result y2rExit(void);
  */
 Result Y2RU_SetInputFormat(Y2R_InputFormat format);
 
+Result Y2RU_GetInputFormat(Y2R_InputFormat* format);
 
 /**
  * @brief Used to configure the output format.
@@ -143,6 +169,8 @@ Result Y2RU_SetInputFormat(Y2R_InputFormat format);
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
 Result Y2RU_SetOutputFormat(Y2R_OutputFormat format);
+
+Result Y2RU_GetOutputFormat(Y2R_OutputFormat* format);
 
 /**
  * @brief Used to configure the rotation of the output.
@@ -153,12 +181,27 @@ Result Y2RU_SetOutputFormat(Y2R_OutputFormat format);
  */
 Result Y2RU_SetRotation(Y2R_Rotation rotation);
 
+Result Y2RU_GetRotation(Y2R_Rotation* rotation);
+
 /**
  * @brief Used to configure the alignment of the output buffer.
  *
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
 Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment);
+
+Result Y2RU_GetBlockAlignment(Y2R_BlockAlignment* alignment);
+
+///Sets the usage of spacial dithering
+Result Y2RU_SetSpacialDithering(bool enable);
+
+Result Y2RU_GetSpacialDithering(bool* enabled);
+
+///Sets the usage of temporal dithering
+Result Y2RU_SetTemporalDithering(bool enable);
+
+Result Y2RU_GetTemporalDithering(bool* enabled);
+
 
 /**
  * @brief Used to configure the width of the image.
@@ -167,6 +210,8 @@ Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment);
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
 Result Y2RU_SetInputLineWidth(u16 line_width);
+
+Result Y2RU_GetInputLineWidth(u16* line_width);
 
 /**
  * @brief Used to configure the height of the image.
@@ -179,6 +224,8 @@ Result Y2RU_SetInputLineWidth(u16 line_width);
  */
 Result Y2RU_SetInputLines(u16 num_lines);
 
+Result Y2RU_GetInputLines(u16* num_lines);
+
 /**
  * @brief Used to configure the color conversion formula.
  *
@@ -187,6 +234,8 @@ Result Y2RU_SetInputLines(u16 num_lines);
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
 Result Y2RU_SetCoefficients(const Y2R_ColorCoefficients* coefficients);
+
+Result Y2RU_GetCoefficients(Y2R_ColorCoefficients* coefficients);
 
 /**
  * @brief Used to configure the color conversion formula with ITU stantards coefficients.
@@ -197,6 +246,9 @@ Result Y2RU_SetCoefficients(const Y2R_ColorCoefficients* coefficients);
  */
 Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient);
 
+///Retrieves the coeeficients associated to the given standard
+Result Y2RU_GetStandardCoefficient(Y2R_ColorCoefficients* coefficients, Y2R_StandardCoefficient standardCoeff);
+
 /**
  * @brief Used to configure the alpha value of the output.
  * @param alpha 8-bit value to be used for the output when the format requires it.
@@ -204,6 +256,8 @@ Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient);
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
 Result Y2RU_SetAlpha(u16 alpha);
+
+Result Y2RU_GetAlpha(u16* alpha);
 
 /**
  * @brief Used to enable the end of conversion interrupt.
@@ -216,6 +270,8 @@ Result Y2RU_SetAlpha(u16 alpha);
  * @note It seems that the event can be fired too soon in some cases, depending the transfer_unit size.\n Please see the note at @ref Y2RU_SetReceiving
  */
 Result Y2RU_SetTransferEndInterrupt(bool should_interrupt);
+
+Result Y2RU_GetTransferEndInterrupt(bool* should_interrupt);
 
 /**
  * @brief Gets an handle to the end of conversion event.
@@ -346,11 +402,11 @@ Result Y2RU_IsDoneSendingYUYV(bool* is_done);
  */
 Result Y2RU_IsDoneReceiving(bool* is_done);
 
-/**
- * @brief Sets currently unknown parameters.
- * @param params Unknown parameters.
- */
-Result Y2RU_SetUnknownParams(const u16 params[16]);
+/// Sets the dithering weights
+Result Y2RU_SetDitheringWeightParams(const Y2R_DitheringWeightParams* params);
+
+/// Retrieves the dithering weights
+Result Y2RU_GetDitheringWeightParams(Y2R_DitheringWeightParams* params);
 
 /**
  * @brief Sets all the parameters of Y2R_ConversionParams at once.

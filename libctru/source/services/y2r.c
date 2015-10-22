@@ -59,6 +59,17 @@ Result Y2RU_SetInputFormat(Y2R_InputFormat format)
 	return cmdbuf[1];
 }
 
+Result Y2RU_GetInputFormat(Y2R_InputFormat* format)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*format = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
+}
+
 Result Y2RU_SetOutputFormat(Y2R_OutputFormat format)
 {
 	Result ret = 0;
@@ -67,6 +78,17 @@ Result Y2RU_SetOutputFormat(Y2R_OutputFormat format)
 	cmdbuf[1] = format;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	return cmdbuf[1];
+}
+
+Result Y2RU_GetOutputFormat(Y2R_OutputFormat* format)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x4,0,0); // 0x40000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*format = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
 
@@ -81,6 +103,17 @@ Result Y2RU_SetRotation(Y2R_Rotation rotation)
 	return cmdbuf[1];
 }
 
+Result Y2RU_GetRotation(Y2R_Rotation* rotation)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x6,0,0); // 0x60000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*rotation = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
+}
+
 Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment)
 {
 	Result ret = 0;
@@ -92,6 +125,61 @@ Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment)
 	return cmdbuf[1];
 }
 
+Result Y2RU_GetBlockAlignment(Y2R_BlockAlignment* alignment)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x8,0,0); // 0x80000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*alignment = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
+}
+
+Result Y2RU_SetSpacialDithering(bool enable)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x9,1,0); // 0x90040
+	cmdbuf[1] = enable;
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	return cmdbuf[1];
+}
+
+Result Y2RU_GetSpacialDithering(bool* enabled)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xA,0,0); // 0xA0000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*enabled = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
+}
+
+Result Y2RU_SetTemporalDithering(bool enable)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xB,1,0); // 0xB0040
+	cmdbuf[1] = enable;
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	return cmdbuf[1];
+}
+
+Result Y2RU_GetTemporalDithering(bool* enabled)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xC,0,0); // 0xC0000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*enabled = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
+}
+
 Result Y2RU_SetTransferEndInterrupt(bool should_interrupt)
 {
 	Result ret = 0;
@@ -100,6 +188,17 @@ Result Y2RU_SetTransferEndInterrupt(bool should_interrupt)
 	cmdbuf[1] = should_interrupt;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	return cmdbuf[1];
+}
+
+Result Y2RU_GetTransferEndInterrupt(bool* should_interrupt)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xE,0,0); // 0xE0000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*should_interrupt = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
 
@@ -267,6 +366,17 @@ Result Y2RU_SetInputLineWidth(u16 line_width)
 	return cmdbuf[1];
 }
 
+Result Y2RU_GetInputLineWidth(u16* line_width)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x1B,0,0); // 0x1B0000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*line_width = cmdbuf[2] & 0xFFFF;
+	return cmdbuf[1];
+}
+
 Result Y2RU_SetInputLines(u16 num_lines)
 {
 	Result ret = 0;
@@ -275,6 +385,17 @@ Result Y2RU_SetInputLines(u16 num_lines)
 	cmdbuf[1] = num_lines;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	return cmdbuf[1];
+}
+
+Result Y2RU_GetInputLines(u16* num_lines)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x1D,0,0); // 0x1D0000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*num_lines = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
 }
 
@@ -289,6 +410,17 @@ Result Y2RU_SetCoefficients(const Y2R_ColorCoefficients* coefficients)
 	return cmdbuf[1];
 }
 
+Result Y2RU_GetCoefficients(Y2R_ColorCoefficients* coefficients)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x1F,0,0); // 0x1F0000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	memcpy(coefficients,cmdbuf + 2, sizeof(Y2R_ColorCoefficients));
+	return cmdbuf[1];
+}
+
 Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient)
 {
 	Result ret = 0;
@@ -297,6 +429,18 @@ Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient)
 	cmdbuf[1] = coefficient;
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	return cmdbuf[1];
+}
+
+Result Y2RU_GetStandardCoefficient(Y2R_ColorCoefficients* coefficients, Y2R_StandardCoefficient standardCoeff)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x21,1,0); // 0x210040
+	cmdbuf[1] = standardCoeff;
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	memcpy(coefficients,cmdbuf + 2, sizeof(Y2R_ColorCoefficients));
 	return cmdbuf[1];
 }
 
@@ -311,14 +455,37 @@ Result Y2RU_SetAlpha(u16 alpha)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetUnknownParams(const u16 params[16])
+Result Y2RU_GetAlpha(u16* alpha)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x23,0,0); // 0x230000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	*alpha = cmdbuf[2] & 0xFFFF;
+	return cmdbuf[1];
+}
+
+
+Result Y2RU_SetDitheringWeightParams(const Y2R_DitheringWeightParams* params)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x24,8,0); // 0x240200
-	memcpy(&cmdbuf[1], params, sizeof(u16) * 16);
+	memcpy(&cmdbuf[1], params, sizeof(Y2R_DitheringWeightParams));
 
 	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	return cmdbuf[1];
+}
+
+Result Y2RU_GetDitheringWeightParams(Y2R_DitheringWeightParams* params)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x25,0,0); // 0x250000
+
+	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	memcpy(params,cmdbuf+2, sizeof(Y2R_DitheringWeightParams));
 	return cmdbuf[1];
 }
 
