@@ -461,7 +461,7 @@ Result ndspInit(void)
 	ndspiInitChn();
 
 	rc = initCfgu();
-	if (rc)
+	if (rc==0)
 	{
 		u8 outMode;
 		CFGU_GetConfigInfoBlk2(sizeof(outMode), 0x70001, &outMode);
