@@ -364,6 +364,7 @@ void ndspiReadChnState(void)
 
 			ndspWaveBuf* wb = chn->waveBuf;
 			chn->samplePos = ndspiRotateVal(st->samplePos);
+			chn->waveBufSeqPos = seqId;
 
 			if ((st->flags & 0xFF00) && wb)
 			{
@@ -381,7 +382,6 @@ void ndspiReadChnState(void)
 				if (seqId == 0)
 					chn->wavBufCount = 0;
 				chn->waveBuf = wb;
-				chn->waveBufSeqPos = seqId;
 			}
 
 			LightLock_Unlock(&chn->lock);
