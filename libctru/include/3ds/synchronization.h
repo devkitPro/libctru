@@ -18,7 +18,7 @@ typedef struct
 /// Performs a clrex operation.
 static inline void __clrex(void)
 {
-	__asm__ __volatile__("clrex");
+	__asm__ __volatile__("clrex" ::: "memory");
 }
 
 /**

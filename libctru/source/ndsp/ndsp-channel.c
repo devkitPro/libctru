@@ -143,12 +143,12 @@ void ndspChnWaveBufClear(int id)
 void ndspChnWaveBufAdd(int id, ndspWaveBuf* buf)
 {
 	ndspChnSt* chn = &ndspChn[id];
-	ndspWaveBuf* cb = chn->waveBuf;
 	if (!buf->nsamples) return;
 
 	buf->next = NULL;
 	buf->status = NDSP_WBUF_QUEUED;
 	LightLock_Lock(&chn->lock);
+	ndspWaveBuf* cb = chn->waveBuf;
 
 	if (cb)
 	{
@@ -360,13 +360,13 @@ void ndspiReadChnState(void)
 		if (chn->syncCount == st->syncCount)
 		{
 			u16 seqId = st->curSeqId;
+			LightLock_Lock(&chn->lock);
+
 			ndspWaveBuf* wb = chn->waveBuf;
 			chn->samplePos = ndspiRotateVal(st->samplePos);
 
 			if ((st->flags & 0xFF00) && wb)
 			{
-				LightLock_Lock(&chn->lock);
-
 				while (wb->sequence_id != seqId)
 				{
 					chn->wavBufCount--;
@@ -382,9 +382,9 @@ void ndspiReadChnState(void)
 					chn->wavBufCount = 0;
 				chn->waveBuf = wb;
 				chn->waveBufSeqPos = seqId;
-				LightLock_Unlock(&chn->lock);
 			}
 
+			LightLock_Unlock(&chn->lock);
 		}
 		chn->playing = (st->flags & 0xFF) ? true : false;
 	}
