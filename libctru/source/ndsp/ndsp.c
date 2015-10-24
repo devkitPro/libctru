@@ -278,9 +278,11 @@ static void ndspFinalize(bool suspend)
 		bool ready;
 		DSP_RecvDataIsReady(0, &ready);
 		if (ready)
+		{
 			DSP_RecvData(0, &val);
-		if (val == 1)
-			break;
+			if (val == 1)
+				break;
+		}
 	}
 	if (suspend)
 		memcpy(dspVar5Backup, ndspVars[5][0], sizeof(dspVar5Backup));
@@ -464,8 +466,9 @@ Result ndspInit(void)
 	if (rc==0)
 	{
 		u8 outMode;
-		CFGU_GetConfigInfoBlk2(sizeof(outMode), 0x70001, &outMode);
-		ndspMaster.outputMode = outMode;
+		rc = CFGU_GetConfigInfoBlk2(sizeof(outMode), 0x70001, &outMode);
+		if (rc==0)
+			ndspMaster.outputMode = outMode;
 		exitCfgu();
 	}
 
@@ -502,14 +505,20 @@ _fail0:
 
 void ndspExit(void)
 {
+	if (!ndspRefCount) return;
 	if (--ndspRefCount) return;
 	if (!bDspReady) return;
 	ndspThreadRun = false;
+	if (bSleeping)
+		svcSignalEvent(sleepEvent);
 	svcWaitSynchronization(ndspThread, U64_MAX);
 	svcCloseHandle(ndspThread);
 	svcCloseHandle(sleepEvent);
 	aptUnhook(&aptCookie);
-	ndspFinalize(false);
+	if (!bSleeping)
+		ndspFinalize(false);
+	bSleeping = false;
+	bNeedsSync = false;
 	dspExit();
 	if (componentFree)
 	{
