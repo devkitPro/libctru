@@ -632,6 +632,7 @@ void aptAppStarted(void)
 	u8 buf1[4], buf2[4];
 
 	aptSetStatus(APP_RUNNING);
+	svcClearEvent(aptStatusEvent);
 
 	if(!aptIsCrippled())
 	{
