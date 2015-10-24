@@ -145,9 +145,9 @@ void ndspChnWaveBufAdd(int id, ndspWaveBuf* buf)
 	ndspChnSt* chn = &ndspChn[id];
 	if (!buf->nsamples) return;
 
+	LightLock_Lock(&chn->lock);
 	buf->next = NULL;
 	buf->status = NDSP_WBUF_QUEUED;
-	LightLock_Lock(&chn->lock);
 	ndspWaveBuf* cb = chn->waveBuf;
 
 	if (cb)
@@ -369,23 +369,28 @@ void ndspiReadChnState(void)
 				ndspWaveBuf* wb = chn->waveBuf;
 				if (wb)
 				{
+					ndspWaveBuf* doneList = NULL;
 					if (chn->wavBufCount)
 					{
 						while (wb->sequence_id != seqId)
 						{
 							chn->wavBufCount--;
 							bool shouldBreak = seqId == 0 && (wb->sequence_id == st->lastSeqId || st->lastSeqId == 0);
-							wb->status = NDSP_WBUF_DONE;
-							wb = wb->next;
+							ndspWaveBuf* next = wb->next;
+							wb->next = doneList;
+							doneList = wb;
+							wb = next;
 							if (!wb || shouldBreak || chn->wavBufCount == 0)
 								break;
 						}
-						if (wb && wb->status != NDSP_WBUF_DONE)
+						if (wb)
 							wb->status = NDSP_WBUF_PLAYING;
 					}
 					if (seqId == 0)
 						chn->wavBufCount = 0;
 					chn->waveBuf = wb;
+					for (; doneList; doneList = doneList->next)
+						doneList->status = NDSP_WBUF_DONE;
 				}
 				LightLock_Unlock(&chn->lock);
 			}
