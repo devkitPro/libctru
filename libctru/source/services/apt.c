@@ -175,7 +175,7 @@ void aptAppletUtility_Exit_RetToApp(u32 type)
 
 NS_APPID aptGetMenuAppID(void)
 {
-	NS_APPID menu_appid;
+	NS_APPID menu_appid = 0;
 
 	aptOpenSession();
 	APT_GetAppletManInfo(0xff, NULL, NULL, &menu_appid, NULL);
@@ -501,6 +501,9 @@ Result aptInit(void)
 		// create APT event handler thread
 		svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
 			(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
+
+		// Wait for the state to become APT_RUNNING
+		aptWaitStatusEvent();
 	} else
 		aptAppStarted();
 
