@@ -28,24 +28,29 @@
 #define SHUT_WR		1
 #define SHUT_RDWR	2
 
-#define SO_DEBUG	0x0001
-#define SO_ACCEPTCONN	0x0002
-#define SO_REUSEADDR	0x0004
-#define SO_KEEPALIVE	0x0008
-#define SO_DONTROUTE	0x0010
-#define SO_BROADCAST	0x0020
-#define SO_USELOOPBACK	0x0040
-#define SO_LINGER	0x0080
-#define SO_OOBINLINE	0x0100
-#define SO_REUSEPORT	0x0200
-#define SO_SNDBUF	0x1001
-#define SO_RCVBUF	0x1002
-#define SO_SNDLOWAT	0x1003
-#define SO_RCVLOWAT	0x1004
-#define SO_SNDTIMEO	0x1005
-#define SO_RCVTIMEO	0x1006
-#define SO_ERROR	0x1007
-#define SO_TYPE		0x1008
+//#define SO_DEBUG      0x0001   // not working
+//#define SO_ACCEPTCONN 0x0002   // not working
+#define SO_REUSEADDR    0x0004
+//#define SO_KEEPALIVE  0x0008   // not working
+//#define SO_DONTROUTE  0x0010   // not working
+//#define SO_BROADCAST  0x0020   // not working
+#define SO_USELOOPBACK  0x0040
+#define SO_LINGER       0x0080
+#define SO_OOBINLINE    0x0100
+//#define SO_REUSEPORT  0x0200   // not working
+
+/*
+ * Additional options, not kept in so_options.
+ */
+#define SO_SNDBUF       0x1001      /* send buffer size */
+#define SO_RCVBUF       0x1002      /* receive buffer size */
+#define SO_SNDLOWAT     0x1003      /* send low-water mark */
+#define SO_RCVLOWAT     0x1004      /* receive low-water mark */
+//#define SO_SNDTIMEO   0x1005      /* send timeout */     // not working
+//#define SO_RCVTIMEO   0x1006      /* receive timeout */  // not working
+
+#define SO_TYPE         0x1008      /* get socket type */
+#define SO_ERROR        0x1009      /* get error status and clear */
 
 typedef uint32_t socklen_t;
 typedef uint16_t sa_family_t;

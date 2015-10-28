@@ -9,7 +9,14 @@ static Handle CFGU_handle = 0;
 
 Result initCfgu()
 {
-	return srvGetServiceHandle(&CFGU_handle, "cfg:u");
+	Result ret;
+
+	// cfg:i has the most commands, then cfg:s, then cfg:u
+	ret = srvGetServiceHandle(&CFGU_handle, "cfg:i");
+	if(ret) ret = srvGetServiceHandle(&CFGU_handle, "cfg:s");
+	if(ret) ret = srvGetServiceHandle(&CFGU_handle, "cfg:u");
+
+	return ret;
 }
 
 Result exitCfgu()

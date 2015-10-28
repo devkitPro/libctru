@@ -528,7 +528,7 @@ PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console) {
 
 	gfxSetScreenFormat(screen,GSP_RGB565_OES);
 	gfxSetDoubleBuffering(screen,false);
-	gfxSwapBuffers();
+	gfxSwapBuffersGpu();
 	gspWaitForVBlank();
 
 	console->frameBuffer = (u16*)gfxGetFramebuffer(screen, GFX_LEFT, NULL, NULL);
