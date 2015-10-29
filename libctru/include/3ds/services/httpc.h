@@ -15,7 +15,7 @@ typedef enum{
 Result httpcInit();
 void httpcExit();
 
-Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy);//use_defaultproxy should be zero normally, unless you don't want HTTPC_SetProxyDefault() to be used automatically.
+Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy);//use_defaultproxy should be non-zero normally, unless you don't want HTTPC_SetProxyDefault() to be used automatically.
 Result httpcCloseContext(httpcContext *context);
 Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value);
 Result httpcBeginRequest(httpcContext *context);
