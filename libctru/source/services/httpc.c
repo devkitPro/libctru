@@ -14,8 +14,6 @@ Result httpcInit(void)
 	if(__httpc_servhandle)return 0;
 	if((ret=srvGetServiceHandle(&__httpc_servhandle, "http:C")))return ret;
 
-	//*((u32*)0x600) = __httpc_servhandle;
-
 	ret = HTTPC_Initialize(__httpc_servhandle);
 	if(ret!=0)return ret;
 
@@ -27,6 +25,8 @@ void httpcExit(void)
 	if(__httpc_servhandle==0)return;
 
 	svcCloseHandle(__httpc_servhandle);
+
+	__httpc_servhandle = 0;
 }
 
 Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)

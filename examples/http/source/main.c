@@ -76,7 +76,7 @@ int main()
 	printf("Downloading %s\n",url);
 	gfxFlushBuffers();
 
-	ret = httpcOpenContext(&context, url , 0);
+	ret = httpcOpenContext(&context, url, 1);
 	printf("return from httpcOpenContext: %"PRId32"\n",ret);
 	gfxFlushBuffers();
 
