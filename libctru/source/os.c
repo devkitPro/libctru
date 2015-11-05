@@ -20,12 +20,9 @@ typedef struct {
 	//...
 } datetime_t;
 
-static volatile u32* __datetime_selector =
-	(u32*) 0x1FF81000;
-static volatile datetime_t* __datetime0 =
-	(datetime_t*) 0x1FF81020;
-static volatile datetime_t* __datetime1 =
-	(datetime_t*) 0x1FF81040;
+#define __datetime_selector        (*(vu32*)0x1FF81000)
+#define __datetime0 (*(volatile datetime_t*)0x1FF81020)
+#define __datetime1 (*(volatile datetime_t*)0x1FF81040)
 
 __attribute__((weak)) bool __ctru_speedup = false;
 
@@ -54,16 +51,16 @@ u32 osConvertOldLINEARMemToNew(u32 vaddr) {
 //---------------------------------------------------------------------------------
 static datetime_t getSysTime(void) {
 //---------------------------------------------------------------------------------
-	u32 s1, s2 = *__datetime_selector & 1;
+	u32 s1, s2 = __datetime_selector & 1;
 	datetime_t dt;
 
 	do {
 		s1 = s2;
 		if(!s1)
-			dt = *__datetime0;
+			dt = __datetime0;
 		else
-			dt = *__datetime1;
-		s2 = *__datetime_selector & 1;
+			dt = __datetime1;
+		s2 = __datetime_selector & 1;
 	} while(s2 != s1);
 
 	return dt;
@@ -97,7 +94,6 @@ int __libctru_gtod(struct _reent *ptr, struct timeval *tp, struct timezone *tz) 
 
 }
 
-
 // Returns number of milliseconds since 1st Jan 1900 00:00.
 //---------------------------------------------------------------------------------
 u64 osGetTime(void) {
@@ -107,18 +103,6 @@ u64 osGetTime(void) {
 	u64 delta = svcGetSystemTick() - dt.update_tick;
 
 	return dt.date_time + (u32)(u64_to_double(delta)/TICKS_PER_MSEC);
-}
-
-//---------------------------------------------------------------------------------
-u32 osGetFirmVersion(void) {
-//---------------------------------------------------------------------------------
-	return (*(u32*)0x1FF80060) & ~0xFF;
-}
-
-//---------------------------------------------------------------------------------
-u32 osGetKernelVersion(void) {
-//---------------------------------------------------------------------------------
-	return (*(u32*)0x1FF80000) & ~0xFF;
 }
 
 //---------------------------------------------------------------------------------
@@ -150,12 +134,6 @@ const char* osStrError(u32 error) {
 	default:
 		return "Unknown.";
 	}
-}
-
-//---------------------------------------------------------------------------------
-u8 osGetWifiStrength(void) {
-//---------------------------------------------------------------------------------
-	return *((u8*)0x1FF81066);
 }
 
 void __ctru_speedup_config(void)

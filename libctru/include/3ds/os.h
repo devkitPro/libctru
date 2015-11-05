@@ -47,7 +47,10 @@ const char* osStrError(u32 error);
  *
  * This can be used to compare system versions easily with @ref SYSTEM_VERSION.
  */
-u32 osGetFirmVersion(void);
+static inline u32 osGetFirmVersion(void)
+{
+	return (*(vu32*)0x1FF80060) & ~0xFF;
+}
 
 /**
  * @brief Gets the system's kernel version.
@@ -59,7 +62,10 @@ u32 osGetFirmVersion(void);
  * if(osGetKernelVersion() > SYSTEM_VERSION(2,46,0)) printf("You are running 9.0 or higher\n");
  * @endcode
  */
-u32 osGetKernelVersion(void);
+static inline u32 osGetKernelVersion(void)
+{
+	return (*(vu32*)0x1FF80000) & ~0xFF;
+}
 
 /**
  * @brief Gets the current time.
@@ -82,7 +88,19 @@ u64 osGetTime(void);
  *
  * These values correspond with the number of wifi bars displayed by Home Menu.
  */
-u8 osGetWifiStrength(void);
+static inline u8 osGetWifiStrength(void)
+{
+	return *(vu8*)0x1FF81066;
+}
+
+/**
+ * @brief Gets the state of the 3D slider.
+ * @return The state of the 3D slider (0.0~1.0)
+ */
+static inline float osGet3DSliderState(void)
+{
+	return *(volatile float*)0x1FF81080;
+}
 
 /**
  * @brief Configures the New 3DS speedup.
