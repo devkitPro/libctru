@@ -1,6 +1,6 @@
 /**
  * @file csnd.h
- * @brief CSND service.
+ * @brief CSND service. Usage of this service is deprecated in favor of NDSP.
  */
 #pragma once
 

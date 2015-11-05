@@ -11,7 +11,7 @@
 Result CFGNOR_Initialize(u8 value);
 
 /// Shuts down CFGNOR.
-Result CFGNOR_Shutdown();
+Result CFGNOR_Shutdown(void);
 
 /**
  * @brief Reads data from NOR.

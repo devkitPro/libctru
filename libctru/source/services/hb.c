@@ -6,12 +6,12 @@
 
 static Handle hbHandle;
 
-Result hbInit()
+Result hbInit(void)
 {
 	return srvGetServiceHandle(&hbHandle, "hb:HB");
 }
 
-void hbExit()
+void hbExit(void)
 {
 	svcCloseHandle(hbHandle);
 }

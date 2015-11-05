@@ -24,7 +24,7 @@ Result CFGNOR_Initialize(u8 value)
 	return ret;
 }
 
-Result CFGNOR_Shutdown()
+Result CFGNOR_Shutdown(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();

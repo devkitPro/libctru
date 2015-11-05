@@ -20,9 +20,8 @@ Result acExit(void)
 }
 
 // ptr=0x200-byte outbuf
-Result ACU_CreateDefaultConfig(Handle* servhandle, u32 *ptr)
+Result ACU_CreateDefaultConfig(u32 *ptr)
 {
-	if(!servhandle)servhandle=&acHandle;
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 *staticbufs = getThreadStaticBuffers();
@@ -34,7 +33,7 @@ Result ACU_CreateDefaultConfig(Handle* servhandle, u32 *ptr)
 	staticbufs[0] = IPC_Desc_StaticBuffer(0x200,0);
 	staticbufs[1] = (u32)ptr;
 
-	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
+	if((ret = svcSendSyncRequest(acHandle))!=0)return ret;
 
 	staticbufs[0] = savedValue0;
 	staticbufs[1] = savedValue1;
@@ -43,9 +42,8 @@ Result ACU_CreateDefaultConfig(Handle* servhandle, u32 *ptr)
 }
 
 // Unknown what this cmd does at the time of writing. (ptr=0x200-byte inbuf/outbuf)
-Result ACU_cmd26(Handle* servhandle, u32 *ptr, u8 val)
+Result ACU_cmd26(u32 *ptr, u8 val)
 {
-	if(!servhandle)servhandle=&acHandle;
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 *staticbufs = getThreadStaticBuffers();
@@ -60,7 +58,7 @@ Result ACU_cmd26(Handle* servhandle, u32 *ptr, u8 val)
 	cmdbuf[2] = IPC_Desc_StaticBuffer(0x200,0);
 	cmdbuf[3] = (u32)ptr;
 
-	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
+	if((ret = svcSendSyncRequest(acHandle))!=0)return ret;
 
 	staticbufs[0] = savedValue0;
 	staticbufs[1] = savedValue1;
@@ -68,15 +66,14 @@ Result ACU_cmd26(Handle* servhandle, u32 *ptr, u8 val)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_GetWifiStatus(Handle* servhandle, u32 *out)
+Result ACU_GetWifiStatus(u32 *out)
 {
-	if(!servhandle)servhandle=&acHandle;
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0xD,0,0); // 0x000D0000
 
-	if((ret = svcSendSyncRequest(*servhandle))!=0)return ret;
+	if((ret = svcSendSyncRequest(acHandle))!=0)return ret;
 
 	*out = cmdbuf[2];
 
@@ -85,19 +82,18 @@ Result ACU_GetWifiStatus(Handle* servhandle, u32 *out)
 
 Result ACU_WaitInternetConnection(void)
 {
-	Handle servhandle = 0;
 	Result ret=0;
 	u32 outval=0;
 
-	if((ret = srvGetServiceHandle(&servhandle, "ac:u"))!=0)return ret;
+	if((ret = acInit())!=0)return ret;
 
 	while(1)
 	{
-		ret = ACU_GetWifiStatus(&servhandle, &outval);
+		ret = ACU_GetWifiStatus(&outval);
 		if(ret==0 && outval!=0)break;
 	}
 
-	svcCloseHandle(servhandle);
+	acExit();
 
 	return ret;
 }

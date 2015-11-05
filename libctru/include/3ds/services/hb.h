@@ -11,10 +11,10 @@
 #include <3ds/types.h>
 
 /// Initializes HB.
-Result hbInit();
+Result hbInit(void);
 
 /// Exits HB.
-void hbExit();
+void hbExit(void);
 
 /// Flushes/invalidates the entire data/instruction cache.
 Result HB_FlushInvalidateCache(void);
