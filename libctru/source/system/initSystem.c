@@ -10,9 +10,11 @@ void (*__system_retAddr)(void);
 // Data from _prm structure
 extern void* __service_ptr; // used to detect if we're run from a homebrew launcher
 
+void __system_allocateStack();
 void __system_allocateHeaps();
 void __system_initArgv();
 void __appInit();
+void __libc_init_array();
 
 
 void __ctru_exit(int rc);
@@ -32,9 +34,17 @@ void __attribute__((weak)) __libctru_init(void (*retAddr)(void))
 	if (__sync_init)
 		__sync_init();
 
+	__system_allocateStack();
 	__system_allocateHeaps();
 
 	// Build argc/argv if present
 	__system_initArgv();
 
+}
+
+void initSystem(void (*retAddr)(void))
+{
+	__libctru_init(retAddr);
+	__appInit();
+	__libc_init_array();
 }
