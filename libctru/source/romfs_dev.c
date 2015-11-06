@@ -137,7 +137,7 @@ Result romfsInit(void)
 		__utf16path[units] = 0;
 
 		FS_archive arch = { ARCH_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0, 0 };
-		FS_path path = { PATH_WCHAR, units+1, (u8*)__utf16path };
+		FS_path path = { PATH_WCHAR, (units+1)*2, (u8*)__utf16path };
 
 		Result rc = FSUSER_OpenFileDirectly(NULL, &romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
 		if (rc) return rc;
