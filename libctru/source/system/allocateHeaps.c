@@ -13,16 +13,37 @@ u32 __allocated_stack_size;
 
 void __system_allocateStack() {
 	u32 tmp=0;
+	u32 original_stack_bottom;
+	u32 original_stack_size;
 	MemInfo memInfo;
 	PageInfo pageInfo;
 
 	register u32 sp_val __asm__("sp");
 	svcQueryMemory(&memInfo, &pageInfo, sp_val);
+	original_stack_bottom = memInfo.base_addr;
+	original_stack_size   = memInfo.size;
+
+	svcQueryMemory(&memInfo, &pageInfo, original_stack_bottom - 0x1000);
+
+	if (memInfo.state != MEMSTATE_FREE)
+	{
+		original_stack_bottom  = memInfo.base_addr;
+		original_stack_size   += memInfo.size;
+		svcQueryMemory(&memInfo, &pageInfo, original_stack_bottom - 0x1000);
+	}
+
+	if (memInfo.state != MEMSTATE_FREE)
+	{
+		__allocated_stack_size = 0;
+		return;
+	}
 
 	__stacksize__ += 0xFFF;
 	__stacksize__ &= ~0xFFF;
-	__allocated_stack_size = __stacksize__ > memInfo.size ? __stacksize__ - memInfo.size: 0;
-	__stack_bottom = memInfo.base_addr - __allocated_stack_size;
+	__allocated_stack_size = __stacksize__ > original_stack_size ? __stacksize__ - original_stack_size: 0;
+	__allocated_stack_size = __allocated_stack_size > memInfo.size ? memInfo.size : __allocated_stack_size;
+	__stacksize__  = original_stack_size + __allocated_stack_size;
+	__stack_bottom = original_stack_bottom - __allocated_stack_size;
 
 	if (__allocated_stack_size)
 		svcControlMemory(&tmp, __stack_bottom, 0x0, __allocated_stack_size, MEMOP_ALLOC, MEMPERM_READ | MEMPERM_WRITE);
