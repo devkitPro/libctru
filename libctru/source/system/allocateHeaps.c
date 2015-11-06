@@ -25,19 +25,6 @@ void __system_allocateStack() {
 
 	svcQueryMemory(&memInfo, &pageInfo, original_stack_bottom - 0x1000);
 
-	if (memInfo.state != MEMSTATE_FREE)
-	{
-		original_stack_bottom  = memInfo.base_addr;
-		original_stack_size   += memInfo.size;
-		svcQueryMemory(&memInfo, &pageInfo, original_stack_bottom - 0x1000);
-	}
-
-	if (memInfo.state != MEMSTATE_FREE)
-	{
-		__allocated_stack_size = 0;
-		return;
-	}
-
 	__stacksize__ += 0xFFF;
 	__stacksize__ &= ~0xFFF;
 	__allocated_stack_size = __stacksize__ > original_stack_size ? __stacksize__ - original_stack_size: 0;
