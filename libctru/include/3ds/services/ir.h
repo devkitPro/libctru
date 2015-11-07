@@ -10,16 +10,16 @@
  * @param sharedmem_addr Address of the shared memory block to use.
  * @param sharedmem_size Size of the shared memory block.
  */
-Result IRU_Initialize(u32 *sharedmem_addr, u32 sharedmem_size);
+Result iruInit(u32 *sharedmem_addr, u32 sharedmem_size);
 
 /// Shuts down IRU.
-Result IRU_Shutdown(void);
+void iruExit(void);
 
 /**
  * @brief Gets the IRU service handle.
  * @return The IRU service handle.
  */
-Handle IRU_GetServHandle(void);
+Handle iruGetServHandle(void);
 
 /**
  * @brief Sends IR data.
@@ -27,7 +27,7 @@ Handle IRU_GetServHandle(void);
  * @param size Size of the buffer.
  * @param wait Whether to wait for the data to be sent.
  */
-Result IRU_SendData(u8 *buf, u32 size, u32 wait);
+Result iruSendData(u8 *buf, u32 size, bool wait);
 
 /**
  * @brief Receives IR data.
@@ -37,7 +37,7 @@ Result IRU_SendData(u8 *buf, u32 size, u32 wait);
  * @param transfercount Pointer to write the bytes read to.
  * @param wait Whether to wait for the data to be received.
  */
-Result IRU_RecvData(u8 *buf, u32 size, u8 flag, u32 *transfercount, u32 wait);
+Result iruRecvData(u8 *buf, u32 size, u8 flag, u32 *transfercount, bool wait);
 
 /**
  * @brief Sets the IR bit rate.

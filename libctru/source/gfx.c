@@ -99,7 +99,7 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	framebufferInfoHeader[0x1]=1;
 }
 
-void (*screenFree)(void *) = NULL;
+static void (*screenFree)(void *) = NULL;
 
 void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomFormat, bool vrambuffers)
 {

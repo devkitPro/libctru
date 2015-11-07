@@ -257,7 +257,7 @@ Result camInit(void);
  *
  * This will internally call CAMU_DriverFinalize and close the handle of the service.
  */
-Result camExit(void);
+void camExit(void);
 
 /**
  * Begins capture on the specified camera port.

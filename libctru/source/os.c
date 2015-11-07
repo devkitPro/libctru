@@ -1,4 +1,5 @@
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/os.h>
 #include <3ds/svc.h>
 #include <3ds/services/ptm.h>
@@ -138,7 +139,7 @@ const char* osStrError(u32 error) {
 
 void __ctru_speedup_config(void)
 {
-	if (ptmSysmInit()==0)
+	if (R_SUCCEEDED(ptmSysmInit()))
 	{
 		PTMSYSM_ConfigureNew3DSCPU(__ctru_speedup ? 3 : 0);
 		ptmSysmExit();

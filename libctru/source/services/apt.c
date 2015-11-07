@@ -5,8 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/gsp.h>
 #include <3ds/ipc.h>
@@ -20,11 +22,11 @@ extern u32 __system_runflags;
 
 NS_APPID currentAppId;
 
-static char *__apt_servicestr = NULL;
-static char *__apt_servicenames[3] = {"APT:U", "APT:S", "APT:A"};
+static const char *__apt_servicestr;
+static const char * const __apt_servicenames[3] = {"APT:U", "APT:S", "APT:A"};
 
-static u32 __apt_new3dsflag_initialized = 0;
-static u8 __apt_new3dsflag = 0;
+static u32 __apt_new3dsflag_initialized;
+static u8 __apt_new3dsflag;
 
 Handle aptLockHandle;
 Handle aptuHandle;
@@ -33,12 +35,12 @@ Handle aptEvents[3];
 Handle aptEventHandlerThread;
 u64 aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]; // u64 so that it's 8-byte aligned
 
-Handle aptStatusMutex;
-Handle aptStatusEvent = 0;
+LightLock aptStatusMutex;
+Handle aptStatusEvent;
 APP_STATUS aptStatus = APP_NOTINITIALIZED;
 APP_STATUS aptStatusBeforeSleep = APP_NOTINITIALIZED;
-u32 aptStatusPower = 0;
-Handle aptSleepSync = 0;
+u32 aptStatusPower;
+Handle aptSleepSync;
 
 u32 aptParameters[0x1000/4]; //TEMP
 
@@ -90,7 +92,7 @@ static Result __apt_initservicehandle(void)
 	for(i=0; i<3; i++)
 	{
 		ret = srvGetServiceHandle(&aptuHandle, __apt_servicenames[i]);
-		if(ret==0)
+		if(R_SUCCEEDED(ret))
 		{
 			__apt_servicestr = __apt_servicenames[i];
 			return ret;
@@ -315,7 +317,7 @@ static void __handle_notification(void) {
 	aptOpenSession();
 	ret = APT_InquireNotification(currentAppId, &type);
 	aptCloseSession();
-	if(ret!=0) return;
+	if(R_FAILED(ret)) return;
 
 	_aptDebug(1, type);
 
@@ -445,37 +447,35 @@ void aptEventHandler(void *arg)
 	svcExitThread();
 }
 
-static bool aptInitialised = false;
+static int aptRefCount = 0;
 
 Result aptInit(void)
 {
 	Result ret=0;
 
-	if (aptInitialised) return ret;
-
-	aptStatusMutex = 0;
+	if (AtomicPostIncrement(&aptRefCount)) return 0;
 
 	// Initialize APT stuff, escape load screen.
 	ret = __apt_initservicehandle();
-	if(ret!=0)return ret;
-	if((ret=APT_GetLockHandle(0x0, &aptLockHandle)))return ret;
+	if(R_FAILED(ret)) goto _fail;
+	if(R_FAILED(ret=APT_GetLockHandle(0x0, &aptLockHandle))) goto _fail;
 	svcCloseHandle(aptuHandle);
 
 	currentAppId = __apt_appid;
 
 	svcCreateEvent(&aptStatusEvent, 0);
 	svcCreateEvent(&aptSleepSync, 0);
-	svcCreateMutex(&aptStatusMutex, false);
+	LightLock_Init(&aptStatusMutex);
 	aptStatus=0;
 
 	if(!aptIsCrippled())
 	{
 		aptOpenSession();
-		if((ret=APT_Initialize(currentAppId, &aptEvents[0], &aptEvents[1])))return ret;
+		if(R_FAILED(ret=APT_Initialize(currentAppId, &aptEvents[0], &aptEvents[1])))return ret;
 		aptCloseSession();
 		
 		aptOpenSession();
-		if((ret=APT_Enable(0x0)))return ret;
+		if(R_FAILED(ret=APT_Enable(0x0))) goto _fail;
 		aptCloseSession();
 		
 		// create APT close event
@@ -495,7 +495,7 @@ Result aptInit(void)
 		}
 		
 		aptOpenSession();
-		if((ret=APT_NotifyToWait(currentAppId)))return ret;
+		if(R_FAILED(ret=APT_NotifyToWait(currentAppId)))return ret;
 		aptCloseSession();
 
 		// create APT event handler thread
@@ -507,14 +507,16 @@ Result aptInit(void)
 	} else
 		aptAppStarted();
 
-	aptInitialised = true;
-
 	return 0;
+
+_fail:
+	AtomicDecrement(&aptRefCount);
+	return ret;
 }
 
 void aptExit(void)
 {
-	if (!aptInitialised) return;
+	if (AtomicDecrement(&aptRefCount)) return;
 
 	if(!aptIsCrippled())aptAppletUtility_Exit_RetToApp(0);
 
@@ -559,11 +561,8 @@ void aptExit(void)
 	
 	svcCloseHandle(aptSleepSync);
 
-	svcCloseHandle(aptStatusMutex);
 	svcCloseHandle(aptLockHandle);
 	svcCloseHandle(aptStatusEvent);
-	
-	aptInitialised = false;
 }
 
 bool aptMainLoop(void)
@@ -660,15 +659,15 @@ void aptAppStarted(void)
 APP_STATUS aptGetStatus(void)
 {
 	APP_STATUS ret;
-	svcWaitSynchronization(aptStatusMutex, U64_MAX);
+	LightLock_Lock(&aptStatusMutex);
 	ret = aptStatus;
-	svcReleaseMutex(aptStatusMutex);
+	LightLock_Unlock(&aptStatusMutex);
 	return ret;
 }
 
 void aptSetStatus(APP_STATUS status)
 {
-	svcWaitSynchronization(aptStatusMutex, U64_MAX);
+	LightLock_Lock(&aptStatusMutex);
 
 	aptStatus = status;
 
@@ -680,37 +679,35 @@ void aptSetStatus(APP_STATUS status)
 			svcSignalEvent(aptStatusEvent);
 	//}
 
-	svcReleaseMutex(aptStatusMutex);
+	LightLock_Unlock(&aptStatusMutex);
 }
 
 u32 aptGetStatusPower(void)
 {
 	u32 ret;
-	svcWaitSynchronization(aptStatusMutex, U64_MAX);
+	LightLock_Lock(&aptStatusMutex);
 	ret = aptStatusPower;
-	svcReleaseMutex(aptStatusMutex);
+	LightLock_Unlock(&aptStatusMutex);
 	return ret;
 }
 
 void aptSetStatusPower(u32 status)
 {
-	svcWaitSynchronization(aptStatusMutex, U64_MAX);
+	LightLock_Lock(&aptStatusMutex);
 	aptStatusPower = status;
-	svcReleaseMutex(aptStatusMutex);
+	LightLock_Unlock(&aptStatusMutex);
 }
 
 void aptOpenSession(void)
 {
-	//Result ret;
-
-	svcWaitSynchronization(aptLockHandle, U64_MAX);
+	LightLock_Lock(&aptStatusMutex);
 	__apt_initservicehandle();
 }
 
 void aptCloseSession(void)
 {
 	svcCloseHandle(aptuHandle);
-	svcReleaseMutex(aptLockHandle);
+	LightLock_Unlock(&aptStatusMutex);
 }
 
 void aptSignalReadyForSleep(void)
@@ -725,7 +722,7 @@ Result APT_GetLockHandle(u16 flags, Handle* lockHandle)
 	cmdbuf[1]=flags;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	
 	if(lockHandle)*lockHandle=cmdbuf[5];
 	
@@ -740,7 +737,7 @@ Result APT_Initialize(NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2
 	cmdbuf[2]=0x0;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	
 	if(eventHandle1)*eventHandle1=cmdbuf[3]; //return to menu event ?
 	if(eventHandle2)*eventHandle2=cmdbuf[4];
@@ -755,7 +752,7 @@ Result APT_Finalize(NS_APPID appId)
 	cmdbuf[1]=appId;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	return cmdbuf[1];
 }
 
@@ -765,7 +762,7 @@ Result APT_HardwareResetAsync()
 	cmdbuf[0]=IPC_MakeHeader(0x4E,0,0); // 0x4E0000
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -777,7 +774,7 @@ Result APT_Enable(u32 a)
 	cmdbuf[1]=a;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -789,7 +786,7 @@ Result APT_GetAppletManInfo(u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu
 	cmdbuf[1]=inval;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(outval8)*outval8=cmdbuf[2];
 	if(outval32)*outval32=cmdbuf[3];
@@ -806,7 +803,7 @@ Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pR
 	cmdbuf[1]=appID;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(pProgramID)*pProgramID=(u64)cmdbuf[2]|((u64)cmdbuf[3]<<32);
 	if(pMediaType)*pMediaType=cmdbuf[4];
@@ -825,7 +822,7 @@ Result APT_GetAppletProgramInfo(u32 id, u32 flags, u16 *titleversion)
 	cmdbuf[2]=flags;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(titleversion)*titleversion=cmdbuf[2];
 
@@ -839,7 +836,7 @@ Result APT_GetProgramID(u64* pProgramID)
 	cmdbuf[1] = IPC_Desc_CurProcessHandle();
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(ret==0)ret = cmdbuf[1];
 
@@ -858,7 +855,7 @@ Result APT_IsRegistered(NS_APPID appID, u8* out)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(out)*out=cmdbuf[2];
 	
@@ -872,7 +869,7 @@ Result APT_InquireNotification(u32 appID, u8* signalType)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(signalType)*signalType=cmdbuf[2];
 	
@@ -885,7 +882,7 @@ Result APT_PrepareToJumpToHomeMenu(void)
 	cmdbuf[0]=IPC_MakeHeader(0x2B,0,0); // 0x2B0000
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -901,7 +898,7 @@ Result APT_JumpToHomeMenu(const u8 *param, size_t paramSize, Handle handle)
 	cmdbuf[5]= (u32) param;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -913,7 +910,7 @@ Result APT_PrepareToJumpToApplication(u32 a)
 	cmdbuf[1]=a;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -929,7 +926,7 @@ Result APT_JumpToApplication(const u8 *param, size_t paramSize, Handle handle)
 	cmdbuf[5]= (u32) param;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 	
 	return cmdbuf[1];
 }
@@ -941,7 +938,7 @@ Result APT_NotifyToWait(NS_APPID appID)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -961,7 +958,7 @@ Result APT_AppletUtility(u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* bu
 	staticbufs[1]=(u32)buf2;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(out)*out=cmdbuf[2];
 
@@ -980,7 +977,7 @@ Result APT_GlanceParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* act
 	staticbufs[1]=(u32)buffer;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(signalType)*signalType=cmdbuf[3];
 	if(actualSize)*actualSize=cmdbuf[4];
@@ -1000,7 +997,7 @@ Result APT_ReceiveParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* ac
 	staticbufs[1]=(u32)buffer;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(signalType)*signalType=cmdbuf[3];
 	if(actualSize)*actualSize=cmdbuf[4];
@@ -1025,7 +1022,7 @@ Result APT_SendParameter(NS_APPID src_appID, NS_APPID dst_appID, u32 bufferSize,
 	cmdbuf[8] = (u32)buffer;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1040,7 +1037,7 @@ Result APT_SendCaptureBufferInfo(u32 bufferSize, u32* buffer)
 	cmdbuf[3] = (u32)buffer;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1053,7 +1050,7 @@ Result APT_ReplySleepQuery(NS_APPID appID, u32 a)
 	cmdbuf[2]=a;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1065,7 +1062,7 @@ Result APT_ReplySleepNotificationComplete(NS_APPID appID)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1077,7 +1074,7 @@ Result APT_PrepareToCloseApplication(u8 a)
 	cmdbuf[1]=a;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1093,7 +1090,7 @@ Result APT_CloseApplication(const u8 *param, size_t paramSize, Handle handle)
 	cmdbuf[5]= (u32) param;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1107,7 +1104,7 @@ Result APT_SetAppCpuTimeLimit(u32 percent)
 	cmdbuf[2]=percent;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1119,7 +1116,7 @@ Result APT_GetAppCpuTimeLimit(u32 *percent)
 	cmdbuf[1]=1;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(percent)*percent=cmdbuf[2];
 
@@ -1133,7 +1130,7 @@ Result APT_CheckNew3DS_Application(u8 *out)
 	cmdbuf[0]=IPC_MakeHeader(0x101,0,0); // 0x1010000
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(ret==0)ret = cmdbuf[1];
 
@@ -1152,7 +1149,7 @@ Result APT_CheckNew3DS_System(u8 *out)
 	cmdbuf[0]=IPC_MakeHeader(0x102,0,0); // 0x1020000
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	if(ret==0)ret = cmdbuf[1];
 
@@ -1199,7 +1196,7 @@ Result APT_PrepareToDoAppJump(u8 flags, u64 programID, u8 mediatype)
 	cmdbuf[4]=mediatype;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1216,7 +1213,7 @@ Result APT_DoAppJump(u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Pt
 	cmdbuf[6]=(u32)NSbuf1Ptr;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1228,7 +1225,7 @@ Result APT_PrepareToStartLibraryApplet(NS_APPID appID)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1245,7 +1242,7 @@ Result APT_StartLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u3
 	cmdbuf[6]=(u32)parambuf;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1265,7 +1262,7 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 	aptOpenSession();
 	ret=APT_PrepareToStartLibraryApplet(appID);
 	aptCloseSession();
-	if(ret!=0)return ret;
+	if(R_FAILED(ret))return ret;
 
 	memset(buf1, 0, 4);
 	aptOpenSession();
@@ -1277,7 +1274,7 @@ Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u
 		aptOpenSession();
 		ret=APT_IsRegistered(appID, &tmp);
 		aptCloseSession();
-		if(ret!=0)return ret;
+		if(R_FAILED(ret))return ret;
 
 		if(tmp!=0)break;
 	}
@@ -1319,7 +1316,7 @@ Result APT_PrepareToStartSystemApplet(NS_APPID appID)
 	cmdbuf[1]=appID;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -1336,7 +1333,7 @@ Result APT_StartSystemApplet(NS_APPID appID, u32 bufSize, Handle applHandle, u8 
 	cmdbuf[6] = (u32)buf;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(aptuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
 
 	return cmdbuf[1];
 }

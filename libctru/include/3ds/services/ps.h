@@ -34,7 +34,7 @@ typedef enum
 Result psInit(void);
 
 /// Exits PS.
-Result psExit(void);
+void psExit(void);
 
 /**
  * @brief Encrypts/Decrypts AES data. Does not support AES CCM.

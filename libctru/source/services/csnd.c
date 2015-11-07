@@ -1,27 +1,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/mappable.h>
 #include <3ds/os.h>
 #include <3ds/services/csnd.h>
 #include <3ds/ipc.h>
+#include <3ds/synchronization.h>
 
 // See here regarding CSND shared-mem commands, etc: http://3dbrew.org/wiki/CSND_Shared_Memory
 
-vu32* csndSharedMem = NULL;
+vu32* csndSharedMem;
 u32 csndSharedMemSize;
-u32 csndChannels = 0;
+u32 csndChannels;
 u32 csndOffsets[4];
 
-static Handle csndHandle = 0;
-static Handle csndMutex = 0;
-static Handle csndSharedMemBlock = 0;
+static Handle csndHandle;
+static Handle csndMutex;
+static Handle csndSharedMemBlock;
 
+static int csndRefCount;
 static u32 csndCmdBlockSize = 0x2000;
-static u32 csndCmdStartOff = 0;
-static u32 csndCmdCurOff = 0;
+static u32 csndCmdStartOff;
+static u32 csndCmdCurOff;
 
 static Result CSND_Initialize(void)
 {
@@ -32,7 +35,7 @@ static Result CSND_Initialize(void)
 	cmdbuf[1] = csndSharedMemSize;
 	memcpy(&cmdbuf[2], &csndOffsets[0], 4*sizeof(u32));
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	csndMutex = cmdbuf[3];
 	csndSharedMemBlock = cmdbuf[4];
@@ -47,7 +50,7 @@ static Result CSND_Shutdown()
 
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -59,7 +62,7 @@ static Result CSND_AcquireSoundChannels(u32* channelMask)
 
 	cmdbuf[0] = IPC_MakeHeader(0x5,0,0); // 0x50000
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	*channelMask = cmdbuf[2];
 
@@ -73,7 +76,7 @@ static Result CSND_ReleaseSoundChannels(void)
 
 	cmdbuf[0] = IPC_MakeHeader(0x6,0,0); // 0x60000
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -85,7 +88,7 @@ Result CSND_AcquireCapUnit(u32* capUnit)
 
 	cmdbuf[0] = IPC_MakeHeader(0x7,0,0); // 0x70000
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	*capUnit = cmdbuf[2];
 
@@ -100,7 +103,7 @@ Result CSND_ReleaseCapUnit(u32 capUnit)
 	cmdbuf[0] = IPC_MakeHeader(0x8,1,0); // 0x80040
 	cmdbuf[1] = capUnit;
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -112,7 +115,7 @@ Result CSND_Reset(void)
 
 	cmdbuf[0] = IPC_MakeHeader(0xC,0,0); // 0xC0000
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -121,10 +124,10 @@ Result csndInit(void)
 {
 	Result ret=0;
 
-	// TODO: proper error handling!
+	if (AtomicPostIncrement(&csndRefCount)) return ret;
 
 	ret = srvGetServiceHandle(&csndHandle, "csnd:SND");
-	if (ret != 0) return ret;
+	if (R_FAILED(ret)) goto cleanup0;
 
 	// Calculate offsets and sizes required by the CSND module
 	csndOffsets[0] = csndCmdBlockSize;                         // Offset to DSP semaphore and irq disable flags
@@ -134,7 +137,7 @@ Result csndInit(void)
 	csndSharedMemSize = csndOffsets[3] + 0x3C;                 // Total size of the CSND shared memory
 
 	ret = CSND_Initialize();
-	if (ret != 0) goto cleanup1;
+	if (R_FAILED(ret)) goto cleanup1;
 
 	csndSharedMem = (vu32*)mappableAlloc(csndSharedMemSize);
 	if(!csndSharedMem)
@@ -144,12 +147,12 @@ Result csndInit(void)
 	}
 
 	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, 3, 0x10000000);
-	if (ret != 0) goto cleanup2;
+	if (R_FAILED(ret)) goto cleanup2;
 
 	memset((void*)csndSharedMem, 0, csndSharedMemSize);
 
 	ret = CSND_AcquireSoundChannels(&csndChannels);
-	if (!ret) return 0;
+	if (R_FAILED(ret)) return 0;
 
 cleanup2:
 	svcCloseHandle(csndSharedMemBlock);
@@ -160,23 +163,22 @@ cleanup2:
 	}
 cleanup1:
 	svcCloseHandle(csndHandle);
+cleanup0:
+	AtomicDecrement(&csndRefCount);
 	return ret;
 }
 
-Result csndExit(void)
+void csndExit(void)
 {
-	Result ret;
+	if (AtomicDecrement(&csndRefCount)) return;
 
-	//ret = CSND_Reset();
-	//if (ret != 0) return ret;
-
-	ret = CSND_ReleaseSoundChannels();
-	if (ret != 0) return ret;
+	//CSND_Reset();
+	CSND_ReleaseSoundChannels();
 
 	svcUnmapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem);
 	svcCloseHandle(csndSharedMemBlock);
 
-	ret = CSND_Shutdown();
+	CSND_Shutdown();
 	svcCloseHandle(csndHandle);
 
 	if(csndSharedMem != NULL)
@@ -184,8 +186,6 @@ Result csndExit(void)
 		mappableFree((void*) csndSharedMem);
 		csndSharedMem = NULL;
 	}
-
-	return ret;
 }
 
 static Result CSND_ExecuteCommands(u32 offset)
@@ -196,7 +196,7 @@ static Result CSND_ExecuteCommands(u32 offset)
 	cmdbuf[0] = IPC_MakeHeader(0x3,1,0); // 0x30040
 	cmdbuf[1] = offset;
 
-	if((ret = svcSendSyncRequest(csndHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -253,7 +253,7 @@ Result csndExecCmds(bool waitDone)
 
 	ret = CSND_ExecuteCommands(csndCmdStartOff);
 	csndCmdStartOff = csndCmdCurOff;
-	if (ret != 0) return ret;
+	if (R_FAILED(ret)) return ret;
 
 	// FIXME: This is a really ugly busy waiting loop!
 	while (waitDone && *flag == 0);
@@ -535,7 +535,7 @@ Result csndGetState(u32 channel, CSND_ChnInfo* out)
 	Result ret = 0;
 	channel = chnGetSharedMemIdx(channel);
 
-	if ((ret = CSND_UpdateInfo(true)) != 0)return ret;
+	if (R_FAILED(ret = CSND_UpdateInfo(true)))return ret;
 
 	memcpy(out, (const void*)&csndSharedMem[(csndOffsets[1] + channel*0xc) >> 2], 0xc);
 	//out[2] -= 0x0c000000;
@@ -549,7 +549,7 @@ Result csndIsPlaying(u32 channel, u8* status)
 	CSND_ChnInfo entry;
 
 	ret = csndGetState(channel, &entry);
-	if(ret!=0)return ret;
+	if(R_FAILED(ret))return ret;
 
 	*status = entry.active;
 

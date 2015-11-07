@@ -1,8 +1,10 @@
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/os.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/news.h>
 #include <3ds/ipc.h>
 
@@ -18,14 +20,20 @@ typedef struct {
 	u16 title[32];
 } NotificationHeader;
 
-static Handle newsHandle = 0;
+static Handle newsHandle;
+static int newsRefCount;
 
 Result newsInit(void) {
-	return srvGetServiceHandle(&newsHandle, "news:u");
+	Result res;
+	if (AtomicPostIncrement(&newsRefCount)) return 0;
+	res = srvGetServiceHandle(&newsHandle, "news:u");
+	if (R_FAILED(res)) AtomicDecrement(&newsRefCount);
+	return res;
 }
 
-Result newsExit(void) {
-	return svcCloseHandle(newsHandle);
+void newsExit(void) {
+	if (AtomicDecrement(&newsRefCount)) return;
+	svcCloseHandle(newsHandle);
 }
 
 Result NEWSU_AddNotification(const u16* title, u32 titleLength, const u16* message, u32 messageLength, const void* imageData, u32 imageSize, bool jpeg)
@@ -54,7 +62,7 @@ Result NEWSU_AddNotification(const u16* title, u32 titleLength, const u16* messa
 	cmdbuf[10] = IPC_Desc_Buffer(imageSize,IPC_BUFFER_R);
 	cmdbuf[11] = (u32) imageData;
 
-	if((ret = svcSendSyncRequest(newsHandle))!=0) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
 
 	return (Result)cmdbuf[1];
 }

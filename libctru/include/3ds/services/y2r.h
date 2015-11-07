@@ -151,7 +151,7 @@ Result y2rInit(void);
  *
  * This will internally call Y2RU_DriverFinalize and close the handle of the service.
  */
-Result y2rExit(void);
+void y2rExit(void);
 
 
 /**

@@ -69,7 +69,7 @@ void mvdstdGenerateDefaultConfig(mvdstdConfig *config, u32 input_width, u32 inpu
 Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput output_type, u32 size);
 
 /// Shuts down MVDSTD.
-Result mvdstdShutdown(void);
+void mvdstdExit(void);
 
 /**
  * @brief Sets the current configuration of MVDSTD.

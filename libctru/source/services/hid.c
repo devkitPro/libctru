@@ -4,9 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/mappable.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/hid.h>
 #include <3ds/services/irrst.h>
@@ -25,20 +27,22 @@ static circlePosition cPos;
 static accelVector aVec;
 static angularRate gRate;
 
-static bool hidInitialised;
+static int hidRefCount;
 
 Result hidInit(void)
 {
 	u8 val=0;
 	Result ret=0;
 
-	if(hidInitialised) return ret;
+	if (AtomicPostIncrement(&hidRefCount)) return 0;
 
 	// Request service.
-	if((ret=srvGetServiceHandle(&hidHandle, "hid:USER")) && (ret=srvGetServiceHandle(&hidHandle, "hid:SPVR")))return ret;
+	ret = srvGetServiceHandle(&hidHandle, "hid:USER");
+	if (R_FAILED(ret)) ret = srvGetServiceHandle(&hidHandle, "hid:SPVR");
+	if (R_FAILED(ret)) goto cleanup0;
 
 	// Get sharedmem handle.
-	if((ret=HIDUSER_GetHandles(&hidMemHandle, &hidEvents[HIDEVENT_PAD0], &hidEvents[HIDEVENT_PAD1], &hidEvents[HIDEVENT_Accel], &hidEvents[HIDEVENT_Gyro], &hidEvents[HIDEVENT_DebugPad]))) goto cleanup1;
+	if(R_FAILED(ret=HIDUSER_GetHandles(&hidMemHandle, &hidEvents[HIDEVENT_PAD0], &hidEvents[HIDEVENT_PAD1], &hidEvents[HIDEVENT_Accel], &hidEvents[HIDEVENT_Gyro], &hidEvents[HIDEVENT_DebugPad]))) goto cleanup1;
 
 	// Map HID shared memory.
 	hidSharedMem=(vu32*)mappableAlloc(0x2b0);
@@ -48,7 +52,7 @@ Result hidInit(void)
 		goto cleanup1;
 	}
 
-	if((ret=svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
+	if(R_FAILED(ret=svcMapMemoryBlock(hidMemHandle, (u32)hidSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
 
 	APT_CheckNew3DS(&val);
 
@@ -58,7 +62,6 @@ Result hidInit(void)
 	}
 
 	// Reset internal state.
-	hidInitialised = true;
 	kOld = kHeld = kDown = kUp = 0;
 	return ret;
 
@@ -71,12 +74,14 @@ cleanup2:
 	}
 cleanup1:
 	svcCloseHandle(hidHandle);
+cleanup0:
+	AtomicDecrement(&hidRefCount);
 	return ret;
 }
 
 void hidExit(void)
 {
-	if(!hidInitialised) return;
+	if (AtomicDecrement(&hidRefCount)) return;
 
 	// Unmap HID sharedmem and close handles.
 	u8 val=0;
@@ -97,8 +102,6 @@ void hidExit(void)
 		mappableFree((void*) hidSharedMem);
 		hidSharedMem = NULL;
 	}
-	
-	hidInitialised = false;
 }
 
 void hidWaitForEvent(HID_Event id, bool nextEvent)
@@ -218,7 +221,7 @@ Result HIDUSER_GetHandles(Handle* outMemHandle, Handle *eventpad0, Handle *event
 	cmdbuf[0]=IPC_MakeHeader(0xA,0,0); // 0xA0000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	if(outMemHandle)*outMemHandle=cmdbuf[3];
 
@@ -237,7 +240,7 @@ Result HIDUSER_EnableAccelerometer(void)
 	cmdbuf[0]=IPC_MakeHeader(0x11,0,0); // 0x110000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -248,7 +251,7 @@ Result HIDUSER_DisableAccelerometer(void)
 	cmdbuf[0]=IPC_MakeHeader(0x12,0,0); // 0x120000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -259,7 +262,7 @@ Result HIDUSER_EnableGyroscope(void)
 	cmdbuf[0]=IPC_MakeHeader(0x13,0,0); // 0x130000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -270,7 +273,7 @@ Result HIDUSER_DisableGyroscope(void)
 	cmdbuf[0]=IPC_MakeHeader(0x14,0,0); // 0x140000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -281,7 +284,7 @@ Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff)
 	cmdbuf[0]=IPC_MakeHeader(0x15,0,0); // 0x150000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	*coeff = (float)cmdbuf[2];
 
@@ -294,7 +297,7 @@ Result HIDUSER_GetSoundVolume(u8 *volume)
 	cmdbuf[0]=IPC_MakeHeader(0x17,0,0); // 0x170000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(hidHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
 	*volume = (u8)cmdbuf[2];
 

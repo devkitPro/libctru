@@ -8,48 +8,43 @@
 Result ptmInit(void);
 
 /// Exits PTM.
-Result ptmExit(void);
+void ptmExit(void);
 
 /// Initializes ptm:sysm.
 Result ptmSysmInit(void);
 
 /// Exits ptm:sysm.
-Result ptmSysmExit(void);
+void ptmSysmExit(void);
 
 /**
  * @brief Gets the system's current shell state.
- * @param servhandle Optional pointer to the handle to use.
  * @param out Pointer to write the current shell state to. (0 = closed, 1 = open)
  */
-Result PTMU_GetShellState(Handle* servhandle, u8 *out);
+Result PTMU_GetShellState(u8 *out);
 
 /**
  * @brief Gets the system's current battery level.
- * @param servhandle Optional pointer to the handle to use.
  * @param out Pointer to write the current battery level to. (0-5)
  */
-Result PTMU_GetBatteryLevel(Handle* servhandle, u8 *out);
+Result PTMU_GetBatteryLevel(u8 *out);
 
 /**
  * @brief Gets the system's current battery charge state.
- * @param servhandle Optional pointer to the handle to use.
  * @param out Pointer to write the current battery charge state to. (0 = not charging, 1 = charging)
  */
-Result PTMU_GetBatteryChargeState(Handle* servhandle, u8 *out);
+Result PTMU_GetBatteryChargeState(u8 *out);
 
 /**
  * @brief Gets the system's current pedometer state.
- * @param servhandle Optional pointer to the handle to use.
  * @param out Pointer to write the current pedometer state to. (0 = not counting, 1 = counting)
  */
-Result PTMU_GetPedometerState(Handle* servhandle, u8 *out);
+Result PTMU_GetPedometerState(u8 *out);
 
 /**
  * @brief Gets the pedometer's total step count.
- * @param servhandle Optional pointer to the handle to use.
  * @param steps Pointer to write the total step count to.
  */
-Result PTMU_GetTotalStepCount(Handle* servhandle, u32 *steps);
+Result PTMU_GetTotalStepCount(u32 *steps);
 
 /**
  * @brief Configures the New 3DS' CPU clock speed and L2 cache.

@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/sdmc.h>
 #include <3ds/services/fs.h>
 #include <3ds/util/utf.h>
@@ -228,7 +229,7 @@ Result sdmcInit(void)
     return rc;
 
   rc = FSUSER_OpenArchive(&sdmcArchive);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
 
     int dev = AddDevice(&sdmc_devoptab);
@@ -288,7 +289,7 @@ Result sdmcExit(void)
   if(!sdmcInitialised) return rc;
 
   rc = FSUSER_CloseArchive(&sdmcArchive);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     RemoveDevice("sdmc");
     sdmcInitialised = false;
@@ -365,7 +366,7 @@ sdmc_open(struct _reent *r,
   if((flags & O_CREAT) && (flags & O_EXCL))
   {
     rc = FSUSER_CreateFile(sdmcArchive, fs_path, 0);
-    if(rc != 0)
+    if(R_FAILED(rc))
     {
       r->_errno = sdmc_translate_error(rc);
       return -1;
@@ -379,12 +380,12 @@ sdmc_open(struct _reent *r,
   /* open the file */
   rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path,
                        sdmc_flags, attributes);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     if((flags & O_ACCMODE) != O_RDONLY && (flags & O_TRUNC))
     {
       rc = FSFILE_SetSize(fd, 0);
-      if(rc != 0)
+      if(R_FAILED(rc))
       {
         FSFILE_Close(fd);
         r->_errno = sdmc_translate_error(rc);
@@ -420,7 +421,7 @@ sdmc_close(struct _reent *r,
   sdmc_file_t *file = (sdmc_file_t*)fd;
 
   rc = FSFILE_Close(file->fd);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
@@ -465,7 +466,7 @@ sdmc_write(struct _reent *r,
   {
     /* append means write from the end of the file */
     rc = FSFILE_GetSize(file->fd, &file->offset);
-    if(rc != 0)
+    if(R_FAILED(rc))
     {
       r->_errno = sdmc_translate_error(rc);
       return -1;
@@ -488,7 +489,7 @@ sdmc_write(struct _reent *r,
     /* write the data */
     rc = FSFILE_Write(file->fd, &bytes, file->offset, 
                       (u32*)tmp_buffer, (u32)toWrite, sync);
-    if(rc != 0)
+    if(R_FAILED(rc))
     {
       /* return partial transfer */
       if(bytesWritten > 0)
@@ -538,7 +539,7 @@ sdmc_read(struct _reent *r,
 
   /* read the data */
   rc = FSFILE_Read(file->fd, &bytes, file->offset, (u32*)ptr, (u32)len);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     /* update current file offset */
     file->offset += bytes;
@@ -587,7 +588,7 @@ sdmc_seek(struct _reent *r,
     /* set position relative to the end of the file */
     case SEEK_END:
       rc = FSFILE_GetSize(file->fd, &offset);
-      if(rc != 0)
+      if(R_FAILED(rc))
       {
         r->_errno = sdmc_translate_error(rc);
         return -1;
@@ -632,7 +633,7 @@ sdmc_fstat(struct _reent *r,
   sdmc_file_t *file = (sdmc_file_t*)fd;
 
   rc = FSFILE_GetSize(file->fd, &size);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     memset(st, 0, sizeof(struct stat));
     st->st_size = (off_t)size;
@@ -667,8 +668,8 @@ sdmc_stat(struct _reent *r,
   if(fs_path.data == NULL)
     return -1;
 
-  if((rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path,
-                           FS_OPEN_READ, FS_ATTRIBUTE_NONE)) == 0)
+  if(R_SUCCEEDED(rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path,
+                           FS_OPEN_READ, FS_ATTRIBUTE_NONE)))
   {
     sdmc_file_t tmpfd = { .fd = fd };
     rc = sdmc_fstat(r, (int)&tmpfd, st);
@@ -676,7 +677,7 @@ sdmc_stat(struct _reent *r,
 
     return rc;
   }
-  else if((rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path)) == 0)
+  else if(R_SUCCEEDED(rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path)))
   {
     memset(st, 0, sizeof(struct stat));
     st->st_nlink = 1;
@@ -727,7 +728,7 @@ sdmc_unlink(struct _reent *r,
     return -1;
 
   rc = FSUSER_DeleteFile(sdmcArchive, fs_path);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
@@ -755,7 +756,7 @@ sdmc_chdir(struct _reent *r,
     return -1;
 
   rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     FSDIR_Close(fd);
     strncpy(__cwd, __fixedpath, PATH_MAX);
@@ -796,11 +797,11 @@ sdmc_rename(struct _reent *r,
     return -1;
 
   rc = FSUSER_RenameFile(sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   rc = FSUSER_RenameDirectory(sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
@@ -831,7 +832,7 @@ sdmc_mkdir(struct _reent *r,
   /* TODO: Use mode to set directory attributes. */
 
   rc = FSUSER_CreateDirectory(sdmcArchive, fs_path);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
@@ -866,7 +867,7 @@ sdmc_diropen(struct _reent *r,
 
   /* open the directory */
   rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     dir->fd = fd;
     memset(&dir->entry_data, 0, sizeof(dir->entry_data));
@@ -919,7 +920,7 @@ sdmc_dirnext(struct _reent *r,
   /* fetch the next entry */
   memset(&dir->entry_data, 0, sizeof(dir->entry_data));
   rc = FSDIR_Read(dir->fd, &entries, 1, &dir->entry_data);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     if(entries == 0)
     {
@@ -976,7 +977,7 @@ sdmc_dirclose(struct _reent *r,
 
   /* close the directory */
   rc = FSDIR_Close(dir->fd);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
@@ -1006,7 +1007,7 @@ sdmc_statvfs(struct _reent  *r,
                                      &numClusters,
                                      &freeClusters);
 
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
   {
     buf->f_bsize   = clusterSize;
     buf->f_frsize  = clusterSize;
@@ -1021,7 +1022,7 @@ sdmc_statvfs(struct _reent  *r,
     buf->f_namemax = 0; //??? how to get
 
     rc = FSUSER_IsSdmcWritable(&writable);
-    if(rc != 0 || !writable)
+    if(R_FAILED(rc) || !writable)
       buf->f_flag |= ST_RDONLY;
 
     return 0;
@@ -1059,7 +1060,7 @@ sdmc_ftruncate(struct _reent *r,
 
   /* set the new file size */
   rc = FSFILE_SetSize(file->fd, len);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
@@ -1084,7 +1085,7 @@ sdmc_fsync(struct _reent *r,
   sdmc_file_t *file = (sdmc_file_t*)fd;
 
   rc = FSFILE_Flush(file->fd);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
@@ -1147,7 +1148,7 @@ sdmc_rmdir(struct _reent *r,
     return -1;
 
   rc = FSUSER_DeleteDirectory(sdmcArchive, fs_path);
-  if(rc == 0)
+  if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);

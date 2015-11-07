@@ -2,46 +2,33 @@
 #include <3ds/services/y2r.h>
 #include <3ds/srv.h>
 #include <3ds/svc.h>
+#include <3ds/synchronization.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 
 Handle camHandle;
-static bool initialized = false;
+static int camRefCount;
 
 Result camInit(void) {
 	Result ret = 0;
 
-	if (initialized) return 0;
+	if (AtomicPostIncrement(&camRefCount)) return 0;
 
-	if (camHandle == 0)
+	ret = srvGetServiceHandle(&camHandle, "cam:u");
+	if (R_SUCCEEDED(ret))
 	{
-		ret = srvGetServiceHandle(&camHandle, "cam:u");
-		if (ret < 0) return ret;
+		ret = CAMU_DriverInitialize();
+		if (R_FAILED(ret)) svcCloseHandle(camHandle);
 	}
-
-	ret = CAMU_DriverInitialize();
-	if (ret < 0) return ret;
-	initialized = true;
+	if (R_FAILED(ret)) AtomicDecrement(&camRefCount);
 
 	return 0;
 }
 
-Result camExit(void) {
-	Result ret = 0;
-
-	if (initialized)
-	{
-		ret = CAMU_DriverFinalize();
-		if (ret < 0) return ret;
-	}
-
-	if (camHandle != 0)
-	{
-		ret = svcCloseHandle(camHandle);
-		if (ret < 0) return ret;
-		camHandle = 0;
-	}
-
-	return 0;
+void camExit(void) {
+	if (AtomicDecrement(&camRefCount)) return;
+	CAMU_DriverFinalize();
+	svcCloseHandle(camHandle);
 }
 
 Result CAMU_StartCapture(CAMU_Port port) {
@@ -50,7 +37,7 @@ Result CAMU_StartCapture(CAMU_Port port) {
 	cmdbuf[0] = 0x00010040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -60,7 +47,7 @@ Result CAMU_StopCapture(CAMU_Port port) {
 	cmdbuf[0] = 0x00020040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -70,7 +57,7 @@ Result CAMU_IsBusy(bool* busy, CAMU_Port port) {
 	cmdbuf[0] = 0x00030040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*busy = (bool) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -81,7 +68,7 @@ Result CAMU_ClearBuffer(CAMU_Port port) {
 	cmdbuf[0] = 0x00040040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -91,7 +78,7 @@ Result CAMU_GetVsyncInterruptEvent(Handle* event, CAMU_Port port) {
 	cmdbuf[0] = 0x00050040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*event = cmdbuf[3];
 	return cmdbuf[1];
 }
@@ -102,7 +89,7 @@ Result CAMU_GetBufferErrorInterruptEvent(Handle* event, CAMU_Port port) {
 	cmdbuf[0] = 0x00060040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*event = cmdbuf[3];
 	return cmdbuf[1];
 }
@@ -118,7 +105,7 @@ Result CAMU_SetReceiving(Handle* event, void* dst, CAMU_Port port, u32 imageSize
 	cmdbuf[5] = 0;
 	cmdbuf[6] = 0xFFFF8001;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*event = cmdbuf[3];
 	return cmdbuf[1];
 }
@@ -129,7 +116,7 @@ Result CAMU_IsFinishedReceiving(bool* finishedReceiving, CAMU_Port port) {
 	cmdbuf[0] = 0x00080040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*finishedReceiving = (bool) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -143,7 +130,7 @@ Result CAMU_SetTransferLines(CAMU_Port port, s16 lines, s16 width, s16 height) {
 	cmdbuf[3] = width;
 	cmdbuf[4] = height;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -154,7 +141,7 @@ Result CAMU_GetMaxLines(s16* maxLines, s16 width, s16 height) {
 	cmdbuf[1] = width;
 	cmdbuf[2] = height;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*maxLines = (s16) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -168,7 +155,7 @@ Result CAMU_SetTransferBytes(CAMU_Port port, u32 bytes, s16 width, s16 height) {
 	cmdbuf[3] = width;
 	cmdbuf[4] = height;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -178,7 +165,7 @@ Result CAMU_GetTransferBytes(u32* transferBytes, CAMU_Port port) {
 	cmdbuf[0] = 0x000C0040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*transferBytes = cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -190,7 +177,7 @@ Result CAMU_GetMaxBytes(u32* maxBytes, s16 width, s16 height) {
 	cmdbuf[1] = width;
 	cmdbuf[2] = height;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*maxBytes = cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -202,7 +189,7 @@ Result CAMU_SetTrimming(CAMU_Port port, bool trimming) {
 	cmdbuf[1] = port;
 	cmdbuf[2] = trimming;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -212,7 +199,7 @@ Result CAMU_IsTrimming(bool* trimming, CAMU_Port port) {
 	cmdbuf[0] = 0x000F0040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*trimming = (bool) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -227,7 +214,7 @@ Result CAMU_SetTrimmingParams(CAMU_Port port, s16 xStart, s16 yStart, s16 xEnd, 
 	cmdbuf[4] = xEnd;
 	cmdbuf[5] = yEnd;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -237,7 +224,7 @@ Result CAMU_GetTrimmingParams(s16* xStart, s16* yStart, s16* xEnd, s16* yEnd, CA
 	cmdbuf[0] = 0x00110040;
 	cmdbuf[1] = port;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*xStart = (s16) cmdbuf[2];
 	*yStart = (s16) cmdbuf[3];
 	*xEnd = (s16) cmdbuf[4];
@@ -255,7 +242,7 @@ Result CAMU_SetTrimmingParamsCenter(CAMU_Port port, s16 trimWidth, s16 trimHeigh
 	cmdbuf[4] = camWidth;
 	cmdbuf[5] = camHeight;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -265,7 +252,7 @@ Result CAMU_Activate(CAMU_CameraSelect select) {
 	cmdbuf[0] = 0x00130040;
 	cmdbuf[1] = select;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -276,7 +263,7 @@ Result CAMU_SwitchContext(CAMU_CameraSelect select, CAMU_Context context) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = context;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -287,7 +274,7 @@ Result CAMU_SetExposure(CAMU_CameraSelect select, s8 exposure) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = exposure;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -298,7 +285,7 @@ Result CAMU_SetWhiteBalance(CAMU_CameraSelect select, CAMU_WhiteBalance whiteBal
 	cmdbuf[1] = select;
 	cmdbuf[2] = whiteBalance;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -309,7 +296,7 @@ Result CAMU_SetWhiteBalanceWithoutBaseUp(CAMU_CameraSelect select, CAMU_WhiteBal
 	cmdbuf[1] = select;
 	cmdbuf[2] = whiteBalance;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -320,7 +307,7 @@ Result CAMU_SetSharpness(CAMU_CameraSelect select, s8 sharpness) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = sharpness;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -331,7 +318,7 @@ Result CAMU_SetAutoExposure(CAMU_CameraSelect select, bool autoExposure) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = autoExposure;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -341,7 +328,7 @@ Result CAMU_IsAutoExposure(bool* autoExposure, CAMU_CameraSelect select) {
 	cmdbuf[0] = 0x001A0040;
 	cmdbuf[1] = select;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*autoExposure = (bool) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -353,7 +340,7 @@ Result CAMU_SetAutoWhiteBalance(CAMU_CameraSelect select, bool autoWhiteBalance)
 	cmdbuf[1] = select;
 	cmdbuf[2] = autoWhiteBalance;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -363,7 +350,7 @@ Result CAMU_IsAutoWhiteBalance(bool* autoWhiteBalance, CAMU_CameraSelect select)
 	cmdbuf[0] = 0x001C0040;
 	cmdbuf[1] = select;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*autoWhiteBalance = (bool) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -376,7 +363,7 @@ Result CAMU_FlipImage(CAMU_CameraSelect select, CAMU_Flip flip, CAMU_Context con
 	cmdbuf[2] = flip;
 	cmdbuf[3] = context;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -393,7 +380,7 @@ Result CAMU_SetDetailSize(CAMU_CameraSelect select, s16 width, s16 height, s16 c
 	cmdbuf[7] = cropY1;
 	cmdbuf[8] = context;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -405,7 +392,7 @@ Result CAMU_SetSize(CAMU_CameraSelect select, CAMU_Size size, CAMU_Context conte
 	cmdbuf[2] = size;
 	cmdbuf[3] = context;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -416,7 +403,7 @@ Result CAMU_SetFrameRate(CAMU_CameraSelect select, CAMU_FrameRate frameRate) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = frameRate;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -427,7 +414,7 @@ Result CAMU_SetPhotoMode(CAMU_CameraSelect select, CAMU_PhotoMode photoMode) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = photoMode;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -439,7 +426,7 @@ Result CAMU_SetEffect(CAMU_CameraSelect select, CAMU_Effect effect, CAMU_Context
 	cmdbuf[2] = effect;
 	cmdbuf[3] = context;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -450,7 +437,7 @@ Result CAMU_SetContrast(CAMU_CameraSelect select, CAMU_Contrast contrast) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = contrast;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -461,7 +448,7 @@ Result CAMU_SetLensCorrection(CAMU_CameraSelect select, CAMU_LensCorrection lens
 	cmdbuf[1] = select;
 	cmdbuf[2] = lensCorrection;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -473,7 +460,7 @@ Result CAMU_SetOutputFormat(CAMU_CameraSelect select, CAMU_OutputFormat format, 
 	cmdbuf[2] = format;
 	cmdbuf[3] = context;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -487,7 +474,7 @@ Result CAMU_SetAutoExposureWindow(CAMU_CameraSelect select, s16 x, s16 y, s16 wi
 	cmdbuf[4] = width;
 	cmdbuf[5] = height;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -501,7 +488,7 @@ Result CAMU_SetAutoWhiteBalanceWindow(CAMU_CameraSelect select, s16 x, s16 y, s1
 	cmdbuf[4] = width;
 	cmdbuf[5] = height;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -512,7 +499,7 @@ Result CAMU_SetNoiseFilter(CAMU_CameraSelect select, bool noiseFilter) {
 	cmdbuf[1] = select;
 	cmdbuf[2] = noiseFilter;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -523,7 +510,7 @@ Result CAMU_SynchronizeVsyncTiming(CAMU_CameraSelect select1, CAMU_CameraSelect 
 	cmdbuf[1] = select1;
 	cmdbuf[2] = select2;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -536,7 +523,7 @@ Result CAMU_GetLatestVsyncTiming(s64* timing, CAMU_Port port, u32 past) {
 	cmdbuf[49] = (past << 17) | 2;
 	cmdbuf[50] = (u32) timing;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -545,7 +532,7 @@ Result CAMU_GetStereoCameraCalibrationData(CAMU_StereoCameraCalibrationData* dat
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x002B0000;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*data = *(CAMU_StereoCameraCalibrationData*) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -556,7 +543,7 @@ Result CAMU_SetStereoCameraCalibrationData(CAMU_StereoCameraCalibrationData data
 	cmdbuf[0] = 0x002C0400;
 	*(CAMU_StereoCameraCalibrationData*) cmdbuf[1] = data;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -568,7 +555,7 @@ Result CAMU_WriteRegisterI2c(CAMU_CameraSelect select, u16 addr, u16 data) {
 	cmdbuf[2] = addr;
 	cmdbuf[3] = data;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -580,7 +567,7 @@ Result CAMU_WriteMcuVariableI2c(CAMU_CameraSelect select, u16 addr, u16 data) {
 	cmdbuf[2] = addr;
 	cmdbuf[3] = data;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -591,7 +578,7 @@ Result CAMU_ReadRegisterI2cExclusive(u16* data, CAMU_CameraSelect select, u16 ad
 	cmdbuf[1] = select;
 	cmdbuf[2] = addr;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*data = (u16) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -603,7 +590,7 @@ Result CAMU_ReadMcuVariableI2cExclusive(u16* data, CAMU_CameraSelect select, u16
 	cmdbuf[1] = select;
 	cmdbuf[2] = addr;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*data = (u16) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -614,7 +601,7 @@ Result CAMU_SetImageQualityCalibrationData(CAMU_ImageQualityCalibrationData data
 	cmdbuf[0] = 0x00310180;
 	*(CAMU_ImageQualityCalibrationData*) cmdbuf[1] = data;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -623,7 +610,7 @@ Result CAMU_GetImageQualityCalibrationData(CAMU_ImageQualityCalibrationData* dat
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x00320000;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*data = *(CAMU_ImageQualityCalibrationData*) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -634,7 +621,7 @@ Result CAMU_SetPackageParameterWithoutContext(CAMU_PackageParameterCameraSelect 
 	cmdbuf[0] = 0x003302C0;
 	*(CAMU_PackageParameterCameraSelect*) cmdbuf[1] = param;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -644,7 +631,7 @@ Result CAMU_SetPackageParameterWithContext(CAMU_PackageParameterContext param) {
 	cmdbuf[0] = 0x00340140;
 	*(CAMU_PackageParameterContext*) cmdbuf[1] = param;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -654,7 +641,7 @@ Result CAMU_SetPackageParameterWithContextDetail(CAMU_PackageParameterContextDet
 	cmdbuf[0] = 0x003501C0;
 	*(CAMU_PackageParameterContextDetail*) cmdbuf[1] = param;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -663,7 +650,7 @@ Result CAMU_GetSuitableY2rStandardCoefficient(Y2R_StandardCoefficient* coefficie
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x00360000;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*coefficient = (Y2R_StandardCoefficient) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -674,7 +661,7 @@ Result CAMU_PlayShutterSound(CAMU_ShutterSoundType sound) {
 	cmdbuf[0] = 0x00380040;
 	cmdbuf[1] = sound;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -683,7 +670,7 @@ Result CAMU_DriverInitialize(void) {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x00390000;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -692,7 +679,7 @@ Result CAMU_DriverFinalize(void) {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x003A0000;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -701,7 +688,7 @@ Result CAMU_GetActivatedCamera(CAMU_CameraSelect* select) {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x003B0000;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*select = (CAMU_CameraSelect) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -711,7 +698,7 @@ Result CAMU_GetSleepCamera(CAMU_CameraSelect* select) {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = 0x003C0000;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	*select = (CAMU_CameraSelect) cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -722,7 +709,7 @@ Result CAMU_SetSleepCamera(CAMU_CameraSelect select) {
 	cmdbuf[0] = 0x003D0040;
 	cmdbuf[1] = select;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -732,7 +719,7 @@ Result CAMU_SetBrightnessSynchronization(bool brightnessSynchronization) {
 	cmdbuf[0] = 0x003E0040;
 	cmdbuf[1] = brightnessSynchronization;
 
-	if ((ret = svcSendSyncRequest(camHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
 }
 

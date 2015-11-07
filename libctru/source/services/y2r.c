@@ -4,48 +4,34 @@
 #include <3ds/srv.h>
 #include <3ds/svc.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/ipc.h>
+#include <3ds/synchronization.h>
 
-Handle y2rHandle = 0;
-static bool initialized = false;
+Handle y2rHandle;
+static int y2rRefCount;
 
 Result y2rInit(void)
 {
 	Result ret = 0;
 
-	if (initialized) return 0;
+	if (AtomicPostIncrement(&y2rRefCount)) return 0;
 
-	if (y2rHandle == 0)
+	ret = srvGetServiceHandle(&y2rHandle, "y2r:u");
+	if (R_SUCCEEDED(ret))
 	{
-		ret = srvGetServiceHandle(&y2rHandle, "y2r:u");
-		if (ret < 0) return ret;
+		ret = Y2RU_DriverInitialize();
+		if (R_FAILED(ret)) svcCloseHandle(y2rHandle);
 	}
-
-	ret = Y2RU_DriverInitialize();
-	if (ret < 0) return ret;
-	initialized = true;
-
-	return 0;
+	if (R_FAILED(ret)) AtomicDecrement(&y2rRefCount);
+	return ret;
 }
 
-Result y2rExit(void)
+void y2rExit(void)
 {
-	Result ret = 0;
-
-	if (initialized)
-	{
-		ret = Y2RU_DriverFinalize();
-		if (ret < 0) return ret;
-	}
-
-	if (y2rHandle != 0)
-	{
-		ret = svcCloseHandle(y2rHandle);
-		if (ret < 0) return ret;
-		y2rHandle = 0;
-	}
-
-	return 0;
+	if (AtomicDecrement(&y2rRefCount)) return;
+	Y2RU_DriverFinalize();
+	svcCloseHandle(y2rHandle);
 }
 
 Result Y2RU_SetInputFormat(Y2R_InputFormat format)
@@ -55,7 +41,7 @@ Result Y2RU_SetInputFormat(Y2R_InputFormat format)
 	cmdbuf[0] = IPC_MakeHeader(0x1,1,0); // 0x10040
 	cmdbuf[1] = format;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -65,7 +51,7 @@ Result Y2RU_GetInputFormat(Y2R_InputFormat* format)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*format = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -77,7 +63,7 @@ Result Y2RU_SetOutputFormat(Y2R_OutputFormat format)
 	cmdbuf[0] = IPC_MakeHeader(0x3,1,0); // 0x30040
 	cmdbuf[1] = format;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -87,7 +73,7 @@ Result Y2RU_GetOutputFormat(Y2R_OutputFormat* format)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x4,0,0); // 0x40000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*format = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -99,7 +85,7 @@ Result Y2RU_SetRotation(Y2R_Rotation rotation)
 	cmdbuf[0] = IPC_MakeHeader(0x5,1,0); // 0x50040
 	cmdbuf[1] = rotation;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -109,7 +95,7 @@ Result Y2RU_GetRotation(Y2R_Rotation* rotation)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x6,0,0); // 0x60000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*rotation = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -121,7 +107,7 @@ Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment)
 	cmdbuf[0] = IPC_MakeHeader(0x7,1,0); // 0x70040
 	cmdbuf[1] = alignment;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -131,7 +117,7 @@ Result Y2RU_GetBlockAlignment(Y2R_BlockAlignment* alignment)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x8,0,0); // 0x80000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*alignment = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -143,7 +129,7 @@ Result Y2RU_SetSpacialDithering(bool enable)
 	cmdbuf[0] = IPC_MakeHeader(0x9,1,0); // 0x90040
 	cmdbuf[1] = enable;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -153,7 +139,7 @@ Result Y2RU_GetSpacialDithering(bool* enabled)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xA,0,0); // 0xA0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*enabled = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -165,7 +151,7 @@ Result Y2RU_SetTemporalDithering(bool enable)
 	cmdbuf[0] = IPC_MakeHeader(0xB,1,0); // 0xB0040
 	cmdbuf[1] = enable;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -175,7 +161,7 @@ Result Y2RU_GetTemporalDithering(bool* enabled)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xC,0,0); // 0xC0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*enabled = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -187,7 +173,7 @@ Result Y2RU_SetTransferEndInterrupt(bool should_interrupt)
 	cmdbuf[0] = IPC_MakeHeader(0xD,1,0); // 0xD0040
 	cmdbuf[1] = should_interrupt;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -197,7 +183,7 @@ Result Y2RU_GetTransferEndInterrupt(bool* should_interrupt)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xE,0,0); // 0xE0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*should_interrupt = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -214,7 +200,7 @@ Result Y2RU_GetTransferEndEvent(Handle* end_event)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xF,0,0); // 0xF0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 
 	*end_event = cmdbuf[3];
 	return cmdbuf[1];
@@ -232,7 +218,7 @@ Result Y2RU_SetSendingY(const void* src_buf, u32 image_size, s16 transfer_unit, 
 	cmdbuf[5] = IPC_Desc_SharedHandles(1);
 	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -248,7 +234,7 @@ Result Y2RU_SetSendingU(const void* src_buf, u32 image_size, s16 transfer_unit, 
 	cmdbuf[5] = IPC_Desc_SharedHandles(1);
 	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -264,7 +250,7 @@ Result Y2RU_SetSendingV(const void* src_buf, u32 image_size, s16 transfer_unit, 
 	cmdbuf[5] = IPC_Desc_SharedHandles(1);
 	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -280,7 +266,7 @@ Result Y2RU_SetSendingYUYV(const void* src_buf, u32 image_size, s16 transfer_uni
 	cmdbuf[5] = IPC_Desc_SharedHandles(1);
 	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -290,7 +276,7 @@ Result Y2RU_IsDoneSendingYUYV(bool* is_done)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x14,0,0); // 0x140000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*is_done = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -301,7 +287,7 @@ Result Y2RU_IsDoneSendingY(bool* is_done)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x15,0,0); // 0x150000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*is_done = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -312,7 +298,7 @@ Result Y2RU_IsDoneSendingU(bool* is_done)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x16,0,0); // 0x160000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*is_done = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -323,7 +309,7 @@ Result Y2RU_IsDoneSendingV(bool* is_done)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x17,0,0); // 0x170000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*is_done = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -340,7 +326,7 @@ Result Y2RU_SetReceiving(void* dst_buf, u32 image_size, s16 transfer_unit, s16 t
 	cmdbuf[5] = IPC_Desc_SharedHandles(1);
 	cmdbuf[6] = CUR_PROCESS_HANDLE;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -350,7 +336,7 @@ Result Y2RU_IsDoneReceiving(bool* is_done)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x19,0,0); // 0x190000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*is_done = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -362,7 +348,7 @@ Result Y2RU_SetInputLineWidth(u16 line_width)
 	cmdbuf[0] = IPC_MakeHeader(0x1A,1,0); // 0x1A0040
 	cmdbuf[1] = line_width;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -372,7 +358,7 @@ Result Y2RU_GetInputLineWidth(u16* line_width)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1B,0,0); // 0x1B0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*line_width = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
 }
@@ -384,7 +370,7 @@ Result Y2RU_SetInputLines(u16 num_lines)
 	cmdbuf[0] = IPC_MakeHeader(0x1C,1,0); // 0x1C0040
 	cmdbuf[1] = num_lines;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -394,7 +380,7 @@ Result Y2RU_GetInputLines(u16* num_lines)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1D,0,0); // 0x1D0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*num_lines = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
 }
@@ -406,7 +392,7 @@ Result Y2RU_SetCoefficients(const Y2R_ColorCoefficients* coefficients)
 	cmdbuf[0] = IPC_MakeHeader(0x1E,4,0); // 0x1E0100
 	memcpy(&cmdbuf[1], coefficients, sizeof(Y2R_ColorCoefficients));
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -416,7 +402,7 @@ Result Y2RU_GetCoefficients(Y2R_ColorCoefficients* coefficients)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1F,0,0); // 0x1F0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	memcpy(coefficients,cmdbuf + 2, sizeof(Y2R_ColorCoefficients));
 	return cmdbuf[1];
 }
@@ -428,7 +414,7 @@ Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient)
 	cmdbuf[0] = IPC_MakeHeader(0x20,1,0); // 0x200040
 	cmdbuf[1] = coefficient;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -439,7 +425,7 @@ Result Y2RU_GetStandardCoefficient(Y2R_ColorCoefficients* coefficients, Y2R_Stan
 	cmdbuf[0] = IPC_MakeHeader(0x21,1,0); // 0x210040
 	cmdbuf[1] = standardCoeff;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	memcpy(coefficients,cmdbuf + 2, sizeof(Y2R_ColorCoefficients));
 	return cmdbuf[1];
 }
@@ -451,7 +437,7 @@ Result Y2RU_SetAlpha(u16 alpha)
 	cmdbuf[0] = IPC_MakeHeader(0x22,1,0); // 0x220040
 	cmdbuf[1] = alpha;
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -461,7 +447,7 @@ Result Y2RU_GetAlpha(u16* alpha)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x23,0,0); // 0x230000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*alpha = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
 }
@@ -474,7 +460,7 @@ Result Y2RU_SetDitheringWeightParams(const Y2R_DitheringWeightParams* params)
 	cmdbuf[0] = IPC_MakeHeader(0x24,8,0); // 0x240200
 	memcpy(&cmdbuf[1], params, sizeof(Y2R_DitheringWeightParams));
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -484,7 +470,7 @@ Result Y2RU_GetDitheringWeightParams(Y2R_DitheringWeightParams* params)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x25,0,0); // 0x250000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	memcpy(params,cmdbuf+2, sizeof(Y2R_DitheringWeightParams));
 	return cmdbuf[1];
 }
@@ -495,7 +481,7 @@ Result Y2RU_StartConversion(void)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x26,0,0); // 0x260000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -505,7 +491,7 @@ Result Y2RU_StopConversion(void)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x27,0,0); // 0x270000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -515,7 +501,7 @@ Result Y2RU_IsBusyConversion(bool* is_busy)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x28,0,0); // 0x280000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*is_busy = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -527,7 +513,7 @@ Result Y2RU_SetConversionParams(const Y2R_ConversionParams* params)
 	cmdbuf[0] = IPC_MakeHeader(0x29,7,0); // 0x2901C0
 	memcpy(&cmdbuf[1], params, sizeof(Y2R_ConversionParams));
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -537,7 +523,7 @@ Result Y2RU_PingProcess(u8* ping)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2A,0,0); // 0x2A0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	*ping = (u8)cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -548,7 +534,7 @@ Result Y2RU_DriverInitialize(void)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2B,0,0); // 0x2B0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -558,6 +544,6 @@ Result Y2RU_DriverFinalize(void)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2C,0,0); // 0x2C0000
 
-	if ((ret = svcSendSyncRequest(y2rHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }

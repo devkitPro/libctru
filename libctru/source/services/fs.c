@@ -1,7 +1,9 @@
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/fs.h>
 #include <3ds/ipc.h>
 
@@ -34,40 +36,33 @@ FS_makePath(FS_pathType type,
 	return (FS_path){type, strlen(path)+1, (const u8*)path};
 }
 
+static int fsRefCount;
+
 /*! Initialize FS service
  *
  *  @returns error
  */
-
-static bool fsInitialised = false;
-
-Result
-fsInit(void)
+Result fsInit(void)
 {
 	Result ret = 0;
 
-	if (fsInitialised) return ret;
+	if (AtomicPostIncrement(&fsRefCount)) return 0;
 
-	if((ret=srvGetServiceHandle(&fsuHandle, "fs:USER"))!=0)return ret;
-	if(__get_handle_from_list("fs:USER")==0)ret=FSUSER_Initialize(fsuHandle);
-
-	fsInitialised = true;
-
+	ret = srvGetServiceHandle(&fsuHandle, "fs:USER");
+	if (R_SUCCEEDED(ret) && __get_handle_from_list("fs:USER")==0)
+	{
+		ret = FSUSER_Initialize(fsuHandle);
+		if (R_FAILED(ret)) svcCloseHandle(fsuHandle);
+	}
+	if (R_FAILED(ret)) AtomicDecrement(&fsRefCount);
 	return ret;
 }
 
-/*! Deinitialize FS service
- *
- *  @returns error
- */
-Result
-fsExit(void)
+/// Deinitialize FS service
+void fsExit(void)
 {
-	if (!fsInitialised) return 0;
-	
-	fsInitialised = false;
-
-	return svcCloseHandle(fsuHandle);
+	if (AtomicDecrement(&fsRefCount)) return;
+	svcCloseHandle(fsuHandle);
 }
 
 /*! Gets the fsuser service session handle.
@@ -110,7 +105,7 @@ FSUSER_Initialize(Handle handle)
 	cmdbuf[1] = IPC_Desc_CurProcessHandle();
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -178,7 +173,7 @@ FSUSER_OpenFile(Handle     *out,
 	cmdbuf[9] = (u32)fileLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(out)
@@ -255,7 +250,7 @@ FSUSER_OpenFileDirectly(Handle     *out,
 	cmdbuf[12] = (u32)fileLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(out)
@@ -309,7 +304,7 @@ FSUSER_DeleteFile(FS_archive archive,
 	cmdbuf[7] = (u32)fileLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -376,7 +371,7 @@ FSUSER_RenameFile(FS_archive srcArchive,
 	cmdbuf[13] = (u32)destFileLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -427,7 +422,7 @@ FSUSER_DeleteDirectory(FS_archive archive,
 	cmdbuf[7] = (u32)dirLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -478,7 +473,7 @@ FSUSER_DeleteDirectoryRecursively(FS_archive archive,
 	cmdbuf[7] = (u32)dirLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -537,7 +532,7 @@ FSUSER_CreateFile(FS_archive archive,
 	cmdbuf[10] = (u32)fileLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -590,7 +585,7 @@ FSUSER_CreateDirectory(FS_archive archive,
 	cmdbuf[8] = (u32)dirLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -657,7 +652,7 @@ FSUSER_RenameDirectory(FS_archive srcArchive,
 	cmdbuf[13] = (u32)destDirLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -709,7 +704,7 @@ FSUSER_OpenDirectory(Handle     *out,
 	cmdbuf[6] = (u32)dirLowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(out)
@@ -762,7 +757,7 @@ FSUSER_OpenArchive(FS_archive *archive)
 	cmdbuf[5] = (u32)archive->lowPath.data;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	archive->handleLow  = cmdbuf[2];
@@ -808,7 +803,7 @@ FSUSER_CloseArchive(FS_archive *archive)
 	cmdbuf[2] = archive->handleHigh;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -853,7 +848,7 @@ FSUSER_GetSdmcArchiveResource(u32    *sectorSize,
 	cmdbuf[0] = IPC_MakeHeader(0x814,0,0); // 0x8140000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(sectorSize)
@@ -910,7 +905,7 @@ FSUSER_GetNandArchiveResource(u32    *sectorSize,
 	cmdbuf[0] = IPC_MakeHeader(0x815,0,0); // 0x8150000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(sectorSize)
@@ -958,7 +953,7 @@ FSUSER_IsSdmcDetected(u8    *detected)
 	cmdbuf[0] = IPC_MakeHeader(0x817,0,0); // 0x8170000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(detected)
@@ -996,7 +991,7 @@ FSUSER_GetMediaType(u8* mediatype)
 	cmdbuf[0] = IPC_MakeHeader(0x868,0,0); // 0x8680000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(mediatype)
@@ -1035,7 +1030,7 @@ FSUSER_IsSdmcWritable(u8 *writable)
 	cmdbuf[0] = IPC_MakeHeader(0x818,0,0); // 0x8180000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(fsuHandle)))
+	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle)))
 		return ret;
 
 	if(writable)
@@ -1073,11 +1068,11 @@ FSFILE_Close(Handle handle)
 	cmdbuf[0] = IPC_MakeHeader(0x808,0,0); // 0x8080000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	ret = cmdbuf[1];
-	if(!ret)ret = svcCloseHandle(handle);
+	if(R_SUCCEEDED(ret))ret = svcCloseHandle(handle);
 
 	return ret;
 }
@@ -1130,7 +1125,7 @@ FSFILE_Read(Handle handle,
 	cmdbuf[5] = (u32)buffer;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	if(bytesRead)
@@ -1199,7 +1194,7 @@ FSFILE_Write(Handle     handle,
 	cmdbuf[6] = (u32)buffer;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	if(bytesWritten)
@@ -1241,7 +1236,7 @@ FSFILE_GetSize(Handle handle,
 	cmdbuf[0] = IPC_MakeHeader(0x804,0,0); // 0x8040000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	if(size)
@@ -1285,7 +1280,7 @@ FSFILE_SetSize(Handle handle,
 	cmdbuf[2] = (u32)(size >> 32);
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 
@@ -1324,7 +1319,7 @@ FSFILE_GetAttributes(Handle handle,
 	cmdbuf[0] = IPC_MakeHeader(0x806,0,0); // 0x8060000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	if(attributes)
@@ -1366,7 +1361,7 @@ FSFILE_SetAttributes(Handle handle,
 	cmdbuf[1] = attributes;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -1401,7 +1396,7 @@ FSFILE_Flush(Handle handle)
 	cmdbuf[0] = IPC_MakeHeader(0x809,0,0); // 0x8090000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -1449,7 +1444,7 @@ FSDIR_Read(Handle    handle,
 	cmdbuf[3] = (u32)buffer;
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 
 	if(entriesRead)
@@ -1487,9 +1482,9 @@ FSDIR_Close(Handle handle)
 	cmdbuf[0] = IPC_MakeHeader(0x802,0,0); // 0x8020000
 
 	Result ret = 0;
-	if((ret = svcSendSyncRequest(handle)))
+	if(R_FAILED(ret = svcSendSyncRequest(handle)))
 		return ret;
 	ret = cmdbuf[1];
-	if(!ret)ret = svcCloseHandle(handle);
+	if(R_SUCCEEDED(ret))ret = svcCloseHandle(handle);
 	return ret;
 }

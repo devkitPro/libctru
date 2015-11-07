@@ -1,20 +1,28 @@
 #include <stdlib.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/ps.h>
 #include <3ds/ipc.h>
 
 static Handle psHandle;
+static int psRefCount;
 
 Result psInit(void)
 {
-	return srvGetServiceHandle(&psHandle, "ps:ps");
+	Result res;
+	if (AtomicPostIncrement(&psRefCount)) return 0;
+	res = srvGetServiceHandle(&psHandle, "ps:ps");
+	if (R_FAILED(res)) AtomicDecrement(&psRefCount);
+	return res;
 }
 
-Result psExit(void)
+void psExit(void)
 {
-	return svcCloseHandle(psHandle);
+	if (AtomicDecrement(&psRefCount)) return;
+	svcCloseHandle(psHandle);
 }
 
 Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_type, u8* iv)
@@ -37,7 +45,7 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_typ
 	cmdbuf[10] = IPC_Desc_PXIBuffer(size,1,false);
 	cmdbuf[11] = (u32)out;
 
-	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
 
 	_iv[0] = cmdbuf[2];
 	_iv[1] = cmdbuf[3];
@@ -70,7 +78,7 @@ Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_s
 	cmdbuf[10] = IPC_Desc_PXIBuffer(out_size,1,false);
 	cmdbuf[11] = (u32)out;
 
-	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -82,7 +90,7 @@ Result PS_GetLocalFriendCodeSeed(u64* seed)
 
 	cmdbuf[0] = IPC_MakeHeader(0xA,0,0); // 0xA0000
 
-	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
 
 	*seed = (u64)cmdbuf[2] | (u64)cmdbuf[3] << 32;
 
@@ -96,7 +104,7 @@ Result PS_GetDeviceId(u32* device_id)
 
 	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0xB0000
 
-	if((ret = svcSendSyncRequest(psHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
 
 	*device_id = cmdbuf[2];
 

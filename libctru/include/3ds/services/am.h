@@ -19,7 +19,7 @@ typedef struct
 Result amInit(void);
 
 /// Exits AM.
-Result amExit(void);
+void amExit(void);
 
 /// Gets the current AM session handle.
 Handle *amGetSessionHandle(void);

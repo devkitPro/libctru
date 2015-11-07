@@ -1,22 +1,32 @@
 #include <stdlib.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/ac.h>
 #include <3ds/ipc.h>
 
 static Handle acHandle;
+static int acRefCount;
 
 Result acInit(void)
 {
-	Result ret = srvGetServiceHandle(&acHandle, "ac:u");
-	if(!ret)return ret;
-	return srvGetServiceHandle(&acHandle, "ac:i");
+	Result ret;
+
+	if (AtomicPostIncrement(&acRefCount)) return 0;
+
+	ret = srvGetServiceHandle(&acHandle, "ac:u");
+	if(R_FAILED(ret)) ret = srvGetServiceHandle(&acHandle, "ac:i");
+	if(R_FAILED(ret)) AtomicDecrement(&acRefCount);
+
+	return ret;
 }
 
-Result acExit(void)
+void acExit(void)
 {
-	return svcCloseHandle(acHandle);
+	if (AtomicDecrement(&acRefCount)) return;
+	svcCloseHandle(acHandle);
 }
 
 // ptr=0x200-byte outbuf
@@ -33,7 +43,7 @@ Result ACU_CreateDefaultConfig(u32 *ptr)
 	staticbufs[0] = IPC_Desc_StaticBuffer(0x200,0);
 	staticbufs[1] = (u32)ptr;
 
-	if((ret = svcSendSyncRequest(acHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
 
 	staticbufs[0] = savedValue0;
 	staticbufs[1] = savedValue1;
@@ -58,7 +68,7 @@ Result ACU_cmd26(u32 *ptr, u8 val)
 	cmdbuf[2] = IPC_Desc_StaticBuffer(0x200,0);
 	cmdbuf[3] = (u32)ptr;
 
-	if((ret = svcSendSyncRequest(acHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
 
 	staticbufs[0] = savedValue0;
 	staticbufs[1] = savedValue1;
@@ -73,7 +83,7 @@ Result ACU_GetWifiStatus(u32 *out)
 
 	cmdbuf[0] = IPC_MakeHeader(0xD,0,0); // 0x000D0000
 
-	if((ret = svcSendSyncRequest(acHandle))!=0)return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
 
 	*out = cmdbuf[2];
 
@@ -85,12 +95,12 @@ Result ACU_WaitInternetConnection(void)
 	Result ret=0;
 	u32 outval=0;
 
-	if((ret = acInit())!=0)return ret;
+	if(R_FAILED(ret = acInit()))return ret;
 
 	while(1)
 	{
 		ret = ACU_GetWifiStatus(&outval);
-		if(ret==0 && outval!=0)break;
+		if(R_SUCCEEDED(ret) && outval!=0)break;
 	}
 
 	acExit();

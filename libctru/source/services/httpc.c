@@ -1,32 +1,36 @@
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/httpc.h>
 #include <3ds/ipc.h>
 
-Handle __httpc_servhandle = 0;
+Handle __httpc_servhandle;
+static int __httpc_refcount;
 
 Result httpcInit(void)
 {
 	Result ret=0;
 
-	if(__httpc_servhandle)return 0;
-	if((ret=srvGetServiceHandle(&__httpc_servhandle, "http:C")))return ret;
+	if (AtomicPostIncrement(&__httpc_refcount)) return 0;
 
-	ret = HTTPC_Initialize(__httpc_servhandle);
-	if(ret!=0)return ret;
+	ret = srvGetServiceHandle(&__httpc_servhandle, "http:C");
+	if (R_SUCCEEDED(ret))
+	{
+		ret = HTTPC_Initialize(__httpc_servhandle);
+		if (R_FAILED(ret)) svcCloseHandle(__httpc_servhandle);
+	}
+	if (R_FAILED(ret)) AtomicDecrement(&__httpc_refcount);
 
-	return 0;
+	return ret;
 }
 
 void httpcExit(void)
 {
-	if(__httpc_servhandle==0)return;
-
+	if (AtomicDecrement(&__httpc_refcount)) return;
 	svcCloseHandle(__httpc_servhandle);
-
-	__httpc_servhandle = 0;
 }
 
 Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
@@ -34,16 +38,16 @@ Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
 	Result ret=0;
 
 	ret = HTTPC_CreateContext(__httpc_servhandle, url, &context->httphandle);
-	if(ret!=0)return ret;
+	if(R_FAILED(ret))return ret;
 
 	ret = srvGetServiceHandle(&context->servhandle, "http:C");
-	if(ret!=0) {
+	if(R_FAILED(ret)) {
 		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 		return ret;
         }
 
 	ret = HTTPC_InitializeConnectionSession(context->servhandle, context->httphandle);
-	if(ret!=0) {
+	if(R_FAILED(ret)) {
 		svcCloseHandle(context->servhandle);
 		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 		return ret;
@@ -52,7 +56,7 @@ Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
 	if(use_defaultproxy==0)return 0;
 
 	ret = HTTPC_SetProxyDefault(context->servhandle, context->httphandle);
-	if(ret!=0) {
+	if(R_FAILED(ret)) {
 		svcCloseHandle(context->servhandle);
 		HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 		return ret;
@@ -115,7 +119,7 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 	if(downloadedsize)*downloadedsize = 0;
 
 	ret=httpcGetDownloadSizeState(context, NULL, &contentsize);
-	if(ret!=0)return ret;
+	if(R_FAILED(ret))return ret;
 
 	while(pos < size)
 	{
@@ -126,9 +130,9 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 		if(ret==HTTPC_RESULTCODE_DOWNLOADPENDING)
 		{
 			ret=httpcGetDownloadSizeState(context, &pos, NULL);
-			if(ret!=0)return ret;
+			if(R_FAILED(ret))return ret;
 		}
-		else if(ret!=0)
+		else if(R_FAILED(ret))
 		{
 			return ret;
 		}
@@ -154,7 +158,7 @@ Result HTTPC_Initialize(Handle handle)
 	cmdbuf[5]=0;//Some sort of handle.
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -171,7 +175,7 @@ Result HTTPC_CreateContext(Handle handle, char* url, Handle* contextHandle)
 	cmdbuf[4]=(u32)url;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 	
 	if(contextHandle)*contextHandle=cmdbuf[2];
 
@@ -187,7 +191,7 @@ Result HTTPC_InitializeConnectionSession(Handle handle, Handle contextHandle)
 	cmdbuf[2]=IPC_Desc_CurProcessHandle();
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -200,7 +204,7 @@ Result HTTPC_SetProxyDefault(Handle handle, Handle contextHandle)
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -213,7 +217,7 @@ Result HTTPC_CloseContext(Handle handle, Handle contextHandle)
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -235,7 +239,7 @@ Result HTTPC_AddRequestHeaderField(Handle handle, Handle contextHandle, char* na
 	cmdbuf[7]=(u32)value;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -248,7 +252,7 @@ Result HTTPC_BeginRequest(Handle handle, Handle contextHandle)
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -264,7 +268,7 @@ Result HTTPC_ReceiveData(Handle handle, Handle contextHandle, u8* buffer, u32 si
 	cmdbuf[4]=(u32)buffer;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -277,7 +281,7 @@ Result HTTPC_GetRequestState(Handle handle, Handle contextHandle, httpcReqStatus
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	*out = cmdbuf[2];
 
@@ -292,7 +296,7 @@ Result HTTPC_GetDownloadSizeState(Handle handle, Handle contextHandle, u32* down
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	if(downloadedsize)*downloadedsize = cmdbuf[2];
 	if(contentsize)*contentsize = cmdbuf[3];
@@ -316,7 +320,7 @@ Result HTTPC_GetResponseHeader(Handle handle, Handle contextHandle, char* name, 
 	cmdbuf[7]=(u32)value;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -329,7 +333,7 @@ Result HTTPC_GetResponseStatusCode(Handle handle, Handle contextHandle, u32* out
 	cmdbuf[1]=contextHandle;
 	
 	Result ret=0;
-	if((ret=svcSendSyncRequest(handle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	*out = cmdbuf[2];
 

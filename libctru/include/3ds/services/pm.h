@@ -8,7 +8,7 @@
 Result pmInit(void);
 
 /// Exits PM.
-Result pmExit(void);
+void pmExit(void);
 
 /**
  * @brief Launches a title.

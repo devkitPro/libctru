@@ -8,7 +8,7 @@
 Result acInit(void);
 
 /// Exits AC.
-Result acExit(void);
+void acExit(void);
 
 /**
  * @brief Gets the current Wifi status.

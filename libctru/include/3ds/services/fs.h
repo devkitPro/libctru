@@ -113,7 +113,7 @@ typedef struct
 Result fsInit(void);
 
 /// Exits FS.
-Result fsExit(void);
+void fsExit(void);
 
 /**
  * @brief Gets the current FS session handle.

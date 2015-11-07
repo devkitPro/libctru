@@ -5,20 +5,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/os.h>
 #include <3ds/linear.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/mvd.h>
 #include <3ds/ipc.h>
 
 Handle mvdstdHandle;
-static u32 mvdstdInitialized = 0;
+static int mvdstdRefCount;
 static mvdstdMode mvdstd_mode;
 static mvdstdTypeInput mvdstd_input_type;
 static mvdstdTypeOutput mvdstd_output_type;
-static u32 *mvdstd_workbuf = NULL;
-static size_t mvdstd_workbufsize = 0;
+static u32 *mvdstd_workbuf;
+static size_t mvdstd_workbufsize;
 
 static Result mvdstdipc_Initialize(u32 *buf, u32 bufsize, Handle kprocess)
 {
@@ -30,7 +32,7 @@ static Result mvdstdipc_Initialize(u32 *buf, u32 bufsize, Handle kprocess)
 	cmdbuf[4] = kprocess;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -52,7 +54,7 @@ static Result mvdstdipc_cmd18(void)
 	cmdbuf[0] = IPC_MakeHeader(0x18,0,0); // 0x180000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -63,7 +65,7 @@ static Result mvdstdipc_cmd19(void)
 	cmdbuf[0] = IPC_MakeHeader(0x19,0,0); // 0x190000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -74,7 +76,7 @@ static Result mvdstdipc_cmd1a(void)
 	cmdbuf[0] = IPC_MakeHeader(0x1A,0,0); // 0x1A0000
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -90,7 +92,7 @@ Result mvdstdSetConfig(mvdstdConfig *config)
 	cmdbuf[5] = (u32)config;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -137,8 +139,6 @@ Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput 
 {
 	Result ret=0;
 
-	if(mvdstdInitialized)return 0;
-
 	mvdstd_workbufsize = size;
 	mvdstd_mode = mode;
 	mvdstd_input_type = input_type;
@@ -147,36 +147,35 @@ Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput 
 	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)mvdstd_workbufsize = 1;
 	if(mvdstd_mode!=MVDMODE_COLORFORMATCONV)return -2;//Video processing / H.264 isn't supported atm.
 
-	if((ret=srvGetServiceHandle(&mvdstdHandle, "mvd:STD")))return ret;
+	if (AtomicPostIncrement(&mvdstdRefCount)) return 0;
+
+	if(R_FAILED(ret=srvGetServiceHandle(&mvdstdHandle, "mvd:STD"))) goto cleanup0;
 
 	mvdstd_workbuf = linearAlloc(mvdstd_workbufsize);
-	if(mvdstd_workbuf==NULL)return -1;
+	if(mvdstd_workbuf==NULL) goto cleanup1;
 
 	ret = mvdstdipc_Initialize((u32*)osConvertOldLINEARMemToNew((u32)mvdstd_workbuf), mvdstd_workbufsize, CUR_PROCESS_HANDLE);
-	if(ret<0)
-	{
-		svcCloseHandle(mvdstdHandle);
-		linearFree(mvdstd_workbuf);
-		return ret;
-	}
+	if(R_FAILED(ret)) goto cleanup2;
 
 	ret = mvdstdipc_cmd18();
-	if(ret<0)
-	{
-		mvdstdipc_Shutdown();
-		svcCloseHandle(mvdstdHandle);
-		linearFree(mvdstd_workbuf);
-		return ret;
-	}
+	if(R_FAILED(ret)) goto cleanup3;
 
-	mvdstdInitialized = 1;
+	return ret;
 
-	return 0;
+cleanup3:
+	mvdstdipc_Shutdown();
+cleanup2:
+	linearFree(mvdstd_workbuf);
+cleanup1:
+	svcCloseHandle(mvdstdHandle);
+cleanup0:
+	AtomicDecrement(&mvdstdRefCount);
+	return ret;
 }
 
-Result mvdstdShutdown(void)
+void mvdstdExit(void)
 {
-	if(!mvdstdInitialized)return 0;
+	if (AtomicDecrement(&mvdstdRefCount)) return;
 
 	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)
 	{
@@ -188,20 +187,18 @@ Result mvdstdShutdown(void)
 	svcCloseHandle(mvdstdHandle);
 
 	linearFree(mvdstd_workbuf);
-
-	return 0;
 }
 
 Result mvdstdProcessFrame(mvdstdConfig *config, u32 *h264_vaddr_inframe, u32 h264_inframesize, u32 h264_frameid)
 {
 	Result ret;
 
-	if(!mvdstdInitialized)return 0;
+	if(mvdstdRefCount==0)return 0;
 	if(config==NULL)return -1;
 	if(mvdstd_mode!=MVDMODE_COLORFORMATCONV)return -2;
 
 	ret = mvdstdSetConfig(config);
-	if(ret<0)return ret;
+	if(R_FAILED(ret))return ret;
 
 	return mvdstdipc_cmd1a();
 }

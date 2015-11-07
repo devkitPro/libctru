@@ -5,14 +5,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/gsp.h>
 
 #define GSP_EVENT_STACK_SIZE 0x1000
 
-Handle gspGpuHandle=0;
-Handle gspLcdHandle=0;
+Handle gspGpuHandle;
+Handle gspLcdHandle;
 Handle gspEvents[GSPEVENT_MAX];
 vu32 gspEventCounts[GSPEVENT_MAX];
 u64 gspEventStack[GSP_EVENT_STACK_SIZE/sizeof(u64)]; //u64 so that it's 8-byte aligned
@@ -20,18 +22,24 @@ volatile bool gspRunEvents;
 Handle gspEventThread;
 
 static Handle gspEvent;
+static int gspRefCount, gspLcdRefCount;
 static vu8* gspEventData;
 
 static void gspEventThreadMain(void *arg);
 
 Result gspInit(void)
 {
-	return srvGetServiceHandle(&gspGpuHandle, "gsp::Gpu");
+	Result res=0;
+	if (AtomicPostIncrement(&gspRefCount)) return 0;
+	res = srvGetServiceHandle(&gspGpuHandle, "gsp::Gpu");
+	if (R_FAILED(res)) AtomicDecrement(&gspRefCount);
+	return res;
 }
 
 void gspExit(void)
 {
-	if(gspGpuHandle)svcCloseHandle(gspGpuHandle);
+	if (AtomicDecrement(&gspRefCount)) return;
+	svcCloseHandle(gspGpuHandle);
 }
 
 Result gspInitEventHandler(Handle _gspEvent, vu8* _gspSharedMem, u8 gspThreadId)
@@ -85,7 +93,7 @@ void gspWaitForEvent(GSP_Event id, bool nextEvent)
 static int popInterrupt()
 {
 	int curEvt;
-	u32 strexFailed;
+	bool strexFailed;
 	do {
 		union {
 			struct {
@@ -97,16 +105,11 @@ static int popInterrupt()
 			u32 as_u32;
 		} header;
 
-		u32* gsp_header_ptr = (u32*)(gspEventData + 0);
-
 		// Do a load on all header fields as an atomic unit
-		__asm__ volatile (
-				"ldrex %[result], %[addr]" :
-				[result]"=r"(header.as_u32) :
-				[addr]"Q"(*gsp_header_ptr));
+		header.as_u32 = __ldrex((s32*)gspEventData);
 
 		if (__builtin_expect(header.count == 0, 0)) {
-			__asm__ volatile ("clrex");
+			__clrex();
 			return -1;
 		}
 
@@ -117,10 +120,7 @@ static int popInterrupt()
 		header.count -= 1;
 		header.err = 0; // Should this really be set?
 
-		__asm__ volatile (
-				"strex %[result], %[val], %[addr]" :
-				[result]"=&r"(strexFailed), [addr]"=Q"(*gsp_header_ptr) :
-				[val]"r"(header.as_u32));
+		strexFailed = __strex((s32*)gspEventData, header.as_u32);
 	} while (__builtin_expect(strexFailed, 0));
 
 	return curEvt;
@@ -161,7 +161,7 @@ Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size)
 	cmdbuf[4]=(u32)data;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -180,7 +180,7 @@ Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, u32* data, u8 datasize, u32* mask
 	cmdbuf[6]=(u32)maskdata;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -197,7 +197,7 @@ Result GSPGPU_ReadHWRegs(u32 regAddr, u32* data, u8 size)
 	cmdbuf[0x40+1]=(u32)data;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -211,7 +211,7 @@ Result GSPGPU_SetBufferSwap(u32 screenid, GSP_FramebufferInfo *framebufinfo)
 	memcpy(&cmdbuf[2], framebufinfo, sizeof(GSP_FramebufferInfo));
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -226,7 +226,7 @@ Result GSPGPU_FlushDataCache(const void* adr, u32 size)
 	cmdbuf[4]=CUR_PROCESS_HANDLE;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -242,7 +242,7 @@ Result GSPGPU_InvalidateDataCache(const void* adr, u32 size)
 	cmdbuf[4] = CUR_PROCESS_HANDLE;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -254,7 +254,7 @@ Result GSPGPU_SetLcdForceBlack(u8 flags)
 	cmdbuf[1]=flags;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -265,7 +265,7 @@ Result GSPGPU_TriggerCmdReqQueue(void)
 	cmdbuf[0]=0x000C0000; //request header code
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -279,7 +279,7 @@ Result GSPGPU_RegisterInterruptRelayQueue(Handle eventHandle, u32 flags, Handle*
 	cmdbuf[3]=eventHandle;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	if(threadID)*threadID=cmdbuf[2];
 	if(outMemHandle)*outMemHandle=cmdbuf[4];
@@ -293,7 +293,7 @@ Result GSPGPU_UnregisterInterruptRelayQueue(void)
 	cmdbuf[0]=0x00140000; //request header code
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -307,7 +307,7 @@ Result GSPGPU_AcquireRight(u8 flags)
 	cmdbuf[3]=CUR_PROCESS_HANDLE;
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -318,7 +318,7 @@ Result GSPGPU_ReleaseRight(void)
 	cmdbuf[0]=0x170000; //request header code
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -329,14 +329,12 @@ Result GSPGPU_ImportDisplayCaptureInfo(GSP_CaptureInfo *captureinfo)
 	cmdbuf[0]=0x00180000; //request header code
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	ret = cmdbuf[1];
 
-	if(ret==0)
-	{
+	if(R_SUCCEEDED(ret))
 		memcpy(captureinfo, &cmdbuf[2], 0x20);
-	}
 
 	return ret;
 }
@@ -347,7 +345,7 @@ Result GSPGPU_SaveVramSysArea(void)
 	cmdbuf[0]=0x00190000; //request header code
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -358,7 +356,7 @@ Result GSPGPU_RestoreVramSysArea(void)
 	cmdbuf[0]=0x001A0000; //request header code
 
 	Result ret=0;
-	if((ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -370,8 +368,7 @@ Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8])
 {
 	if(!sharedGspCmdBuf || !gxCommand)return -1;
 
-	u32 cmdBufHeader;
-	__asm__ __volatile__ ("ldrex %[result], [%[adr]]" : [result] "=r" (cmdBufHeader) : [adr] "r" (sharedGspCmdBuf));
+	u32 cmdBufHeader = __ldrex((s32*)sharedGspCmdBuf);
 
 	u8 commandIndex=cmdBufHeader&0xFF;
 	u8 totalCommands=(cmdBufHeader>>8)&0xFF;
@@ -382,18 +379,15 @@ Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8])
 	u32* dst=&sharedGspCmdBuf[8*(1+nextCmd)];
 	memcpy(dst, gxCommand, 0x20);
 
-	u32 mcrVal=0x0;
-	__asm__ __volatile__ ("mcr p15, 0, %[val], c7, c10, 4" :: [val] "r" (mcrVal)); //Data Synchronization Barrier Register
+	__dsb();
 	totalCommands++;
 	cmdBufHeader=((cmdBufHeader)&0xFFFF00FF)|(((u32)totalCommands)<<8);
 
 	while(1)
 	{
-		u32 strexResult;
-		__asm__ __volatile__ ("strex %[result], %[val], [%[adr]]" : [result] "=&r" (strexResult) : [adr] "r" (sharedGspCmdBuf), [val] "r" (cmdBufHeader));
-		if(!strexResult)break;
+		if (!__strex((s32*)sharedGspCmdBuf, cmdBufHeader)) break;
 
-		__asm__ __volatile__ ("ldrex %[result], [%[adr]]" : [result] "=r" (cmdBufHeader) : [adr] "r" (sharedGspCmdBuf));
+		cmdBufHeader = __ldrex((s32*)sharedGspCmdBuf);
 		totalCommands=((cmdBufHeader&0xFF00)>>8)+1;
 		cmdBufHeader=((cmdBufHeader)&0xFFFF00FF)|((totalCommands<<8)&0xFF00);
 	}
@@ -404,12 +398,17 @@ Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8])
 
 Result gspLcdInit(void)
 {
-	return srvGetServiceHandle(&gspLcdHandle, "gsp::Lcd");
+	Result res=0;
+	if (AtomicPostIncrement(&gspLcdRefCount)) return 0;
+	res = srvGetServiceHandle(&gspLcdHandle, "gsp::Lcd");
+	if (R_FAILED(res)) AtomicDecrement(&gspLcdRefCount);
+	return res;
 }
 
 void gspLcdExit(void)
 {
-	if(gspLcdHandle)svcCloseHandle(gspLcdHandle);
+	if (AtomicDecrement(&gspLcdRefCount)) return;
+	svcCloseHandle(gspLcdHandle);
 }
 
 Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen)
@@ -420,7 +419,7 @@ Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen)
 	cmdbuf[1] = screen;
 
 	Result ret=0;
-	if ((ret = svcSendSyncRequest(gspLcdHandle)))return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -433,7 +432,7 @@ Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen)
 	cmdbuf[1] = screen;
 
 	Result ret=0;
-	if ((ret = svcSendSyncRequest(gspLcdHandle)))return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle)))return ret;
 
 	return cmdbuf[1];
 }

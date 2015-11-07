@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/romfs.h>
 #include <3ds/services/fs.h>
@@ -40,7 +41,7 @@ static ssize_t _romfs_read(u64 offset, void* buffer, u32 size)
 	u64 pos = (u64)romFS_offset + offset;
 	u32 read = 0;
 	Result rc = FSFILE_Read(romFS_file, &read, pos, buffer, size);
-	if (rc) return -1;
+	if (R_FAILED(rc)) return -1;
 	return read;
 }
 
@@ -140,7 +141,7 @@ Result romfsInit(void)
 		FS_path path = { PATH_WCHAR, (units+1)*2, (u8*)__utf16path };
 
 		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
-		if (rc) return rc;
+		if (R_FAILED(rc)) return rc;
 
 		_3DSX_Header hdr;
 		if (!_romfs_read_chk(0, &hdr, sizeof(hdr))) goto _fail0;
@@ -158,7 +159,7 @@ Result romfsInit(void)
 		FS_path path = { PATH_BINARY, sizeof(zeros), zeros };
 
 		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
-		if (rc) return rc;
+		if (R_FAILED(rc)) return rc;
 	}
 
 	return romfsInitCommon();

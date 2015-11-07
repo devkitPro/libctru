@@ -1,35 +1,31 @@
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/ipc.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/dsp.h>
 
-static Handle dspHandle = 0;
+static Handle dspHandle;
+static int dspRefCount;
 
 Result dspInit(void)
 {
 	Result ret = 0;
-	if (dspHandle == 0)
-	{
-		ret = srvGetServiceHandle(&dspHandle, "dsp::DSP");
-		if (ret < 0) return ret;
-	}
-	DSP_UnloadComponent();
-	return 0;
+
+	if (AtomicPostIncrement(&dspRefCount)) return 0;
+
+	ret = srvGetServiceHandle(&dspHandle, "dsp::DSP");
+	if (R_SUCCEEDED(ret)) DSP_UnloadComponent();
+	else                  AtomicDecrement(&dspRefCount);
+
+	return ret;
 }
 
-Result dspExit(void)
+void dspExit(void)
 {
-	Result ret = 0;
-	//No need to call unload, it will be done automatically by closing the handle
-	if (dspHandle != 0)
-	{
-		ret = svcCloseHandle(dspHandle);
-		if (ret < 0) return ret;
-		dspHandle = 0;
-	}
-
-	return 0;
+	if (AtomicDecrement(&dspRefCount)) return;
+	svcCloseHandle(dspHandle);
 }
 
 Result DSP_GetHeadphoneStatus(bool* is_inserted)
@@ -37,7 +33,7 @@ Result DSP_GetHeadphoneStatus(bool* is_inserted)
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1F,0,0);
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	*is_inserted = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -51,7 +47,7 @@ Result DSP_FlushDataCache(const void* address, u32 size)
 	cmdbuf[2] = size;
 	cmdbuf[3] = IPC_Desc_SharedHandles(1);
 	cmdbuf[4] = CUR_PROCESS_HANDLE;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -64,7 +60,7 @@ Result DSP_InvalidateDataCache(const void* address, u32 size)
 	cmdbuf[2] = size;
 	cmdbuf[3] = IPC_Desc_SharedHandles(1);
 	cmdbuf[4] = CUR_PROCESS_HANDLE;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -74,7 +70,7 @@ Result DSP_SetSemaphore(u16 value)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x7,1,0);
 	cmdbuf[1] = value;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -84,7 +80,7 @@ Result DSP_SetSemaphoreMask(u16 mask)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x17,1,0);
 	cmdbuf[1] = mask;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -93,7 +89,7 @@ Result DSP_GetSemaphoreHandle(Handle* semaphore)
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x16,0,0);
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	*semaphore = cmdbuf[3];
 	return cmdbuf[1];
 }
@@ -108,7 +104,7 @@ Result DSP_LoadComponent(const void* component, u32 size, u16 prog_mask, u16 dat
 	cmdbuf[3] = data_mask;
 	cmdbuf[4] = IPC_Desc_Buffer(size,IPC_BUFFER_R);
 	cmdbuf[5] = (u32) component;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	*is_loaded = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -118,7 +114,7 @@ Result DSP_UnloadComponent(void)
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x12,0,0);
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -131,7 +127,7 @@ Result DSP_RegisterInterruptEvents(Handle handle, u32 interrupt, u32 channel)
 	cmdbuf[2] = channel;
 	cmdbuf[3] = IPC_Desc_SharedHandles(1);
 	cmdbuf[4] = handle;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -152,7 +148,7 @@ Result DSP_ReadPipeIfPossible(u32 channel, u32 peer, void* buffer, u16 length, u
 	staticbufs[0] = IPC_Desc_StaticBuffer(length,0);
 	staticbufs[1] = (u32)buffer;
 
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 
 	staticbufs[0] = saved1;
 	staticbufs[1] = saved2;
@@ -171,7 +167,7 @@ Result DSP_WriteProcessPipe(u32 channel, const void* buffer, u32 length)
 	cmdbuf[2] = length;
 	cmdbuf[3] = IPC_Desc_StaticBuffer(length,1);
 	cmdbuf[4] = (u32)buffer;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -181,7 +177,7 @@ Result DSP_ConvertProcessAddressFromDspDram(u32 dsp_address, u32* arm_address)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xC,1,0);
 	cmdbuf[1] = dsp_address;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	*arm_address = cmdbuf[2];
 	return cmdbuf[1];
 }
@@ -192,7 +188,7 @@ Result DSP_RecvData(u16 regNo, u16* value)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1,1,0);
 	cmdbuf[1] = regNo;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	*value = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];
 }
@@ -203,7 +199,7 @@ Result DSP_RecvDataIsReady(u16 regNo, bool* is_ready)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2,1,0);
 	cmdbuf[1] = regNo;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	*is_ready = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }
@@ -217,7 +213,7 @@ Result DSP_SendData(u16 regNo, u16 value)
 	cmdbuf[0] = IPC_MakeHeader(0x3,2,0);
 	cmdbuf[1] = regNo;
 	cmdbuf[2] = value;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	return cmdbuf[1];
 }
 
@@ -227,7 +223,7 @@ Result DSP_SendDataIsEmpty(u16 regNo, bool* is_empty)
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x4,1,0);
 	cmdbuf[1] = regNo;
-	if ((ret = svcSendSyncRequest(dspHandle)) != 0) return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
 	*is_empty = cmdbuf[2] & 0xFF;
 	return cmdbuf[1];
 }

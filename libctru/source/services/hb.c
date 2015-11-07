@@ -1,18 +1,26 @@
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/synchronization.h>
 #include <3ds/services/hb.h>
 #include <3ds/ipc.h>
 
 static Handle hbHandle;
+static int hbRefCount;
 
 Result hbInit(void)
 {
-	return srvGetServiceHandle(&hbHandle, "hb:HB");
+	Result res=0;
+	if (AtomicPostIncrement(&hbRefCount)) return 0;
+	res = srvGetServiceHandle(&hbHandle, "hb:HB");
+	if (R_FAILED(res)) AtomicDecrement(&hbRefCount);
+	return res;
 }
 
 void hbExit(void)
 {
+	if (AtomicDecrement(&hbRefCount)) return;
 	svcCloseHandle(hbHandle);
 }
 
@@ -26,7 +34,7 @@ Result HB_FlushInvalidateCache(void)
 	cmdbuf[2] = IPC_Desc_SharedHandles(1);
 	cmdbuf[3] = CUR_PROCESS_HANDLE;
 
-	if((ret = svcSendSyncRequest(hbHandle))!=0) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(hbHandle))) return ret;
 	
 	return (Result)cmdbuf[1];
 }
@@ -38,7 +46,7 @@ Result HB_GetBootloaderAddresses(void** load3dsx, void** setArgv)
 
 	cmdbuf[0] = IPC_MakeHeader(0x6,0,0); // 0x60000
 
-	if((ret = svcSendSyncRequest(hbHandle))!=0) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(hbHandle))) return ret;
 
 	if(load3dsx)*load3dsx=(void*)cmdbuf[2];
 	if(setArgv)*setArgv=(void*)cmdbuf[3];
@@ -56,11 +64,11 @@ Result HB_ReprotectMemory(u32* addr, u32 pages, u32 mode, u32* reprotectedPages)
 	cmdbuf[2] = pages;
 	cmdbuf[3] = mode;
 
-	if((ret = svcSendSyncRequest(hbHandle))!=0) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(hbHandle))) return ret;
 
 	if(reprotectedPages)
 	{
-		if(!ret)*reprotectedPages=(u32)cmdbuf[2];
+		if(R_SUCCEEDED(ret))*reprotectedPages=(u32)cmdbuf[2];
 		else *reprotectedPages=0;
 	}
 	

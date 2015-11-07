@@ -30,10 +30,10 @@ typedef enum
 } CFG_Langage;
 
 /// Initializes CFGU.
-Result initCfgu(void);
+Result cfguInit(void);
 
 /// Exits CFGU.
-Result exitCfgu(void);
+void cfguExit(void);
 
 /**
  * @brief Gets the system's region from secure info.

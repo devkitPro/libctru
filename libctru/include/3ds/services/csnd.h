@@ -152,7 +152,7 @@ Result CSND_Reset(void);
 Result csndInit(void);
 
 /// Exits CSND.
-Result csndExit(void);
+void csndExit(void);
 
 /**
  * @brief Adds a command to the list, returning a buffer to write arguments to.

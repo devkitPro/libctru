@@ -208,16 +208,16 @@ static Result ndspInitialize(bool resume)
 	Result rc;
 
 	rc = ndspLoadComponent();
-	if (rc) return rc;
+	if (R_FAILED(rc)) return rc;
 
 	rc = svcCreateEvent(&irqEvent, 1);
-	if (rc) goto _fail1;
+	if (R_FAILED(rc)) goto _fail1;
 
 	rc = DSP_RegisterInterruptEvents(irqEvent, 2, 2);
-	if (rc) goto _fail2;
+	if (R_FAILED(rc)) goto _fail2;
 
 	rc = DSP_GetSemaphoreHandle(&dspSem);
-	if (rc) goto _fail3;
+	if (R_FAILED(rc)) goto _fail3;
 
 	DSP_SetSemaphoreMask(0x2000);
 
@@ -383,7 +383,7 @@ void ndspUseComponent(const void* binary, u32 size, u16 progMask, u16 dataMask)
 	componentFree = false;
 }
 
-bool ndspFindAndLoadComponent(void)
+static bool ndspFindAndLoadComponent(void)
 {
 	extern Handle __get_handle_from_list(const char* name);
 	Result rc;
@@ -401,11 +401,11 @@ bool ndspFindAndLoadComponent(void)
 		FS_path path = { PATH_CHAR, sizeof(dsp_filename), (u8*)dsp_filename };
 
 		rc = FSUSER_OpenFileDirectly(&rsrc, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
-		if (rc) break;
+		if (R_FAILED(rc)) break;
 
 		u64 size = 0;
 		rc = FSFILE_GetSize(rsrc, &size);
-		if (rc) { FSFILE_Close(rsrc); break; }
+		if (R_FAILED(rc)) { FSFILE_Close(rsrc); break; }
 
 		bin = malloc(size);
 		if (!bin) { FSFILE_Close(rsrc); break; }
@@ -413,7 +413,7 @@ bool ndspFindAndLoadComponent(void)
 		u32 dummy = 0;
 		rc = FSFILE_Read(rsrc, &dummy, 0, bin, size);
 		FSFILE_Close(rsrc);
-		if (rc) { free(bin); return false; }
+		if (R_FAILED(rc)) { free(bin); return false; }
 
 		componentBin = bin;
 		componentSize = size;
@@ -428,7 +428,7 @@ bool ndspFindAndLoadComponent(void)
 		extern u32 fake_heap_end;
 		u32 mapAddr = (fake_heap_end+0xFFF) &~ 0xFFF;
 		rc = svcMapMemoryBlock(rsrc, mapAddr, 0x3, 0x3);
-		if (rc) break;
+		if (R_FAILED(rc)) break;
 
 		componentSize = *(u32*)(mapAddr + 0x104);
 		bin = malloc(componentSize);
@@ -450,11 +450,11 @@ static int ndspRefCount = 0;
 Result ndspInit(void)
 {
 	Result rc = 0;
-	if (ndspRefCount++) return 0;
+	if (AtomicPostIncrement(&ndspRefCount)) return 0;
 
 	if (!componentBin && !ndspFindAndLoadComponent())
 	{
-		rc = 1018 | (41 << 10) | (4 << 21) | (27 << 27);
+		rc = MAKERESULT(RL_PERMANENT, RS_NOTFOUND, 41, RD_NOT_FOUND);
 		goto _fail0;
 	}
 
@@ -462,27 +462,27 @@ Result ndspInit(void)
 	ndspInitMaster();
 	ndspiInitChn();
 
-	rc = initCfgu();
-	if (rc==0)
+	rc = cfguInit();
+	if (R_SUCCEEDED(rc))
 	{
 		u8 outMode;
 		rc = CFGU_GetConfigInfoBlk2(sizeof(outMode), 0x70001, &outMode);
-		if (rc==0)
+		if (R_SUCCEEDED(rc))
 			ndspMaster.outputMode = outMode;
-		exitCfgu();
+		cfguExit();
 	}
 
 	rc = dspInit();
-	if (rc) return rc;
+	if (R_FAILED(rc)) return rc;
 
 	rc = ndspInitialize(false);
-	if (rc) goto _fail1;
+	if (R_FAILED(rc)) goto _fail1;
 
 	rc = svcCreateEvent(&sleepEvent, 0);
-	if (rc) goto _fail2;
+	if (R_FAILED(rc)) goto _fail2;
 
 	rc = svcCreateThread(&ndspThread, ndspThreadMain, 0x0, (u32*)(&ndspThreadStack[NDSP_THREAD_STACK_SIZE/8]), 0x31, -2);
-	if (rc) goto _fail3;
+	if (R_FAILED(rc)) goto _fail3;
 
 	aptHook(&aptCookie, ndspAptHook, NULL);
 	return 0;
@@ -499,14 +499,13 @@ _fail1:
 		componentBin = NULL;
 	}
 _fail0:
-	ndspRefCount--;
+	AtomicDecrement(&ndspRefCount);
 	return rc;
 }
 
 void ndspExit(void)
 {
-	if (!ndspRefCount) return;
-	if (--ndspRefCount) return;
+	if (AtomicDecrement(&ndspRefCount)) return;
 	if (!bDspReady) return;
 	ndspThreadRun = false;
 	if (bSleeping)

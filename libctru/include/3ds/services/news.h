@@ -8,7 +8,7 @@
 Result newsInit(void);
 
 /// Exits NEWS.
-Result newsExit(void);
+void newsExit(void);
 
 /**
  * @brief Adds a notification to the home menu Notifications applet.

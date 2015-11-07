@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/srv.h>
 #include <3ds/svc.h>
 #include <3ds/ipc.h>
@@ -31,7 +32,7 @@ typedef struct {
 
 extern service_list_t* __service_ptr;
 
-static Handle g_srv_handle = 0;
+static Handle g_srv_handle;
 
 
 static int __name_cmp(const char* a, const char* b) {
@@ -80,9 +81,9 @@ Result srvInit(void)
 
 	if(g_srv_handle != 0) return rc;
 
-	if((rc = svcConnectToPort(&g_srv_handle, "srv:")))return rc;
+	if(R_FAILED(rc = svcConnectToPort(&g_srv_handle, "srv:")))return rc;
 
-	if((rc = srvRegisterClient())) {
+	if(R_FAILED(rc = srvRegisterClient())) {
 		svcCloseHandle(g_srv_handle);
 		g_srv_handle = 0;
 	}
@@ -112,7 +113,7 @@ Result srvRegisterClient(void)
 	cmdbuf[0] = IPC_MakeHeader(0x1,0,2); // 0x10002
 	cmdbuf[1] = IPC_Desc_CurProcessHandle();
 
-	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
+	if(R_FAILED(rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
 	return cmdbuf[1];
 }
@@ -127,7 +128,7 @@ Result srvGetServiceHandleDirect(Handle* out, const char* name)
 	cmdbuf[3] = strlen(name);
 	cmdbuf[4] = 0x0;
 	
-	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
+	if(R_FAILED(rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
 	*out = cmdbuf[3];
 	return cmdbuf[1];
@@ -156,7 +157,7 @@ Result srvRegisterService(Handle* out, const char* name, int maxSessions)
 	cmdbuf[4] = maxSessions;
 	
 	Result rc;
-	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
+	if(R_FAILED(rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
 	*out = cmdbuf[3];
 	return cmdbuf[1];
@@ -170,7 +171,7 @@ Result srvUnregisterService(const char* name)
 	cmdbuf[3] = strlen(name);
 	
 	Result rc;
-	if((rc = svcSendSyncRequest(g_srv_handle)))return rc;
+	if(R_FAILED(rc = svcSendSyncRequest(g_srv_handle)))return rc;
 
 	return cmdbuf[1];
 }
@@ -180,9 +181,9 @@ Result srvPmInit(void)
 {	
 	Result rc = 0;
 	
-	if((rc = svcConnectToPort(&g_srv_handle, "srv:pm")))return rc;
+	if(R_FAILED(rc = svcConnectToPort(&g_srv_handle, "srv:pm")))return rc;
 	
-	if((rc = srvRegisterClient())) {
+	if(R_FAILED(rc = srvRegisterClient())) {
 		svcCloseHandle(g_srv_handle);
 		g_srv_handle = 0;
 	}
@@ -202,7 +203,7 @@ Result srvRegisterProcess(u32 procid, u32 count, void *serviceaccesscontrol)
 	cmdbuf[3] = IPC_Desc_StaticBuffer(count*4,0);
 	cmdbuf[4] = (u32)serviceaccesscontrol;
 	
-	if((rc = svcSendSyncRequest(g_srv_handle))) return rc;
+	if(R_FAILED(rc = svcSendSyncRequest(g_srv_handle))) return rc;
 		
 	return cmdbuf[1];
 }
@@ -216,7 +217,7 @@ Result srvUnregisterProcess(u32 procid)
 	cmdbuf[0] = IPC_MakeHeader(0x404,1,0); // 0x4040040 // <7.x
 	cmdbuf[1] = procid;
 	
-	if((rc = svcSendSyncRequest(g_srv_handle))) return rc;
+	if(R_FAILED(rc = svcSendSyncRequest(g_srv_handle))) return rc;
 		
 	return cmdbuf[1];
 }

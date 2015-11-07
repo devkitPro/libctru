@@ -8,7 +8,7 @@
 Result nsInit(void);
 
 /// Exits NS.
-Result nsExit(void);
+void nsExit(void);
 
 /**
  * @brief Launches a title.

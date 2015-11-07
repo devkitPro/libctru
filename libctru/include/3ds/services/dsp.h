@@ -33,7 +33,7 @@ Result dspInit(void);
  * @brief Closes the dsp service.
  * @note This will also unload the DSP binary.
  */
-Result dspExit(void);
+void dspExit(void);
 
 /**
  * @brief Checks if a headphone is inserted.
