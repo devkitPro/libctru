@@ -1,271 +1,226 @@
 #include <stdlib.h>
-#include <string.h>
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/services/mic.h>
 #include <3ds/ipc.h>
+#include <3ds/synchronization.h>
+#include <3ds/result.h>
 
-//See also: http://3dbrew.org/wiki/MIC_Services
+static Handle micHandle;
+static int micRefCount;
 
-Handle MIC_handle;
+static u8* micSharedMem;
+static u32 micSharedMemSize;
+static Handle micSharedMemHandle;
 
-static u8 *MIC_sharedmem;
-static u32 MIC_sharedmem_size;
-static u32 *MIC_sharedmem_offsetfield, MIC_sharedmem_offsetfield_location;
-static Handle MIC_sharedmem_handle;
-static Handle MIC_event;
-
-static u32 MIC_prev_endpos, MIC_cur_endpos;
-
-Result MIC_Initialize(u32 *sharedmem, u32 sharedmem_size, u8 control, u8 recording, u8 unk0, u8 unk1, u8 unk2)
+Result micInit(u8* buffer, u32 bufferSize)
 {
-	Result ret=0;
+	Result ret = 0;
 
-	MIC_sharedmem = (u8*)sharedmem;
-	MIC_sharedmem_size = sharedmem_size;
-	MIC_sharedmem_offsetfield_location = MIC_sharedmem_size - 4;
-	MIC_sharedmem_offsetfield = (u32*)&MIC_sharedmem[MIC_sharedmem_offsetfield_location];
-	MIC_event = 0;
-	MIC_prev_endpos = 0;
-	MIC_cur_endpos = 0;
+	if (AtomicPostIncrement(&micRefCount)) return 0;
 
-	ret = srvGetServiceHandle(&MIC_handle, "mic:u");
-	if(ret!=0)return ret;
+	ret = srvGetServiceHandle(&micHandle, "mic:u");
+	if (R_FAILED(ret)) goto end;
 
-	ret = svcCreateMemoryBlock(&MIC_sharedmem_handle, (u32)MIC_sharedmem, MIC_sharedmem_size, 3, 3);
-	if(ret!=0)return ret;
+	micSharedMem = buffer;
+	micSharedMemSize = bufferSize;
 
-	ret = MIC_SetControl(control);
-	if(ret!=0)return ret;
+	ret = svcCreateMemoryBlock(&micSharedMemHandle, (u32) micSharedMem, micSharedMemSize, MEMPERM_READ | MEMPERM_WRITE, MEMPERM_READ | MEMPERM_WRITE);
+	if (R_FAILED(ret)) goto end;
 
-	ret = MIC_MapSharedMem(MIC_sharedmem_handle, sharedmem_size);
-	if(ret!=0)return ret;
+	ret = MICU_MapSharedMem(micSharedMemSize, micSharedMemHandle);
+end:
+	if (R_FAILED(ret)) micExit();
+	return ret;
+}
 
-	ret = MIC_SetRecording(recording);
-	if(ret!=0)return ret;
+void micExit(void)
+{
+	if (AtomicDecrement(&micRefCount)) return;
 
-	ret = MIC_cmd3_Initialize(unk0, unk1, 0, MIC_sharedmem_size-4, unk2);
-	if(ret!=0)return ret;
+	if (micSharedMemHandle)
+	{
+		MICU_UnmapSharedMem();
+		svcCloseHandle(micSharedMemHandle);
+		micSharedMemHandle = 0;
+	}
 
-	ret = MIC_GetEventHandle(&MIC_event);
-	if(ret!=0)return ret;
-	svcClearEvent(MIC_event);
+	if(micHandle)
+	{
+		svcCloseHandle(micHandle);
+		micHandle = 0;
+	}
 
+	micSharedMem = NULL;
+	micSharedMemSize = 0;
+}
+
+u32 micGetSampleDataSize(void)
+{
+	return micSharedMemSize - 4;
+}
+
+u32 micGetLastSampleOffset(void)
+{
+	if(micSharedMem) return *(u32*) &micSharedMem[micGetSampleDataSize()];
 	return 0;
 }
 
-Result MIC_Shutdown(void)
+Result MICU_MapSharedMem(u32 size, Handle handle)
 {
-	Result ret=0;
-
-	MIC_cmd5();
-	MIC_SetRecording(0);
-
-	ret = MIC_UnmapSharedMem();
-	if(ret!=0)return ret;
-
-	MIC_cmd5();
-
-	ret = svcCloseHandle(MIC_sharedmem_handle);
-	if(ret!=0)return ret;
-
-	ret = svcCloseHandle(MIC_event);
-	if(ret!=0)return ret;
-
-	ret = svcCloseHandle(MIC_handle);
-	if(ret!=0)return ret;
-
-	MIC_sharedmem_offsetfield = NULL;
-	MIC_sharedmem = NULL;
-	MIC_sharedmem_size = 0;
-	MIC_handle = 0;
-	MIC_event = 0;
-
-	return 0;
-}
-
-u32 MIC_GetSharedMemOffsetValue(void)
-{
-	u32 pos = 0;
-
-	if(MIC_sharedmem_offsetfield==NULL)return pos;
-	pos = *MIC_sharedmem_offsetfield;
-	if(pos > MIC_sharedmem_offsetfield_location)pos = MIC_sharedmem_offsetfield_location;
-
-	return pos;
-}
-
-u32 MIC_ReadAudioData(u8 *outbuf, u32 readsize, u32 waitforevent)
-{
-	u32 pos = 0, bufpos = 0;
-	
-	if(waitforevent)
-	{
-		svcClearEvent(MIC_event);
-		svcWaitSynchronization(MIC_event, U64_MAX);
-	}
-
-	MIC_prev_endpos = MIC_cur_endpos;
-	MIC_cur_endpos = MIC_GetSharedMemOffsetValue();
-	pos = MIC_prev_endpos;
-
-	while(pos != MIC_cur_endpos)
-	{
-		if(pos >= MIC_sharedmem_offsetfield_location)pos = 0;
-		if(bufpos>=readsize)break;
-
-		outbuf[bufpos] = MIC_sharedmem[pos];
-		bufpos++;
-		pos++;
-	}
-
-	return bufpos;
-}
-
-Result MIC_MapSharedMem(Handle handle, u32 size)
-{
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1,1,2); // 0x10042
 	cmdbuf[1] = size;
 	cmdbuf[2] = IPC_Desc_SharedHandles(1);
 	cmdbuf[3] = handle;
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
 }
 
-Result MIC_UnmapSharedMem(void)
+Result MICU_UnmapSharedMem(void)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
 }
 
-Result MIC_cmd3_Initialize(u8 unk0, u8 unk1, u32 sharedmem_baseoffset, u32 sharedmem_endoffset, u8 unk2)
+Result MICU_StartSampling(MICU_Encoding encoding, MICU_SampleRate sampleRate, u32 offset, u32 size, bool loop)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x3,5,0); // 0x30140
-	cmdbuf[1] = unk0;
-	cmdbuf[2] = unk1;
-	cmdbuf[3] = sharedmem_baseoffset;
-	cmdbuf[4] = sharedmem_endoffset;
-	cmdbuf[5] = unk2;
+	cmdbuf[1] = encoding;
+	cmdbuf[2] = sampleRate;
+	cmdbuf[3] = offset;
+	cmdbuf[4] = size;
+	cmdbuf[5] = loop;
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
 }
 
-Result MIC_cmd5(void)
+Result MICU_AdjustSampling(MICU_SampleRate sampleRate)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x4,1,0); // 0x40040
+	cmdbuf[1] = sampleRate;
 
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
+}
+
+Result MICU_StopSampling(void)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x5,0,0); // 0x50000
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
 }
 
-Result MIC_GetCNTBit15(u8 *out)
+Result MICU_IsSampling(bool* sampling)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x6,0,0); // 0x60000
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	if(out)*out = cmdbuf[2];
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	if (sampling) *sampling = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
 }
 
-Result MIC_GetEventHandle(Handle *handle)
+Result MICU_GetEventHandle(Handle* handle)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
-	if(MIC_event)
-	{
-		*handle = MIC_event;
-		return 0;
-	}
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x7,0,0); // 0x70000
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	if(handle)*handle = cmdbuf[3];
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	if (handle) *handle = cmdbuf[3];
+	return cmdbuf[1];
 }
 
-Result MIC_SetControl(u8 value)
+Result MICU_SetGain(u8 gain)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x8,1,0); // 0x80040
-	cmdbuf[1] = value;
+	cmdbuf[1] = gain;
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
 }
 
-Result MIC_GetControl(u8 *value)
+Result MICU_GetGain(u8* gain)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x9,0,0); // 0x90000
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	if(value)*value = cmdbuf[2];
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	if (gain) *gain = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
 }
 
-Result MIC_SetRecording(u8 value)
+Result MICU_SetPower(bool power)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xA,1,0); // 0xA0040
-	cmdbuf[1] = value;
+	cmdbuf[1] = power;
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	if(value==1)MIC_cur_endpos = MIC_GetSharedMemOffsetValue();
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
 }
 
-Result MIC_IsRecoding(u8 *value)
+Result MICU_GetPower(bool* power)
 {
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0xB0000
 
-	if((ret = svcSendSyncRequest(MIC_handle))!=0)return ret;
-
-	if(value)*value = cmdbuf[2];
-
-	return (Result)cmdbuf[1];
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	if (power) *power = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
 }
 
+Result MICU_SetClamp(bool clamp)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xD,1,0); // 0xD0040
+	cmdbuf[1] = clamp;
+
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
+}
+
+Result MICU_GetClamp(bool* clamp)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xE,0,0); // 0xE0000
+
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	if (clamp) *clamp = cmdbuf[2] & 0xFF;
+	return cmdbuf[1];
+}
+
+Result MICU_SetAllowShellClosed(bool allowShellClosed)
+{
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xF,1,0); // 0xF0040
+	cmdbuf[1] = allowShellClosed;
+
+	if (R_FAILED(ret = svcSendSyncRequest(micHandle))) return ret;
+	return cmdbuf[1];
+}

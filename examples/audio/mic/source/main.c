@@ -6,26 +6,37 @@
 
 int main()
 {
-	u8 *framebuf;
-	u32 *sharedmem = NULL, sharedmem_size = 0x30000;
-	u8 *audiobuf;
-	u32 audiobuf_size = 0x100000, audiobuf_pos = 0;
-	u8 control=0x40;
-	u32 audio_initialized = 0;
-
 	gfxInitDefault();
 	consoleInit(GFX_BOTTOM, NULL);
 
-	if(csndInit()==0)
+	bool initialized = true;
+
+	u32 micbuf_size = 0x30000;
+	u32 micbuf_pos = 0;
+	u8* micbuf = memalign(micbuf_size, 0x1000);
+
+	printf("Initializing CSND...\n");
+	if(R_FAILED(csndInit()))
 	{
-		printf("Init success\n");
-		audio_initialized = 1;
-	}
+		initialized = false;
+		printf("Could not initialize CSND.\n");
+	} else printf("CSND initialized.\n");
 
-	sharedmem = (u32*)memalign(0x1000, sharedmem_size);
-	audiobuf = linearAlloc(audiobuf_size);
+	printf("Initializing MIC...\n");
+	if(R_FAILED(micInit(micbuf, micbuf_size)))
+	{
+		initialized = false;
+		printf("Could not initialize MIC.\n");
+	} else printf("MIC initialized.\n");
 
-	MIC_Initialize(sharedmem, sharedmem_size, control, 0, 3, 1, 1);//See mic.h.
+	u32 micbuf_datasize = micGetSampleDataSize();
+
+	u32 audiobuf_size = 0x100000;
+	u32 audiobuf_pos = 0;
+	u8* audiobuf = linearAlloc(audiobuf_size);
+
+	if(initialized) printf("Hold A to record, release to play.\n");
+	printf("Press START to exit.\n");
 
 	while(aptMainLoop())
 	{
@@ -36,45 +47,42 @@ int main()
 		if (kDown & KEY_START)
 			break; // break in order to return to hbmenu
 
-		if(audio_initialized)
+		if(initialized)
 		{
-			framebuf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-
 			if(kDown & KEY_A)
 			{
 				audiobuf_pos = 0;
-				printf("Stopping audio playback\n");
-				CSND_SetPlayState(0x8, 0);//Stop audio playback.
-				CSND_UpdateInfo(0);
+				micbuf_pos = 0;
 
-				MIC_SetRecording(1);
+				printf("Stopping audio playback...\n");
+				CSND_SetPlayState(0x8, 0);
+				if(R_FAILED(CSND_UpdateInfo(0))) printf("Failed to stop audio playback.\n");
 
-				memset(framebuf, 0x20, 0x46500);
-				printf("Now recording\n");
+				printf("Starting sampling...\n");
+				if(R_SUCCEEDED(MICU_SetPower(true)) && R_SUCCEEDED(MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, MICU_SAMPLE_RATE_16360, 0, micbuf_datasize, true))) printf("Now recording.\n");
+				else printf("Failed to start sampling.\n");
 			}
 
 			if((hidKeysHeld() & KEY_A) && audiobuf_pos < audiobuf_size)
 			{
-				audiobuf_pos+= MIC_ReadAudioData(&audiobuf[audiobuf_pos], audiobuf_size-audiobuf_pos, 1);
-				if(audiobuf_pos > audiobuf_size)audiobuf_pos = audiobuf_size;
-
-				memset(framebuf, 0x60, 0x46500);
+				u32 micbuf_readpos = micbuf_pos;
+				micbuf_pos = micGetLastSampleOffset();
+				while(audiobuf_pos < audiobuf_size && micbuf_readpos != micbuf_pos)
+				{
+					audiobuf[audiobuf_pos] = micbuf[micbuf_readpos];
+					audiobuf_pos++;
+					micbuf_readpos = (micbuf_readpos + 1) % micbuf_datasize;
+				}
 			}
 
 			if(hidKeysUp() & KEY_A)
 			{
-				printf("Playing the recorded sample\n");
-				MIC_SetRecording(0);
-				GSPGPU_FlushDataCache(NULL, audiobuf, audiobuf_pos);
-				csndPlaySound(0x8, SOUND_ONE_SHOT | SOUND_FORMAT_16BIT, 16000, 1.0, 0.0, (u32*)audiobuf, NULL, audiobuf_pos);
+				printf("Stoping sampling...\n");
+				if(R_FAILED(MICU_StopSampling()) || R_FAILED(MICU_SetPower(false))) printf("Failed to stop sampling.\n");
 
-				memset(framebuf, 0xe0, 0x46500);
-
-				gfxFlushBuffers();
-				gfxSwapBuffers();
-
-				framebuf = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-				memset(framebuf, 0xe0, 0x46500);
+				printf("Starting audio playback...\n");
+				if(R_SUCCEEDED(GSPGPU_FlushDataCache(audiobuf, audiobuf_pos)) && R_SUCCEEDED(csndPlaySound(0x8, SOUND_ONE_SHOT | SOUND_FORMAT_16BIT, 16360, 1.0, 0.0, (u32*)audiobuf, NULL, audiobuf_pos))) printf("Now playing.\n");
+				else printf("Failed to start playback.\n");
 			}
 		}
 
@@ -82,13 +90,12 @@ int main()
 		gfxSwapBuffers();
 	}
 
-	MIC_Shutdown();
-
-	if(audio_initialized)csndExit();
-
-	free(sharedmem);
 	linearFree(audiobuf);
 
+	micExit();
+	free(micbuf);
+
+	csndExit();
 	gfxExit();
 	return 0;
 }
