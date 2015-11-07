@@ -1051,6 +1051,54 @@ FSUSER_IsSdmcDetected(Handle *handle,
 	return cmdbuf[1];
 }
 
+/*! Get the ProductInfo for the specified process.
+ *
+ *  @param[in]  handle    fs:USER handle
+ *  @param[in]  processid ProcessID
+ *  @param[out] out       Output ProductInfo
+ *
+ *  @returns error
+ *
+ *  @internal
+ *
+ *  #### Request
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code [0x082E0040]
+ *  1          | u32 processID
+ *
+ *  #### Response
+ *
+ *  Index Word | Description
+ *  -----------|-------------------------
+ *  0          | Header code
+ *  1          | Result code
+ *  2-6        | Output ProductInfo
+ */
+Result
+FSUSER_GetProductInfo(Handle *handle,
+                      u32    processid,
+                      FS_ProductInfo *out)
+{
+	if(!handle)
+		handle = &fsuHandle;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = 0x082E0040;
+	cmdbuf[1] = processid;
+
+	Result ret = 0;
+	if((ret = svcSendSyncRequest(*handle)))
+		return ret;
+
+	if(out)
+		memcpy(out, &cmdbuf[2], sizeof(FS_ProductInfo));
+
+	return cmdbuf[1];
+}
+
 /*! Get curent process mediatype
  *
  *  @param[in]  handle   fs:USER handle

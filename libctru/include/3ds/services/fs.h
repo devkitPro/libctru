@@ -127,6 +127,14 @@ typedef struct
   u64 fileSize;        //!< file size
 } FS_dirent;
 
+/*! ProductInfo. These strings are not NULL-terminated. */
+typedef struct
+{
+	char product_code[0x10];
+	char company_code[0x2];
+	u16 remaster_version;
+} FS_ProductInfo;
+
 Result fsInit(void);
 Result fsExit(void);
 Handle *fsGetSessionHandle();
@@ -150,6 +158,7 @@ Result FSUSER_GetSdmcArchiveResource(Handle *handle, u32 *sectorSize, u32 *clust
 Result FSUSER_GetNandArchiveResource(Handle *handle, u32 *sectorSize, u32 *clusterSize, u32 *numClusters, u32 *freeClusters);
 Result FSUSER_IsSdmcDetected(Handle *handle, u8 *detected);
 Result FSUSER_IsSdmcWritable(Handle *handle, u8 *writable);
+Result FSUSER_GetProductInfo(Handle *handle, u32 processid, FS_ProductInfo *out);
 Result FSUSER_GetMediaType(Handle *handle, u8* mediatype);
 
 Result FSFILE_Close(Handle handle);
