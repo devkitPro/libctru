@@ -394,7 +394,7 @@ void ndspiReadChnState(void)
 				}
 				LightLock_Unlock(&chn->lock);
 			}
+			chn->playing = (st->flags & 0xFF) ? true : false;
 		}
-		chn->playing = (st->flags & 0xFF) ? true : false;
 	}
 }
