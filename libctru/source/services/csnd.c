@@ -152,7 +152,7 @@ Result csndInit(void)
 	memset((void*)csndSharedMem, 0, csndSharedMemSize);
 
 	ret = CSND_AcquireSoundChannels(&csndChannels);
-	if (R_FAILED(ret)) return 0;
+	if (R_SUCCEEDED(ret)) return 0;
 
 cleanup2:
 	svcCloseHandle(csndSharedMemBlock);

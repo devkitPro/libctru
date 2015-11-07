@@ -495,7 +495,7 @@ Result aptInit(void)
 		}
 		
 		aptOpenSession();
-		if(R_FAILED(ret=APT_NotifyToWait(currentAppId)))return ret;
+		if(R_FAILED(ret=APT_NotifyToWait(currentAppId)))goto _fail;
 		aptCloseSession();
 
 		// create APT event handler thread

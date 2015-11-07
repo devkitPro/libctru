@@ -22,7 +22,7 @@ Result camInit(void) {
 	}
 	if (R_FAILED(ret)) AtomicDecrement(&camRefCount);
 
-	return 0;
+	return ret;
 }
 
 void camExit(void) {
