@@ -78,13 +78,13 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_AddIncrementalWrites(GPUREG_COLORBUFFER_READ, param, 0x00000004);
 }
 
-void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h)
+void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 left, u32 bottom, u32 right, u32 top)
 {
 	u32 param[3];
 	
 	param[0x0] = mode;
-	param[0x1] = (y<<16)|(x&0xFFFF);
-	param[0x2] = ((h-1)<<16)|((w-1)&0xFFFF);
+	param[0x1] = (bottom<<16)|(left&0xFFFF);
+	param[0x2] = ((top-1)<<16)|((right-1)&0xFFFF);
 	GPUCMD_AddIncrementalWrites(GPUREG_SCISSORTEST_MODE, param, 0x00000003);
 }
 

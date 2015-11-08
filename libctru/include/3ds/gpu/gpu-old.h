@@ -55,7 +55,7 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
  * @param h Height of the scissor region.
  * @deprecated
  */
-void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h) DEPRECATED;
+void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 left, u32 bottom, u32 right, u32 top) DEPRECATED;
 
 /**
  * @brief Sets the depth map.
