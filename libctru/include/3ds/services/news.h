@@ -20,4 +20,4 @@ void newsExit(void);
  * @param imageSize Size of the image data in bytes.
  * @param jpeg Whether the image is a JPEG or not.
  */
-Result NEWSU_AddNotification(const u16* title, u32 titleLength, const u16* message, u32 messageLength, const void* imageData, u32 imageSize, bool jpeg);
+Result NEWS_AddNotification(const u16* title, u32 titleLength, const u16* message, u32 messageLength, const void* imageData, u32 imageSize, bool jpeg);
