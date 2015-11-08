@@ -22,11 +22,14 @@ typedef struct {
 
 static Handle newsHandle;
 static int newsRefCount;
+static bool useNewsS;
 
 Result newsInit(void) {
 	Result res;
 	if (AtomicPostIncrement(&newsRefCount)) return 0;
 	res = srvGetServiceHandle(&newsHandle, "news:u");
+	useNewsS = R_FAILED(res);
+	if (useNewsS) res = srvGetServiceHandle(&newsHandle, "news:s");
 	if (R_FAILED(res)) AtomicDecrement(&newsRefCount);
 	return res;
 }
@@ -36,7 +39,7 @@ void newsExit(void) {
 	svcCloseHandle(newsHandle);
 }
 
-Result NEWSU_AddNotification(const u16* title, u32 titleLength, const u16* message, u32 messageLength, const void* imageData, u32 imageSize, bool jpeg)
+Result NEWS_AddNotification(const u16* title, u32 titleLength, const u16* message, u32 messageLength, const void* imageData, u32 imageSize, bool jpeg)
 {
 	NotificationHeader header = { 0 };
 	header.dataSet = true;
@@ -53,14 +56,20 @@ Result NEWSU_AddNotification(const u16* title, u32 titleLength, const u16* messa
 	cmdbuf[1] = sizeof(NotificationHeader);
 	cmdbuf[2] = (messageLength + 1) * sizeof(u16);
 	cmdbuf[3] = imageSize;
-	cmdbuf[4] = IPC_Desc_CurProcessHandle();
-	cmdbuf[5] = 0; // Process ID, Filled automatically by the ARM11 kernel.
-	cmdbuf[6] = IPC_Desc_Buffer(sizeof(NotificationHeader),IPC_BUFFER_R);
-	cmdbuf[7] = (u32) &header;
-	cmdbuf[8] = IPC_Desc_Buffer((messageLength + 1) * sizeof(u16),IPC_BUFFER_R);
-	cmdbuf[9] = (u32) message;
-	cmdbuf[10] = IPC_Desc_Buffer(imageSize,IPC_BUFFER_R);
-	cmdbuf[11] = (u32) imageData;
+
+	u32 baseIndex = 4;
+	if (!useNewsS) {
+		cmdbuf[baseIndex] = IPC_Desc_CurProcessHandle();
+		cmdbuf[baseIndex + 1] = 0; // Process ID, Filled automatically by the ARM11 kernel.
+		baseIndex += 2;
+	}
+
+	cmdbuf[baseIndex] = IPC_Desc_Buffer(sizeof(NotificationHeader),IPC_BUFFER_R);
+	cmdbuf[baseIndex + 1] = (u32) &header;
+	cmdbuf[baseIndex + 2] = IPC_Desc_Buffer((messageLength + 1) * sizeof(u16),IPC_BUFFER_R);
+	cmdbuf[baseIndex + 3] = (u32) message;
+	cmdbuf[baseIndex + 4] = IPC_Desc_Buffer(imageSize,IPC_BUFFER_R);
+	cmdbuf[baseIndex + 5] = (u32) imageData;
 
 	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
 
