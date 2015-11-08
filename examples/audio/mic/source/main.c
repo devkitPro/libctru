@@ -59,7 +59,7 @@ int main()
 				if(R_FAILED(CSND_UpdateInfo(0))) printf("Failed to stop audio playback.\n");
 
 				printf("Starting sampling...\n");
-				if(R_SUCCEEDED(MICU_SetPower(true)) && R_SUCCEEDED(MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, MICU_SAMPLE_RATE_16360, 0, micbuf_datasize, true))) printf("Now recording.\n");
+				if(R_SUCCEEDED(MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, MICU_SAMPLE_RATE_16360, 0, micbuf_datasize, true))) printf("Now recording.\n");
 				else printf("Failed to start sampling.\n");
 			}
 
@@ -78,7 +78,7 @@ int main()
 			if(hidKeysUp() & KEY_A)
 			{
 				printf("Stoping sampling...\n");
-				if(R_FAILED(MICU_StopSampling()) || R_FAILED(MICU_SetPower(false))) printf("Failed to stop sampling.\n");
+				if(R_FAILED(MICU_StopSampling())) printf("Failed to stop sampling.\n");
 
 				printf("Starting audio playback...\n");
 				if(R_SUCCEEDED(GSPGPU_FlushDataCache(audiobuf, audiobuf_pos)) && R_SUCCEEDED(csndPlaySound(0x8, SOUND_ONE_SHOT | SOUND_FORMAT_16BIT, 16360, 1.0, 0.0, (u32*)audiobuf, NULL, audiobuf_pos))) printf("Now playing.\n");

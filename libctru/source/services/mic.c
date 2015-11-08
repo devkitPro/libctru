@@ -30,6 +30,9 @@ Result micInit(u8* buffer, u32 bufferSize)
 	if (R_FAILED(ret)) goto end;
 
 	ret = MICU_MapSharedMem(micSharedMemSize, micSharedMemHandle);
+	if (R_FAILED(ret)) goto end;
+
+	ret = MICU_SetPower(true);
 end:
 	if (R_FAILED(ret)) micExit();
 	return ret;
@@ -46,8 +49,9 @@ void micExit(void)
 		micSharedMemHandle = 0;
 	}
 
-	if(micHandle)
+	if (micHandle)
 	{
+		MICU_SetPower(false);
 		svcCloseHandle(micHandle);
 		micHandle = 0;
 	}
