@@ -28,13 +28,13 @@ Result ptmSysmInit(void)
 {
 	if (AtomicPostIncrement(&ptmSysmRefCount)) return 0;
 	Result res = srvGetServiceHandle(&ptmSysmHandle, "ptm:sysm");
-	if (R_FAILED(res)) AtomicDecrement(&ptmSysmHandle);
+	if (R_FAILED(res)) AtomicDecrement(&ptmSysmRefCount);
 	return res;
 }
 
 void ptmSysmExit(void)
 {
-	if (AtomicDecrement(&ptmSysmHandle)) return;
+	if (AtomicDecrement(&ptmSysmRefCount)) return;
 	svcCloseHandle(ptmSysmHandle);
 }
 
