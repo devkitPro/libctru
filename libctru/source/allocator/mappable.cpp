@@ -1,7 +1,7 @@
 extern "C"
 {
 	#include <3ds/types.h>
-	#include <3ds/mappable.h>
+	#include <3ds/allocator/mappable.h>
 	#include <3ds/util/rbtree.h>
 }
 

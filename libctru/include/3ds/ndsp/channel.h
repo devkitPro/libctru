@@ -38,12 +38,12 @@ enum
 };
 
 /// Interpolation types.
-enum
+typedef enum
 {
 	NDSP_INTERP_POLYPHASE = 0, ///< Polyphase interpolation
 	NDSP_INTERP_LINEAR    = 1, ///< Linear interpolation
 	NDSP_INTERP_NONE      = 2, ///< No interpolation
-};
+} ndspInterpType;
 
 ///@}
 
@@ -87,7 +87,6 @@ u16  ndspChnGetWaveBufSeq(int id);
 ///@{
 /**
  * @brief Sets the format of a channel.
- * @sa NDSP_Encoding
  * @param id ID of the channel (0..23).
  * @param format Format to use.
  */
@@ -98,7 +97,7 @@ void ndspChnSetFormat(int id, u16 format);
  * @param id ID of the channel (0..23).
  * @param type Interpolation type to use.
  */
-void ndspChnSetInterp(int id, int type);
+void ndspChnSetInterp(int id, ndspInterpType type);
 
 /**
  * @brief Sets the sample rate of a channel.

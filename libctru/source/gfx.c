@@ -1,15 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <3ds/types.h>
 #include <3ds/gfx.h>
 #include <3ds/svc.h>
-#include <3ds/linear.h>
-#include <3ds/mappable.h>
-#include <3ds/vram.h>
+#include <3ds/allocator/linear.h>
+#include <3ds/allocator/mappable.h>
+#include <3ds/allocator/vram.h>
 #include <3ds/gpu/gx.h>
 
-GSP_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
+GSPGPU_FramebufferInfo topFramebufferInfo, bottomFramebufferInfo;
 
 u8 gfxThreadID;
 u8* gfxSharedMemory;
@@ -24,22 +23,22 @@ static int doubleBuf[2] = {1,1};
 
 Handle gspEvent, gspSharedMemHandle;
 
-static GSP_FramebufferFormats topFormat = GSP_BGR8_OES;
-static GSP_FramebufferFormats botFormat = GSP_BGR8_OES;
+static GSPGPU_FramebufferFormats topFormat = GSP_BGR8_OES;
+static GSPGPU_FramebufferFormats botFormat = GSP_BGR8_OES;
 
 void gfxSet3D(bool enable)
 {
 	enable3d=enable;
 }
 
-void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format) {
+void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormats format) {
     if(screen==GFX_TOP)
         topFormat = format;
     else
         botFormat = format;
 }
 
-GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen) {
+GSPGPU_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen) {
     if(screen==GFX_TOP)
         return topFormat;
     else
@@ -50,7 +49,7 @@ void gfxSetDoubleBuffering(gfxScreen_t screen, bool doubleBuffering) {
 	doubleBuf[screen] = doubleBuffering ? 1 : 0; // make sure they're the integer values '1' and '0'
 }
 
-static u32 __get_bytes_per_pixel(GSP_FramebufferFormats format) {
+static u32 __get_bytes_per_pixel(GSPGPU_FramebufferFormats format) {
     switch(format) {
     case GSP_RGBA8_OES:
         return 4;
@@ -93,7 +92,7 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 {
 	u8* framebufferInfoHeader=gfxSharedMemory+0x200+gfxThreadID*0x80;
 	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x40;
-	GSP_FramebufferInfo* framebufferInfo=(GSP_FramebufferInfo*)&framebufferInfoHeader[0x4];
+	GSPGPU_FramebufferInfo* framebufferInfo=(GSPGPU_FramebufferInfo*)&framebufferInfoHeader[0x4];
 	framebufferInfoHeader[0x0]^=doubleBuf[screen];
 	framebufferInfo[framebufferInfoHeader[0x0]]=(screen==GFX_TOP)?(topFramebufferInfo):(bottomFramebufferInfo);
 	framebufferInfoHeader[0x1]=1;
@@ -101,7 +100,7 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 
 static void (*screenFree)(void *) = NULL;
 
-void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomFormat, bool vrambuffers)
+void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bottomFormat, bool vrambuffers)
 {
 	void *(*screenAlloc)(size_t);
 
@@ -162,7 +161,7 @@ void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomForm
 	currentBuffer[1]=0;
 
 	// Initialize event handler and wait for VBlank
-	gspInitEventHandler(gspEvent, (vu8*)gfxSharedMemory, gfxThreadID);
+	gspInitEventHandler(gspEvent, (vu8*) gfxSharedMemory, gfxThreadID);
 	gspWaitForVBlank();
 
 	GSPGPU_SetLcdForceBlack(0x0);

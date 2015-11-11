@@ -34,7 +34,7 @@ void y2rExit(void)
 	svcCloseHandle(y2rHandle);
 }
 
-Result Y2RU_SetInputFormat(Y2R_InputFormat format)
+Result Y2RU_SetInputFormat(Y2RU_InputFormat format)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -45,7 +45,7 @@ Result Y2RU_SetInputFormat(Y2R_InputFormat format)
 	return cmdbuf[1];
 }
 
-Result Y2RU_GetInputFormat(Y2R_InputFormat* format)
+Result Y2RU_GetInputFormat(Y2RU_InputFormat* format)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -56,7 +56,7 @@ Result Y2RU_GetInputFormat(Y2R_InputFormat* format)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetOutputFormat(Y2R_OutputFormat format)
+Result Y2RU_SetOutputFormat(Y2RU_OutputFormat format)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -67,7 +67,7 @@ Result Y2RU_SetOutputFormat(Y2R_OutputFormat format)
 	return cmdbuf[1];
 }
 
-Result Y2RU_GetOutputFormat(Y2R_OutputFormat* format)
+Result Y2RU_GetOutputFormat(Y2RU_OutputFormat* format)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -78,7 +78,7 @@ Result Y2RU_GetOutputFormat(Y2R_OutputFormat* format)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetRotation(Y2R_Rotation rotation)
+Result Y2RU_SetRotation(Y2RU_Rotation rotation)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -89,7 +89,7 @@ Result Y2RU_SetRotation(Y2R_Rotation rotation)
 	return cmdbuf[1];
 }
 
-Result Y2RU_GetRotation(Y2R_Rotation* rotation)
+Result Y2RU_GetRotation(Y2RU_Rotation* rotation)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -100,7 +100,7 @@ Result Y2RU_GetRotation(Y2R_Rotation* rotation)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment)
+Result Y2RU_SetBlockAlignment(Y2RU_BlockAlignment alignment)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -111,7 +111,7 @@ Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment)
 	return cmdbuf[1];
 }
 
-Result Y2RU_GetBlockAlignment(Y2R_BlockAlignment* alignment)
+Result Y2RU_GetBlockAlignment(Y2RU_BlockAlignment* alignment)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -385,29 +385,29 @@ Result Y2RU_GetInputLines(u16* num_lines)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetCoefficients(const Y2R_ColorCoefficients* coefficients)
+Result Y2RU_SetCoefficients(const Y2RU_ColorCoefficients* coefficients)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1E,4,0); // 0x1E0100
-	memcpy(&cmdbuf[1], coefficients, sizeof(Y2R_ColorCoefficients));
+	memcpy(&cmdbuf[1], coefficients, sizeof(Y2RU_ColorCoefficients));
 
 	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
-Result Y2RU_GetCoefficients(Y2R_ColorCoefficients* coefficients)
+Result Y2RU_GetCoefficients(Y2RU_ColorCoefficients* coefficients)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1F,0,0); // 0x1F0000
 
 	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
-	memcpy(coefficients,cmdbuf + 2, sizeof(Y2R_ColorCoefficients));
+	memcpy(coefficients,cmdbuf + 2, sizeof(Y2RU_ColorCoefficients));
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient)
+Result Y2RU_SetStandardCoefficient(Y2RU_StandardCoefficient coefficient)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -418,7 +418,7 @@ Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient)
 	return cmdbuf[1];
 }
 
-Result Y2RU_GetStandardCoefficient(Y2R_ColorCoefficients* coefficients, Y2R_StandardCoefficient standardCoeff)
+Result Y2RU_GetStandardCoefficient(Y2RU_ColorCoefficients* coefficients, Y2RU_StandardCoefficient standardCoeff)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -426,7 +426,7 @@ Result Y2RU_GetStandardCoefficient(Y2R_ColorCoefficients* coefficients, Y2R_Stan
 	cmdbuf[1] = standardCoeff;
 
 	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
-	memcpy(coefficients,cmdbuf + 2, sizeof(Y2R_ColorCoefficients));
+	memcpy(coefficients,cmdbuf + 2, sizeof(Y2RU_ColorCoefficients));
 	return cmdbuf[1];
 }
 
@@ -453,25 +453,25 @@ Result Y2RU_GetAlpha(u16* alpha)
 }
 
 
-Result Y2RU_SetDitheringWeightParams(const Y2R_DitheringWeightParams* params)
+Result Y2RU_SetDitheringWeightParams(const Y2RU_DitheringWeightParams* params)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x24,8,0); // 0x240200
-	memcpy(&cmdbuf[1], params, sizeof(Y2R_DitheringWeightParams));
+	memcpy(&cmdbuf[1], params, sizeof(Y2RU_DitheringWeightParams));
 
 	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];
 }
 
-Result Y2RU_GetDitheringWeightParams(Y2R_DitheringWeightParams* params)
+Result Y2RU_GetDitheringWeightParams(Y2RU_DitheringWeightParams* params)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x25,0,0); // 0x250000
 
 	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
-	memcpy(params,cmdbuf+2, sizeof(Y2R_DitheringWeightParams));
+	memcpy(params,cmdbuf+2, sizeof(Y2RU_DitheringWeightParams));
 	return cmdbuf[1];
 }
 
@@ -506,12 +506,12 @@ Result Y2RU_IsBusyConversion(bool* is_busy)
 	return cmdbuf[1];
 }
 
-Result Y2RU_SetConversionParams(const Y2R_ConversionParams* params)
+Result Y2RU_SetConversionParams(const Y2RU_ConversionParams* params)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x29,7,0); // 0x2901C0
-	memcpy(&cmdbuf[1], params, sizeof(Y2R_ConversionParams));
+	memcpy(&cmdbuf[1], params, sizeof(Y2RU_ConversionParams));
 
 	if (R_FAILED(ret = svcSendSyncRequest(y2rHandle))) return ret;
 	return cmdbuf[1];

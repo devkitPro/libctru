@@ -25,7 +25,7 @@ void psExit(void)
 	svcCloseHandle(psHandle);
 }
 
-Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_type, u8* iv)
+Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, PS_AESAlgorithm aes_algo, PS_AESKeyType key_type, u8* iv)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -47,15 +47,15 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_typ
 
 	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
 
-	_iv[0] = cmdbuf[2];
-	_iv[1] = cmdbuf[3];
-	_iv[2] = cmdbuf[4];
-	_iv[3] = cmdbuf[5];
+	_iv[0] = cmdbuf[2] & 0xFF;
+	_iv[1] = cmdbuf[3] & 0xFF;
+	_iv[2] = cmdbuf[4] & 0xFF;
+	_iv[3] = cmdbuf[5] & 0xFF;
 
 	return (Result)cmdbuf[1];
 }
 
-Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_size, u32 data_len, u32 mac_data_len, u32 mac_len, u32 aes_algo, u32 key_type, u8* nonce)
+Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_size, u32 data_len, u32 mac_data_len, u32 mac_len, PS_AESAlgorithm aes_algo, PS_AESKeyType key_type, u8* nonce)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();

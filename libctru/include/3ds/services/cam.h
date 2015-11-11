@@ -8,17 +8,17 @@
 #include <3ds/types.h>
 
 /// Camera connection target ports.
-typedef enum {
+enum {
 	PORT_NONE = 0x0,    ///< No port.
 	PORT_CAM1 = BIT(0), ///< CAM1 port.
 	PORT_CAM2 = BIT(1), ///< CAM2 port.
 
 	// Port combinations.
 	PORT_BOTH = PORT_CAM1 | PORT_CAM2, ///< Both ports.
-} CAMU_Port;
+};
 
 /// Camera combinations.
-typedef enum {
+enum {
 	SELECT_NONE = 0x0,    ///< No camera.
 	SELECT_OUT1 = BIT(0), ///< Outer camera 1.
 	SELECT_IN1  = BIT(1), ///< Inner camera 1.
@@ -29,7 +29,7 @@ typedef enum {
 	SELECT_OUT1_OUT2 = SELECT_OUT1 | SELECT_OUT2,              ///< Both outer cameras.
 	SELECT_IN1_OUT2  = SELECT_IN1 | SELECT_OUT2,               ///< Inner camera 1 and outer camera 2.
 	SELECT_ALL       = SELECT_OUT1 | SELECT_IN1 | SELECT_OUT2, ///< All cameras.
-} CAMU_CameraSelect;
+};
 
 /// Camera contexts.
 typedef enum {
@@ -200,7 +200,7 @@ typedef struct {
 
 /// Batch camera configuration for use without a context.
 typedef struct {
-	u8 camera;                        ///< #CAMU_CameraSelect Selected camera.
+	u8 camera;                        ///< Selected camera.
 	s8 exposure;                      ///< Camera exposure.
 	u8 whiteBalance;                  ///< #CAMU_WhiteBalance Camera white balance.
 	s8 sharpness;                     ///< Camera sharpness.
@@ -224,7 +224,7 @@ typedef struct {
 
 /// Batch camera configuration for use with a context.
 typedef struct {
-	u8 camera;  ///< #CAMU_CameraSelect Selected camera.
+	u8 camera;  ///< Selected camera.
 	u8 context; ///< #CAMU_Context Selected context.
 	u8 flip;    ///< #CAMU_Flip Camera image flip mode.
 	u8 effect;  ///< #CAMU_Effect Camera image special effects.
@@ -233,7 +233,7 @@ typedef struct {
 
 /// Batch camera configuration for use with a context and with detailed size information.
 typedef struct {
-	u8 camera;  ///< #CAMU_CameraSelect Selected camera.
+	u8 camera;  ///< Selected camera.
 	u8 context; ///< #CAMU_Context Selected context.
 	u8 flip;    ///< #CAMU_Flip Camera image flip mode.
 	u8 effect;  ///< #CAMU_Effect Camera image special effects.
@@ -263,40 +263,40 @@ void camExit(void);
  * Begins capture on the specified camera port.
  * @param port Port to begin capture on.
  */
-Result CAMU_StartCapture(CAMU_Port port);
+Result CAMU_StartCapture(u32 port);
 
 /**
  * Terminates capture on the specified camera port.
  * @param port Port to terminate capture on.
  */
-Result CAMU_StopCapture(CAMU_Port port);
+Result CAMU_StopCapture(u32 port);
 
 /**
  * @brief Gets whether the specified camera port is busy.
  * @param busy Pointer to output the busy state to.
  * @param port Port to check.
  */
-Result CAMU_IsBusy(bool* busy, CAMU_Port port);
+Result CAMU_IsBusy(bool* busy, u32 port);
 
 /**
  * @brief Clears the buffer and error flags of the specified camera port.
  * @param port Port to clear.
  */
-Result CAMU_ClearBuffer(CAMU_Port port);
+Result CAMU_ClearBuffer(u32 port);
 
 /**
  * @brief Gets a handle to the event signaled on vsync interrupts.
  * @param event Pointer to output the event handle to.
  * @param port Port to use.
  */
-Result CAMU_GetVsyncInterruptEvent(Handle* event, CAMU_Port port);
+Result CAMU_GetVsyncInterruptEvent(Handle* event, u32 port);
 
 /**
  * @brief Gets a handle to the event signaled on camera buffer errors.
  * @param event Pointer to output the event handle to.
  * @param port Port to use.
  */
-Result CAMU_GetBufferErrorInterruptEvent(Handle* event, CAMU_Port port);
+Result CAMU_GetBufferErrorInterruptEvent(Handle* event, u32 port);
 
 /**
  * @brief Initiates the process of receiving a camera frame.
@@ -306,14 +306,14 @@ Result CAMU_GetBufferErrorInterruptEvent(Handle* event, CAMU_Port port);
  * @param imageSize Size of the image to receive.
  * @param transferUnit Transfer unit to use when receiving.
  */
-Result CAMU_SetReceiving(Handle* event, void* dst, CAMU_Port port, u32 imageSize, s16 transferUnit);
+Result CAMU_SetReceiving(Handle* event, void* dst, u32 port, u32 imageSize, s16 transferUnit);
 
 /**
  * @brief Gets whether the specified camera port has finished receiving image data.
  * @param finishedReceiving Pointer to output the receiving status to.
  * @param port Port to check.
  */
-Result CAMU_IsFinishedReceiving(bool* finishedReceiving, CAMU_Port port);
+Result CAMU_IsFinishedReceiving(bool* finishedReceiving, u32 port);
 
 /**
  * @brief Sets the number of lines to transfer into an image buffer.
@@ -322,7 +322,7 @@ Result CAMU_IsFinishedReceiving(bool* finishedReceiving, CAMU_Port port);
  * @param width Width of the image.
  * @param height Height of the image.
  */
-Result CAMU_SetTransferLines(CAMU_Port port, s16 lines, s16 width, s16 height);
+Result CAMU_SetTransferLines(u32 port, s16 lines, s16 width, s16 height);
 
 /**
  * @brief Gets the maximum number of lines that can be saved to an image buffer.
@@ -339,14 +339,14 @@ Result CAMU_GetMaxLines(s16* maxLines, s16 width, s16 height);
  * @param width Width of the image.
  * @param height Height of the image.
  */
-Result CAMU_SetTransferBytes(CAMU_Port port, u32 bytes, s16 width, s16 height);
+Result CAMU_SetTransferBytes(u32 port, u32 bytes, s16 width, s16 height);
 
 /**
  * @brief Gets the number of bytes to transfer into an image buffer.
  * @param transferBytes Pointer to write the number of bytes to.
  * @param port Port to use.
  */
-Result CAMU_GetTransferBytes(u32* transferBytes, CAMU_Port port);
+Result CAMU_GetTransferBytes(u32* transferBytes, u32 port);
 
 /**
  * @brief Gets the maximum number of bytes that can be saved to an image buffer.
@@ -361,14 +361,14 @@ Result CAMU_GetMaxBytes(u32* maxBytes, s16 width, s16 height);
  * @param port Port to use.
  * @param trimming Whether image trimming is enabled.
  */
-Result CAMU_SetTrimming(CAMU_Port port, bool trimming);
+Result CAMU_SetTrimming(u32 port, bool trimming);
 
 /**
  * @brief Gets whether image trimming is enabled.
  * @param trimming Pointer to output the trim state to.
  * @param port Port to use.
  */
-Result CAMU_IsTrimming(bool* trimming, CAMU_Port port);
+Result CAMU_IsTrimming(bool* trimming, u32 port);
 
 /**
  * @brief Sets the parameters used for trimming images.
@@ -378,7 +378,7 @@ Result CAMU_IsTrimming(bool* trimming, CAMU_Port port);
  * @param xEnd End X coordinate.
  * @param yEnd End Y coordinate.
  */
-Result CAMU_SetTrimmingParams(CAMU_Port port, s16 xStart, s16 yStart, s16 xEnd, s16 yEnd);
+Result CAMU_SetTrimmingParams(u32 port, s16 xStart, s16 yStart, s16 xEnd, s16 yEnd);
 
 /**
  * @brief Gets the parameters used for trimming images.
@@ -388,7 +388,7 @@ Result CAMU_SetTrimmingParams(CAMU_Port port, s16 xStart, s16 yStart, s16 xEnd, 
  * @param yEnd Pointer to write the end Y coordinate to.
  * @param port Port to use.
  */
-Result CAMU_GetTrimmingParams(s16* xStart, s16* yStart, s16* xEnd, s16* yEnd, CAMU_Port port);
+Result CAMU_GetTrimmingParams(s16* xStart, s16* yStart, s16* xEnd, s16* yEnd, u32 port);
 
 /**
  * @brief Sets the parameters used for trimming images, relative to the center of the image.
@@ -398,34 +398,34 @@ Result CAMU_GetTrimmingParams(s16* xStart, s16* yStart, s16* xEnd, s16* yEnd, CA
  * @param camWidth Camera width.
  * @param camHeight Camera height.
  */
-Result CAMU_SetTrimmingParamsCenter(CAMU_Port port, s16 trimWidth, s16 trimHeight, s16 camWidth, s16 camHeight);
+Result CAMU_SetTrimmingParamsCenter(u32 port, s16 trimWidth, s16 trimHeight, s16 camWidth, s16 camHeight);
 
 /**
  * @brief Activates the specified camera.
  * @param select Camera to use.
  */
-Result CAMU_Activate(CAMU_CameraSelect select);
+Result CAMU_Activate(u32 select);
 
 /**
  * @brief Switches the specified camera's active context.
  * @param select Camera to use.
  * @param context Context to use.
  */
-Result CAMU_SwitchContext(CAMU_CameraSelect select, CAMU_Context context);
+Result CAMU_SwitchContext(u32 select, CAMU_Context context);
 
 /**
  * @brief Sets the exposure value of the specified camera.
  * @param select Camera to use.
  * @param exposure Exposure value to use.
  */
-Result CAMU_SetExposure(CAMU_CameraSelect select, s8 exposure);
+Result CAMU_SetExposure(u32 select, s8 exposure);
 
 /**
  * @brief Sets the white balance mode of the specified camera.
  * @param select Camera to use.
  * @param whiteBalance White balance mode to use.
  */
-Result CAMU_SetWhiteBalance(CAMU_CameraSelect select, CAMU_WhiteBalance whiteBalance);
+Result CAMU_SetWhiteBalance(u32 select, CAMU_WhiteBalance whiteBalance);
 
 /**
  * @brief Sets the white balance mode of the specified camera.
@@ -433,42 +433,42 @@ Result CAMU_SetWhiteBalance(CAMU_CameraSelect select, CAMU_WhiteBalance whiteBal
  * @param select Camera to use.
  * @param whiteBalance White balance mode to use.
  */
-Result CAMU_SetWhiteBalanceWithoutBaseUp(CAMU_CameraSelect select, CAMU_WhiteBalance whiteBalance);
+Result CAMU_SetWhiteBalanceWithoutBaseUp(u32 select, CAMU_WhiteBalance whiteBalance);
 
 /**
  * @brief Sets the sharpness of the specified camera.
  * @param select Camera to use.
  * @param sharpness Sharpness to use.
  */
-Result CAMU_SetSharpness(CAMU_CameraSelect select, s8 sharpness);
+Result CAMU_SetSharpness(u32 select, s8 sharpness);
 
 /**
  * @brief Sets whether auto exposure is enabled on the specified camera.
  * @param select Camera to use.
  * @param autoWhiteBalance Whether auto exposure is enabled.
  */
-Result CAMU_SetAutoExposure(CAMU_CameraSelect select, bool autoExposure);
+Result CAMU_SetAutoExposure(u32 select, bool autoExposure);
 
 /**
  * @brief Gets whether auto exposure is enabled on the specified camera.
  * @param autoExposure Pointer to output the auto exposure state to.
  * @param select Camera to use.
  */
-Result CAMU_IsAutoExposure(bool* autoExposure, CAMU_CameraSelect select);
+Result CAMU_IsAutoExposure(bool* autoExposure, u32 select);
 
 /**
  * @brief Sets whether auto white balance is enabled on the specified camera.
  * @param select Camera to use.
  * @param autoWhiteBalance Whether auto white balance is enabled.
  */
-Result CAMU_SetAutoWhiteBalance(CAMU_CameraSelect select, bool autoWhiteBalance);
+Result CAMU_SetAutoWhiteBalance(u32 select, bool autoWhiteBalance);
 
 /**
  * @brief Gets whether auto white balance is enabled on the specified camera.
  * @param autoWhiteBalance Pointer to output the auto white balance state to.
  * @param select Camera to use.
  */
-Result CAMU_IsAutoWhiteBalance(bool* autoWhiteBalance, CAMU_CameraSelect select);
+Result CAMU_IsAutoWhiteBalance(bool* autoWhiteBalance, u32 select);
 
 /**
  * @brief Flips the image of the specified camera in the specified context.
@@ -476,7 +476,7 @@ Result CAMU_IsAutoWhiteBalance(bool* autoWhiteBalance, CAMU_CameraSelect select)
  * @param flip Flip mode to use.
  * @param context Context to use.
  */
-Result CAMU_FlipImage(CAMU_CameraSelect select, CAMU_Flip flip, CAMU_Context context);
+Result CAMU_FlipImage(u32 select, CAMU_Flip flip, CAMU_Context context);
 
 /**
  * @brief Sets the image resolution of the given camera in the given context, in detail.
@@ -489,7 +489,7 @@ Result CAMU_FlipImage(CAMU_CameraSelect select, CAMU_Flip flip, CAMU_Context con
  * @param cropY1 Second crop point Y.
  * @param context Context to use.
  */
-Result CAMU_SetDetailSize(CAMU_CameraSelect select, s16 width, s16 height, s16 cropX0, s16 cropY0, s16 cropX1, s16 cropY1, CAMU_Context context);
+Result CAMU_SetDetailSize(u32 select, s16 width, s16 height, s16 cropX0, s16 cropY0, s16 cropX1, s16 cropY1, CAMU_Context context);
 
 /**
  * @brief Sets the image resolution of the given camera in the given context.
@@ -497,21 +497,21 @@ Result CAMU_SetDetailSize(CAMU_CameraSelect select, s16 width, s16 height, s16 c
  * @param size Size to use.
  * @param context Context to use.
  */
-Result CAMU_SetSize(CAMU_CameraSelect select, CAMU_Size size, CAMU_Context context);
+Result CAMU_SetSize(u32 select, CAMU_Size size, CAMU_Context context);
 
 /**
  * @brief Sets the frame rate of the given camera.
  * @param select Camera to use.
  * @param frameRate Frame rate to use.
  */
-Result CAMU_SetFrameRate(CAMU_CameraSelect select, CAMU_FrameRate frameRate);
+Result CAMU_SetFrameRate(u32 select, CAMU_FrameRate frameRate);
 
 /**
  * @brief Sets the photo mode of the given camera.
  * @param select Camera to use.
  * @param photoMode Photo mode to use.
  */
-Result CAMU_SetPhotoMode(CAMU_CameraSelect select, CAMU_PhotoMode photoMode);
+Result CAMU_SetPhotoMode(u32 select, CAMU_PhotoMode photoMode);
 
 /**
  * @brief Sets the special effects of the given camera in the given context.
@@ -519,21 +519,21 @@ Result CAMU_SetPhotoMode(CAMU_CameraSelect select, CAMU_PhotoMode photoMode);
  * @param effect Effect to use.
  * @param context Context to use.
  */
-Result CAMU_SetEffect(CAMU_CameraSelect select, CAMU_Effect effect, CAMU_Context context);
+Result CAMU_SetEffect(u32 select, CAMU_Effect effect, CAMU_Context context);
 
 /**
  * @brief Sets the contrast mode of the given camera.
  * @param select Camera to use.
  * @param contrast Contrast mode to use.
  */
-Result CAMU_SetContrast(CAMU_CameraSelect select, CAMU_Contrast contrast);
+Result CAMU_SetContrast(u32 select, CAMU_Contrast contrast);
 
 /**
  * @brief Sets the lens correction mode of the given camera.
  * @param select Camera to use.
  * @param lensCorrection Lens correction mode to use.
  */
-Result CAMU_SetLensCorrection(CAMU_CameraSelect select, CAMU_LensCorrection lensCorrection);
+Result CAMU_SetLensCorrection(u32 select, CAMU_LensCorrection lensCorrection);
 
 /**
  * @brief Sets the output format of the given camera in the given context.
@@ -541,7 +541,7 @@ Result CAMU_SetLensCorrection(CAMU_CameraSelect select, CAMU_LensCorrection lens
  * @param format Format to output.
  * @param context Context to use.
  */
-Result CAMU_SetOutputFormat(CAMU_CameraSelect select, CAMU_OutputFormat format, CAMU_Context context);
+Result CAMU_SetOutputFormat(u32 select, CAMU_OutputFormat format, CAMU_Context context);
 
 /**
  * @brief Sets the region to base auto exposure off of for the specified camera.
@@ -551,7 +551,7 @@ Result CAMU_SetOutputFormat(CAMU_CameraSelect select, CAMU_OutputFormat format, 
  * @param width Width of the region.
  * @param height Height of the region.
  */
-Result CAMU_SetAutoExposureWindow(CAMU_CameraSelect select, s16 x, s16 y, s16 width, s16 height);
+Result CAMU_SetAutoExposureWindow(u32 select, s16 x, s16 y, s16 width, s16 height);
 
 /**
  * @brief Sets the region to base auto white balance off of for the specified camera.
@@ -561,21 +561,21 @@ Result CAMU_SetAutoExposureWindow(CAMU_CameraSelect select, s16 x, s16 y, s16 wi
  * @param width Width of the region.
  * @param height Height of the region.
  */
-Result CAMU_SetAutoWhiteBalanceWindow(CAMU_CameraSelect select, s16 x, s16 y, s16 width, s16 height);
+Result CAMU_SetAutoWhiteBalanceWindow(u32 select, s16 x, s16 y, s16 width, s16 height);
 
 /**
  * @brief Sets whether the specified camera's noise filter is enabled.
  * @param select Camera to use.
  * @param noiseFilter Whether the noise filter is enabled.
  */
-Result CAMU_SetNoiseFilter(CAMU_CameraSelect select, bool noiseFilter);
+Result CAMU_SetNoiseFilter(u32 select, bool noiseFilter);
 
 /**
  * @brief Synchronizes the specified cameras' vsync timing.
  * @param select1 First camera.
  * @param select2 Second camera.
  */
-Result CAMU_SynchronizeVsyncTiming(CAMU_CameraSelect select1, CAMU_CameraSelect select2);
+Result CAMU_SynchronizeVsyncTiming(u32 select1, u32 select2);
 
 /**
  * @brief Gets the vsync timing record of the specified camera for the specified number of signals.
@@ -583,7 +583,7 @@ Result CAMU_SynchronizeVsyncTiming(CAMU_CameraSelect select1, CAMU_CameraSelect 
  * @param port Port to use.
  * @param past Number of past timings to retrieve.
  */
-Result CAMU_GetLatestVsyncTiming(s64* timing, CAMU_Port port, u32 past);
+Result CAMU_GetLatestVsyncTiming(s64* timing, u32 port, u32 past);
 
 /**
  * @brief Gets the specified camera's stereo camera calibration data.
@@ -603,7 +603,7 @@ Result CAMU_SetStereoCameraCalibrationData(CAMU_StereoCameraCalibrationData data
  * @param addr Address to write to.
  * @param data Data to write.
  */
-Result CAMU_WriteRegisterI2c(CAMU_CameraSelect select, u16 addr, u16 data);
+Result CAMU_WriteRegisterI2c(u32 select, u16 addr, u16 data);
 
 /**
  * @brief Writes to the specified MCU variable of the specified camera.
@@ -611,7 +611,7 @@ Result CAMU_WriteRegisterI2c(CAMU_CameraSelect select, u16 addr, u16 data);
  * @param addr Address to write to.
  * @param data Data to write.
  */
-Result CAMU_WriteMcuVariableI2c(CAMU_CameraSelect select, u16 addr, u16 data);
+Result CAMU_WriteMcuVariableI2c(u32 select, u16 addr, u16 data);
 
 /**
  * @brief Reads the specified I2C register of the specified camera.
@@ -619,7 +619,7 @@ Result CAMU_WriteMcuVariableI2c(CAMU_CameraSelect select, u16 addr, u16 data);
  * @param select Camera to read from.
  * @param addr Address to read.
  */
-Result CAMU_ReadRegisterI2cExclusive(u16* data, CAMU_CameraSelect select, u16 addr);
+Result CAMU_ReadRegisterI2cExclusive(u16* data, u32 select, u16 addr);
 
 /**
  * @brief Reads the specified MCU variable of the specified camera.
@@ -627,7 +627,7 @@ Result CAMU_ReadRegisterI2cExclusive(u16* data, CAMU_CameraSelect select, u16 ad
  * @param select Camera to read from.
  * @param addr Address to read.
  */
-Result CAMU_ReadMcuVariableI2cExclusive(u16* data, CAMU_CameraSelect select, u16 addr);
+Result CAMU_ReadMcuVariableI2cExclusive(u16* data, u32 select, u16 addr);
 
 /**
  * @brief Sets the specified camera's image quality calibration data.
@@ -663,7 +663,7 @@ Result CAMU_SetPackageParameterWithContextDetail(CAMU_PackageParameterContextDet
  * @brief Gets the Y2R coefficient applied to image data by the camera.
  * @param coefficient Pointer to output the Y2R coefficient to.
  */
-Result CAMU_GetSuitableY2rStandardCoefficient(Y2R_StandardCoefficient* coefficient);
+Result CAMU_GetSuitableY2rStandardCoefficient(Y2RU_StandardCoefficient* coefficient);
 
 /**
  * @brief Plays the specified shutter sound.
@@ -681,19 +681,19 @@ Result CAMU_DriverFinalize(void);
  * @brief Gets the current activated camera.
  * @param select Pointer to output the current activated camera to.
  */
-Result CAMU_GetActivatedCamera(CAMU_CameraSelect* select);
+Result CAMU_GetActivatedCamera(u32* select);
 
 /**
  * @brief Gets the current sleep camera.
  * @param select Pointer to output the current sleep camera to.
  */
-Result CAMU_GetSleepCamera(CAMU_CameraSelect* select);
+Result CAMU_GetSleepCamera(u32* select);
 
 /**
  * @brief Sets the current sleep camera.
  * @param select Camera to set.
  */
-Result CAMU_SetSleepCamera(CAMU_CameraSelect select);
+Result CAMU_SetSleepCamera(u32 select);
 
 /**
  * @brief Sets whether to enable synchronization of left and right camera brightnesses.

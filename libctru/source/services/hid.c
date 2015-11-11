@@ -7,7 +7,7 @@
 #include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
-#include <3ds/mappable.h>
+#include <3ds/allocator/mappable.h>
 #include <3ds/synchronization.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/hid.h>
@@ -299,7 +299,7 @@ Result HIDUSER_GetSoundVolume(u8 *volume)
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
-	*volume = (u8)cmdbuf[2];
+	*volume = (u8)cmdbuf[2] & 0xFF;
 
 	return cmdbuf[1];
 }

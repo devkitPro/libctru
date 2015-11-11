@@ -17,7 +17,7 @@ typedef enum
 	INPUT_YUV422_INDIV_16 = 0x2, ///< 16-bit per component, planar YUV 4:2:2, 32bpp, (1 Cr & Cb sample per 2x1 Y samples).\n Usually named YUV422P16.
 	INPUT_YUV420_INDIV_16 = 0x3, ///< 16-bit per component, planar YUV 4:2:0, 24bpp, (1 Cr & Cb sample per 2x2 Y samples).\n Usually named YUV420P16.
 	INPUT_YUV422_BATCH    = 0x4, ///<  8-bit per component, packed YUV 4:2:2, 16bpp, (Y0 Cb Y1 Cr).\n Usually named YUYV422.
-} Y2R_InputFormat;
+} Y2RU_InputFormat;
 
 /**
  * @brief Output color formats
@@ -30,7 +30,7 @@ typedef enum
 	OUTPUT_RGB_24     = 0x1,
 	OUTPUT_RGB_16_555 = 0x2, ///< The alpha bit is the 7th bit of the alpha value set by @ref Y2RU_SetAlpha
 	OUTPUT_RGB_16_565 = 0x3,
-} Y2R_OutputFormat;
+} Y2RU_OutputFormat;
 
 /**
  * @brief Rotation to be applied to the output
@@ -41,7 +41,7 @@ typedef enum
 	ROTATION_CLOCKWISE_90  = 0x1,
 	ROTATION_CLOCKWISE_180 = 0x2,
 	ROTATION_CLOCKWISE_270 = 0x3,
-} Y2R_Rotation;
+} Y2RU_Rotation;
 
 /**
  * @brief Block alignment of output
@@ -52,7 +52,7 @@ typedef enum
 {
 	BLOCK_LINE   = 0x0, ///< The result buffer will be laid out in linear format, the usual way.
 	BLOCK_8_BY_8 = 0x1, ///< The result will be stored as 8x8 blocks in Z-order.\n Useful for textures since it is the format used by the PICA200.
-} Y2R_BlockAlignment;
+} Y2RU_BlockAlignment;
 
 /**
  * @brief Coefficients of the YUV->RGB conversion formula.
@@ -78,12 +78,12 @@ typedef struct
 	u16 r_offset;
 	u16 g_offset;
 	u16 b_offset;
-} Y2R_ColorCoefficients;
+} Y2RU_ColorCoefficients;
 
 /**
  * @brief Preset conversion coefficients based on ITU standards for the YUV->RGB formula.
  *
- * For more details refer to @ref Y2R_ColorCoefficients
+ * For more details refer to @ref Y2RU_ColorCoefficients
  */
 typedef enum
 {
@@ -91,7 +91,7 @@ typedef enum
 	COEFFICIENT_ITU_R_BT_709         = 0x1, ///< Coefficients from the ITU-R BT.709 standard with PC ranges.
 	COEFFICIENT_ITU_R_BT_601_SCALING = 0x2, ///< Coefficients from the ITU-R BT.601 standard with TV ranges.
 	COEFFICIENT_ITU_R_BT_709_SCALING = 0x3, ///< Coefficients from the ITU-R BT.709 standard with TV ranges.
-} Y2R_StandardCoefficient;
+} Y2RU_StandardCoefficient;
 
 /**
  * @brief Structure used to configure all parameters at once.
@@ -101,16 +101,16 @@ typedef enum
  */
 typedef struct
 {
-	Y2R_InputFormat input_format       : 8; ///< Value passed to @ref Y2RU_SetInputFormat
-	Y2R_OutputFormat output_format     : 8; ///< Value passed to @ref Y2RU_SetOutputFormat
-	Y2R_Rotation rotation              : 8; ///< Value passed to @ref Y2RU_SetRotation
-	Y2R_BlockAlignment block_alignment : 8; ///< Value passed to @ref Y2RU_SetBlockAlignment
+	Y2RU_InputFormat input_format       : 8; ///< Value passed to @ref Y2RU_SetInputFormat
+	Y2RU_OutputFormat output_format     : 8; ///< Value passed to @ref Y2RU_SetOutputFormat
+	Y2RU_Rotation rotation              : 8; ///< Value passed to @ref Y2RU_SetRotation
+	Y2RU_BlockAlignment block_alignment : 8; ///< Value passed to @ref Y2RU_SetBlockAlignment
 	s16 input_line_width;                   ///< Value passed to @ref Y2RU_SetInputLineWidth
 	s16 input_lines;                        ///< Value passed to @ref Y2RU_SetInputLines
-	Y2R_StandardCoefficient standard_coefficient : 8; ///< Value passed to @ref Y2RU_SetStandardCoefficient
+	Y2RU_StandardCoefficient standard_coefficient : 8; ///< Value passed to @ref Y2RU_SetStandardCoefficient
 	u8 unused;
 	u16 alpha;                              ///< Value passed to @ref Y2RU_SetAlpha
-} Y2R_ConversionParams;
+} Y2RU_ConversionParams;
 
 /**
  * @brief Dithering weights
@@ -134,9 +134,7 @@ typedef struct
 	u16 w3_xOdd_yEven;
 	u16 w3_xEven_yOdd;
 	u16 w3_xOdd_yOdd;
-} Y2R_DitheringWeightParams;
-
-
+} Y2RU_DitheringWeightParams;
 
 /**
  * @brief Initializes the y2r service.
@@ -145,7 +143,6 @@ typedef struct
  */
 Result y2rInit(void);
 
-
 /**
  * @brief Closes the y2r service.
  *
@@ -153,24 +150,23 @@ Result y2rInit(void);
  */
 void y2rExit(void);
 
-
 /**
  * @brief Used to configure the input format.
  *
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
-Result Y2RU_SetInputFormat(Y2R_InputFormat format);
+Result Y2RU_SetInputFormat(Y2RU_InputFormat format);
 
-Result Y2RU_GetInputFormat(Y2R_InputFormat* format);
+Result Y2RU_GetInputFormat(Y2RU_InputFormat* format);
 
 /**
  * @brief Used to configure the output format.
  *
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
-Result Y2RU_SetOutputFormat(Y2R_OutputFormat format);
+Result Y2RU_SetOutputFormat(Y2RU_OutputFormat format);
 
-Result Y2RU_GetOutputFormat(Y2R_OutputFormat* format);
+Result Y2RU_GetOutputFormat(Y2RU_OutputFormat* format);
 
 /**
  * @brief Used to configure the rotation of the output.
@@ -179,18 +175,18 @@ Result Y2RU_GetOutputFormat(Y2R_OutputFormat* format);
  *
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
-Result Y2RU_SetRotation(Y2R_Rotation rotation);
+Result Y2RU_SetRotation(Y2RU_Rotation rotation);
 
-Result Y2RU_GetRotation(Y2R_Rotation* rotation);
+Result Y2RU_GetRotation(Y2RU_Rotation* rotation);
 
 /**
  * @brief Used to configure the alignment of the output buffer.
  *
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
-Result Y2RU_SetBlockAlignment(Y2R_BlockAlignment alignment);
+Result Y2RU_SetBlockAlignment(Y2RU_BlockAlignment alignment);
 
-Result Y2RU_GetBlockAlignment(Y2R_BlockAlignment* alignment);
+Result Y2RU_GetBlockAlignment(Y2RU_BlockAlignment* alignment);
 
 ///Sets the usage of spacial dithering
 Result Y2RU_SetSpacialDithering(bool enable);
@@ -229,25 +225,25 @@ Result Y2RU_GetInputLines(u16* num_lines);
 /**
  * @brief Used to configure the color conversion formula.
  *
- * See @ref Y2R_ColorCoefficients for more information about the coefficients.
+ * See @ref Y2RU_ColorCoefficients for more information about the coefficients.
  *
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
-Result Y2RU_SetCoefficients(const Y2R_ColorCoefficients* coefficients);
+Result Y2RU_SetCoefficients(const Y2RU_ColorCoefficients* coefficients);
 
-Result Y2RU_GetCoefficients(Y2R_ColorCoefficients* coefficients);
+Result Y2RU_GetCoefficients(Y2RU_ColorCoefficients* coefficients);
 
 /**
  * @brief Used to configure the color conversion formula with ITU stantards coefficients.
  *
- * See @ref Y2R_ColorCoefficients for more information about the coefficients.
+ * See @ref Y2RU_ColorCoefficients for more information about the coefficients.
  *
  * @note Prefer using @ref Y2RU_SetConversionParams if you have to set multiple parameters.
  */
-Result Y2RU_SetStandardCoefficient(Y2R_StandardCoefficient coefficient);
+Result Y2RU_SetStandardCoefficient(Y2RU_StandardCoefficient coefficient);
 
 ///Retrieves the coeeficients associated to the given standard
-Result Y2RU_GetStandardCoefficient(Y2R_ColorCoefficients* coefficients, Y2R_StandardCoefficient standardCoeff);
+Result Y2RU_GetStandardCoefficient(Y2RU_ColorCoefficients* coefficients, Y2RU_StandardCoefficient standardCoeff);
 
 /**
  * @brief Used to configure the alpha value of the output.
@@ -403,17 +399,17 @@ Result Y2RU_IsDoneSendingYUYV(bool* is_done);
 Result Y2RU_IsDoneReceiving(bool* is_done);
 
 /// Sets the dithering weights
-Result Y2RU_SetDitheringWeightParams(const Y2R_DitheringWeightParams* params);
+Result Y2RU_SetDitheringWeightParams(const Y2RU_DitheringWeightParams* params);
 
 /// Retrieves the dithering weights
-Result Y2RU_GetDitheringWeightParams(Y2R_DitheringWeightParams* params);
+Result Y2RU_GetDitheringWeightParams(Y2RU_DitheringWeightParams* params);
 
 /**
- * @brief Sets all the parameters of Y2R_ConversionParams at once.
+ * @brief Sets all the parameters of Y2RU_ConversionParams at once.
  *
  * Faster than calling the individual value through Y2R_Set* because only one system call is made.
  */
-Result Y2RU_SetConversionParams(const Y2R_ConversionParams* params);
+Result Y2RU_SetConversionParams(const Y2RU_ConversionParams* params);
 
 /// Starts the conversion process
 Result Y2RU_StartConversion(void);

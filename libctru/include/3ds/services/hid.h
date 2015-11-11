@@ -7,7 +7,7 @@
 //See also: http://3dbrew.org/wiki/HID_Services http://3dbrew.org/wiki/HID_Shared_Memory
 
 /// Key values.
-typedef enum
+enum
 {
 	KEY_A       = BIT(0),       ///< A
 	KEY_B       = BIT(1),       ///< B
@@ -38,7 +38,7 @@ typedef enum
 	KEY_DOWN  = KEY_DDOWN  | KEY_CPAD_DOWN,  ///< D-Pad Down or Circle Pad Down
 	KEY_LEFT  = KEY_DLEFT  | KEY_CPAD_LEFT,  ///< D-Pad Left or Circle Pad Left
 	KEY_RIGHT = KEY_DRIGHT | KEY_CPAD_RIGHT, ///< D-Pad Right or Circle Pad Right
-} PAD_KEY;
+};
 
 /// Touch position.
 typedef struct

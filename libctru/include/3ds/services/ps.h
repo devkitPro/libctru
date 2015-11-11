@@ -7,28 +7,28 @@
 /// PS AES algorithms.
 typedef enum
 {
-	ps_CBC_ENC, ///< CBC encoding.
-	ps_CBC_DEC, ///< CBC decoding.
-	ps_CTR_ENC, ///< CTR encoding.
-	ps_CTR_DEC, ///< CTR decoding.
-	ps_CCM_ENC, ///< CCM encoding.
-	ps_CCM_DEC, ///< CCM decoding.
-} ps_aes_algo;
+	PS_ALGORITHM_CBC_ENC, ///< CBC encoding.
+	PS_ALGORITHM_CBC_DEC, ///< CBC decoding.
+	PS_ALGORITHM_CTR_ENC, ///< CTR encoding.
+	PS_ALGORITHM_CTR_DEC, ///< CTR decoding.
+	PS_ALGORITHM_CCM_ENC, ///< CCM encoding.
+	PS_ALGORITHM_CCM_DEC, ///< CCM decoding.
+} PS_AESAlgorithm;
 
 /// PS key slots.
 typedef enum
 {
-	ps_KEYSLOT_0D,      ///< Key slot 0x0D.
-	ps_KEYSLOT_2D,      ///< Key slot 0x2D.
-	ps_KEYSLOT_31,      ///< Key slot 0x31.
-	ps_KEYSLOT_38,      ///< Key slot 0x38.
-	ps_KEYSLOT_32,      ///< Key slot 0x32.
-	ps_KEYSLOT_39_DLP,  ///< Key slot 0x39. (DLP)
-	ps_KEYSLOT_2E,      ///< Key slot 0x2E.
-	ps_KEYSLOT_INVALID, ///< Invalid key slot.
-	ps_KEYSLOT_36,      ///< Key slot 0x36.
-	ps_KEYSLOT_39_NFC   ///< Key slot 0x39. (NFC)
-} ps_aes_keytypes;
+	PS_KEYSLOT_0D,      ///< Key slot 0x0D.
+	PS_KEYSLOT_2D,      ///< Key slot 0x2D.
+	PS_KEYSLOT_31,      ///< Key slot 0x31.
+	PS_KEYSLOT_38,      ///< Key slot 0x38.
+	PS_KEYSLOT_32,      ///< Key slot 0x32.
+	PS_KEYSLOT_39_DLP,  ///< Key slot 0x39. (DLP)
+	PS_KEYSLOT_2E,      ///< Key slot 0x2E.
+	PS_KEYSLOT_INVALID, ///< Invalid key slot.
+	PS_KEYSLOT_36,      ///< Key slot 0x36.
+	PS_KEYSLOT_39_NFC   ///< Key slot 0x39. (NFC)
+} PS_AESKeyType;
 
 /// Initializes PS.
 Result psInit(void);
@@ -45,7 +45,7 @@ void psExit(void);
  * @param key_type Key type to use.
  * @param iv Pointer to the CTR/IV.
  */
-Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_type, u8* iv);
+Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, PS_AESAlgorithm aes_algo, PS_AESKeyType key_type, u8* iv);
 
 /**
  * @brief Encrypts/Decrypts signed AES CCM data.
@@ -61,7 +61,7 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, u32 aes_algo, u32 key_typ
  * @param key_type Key type to use.
  * @param nonce Pointer to the nonce.
  */
-Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_size, u32 data_len, u32 mac_data_len, u32 mac_len, u32 aes_algo, u32 key_type, u8* nonce);
+Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_size, u32 data_len, u32 mac_data_len, u32 mac_len, PS_AESAlgorithm aes_algo, PS_AESKeyType key_type, u8* nonce);
 
 /**
  * @brief Gets the 64-bit console friend code seed.

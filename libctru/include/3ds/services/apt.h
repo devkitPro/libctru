@@ -15,7 +15,7 @@
  *
  * Retrieved from http://3dbrew.org/wiki/NS_and_APT_Services#AppIDs
  */
-typedef enum{
+typedef enum {
 	APPID_HOMEMENU = 0x101,           ///< Home Menu
 	APPID_CAMERA = 0x110,             ///< Camera applet
 	APPID_FRIENDS_LIST = 0x112,       ///< Friends List applet
@@ -36,10 +36,10 @@ typedef enum{
 	APPID_MINT = 0x407,               ///< mint
 	APPID_EXTRAPAD = 0x408,           ///< extrapad
 	APPID_MEMOLIB = 0x409,            ///< memolib
-}NS_APPID;
+} NS_APPID;
 
 /// App status values.
-typedef enum{
+typedef enum {
 	APP_NOTINITIALIZED,    ///< App not initialized.
 	APP_RUNNING,           ///< App running.
 	APP_SUSPENDED,         ///< App suspended.
@@ -49,10 +49,10 @@ typedef enum{
 	APP_PREPARE_SLEEPMODE, ///< App preparing to enter sleep mode.
 	APP_APPLETSTARTED,     ///< Applet started.
 	APP_APPLETCLOSED       ///< Applet closed.
-}APP_STATUS;
+} APT_AppStatus;
 
 /// APT signals.
-enum {
+typedef enum {
 	APTSIGNAL_HOMEBUTTON   = 1,  ///< Home button pressed.
 	// 2: sleep-mode related?
 	APTSIGNAL_PREPARESLEEP = 3,  ///< Prepare to enter sleep mode.
@@ -64,10 +64,10 @@ enum {
 	APTSIGNAL_UTILITY      = 9,  ///< Utility called.
 	APTSIGNAL_SLEEPSYSTEM  = 10, ///< System sleeping.
 	APTSIGNAL_ERROR        = 11  ///< Error occurred.
-};
+} APT_Signal;
 
 /// APT hook types.
-enum {
+typedef enum {
 	APTHOOK_ONSUSPEND = 0, ///< App suspended.
 	APTHOOK_ONRESTORE,     ///< App restored.
 	APTHOOK_ONSLEEP,       ///< App sleeping.
@@ -75,10 +75,10 @@ enum {
 	APTHOOK_ONEXIT,        ///< App exiting.
 
 	APTHOOK_COUNT,         ///< Number of APT hook types.
-};
+} APT_HookType;
 
 /// APT hook function.
-typedef void (*aptHookFn)(int hook, void* param);
+typedef void (*aptHookFn)(APT_HookType hook, void* param);
 
 /// APT hook cookie.
 typedef struct tag_aptHookCookie
@@ -107,13 +107,13 @@ void aptCloseSession(void);
  * @brief Sets the app's status.
  * @param status Status to set.
  */
-void aptSetStatus(APP_STATUS status);
+void aptSetStatus(APT_AppStatus status);
 
 /**
  * @brief Gets the app's status.
  * @return The app's status.
  */
-APP_STATUS aptGetStatus(void);
+APT_AppStatus aptGetStatus(void);
 
 /**
  * @brief Gets the app's power status.
@@ -278,7 +278,7 @@ Result APT_IsRegistered(NS_APPID appID, u8* out);
  * @param appID ID of the application.
  * @param signalType Pointer to output the signal type to.
  */
-Result APT_InquireNotification(u32 appID, u8* signalType);
+Result APT_InquireNotification(u32 appID, APT_Signal* signalType);
 
 /**
  * @brief Notifies an application to wait.
