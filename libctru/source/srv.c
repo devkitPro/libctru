@@ -79,7 +79,7 @@ Result srvInit(void)
 
 	if(srvHandle != 0) return rc;
 
-	if(R_FAILED(rc = svcConnectToPort(&srvHandle, "srv:pm"))) return rc;
+	if(R_FAILED(rc = svcConnectToPort(&srvHandle, "srv:"))) return rc;
 
 	if(R_FAILED(rc = srvRegisterClient())) {
 		svcCloseHandle(srvHandle);
