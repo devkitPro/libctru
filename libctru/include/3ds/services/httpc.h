@@ -12,9 +12,9 @@ typedef struct {
 
 /// HTTP request status.
 typedef enum {
-	HTTPCREQSTAT_INPROGRESS_REQSENT = 0x5, ///< Request in progress.
-	HTTPCREQSTAT_DLREADY = 0x7             ///< Download ready.
-} httpcReqStatus;
+	HTTPC_STATUS_REQUEST_IN_PROGRESS = 0x5, ///< Request in progress.
+	HTTPC_STATUS_DOWNLOAD_READY = 0x7       ///< Download ready.
+} HTTPC_RequestStatus;
 
 /// Result code returned when a download is pending.
 #define HTTPC_RESULTCODE_DOWNLOADPENDING 0xd840a02b
@@ -66,7 +66,7 @@ Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size);
  * @param context Context to use.
  * @param out Pointer to output the HTTP request state to.
  */
-Result httpcGetRequestState(httpcContext *context, httpcReqStatus* out);
+Result httpcGetRequestState(httpcContext *context, HTTPC_RequestStatus* out);
 
 /**
  * @brief Gets the download size state of a HTTP context.
@@ -171,7 +171,7 @@ Result HTTPC_ReceiveData(Handle handle, Handle contextHandle, u8* buffer, u32 si
  * @param contextHandle HTTP context handle to use.
  * @param out Pointer to output the request state to.
  */
-Result HTTPC_GetRequestState(Handle handle, Handle contextHandle, httpcReqStatus* out);
+Result HTTPC_GetRequestState(Handle handle, Handle contextHandle, HTTPC_RequestStatus* out);
 
 /**
  * @brief Gets the download size state of a HTTP context.

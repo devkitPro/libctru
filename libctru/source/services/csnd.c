@@ -4,7 +4,7 @@
 #include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
-#include <3ds/mappable.h>
+#include <3ds/allocator/mappable.h>
 #include <3ds/os.h>
 #include <3ds/services/csnd.h>
 #include <3ds/ipc.h>
@@ -26,19 +26,19 @@ static u32 csndCmdBlockSize = 0x2000;
 static u32 csndCmdStartOff;
 static u32 csndCmdCurOff;
 
-static Result CSND_Initialize(void)
+static Result CSND_Initialize(Handle* mutex, Handle* sharedMem, u32 sharedMemSize, u32* offsets)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x1,5,0); // 0x10140
-	cmdbuf[1] = csndSharedMemSize;
-	memcpy(&cmdbuf[2], &csndOffsets[0], 4*sizeof(u32));
+	cmdbuf[1] = sharedMemSize;
+	memcpy(&cmdbuf[2], &offsets[0], 4*sizeof(u32));
 
 	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
-	csndMutex = cmdbuf[3];
-	csndSharedMemBlock = cmdbuf[4];
+	if(mutex) *mutex = cmdbuf[3];
+	if(sharedMem) *sharedMem = cmdbuf[4];
 
 	return (Result)cmdbuf[1];
 }
@@ -49,6 +49,19 @@ static Result CSND_Shutdown()
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
+
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+static Result CSND_ExecuteCommands(u32 offset)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x3,1,0); // 0x30040
+	cmdbuf[1] = offset;
 
 	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
 
@@ -108,6 +121,54 @@ Result CSND_ReleaseCapUnit(u32 capUnit)
 	return (Result)cmdbuf[1];
 }
 
+Result CSND_FlushDataCache(const void* adr, u32 size)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x9,2,2); // 0x90082
+	cmdbuf[1] = (u32)adr;
+	cmdbuf[2] = size;
+	cmdbuf[3] = IPC_Desc_SharedHandles(1);
+	cmdbuf[4] = CUR_PROCESS_HANDLE;
+
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result CSND_StoreDataCache(const void* adr, u32 size)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xA,2,2); // 0xA0082
+	cmdbuf[1] = (u32)adr;
+	cmdbuf[2] = size;
+	cmdbuf[3] = IPC_Desc_SharedHandles(1);
+	cmdbuf[4] = CUR_PROCESS_HANDLE;
+
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result CSND_InvalidateDataCache(const void* adr, u32 size)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xB,2,2); // 0xB0082
+	cmdbuf[1] = (u32)adr;
+	cmdbuf[2] = size;
+	cmdbuf[3] = IPC_Desc_SharedHandles(1);
+	cmdbuf[4] = CUR_PROCESS_HANDLE;
+
+	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result CSND_Reset(void)
 {
 	Result ret=0;
@@ -136,7 +197,7 @@ Result csndInit(void)
 	csndOffsets[3] = csndOffsets[2] + 2*8;                     // Offset to the input of command 0x00040080
 	csndSharedMemSize = csndOffsets[3] + 0x3C;                 // Total size of the CSND shared memory
 
-	ret = CSND_Initialize();
+	ret = CSND_Initialize(&csndMutex, &csndSharedMemBlock, csndSharedMemSize, csndOffsets);
 	if (R_FAILED(ret)) goto cleanup1;
 
 	csndSharedMem = (vu32*)mappableAlloc(csndSharedMemSize);
@@ -186,19 +247,6 @@ void csndExit(void)
 		mappableFree((void*) csndSharedMem);
 		csndSharedMem = NULL;
 	}
-}
-
-static Result CSND_ExecuteCommands(u32 offset)
-{
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
-	cmdbuf[0] = IPC_MakeHeader(0x3,1,0); // 0x30040
-	cmdbuf[1] = offset;
-
-	if(R_FAILED(ret = svcSendSyncRequest(csndHandle)))return ret;
-
-	return (Result)cmdbuf[1];
 }
 
 u32* csndAddCmd(int cmdid)
@@ -318,7 +366,7 @@ void CSND_SetInterp(u32 channel, bool interp)
 	cmdparams[1] = interp ? 1 : 0;
 }
 
-void CSND_SetDuty(u32 channel, u32 duty)
+void CSND_SetDuty(u32 channel, CSND_DutyCycle duty)
 {
 	u32* cmdparams = csndAddCmd(0x007);
 
@@ -372,7 +420,7 @@ void CSND_SetChnRegs(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize,
 	cmdparams[5] = totalbytesize;
 }
 
-void CSND_SetChnRegsPSG(u32 flags, u32 chnVolumes, u32 capVolumes, u32 duty)
+void CSND_SetChnRegsPSG(u32 flags, u32 chnVolumes, u32 capVolumes, CSND_DutyCycle duty)
 {
 	u32* cmdparams = csndAddCmd(0x00F);
 

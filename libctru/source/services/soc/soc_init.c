@@ -38,8 +38,7 @@ soc_devoptab =
   .fchmod_r     = NULL,
 };
 
-
-static Result socu_cmd1(Handle memhandle, u32 memsize)
+static Result SOCU_Initialize(Handle memhandle, u32 memsize)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -59,7 +58,23 @@ static Result socu_cmd1(Handle memhandle, u32 memsize)
 	return cmdbuf[1];
 }
 
-Result SOC_Initialize(u32 *context_addr, u32 context_size)
+static Result SOCU_Shutdown(void)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x19,0,0); // 0x190000
+
+	ret = svcSendSyncRequest(SOCU_handle);
+	if(ret != 0) {
+		errno = SYNC_ERROR;
+		return ret;
+	}
+
+	return cmdbuf[1];
+}
+
+Result socInit(u32* context_addr, u32 context_size)
 {
 	Result ret = 0;
 
@@ -79,7 +94,7 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)
 		return ret;
 	}
 
-	ret = socu_cmd1(socMemhandle, context_size);
+	ret = SOCU_Initialize(socMemhandle, context_size);
 	if(ret != 0)
 	{
 		svcCloseHandle(socMemhandle);
@@ -103,18 +118,15 @@ Result SOC_Initialize(u32 *context_addr, u32 context_size)
 	return 0;
 }
 
-Result SOC_Shutdown(void)
+Result socExit(void)
 {
 	Result ret = 0;
-	u32 *cmdbuf = getThreadCommandBuffer();
 	int dev;
 	
 	svcCloseHandle(socMemhandle);
 	socMemhandle = 0;
 
-	cmdbuf[0] = IPC_MakeHeader(0x19,0,0); // 0x190000
-
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = SOCU_Shutdown();
 
 	svcCloseHandle(SOCU_handle);
 	SOCU_handle = 0;
@@ -123,8 +135,7 @@ Result SOC_Shutdown(void)
 	if(dev >= 0)
 		RemoveDevice("soc:");
 
-	if(ret)return ret;
-	else return cmdbuf[1];
+	return ret;
 }
 
 static int

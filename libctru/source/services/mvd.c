@@ -9,27 +9,27 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/os.h>
-#include <3ds/linear.h>
+#include <3ds/allocator/linear.h>
 #include <3ds/synchronization.h>
 #include <3ds/services/mvd.h>
 #include <3ds/ipc.h>
 
 Handle mvdstdHandle;
 static int mvdstdRefCount;
-static mvdstdMode mvdstd_mode;
-static mvdstdTypeInput mvdstd_input_type;
-static mvdstdTypeOutput mvdstd_output_type;
+static MVDSTD_Mode mvdstd_mode;
+static MVDSTD_InputFormat mvdstd_input_type;
+static MVDSTD_OutputFormat mvdstd_output_type;
 static u32 *mvdstd_workbuf;
 static size_t mvdstd_workbufsize;
 
-static Result mvdstdipc_Initialize(u32 *buf, u32 bufsize, Handle kprocess)
+static Result MVDSTD_Initialize(u32* buf, u32 bufsize)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1,2,2); // 0x10082
 	cmdbuf[1] = (u32)buf;
 	cmdbuf[2] = bufsize;
 	cmdbuf[3] = IPC_Desc_SharedHandles(1);
-	cmdbuf[4] = kprocess;
+	cmdbuf[4] = CUR_PROCESS_HANDLE;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
@@ -37,7 +37,7 @@ static Result mvdstdipc_Initialize(u32 *buf, u32 bufsize, Handle kprocess)
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_Shutdown(void)
+static Result MVDSTD_Shutdown(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
@@ -48,7 +48,7 @@ static Result mvdstdipc_Shutdown(void)
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_cmd18(void)
+static Result MVDSTD_cmd18(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x18,0,0); // 0x180000
@@ -59,7 +59,7 @@ static Result mvdstdipc_cmd18(void)
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_cmd19(void)
+static Result MVDSTD_cmd19(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x19,0,0); // 0x190000
@@ -70,7 +70,7 @@ static Result mvdstdipc_cmd19(void)
 	return cmdbuf[1];
 }
 
-static Result mvdstdipc_cmd1a(void)
+static Result MVDSTD_cmd1a(void)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x1A,0,0); // 0x1A0000
@@ -81,25 +81,80 @@ static Result mvdstdipc_cmd1a(void)
 	return cmdbuf[1];
 }
 
-Result mvdstdSetConfig(mvdstdConfig *config)
+Result MVDSTD_SetConfig(MVDSTD_Config* config)
 {
+	Result ret=0;
 	u32* cmdbuf = getThreadCommandBuffer();
+
 	cmdbuf[0] = IPC_MakeHeader(0x1E,1,4); // 0x1E0044
-	cmdbuf[1] = sizeof(mvdstdConfig);
+	cmdbuf[1] = sizeof(MVDSTD_Config);
 	cmdbuf[2] = IPC_Desc_SharedHandles(1);
 	cmdbuf[3] = CUR_PROCESS_HANDLE;
-	cmdbuf[4] = IPC_Desc_Buffer(sizeof(mvdstdConfig),IPC_BUFFER_R);
+	cmdbuf[4] = IPC_Desc_Buffer(sizeof(MVDSTD_Config),IPC_BUFFER_R);
 	cmdbuf[5] = (u32)config;
 
-	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 
 	return cmdbuf[1];
 }
 
-void mvdstdGenerateDefaultConfig(mvdstdConfig *config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1_colorconv)
+Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_OutputFormat output_type, u32 size)
 {
-	memset(config, 0, sizeof(mvdstdConfig));
+	Result ret=0;
+
+	mvdstd_workbufsize = size;
+	mvdstd_mode = mode;
+	mvdstd_input_type = input_type;
+	mvdstd_output_type = output_type;
+
+	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)mvdstd_workbufsize = 1;
+	if(mvdstd_mode!=MVDMODE_COLORFORMATCONV)return -2;//Video processing / H.264 isn't supported atm.
+
+	if (AtomicPostIncrement(&mvdstdRefCount)) return 0;
+
+	if(R_FAILED(ret=srvGetServiceHandle(&mvdstdHandle, "mvd:STD"))) goto cleanup0;
+
+	mvdstd_workbuf = linearAlloc(mvdstd_workbufsize);
+	if(mvdstd_workbuf==NULL) goto cleanup1;
+
+	ret = MVDSTD_Initialize((u32*) osConvertOldLINEARMemToNew((u32) mvdstd_workbuf), mvdstd_workbufsize);
+	if(R_FAILED(ret)) goto cleanup2;
+
+	ret = MVDSTD_cmd18();
+	if(R_FAILED(ret)) goto cleanup3;
+
+	return ret;
+
+cleanup3:
+	MVDSTD_Shutdown();
+cleanup2:
+	linearFree(mvdstd_workbuf);
+cleanup1:
+	svcCloseHandle(mvdstdHandle);
+cleanup0:
+	AtomicDecrement(&mvdstdRefCount);
+	return ret;
+}
+
+void mvdstdExit(void)
+{
+	if (AtomicDecrement(&mvdstdRefCount)) return;
+
+	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)
+	{
+		MVDSTD_cmd19();
+	}
+
+	MVDSTD_Shutdown();
+
+	svcCloseHandle(mvdstdHandle);
+
+	linearFree(mvdstd_workbuf);
+}
+
+void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1_colorconv)
+{
+	memset(config, 0, sizeof(MVDSTD_Config));
 
 	config->input_type = mvdstd_input_type;
 
@@ -135,61 +190,7 @@ void mvdstdGenerateDefaultConfig(mvdstdConfig *config, u32 input_width, u32 inpu
 	config->unk_x6c[(0x114-0x6c)>>2] = 0x100;
 }
 
-Result mvdstdInit(mvdstdMode mode, mvdstdTypeInput input_type, mvdstdTypeOutput output_type, u32 size)
-{
-	Result ret=0;
-
-	mvdstd_workbufsize = size;
-	mvdstd_mode = mode;
-	mvdstd_input_type = input_type;
-	mvdstd_output_type = output_type;
-
-	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)mvdstd_workbufsize = 1;
-	if(mvdstd_mode!=MVDMODE_COLORFORMATCONV)return -2;//Video processing / H.264 isn't supported atm.
-
-	if (AtomicPostIncrement(&mvdstdRefCount)) return 0;
-
-	if(R_FAILED(ret=srvGetServiceHandle(&mvdstdHandle, "mvd:STD"))) goto cleanup0;
-
-	mvdstd_workbuf = linearAlloc(mvdstd_workbufsize);
-	if(mvdstd_workbuf==NULL) goto cleanup1;
-
-	ret = mvdstdipc_Initialize((u32*)osConvertOldLINEARMemToNew((u32)mvdstd_workbuf), mvdstd_workbufsize, CUR_PROCESS_HANDLE);
-	if(R_FAILED(ret)) goto cleanup2;
-
-	ret = mvdstdipc_cmd18();
-	if(R_FAILED(ret)) goto cleanup3;
-
-	return ret;
-
-cleanup3:
-	mvdstdipc_Shutdown();
-cleanup2:
-	linearFree(mvdstd_workbuf);
-cleanup1:
-	svcCloseHandle(mvdstdHandle);
-cleanup0:
-	AtomicDecrement(&mvdstdRefCount);
-	return ret;
-}
-
-void mvdstdExit(void)
-{
-	if (AtomicDecrement(&mvdstdRefCount)) return;
-
-	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)
-	{
-		mvdstdipc_cmd19();
-	}
-
-	mvdstdipc_Shutdown();
-
-	svcCloseHandle(mvdstdHandle);
-
-	linearFree(mvdstd_workbuf);
-}
-
-Result mvdstdProcessFrame(mvdstdConfig *config, u32 *h264_vaddr_inframe, u32 h264_inframesize, u32 h264_frameid)
+Result mvdstdProcessFrame(MVDSTD_Config*config, u32 *h264_vaddr_inframe, u32 h264_inframesize, u32 h264_frameid)
 {
 	Result ret;
 
@@ -197,9 +198,9 @@ Result mvdstdProcessFrame(mvdstdConfig *config, u32 *h264_vaddr_inframe, u32 h26
 	if(config==NULL)return -1;
 	if(mvdstd_mode!=MVDMODE_COLORFORMATCONV)return -2;
 
-	ret = mvdstdSetConfig(config);
+	ret = MVDSTD_SetConfig(config);
 	if(R_FAILED(ret))return ret;
 
-	return mvdstdipc_cmd1a();
+	return MVDSTD_cmd1a();
 }
 

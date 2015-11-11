@@ -83,7 +83,7 @@ enum
 };
 
 /// Duty cycles for a PSG channel.
-enum
+typedef enum
 {
 	DutyCycle_0  = 7, ///< 0.0% duty cycle
 	DutyCycle_12 = 0, ///< 12.5% duty cycle
@@ -93,7 +93,7 @@ enum
 	DutyCycle_62 = 4, ///< 62.5% duty cycle
 	DutyCycle_75 = 5, ///< 75.0% duty cycle
 	DutyCycle_87 = 6  ///< 87.5% duty cycle
-};
+} CSND_DutyCycle;
 
 /// Channel info.
 typedef union
@@ -141,6 +141,27 @@ Result CSND_AcquireCapUnit(u32* capUnit);
  * @param capUnit Capture unit to release.
  */
 Result CSND_ReleaseCapUnit(u32 capUnit);
+
+/**
+ * @brief Flushes the data cache of a memory region.
+ * @param adr Address of the memory region.
+ * @param size Size of the memory region.
+ */
+Result CSND_FlushDataCache(const void* adr, u32 size);
+
+/**
+ * @brief Stores the data cache of a memory region.
+ * @param adr Address of the memory region.
+ * @param size Size of the memory region.
+ */
+Result CSND_StoreDataCache(const void* adr, u32 size);
+
+/**
+ * @brief Invalidates the data cache of a memory region.
+ * @param adr Address of the memory region.
+ * @param size Size of the memory region.
+ */
+Result CSND_InvalidateDataCache(const void* adr, u32 size);
 
 /**
  * @brief Resets CSND.
@@ -230,7 +251,7 @@ void CSND_SetInterp(u32 channel, bool interp);
  * @param channel Channel to use.
  * @param duty Duty to set.
  */
-void CSND_SetDuty(u32 channel, u32 duty);
+void CSND_SetDuty(u32 channel, CSND_DutyCycle duty);
 
 /**
  * @brief Sets a channel's timer.
@@ -281,7 +302,7 @@ void CSND_SetChnRegs(u32 flags, u32 physaddr0, u32 physaddr1, u32 totalbytesize,
  * @param capVolumes Capture volume data.
  * @param duty Duty value to set.
  */
-void CSND_SetChnRegsPSG(u32 flags, u32 chnVolumes, u32 capVolumes, u32 duty);
+void CSND_SetChnRegsPSG(u32 flags, u32 chnVolumes, u32 capVolumes, CSND_DutyCycle duty);
 
 /**
  * @brief Sets CSND's noise channel registers.
@@ -365,7 +386,7 @@ Result CSND_UpdateInfo(bool waitDone);
  * @param data0 First block of sound data.
  * @param data1 Second block of sound data. This is the block that will be looped over.
  * @param size Size of the sound data.
- * 
+ *
  * In this implementation if the loop mode is used, data1 must be in the range [data0 ; data0 + size]. Sound will be played once from data0 to data0 + size and then loop between data1 and data0+size.
  */
 Result csndPlaySound(int chn, u32 flags, u32 sampleRate, float vol, float pan, void* data0, void* data1, u32 size);

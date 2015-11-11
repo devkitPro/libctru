@@ -34,10 +34,39 @@ Result iruSendData(u8 *buf, u32 size, bool wait);
  * @param buf Buffer to receive data to.
  * @param size Size of the buffer.
  * @param flag Flags to receive data with.
- * @param transfercount Pointer to write the bytes read to.
+ * @param transfercount Pointer to output the number of bytes read to.
  * @param wait Whether to wait for the data to be received.
  */
 Result iruRecvData(u8 *buf, u32 size, u8 flag, u32 *transfercount, bool wait);
+
+/// Initializes the IR session.
+Result IRU_Initialize(void);
+
+/// Shuts down the IR session.
+Result IRU_Shutdown(void);
+
+/**
+ * @brief Begins sending data.
+ * @param buf Buffer to send.
+ * @param size Size of the buffer.
+ */
+Result IRU_StartSendTransfer(u8 *buf, u32 size);
+
+/// Waits for a send operation to complete.
+Result IRU_WaitSendTransfer(void);
+
+/**
+ * @brief Begins receiving data.
+ * @param size Size of the data to receive.
+ * @param flag Flags to use when receiving.
+ */
+Result IRU_StartRecvTransfer(u32 size, u8 flag);
+
+/**
+ * @brief Waits for a receive operation to complete.
+ * @param transfercount Pointer to output the number of bytes read to.
+ */
+Result IRU_WaitRecvTransfer(u32 *transfercount);
 
 /**
  * @brief Sets the IR bit rate.

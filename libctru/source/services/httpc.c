@@ -90,7 +90,7 @@ Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size)
 	return HTTPC_ReceiveData(context->servhandle, context->httphandle, buffer, size);
 }
 
-Result httpcGetRequestState(httpcContext *context, httpcReqStatus* out)
+Result httpcGetRequestState(httpcContext *context, HTTPC_RequestStatus* out)
 {
 	return HTTPC_GetRequestState(context->servhandle, context->httphandle, out);
 }
@@ -273,7 +273,7 @@ Result HTTPC_ReceiveData(Handle handle, Handle contextHandle, u8* buffer, u32 si
 	return cmdbuf[1];
 }
 
-Result HTTPC_GetRequestState(Handle handle, Handle contextHandle, httpcReqStatus* out)
+Result HTTPC_GetRequestState(Handle handle, Handle contextHandle, HTTPC_RequestStatus* out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -310,13 +310,13 @@ Result HTTPC_GetResponseHeader(Handle handle, Handle contextHandle, char* name, 
 
 	int name_len=strlen(name)+1;
 
-	cmdbuf[0]=0x001e00c4; //request header code
+	cmdbuf[0]=IPC_MakeHeader(0x1E,3,4); // 0x1E00C4
 	cmdbuf[1]=contextHandle;
 	cmdbuf[2]=name_len;
 	cmdbuf[3]=valuebuf_maxsize;
-	cmdbuf[4]=(name_len<<14)|0xC02;
+	cmdbuf[4]=IPC_Desc_StaticBuffer(name_len, 3);
 	cmdbuf[5]=(u32)name;
-	cmdbuf[6]=(valuebuf_maxsize<<4)|0xC;
+	cmdbuf[6]=IPC_Desc_Buffer(valuebuf_maxsize, IPC_BUFFER_W);
 	cmdbuf[7]=(u32)value;
 
 	Result ret=0;

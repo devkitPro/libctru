@@ -7,28 +7,28 @@
 #include <3ds/services/cfgu.h>
 #include <3ds/ipc.h>
 
-static Handle CFGU_handle;
-static int CFGU_refCount;
+static Handle cfguHandle;
+static int cfguRefCount;
 
 Result cfguInit(void)
 {
 	Result ret;
 
-	if (AtomicPostIncrement(&CFGU_refCount)) return 0;
+	if (AtomicPostIncrement(&cfguRefCount)) return 0;
 
 	// cfg:i has the most commands, then cfg:s, then cfg:u
-	ret = srvGetServiceHandle(&CFGU_handle, "cfg:i");
-	if(R_FAILED(ret)) ret = srvGetServiceHandle(&CFGU_handle, "cfg:s");
-	if(R_FAILED(ret)) ret = srvGetServiceHandle(&CFGU_handle, "cfg:u");
-	if(R_FAILED(ret)) AtomicDecrement(&CFGU_refCount);
+	ret = srvGetServiceHandle(&cfguHandle, "cfg:i");
+	if(R_FAILED(ret)) ret = srvGetServiceHandle(&cfguHandle, "cfg:s");
+	if(R_FAILED(ret)) ret = srvGetServiceHandle(&cfguHandle, "cfg:u");
+	if(R_FAILED(ret)) AtomicDecrement(&cfguRefCount);
 
 	return ret;
 }
 
 void cfguExit(void)
 {
-	if (AtomicDecrement(&CFGU_refCount)) return;
-	svcCloseHandle(CFGU_handle);
+	if (AtomicDecrement(&cfguRefCount)) return;
+	svcCloseHandle(cfguHandle);
 }
 
 Result CFGU_SecureInfoGetRegion(u8* region)
@@ -38,9 +38,9 @@ Result CFGU_SecureInfoGetRegion(u8* region)
 
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
-	*region = (u8)cmdbuf[2];
+	*region = (u8)cmdbuf[2] & 0xFF;
 
 	return (Result)cmdbuf[1];
 }
@@ -53,7 +53,7 @@ Result CFGU_GenHashConsoleUnique(u32 appIDSalt, u64* hash)
 	cmdbuf[0] = IPC_MakeHeader(0x3,1,0); // 0x30040
 	cmdbuf[1] = appIDSalt;
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
 	*hash = (u64)cmdbuf[2];
 	*hash |= ((u64)cmdbuf[3])<<32;
@@ -68,9 +68,9 @@ Result CFGU_GetRegionCanadaUSA(u8* value)
 
 	cmdbuf[0] = IPC_MakeHeader(0x4,0,0); // 0x40000
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
-	*value = (u8)cmdbuf[2];
+	*value = (u8)cmdbuf[2] & 0xFF;
 
 	return (Result)cmdbuf[1];
 }
@@ -82,9 +82,9 @@ Result CFGU_GetSystemModel(u8* model)
 
 	cmdbuf[0] = IPC_MakeHeader(0x5,0,0); // 0x50000
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
-	*model = (u8)cmdbuf[2];
+	*model = (u8)cmdbuf[2] & 0xFF;
 
 	return (Result)cmdbuf[1];
 }
@@ -96,9 +96,9 @@ Result CFGU_GetModelNintendo2DS(u8* value)
 
 	cmdbuf[0] = IPC_MakeHeader(0x6,0,0); // 0x60000
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
-	*value = (u8)cmdbuf[2];
+	*value = (u8)cmdbuf[2] & 0xFF;
 
 	return (Result)cmdbuf[1];
 }
@@ -111,9 +111,9 @@ Result CFGU_GetCountryCodeString(u16 code, u16* string)
 	cmdbuf[0] = IPC_MakeHeader(0x9,1,0); // 0x90040
 	cmdbuf[1] = (u32)code;
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
-	*string = (u16)cmdbuf[2];
+	*string = (u16)cmdbuf[2] & 0xFFFF;
 
 	return (Result)cmdbuf[1];
 }
@@ -126,9 +126,9 @@ Result CFGU_GetCountryCodeID(u16 string, u16* code)
 	cmdbuf[0] = IPC_MakeHeader(0xA,1,0); // 0xA0040
 	cmdbuf[1] = (u32)string;
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
-	*code = (u16)cmdbuf[2];
+	*code = (u16)cmdbuf[2] & 0xFFFF;
 
 	return (Result)cmdbuf[1];
 }
@@ -146,7 +146,7 @@ Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
 	cmdbuf[3] = IPC_Desc_Buffer(size,IPC_BUFFER_W);
 	cmdbuf[4] = (u32)outData;
 
-	if(R_FAILED(ret = svcSendSyncRequest(CFGU_handle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }

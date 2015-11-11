@@ -89,7 +89,7 @@ void ndspChnSetFormat(int id, u16 format)
 	ndspChn[id].format = format;
 }
 
-void ndspChnSetInterp(int id, int type)
+void ndspChnSetInterp(int id, ndspInterpType type)
 {
 	ndspChnSt* chn = &ndspChn[id];
 	LightLock_Lock(&chn->lock);

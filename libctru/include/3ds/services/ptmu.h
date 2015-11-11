@@ -1,20 +1,14 @@
 /**
- * @file ptm.h
- * @brief PTM service.
+ * @file ptmu.h
+ * @brief PTMU service.
  */
 #pragma once
 
-/// Initializes PTM.
-Result ptmInit(void);
+/// Initializes PTMU.
+Result ptmuInit(void);
 
-/// Exits PTM.
-void ptmExit(void);
-
-/// Initializes ptm:sysm.
-Result ptmSysmInit(void);
-
-/// Exits ptm:sysm.
-void ptmSysmExit(void);
+/// Exits PTMU.
+void ptmuExit(void);
 
 /**
  * @brief Gets the system's current shell state.
@@ -46,8 +40,3 @@ Result PTMU_GetPedometerState(u8 *out);
  */
 Result PTMU_GetTotalStepCount(u32 *steps);
 
-/**
- * @brief Configures the New 3DS' CPU clock speed and L2 cache.
- * @param value Bit0: enable higher clock, Bit1: enable L2 cache.
- */
-Result PTMSYSM_ConfigureNew3DSCPU(u8 value);

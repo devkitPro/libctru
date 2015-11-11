@@ -296,7 +296,7 @@ static void ndspFinalize(bool suspend)
 	LightLock_Unlock(&ndspMutex);
 }
 
-static void ndspAptHook(int hook, void* param)
+static void ndspAptHook(APT_HookType hook, void* param)
 {
 	switch (hook)
 	{
@@ -311,6 +311,9 @@ static void ndspAptHook(int hook, void* param)
 		case APTHOOK_ONSLEEP:
 			bSleeping = true;
 			ndspFinalize(true);
+			break;
+
+		default:
 			break;
 	}
 }
@@ -544,7 +547,7 @@ void ndspSetMasterVol(float volume)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
-void ndspSetOutputMode(int mode)
+void ndspSetOutputMode(ndspOutputMode mode)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.outputMode = mode;
@@ -552,7 +555,7 @@ void ndspSetOutputMode(int mode)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
-void ndspSetClippingMode(int mode)
+void ndspSetClippingMode(ndspClippingMode mode)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.clippingMode = mode;
@@ -587,7 +590,7 @@ void ndspSurroundSetDepth(u16 depth)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
-void ndspSurroundSetPos(u16 pos)
+void ndspSurroundSetPos(ndspSpeakerPos pos)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.surround.pos = pos;

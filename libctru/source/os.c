@@ -2,7 +2,7 @@
 #include <3ds/result.h>
 #include <3ds/os.h>
 #include <3ds/svc.h>
-#include <3ds/services/ptm.h>
+#include <3ds/services/ptmsysm.h>
 
 #include <sys/time.h>
 #include <reent.h>

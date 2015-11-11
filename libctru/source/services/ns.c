@@ -37,8 +37,7 @@ Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid)
 	
 	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
 
-	if(procid != NULL)
-		*procid = cmdbuf[2];
+	if(procid != NULL) *procid = cmdbuf[2];
 	
 	return (Result)cmdbuf[1];
 }

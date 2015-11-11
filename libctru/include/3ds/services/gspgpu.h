@@ -1,10 +1,10 @@
 /**
- * @file gsp.h
- * @brief GSP service.
+ * @file gspgpu.h
+ * @brief GSPGPU service.
  */
 #pragma once
 
-#define GSP_REBASE_REG(r) ((r)-0x1EB00000)
+#define GSPGPU_REBASE_REG(r) ((r)-0x1EB00000)
 
 /// Framebuffer information.
 typedef struct
@@ -16,7 +16,7 @@ typedef struct
 	u32 format;                 ///< Framebuffer format, this u16 is written to the low u16 for LCD register 0x1EF00X70.
 	u32 framebuf_dispselect;    ///< Value for 0x1EF00X78, controls which framebuffer is displayed.
 	u32 unk;                    ///< Unknown.
-} GSP_FramebufferInfo;
+} GSPGPU_FramebufferInfo;
 
 /// Framebuffer format.
 typedef enum
@@ -26,7 +26,7 @@ typedef enum
 	GSP_RGB565_OES=2,  ///< RGB565. (2 bytes)
 	GSP_RGB5_A1_OES=3, ///< RGB5A1. (2 bytes)
 	GSP_RGBA4_OES=4    ///< RGBA4. (2 bytes)
-}GSP_FramebufferFormats;
+} GSPGPU_FramebufferFormats;
 
 /// Capture info entry.
 typedef struct
@@ -35,89 +35,82 @@ typedef struct
 	u32 *framebuf1_vaddr;       ///< Right framebuffer.
 	u32 format;                 ///< Framebuffer format.
 	u32 framebuf_widthbytesize; ///< Framebuffer pitch.
-} GSP_CaptureInfoEntry;
+} GSPGPU_CaptureInfoEntry;
 
 /// Capture info.
 typedef struct
 {
-	GSP_CaptureInfoEntry screencapture[2]; ///< Capture info entries, one for each screen.
-} GSP_CaptureInfo;
+	GSPGPU_CaptureInfoEntry screencapture[2]; ///< Capture info entries, one for each screen.
+} GSPGPU_CaptureInfo;
 
-/// GSP events.
+/// GSPGPU events.
 typedef enum
 {
-	GSPEVENT_PSC0 = 0, ///< Memory fill completed.
-	GSPEVENT_PSC1,     ///< TODO
-	GSPEVENT_VBlank0,  ///< TODO
-	GSPEVENT_VBlank1,  ///< TODO
-	GSPEVENT_PPF,      ///< Display transfer finished.
-	GSPEVENT_P3D,      ///< Command list processing finished.
-	GSPEVENT_DMA,      ///< TODO
+	GSPGPU_EVENT_PSC0 = 0, ///< Memory fill completed.
+	GSPGPU_EVENT_PSC1,     ///< TODO
+	GSPGPU_EVENT_VBlank0,  ///< TODO
+	GSPGPU_EVENT_VBlank1,  ///< TODO
+	GSPGPU_EVENT_PPF,      ///< Display transfer finished.
+	GSPGPU_EVENT_P3D,      ///< Command list processing finished.
+	GSPGPU_EVENT_DMA,      ///< TODO
 
-	GSPEVENT_MAX,      ///< Used to know how many events there are.
-} GSP_Event;
+	GSPGPU_EVENT_MAX,      ///< Used to know how many events there are.
+} GSPGPU_Event;
 
-/// LCD screens.
-typedef enum
-{
-	GSPLCD_TOP    = BIT(0),                     ///< Top screen.
-	GSPLCD_BOTTOM = BIT(1),                     ///< Bottom screen.
-	GSPLCD_BOTH   = GSPLCD_TOP | GSPLCD_BOTTOM, ///< Both screens.
-}GSPLCD_Screens;
-
-/// Initializes GSP.
+/// Initializes GSPGPU.
 Result gspInit(void);
 
-/// Exits GSP.
+/// Exits GSPGPU.
 void gspExit(void);
 
-/// Initializes GSPLCD.
-Result gspLcdInit(void);
-
-/// Exits GSPLCD.
-void gspLcdExit(void);
-
 /**
- * @brief Initializes the GSP event handler.
+ * @brief Initializes the GSPGPU event handler.
  * @param gspEvent Event handle to use.
  * @param gspSharedMem GSP shared memory.
  * @param gspThreadId ID of the GSP thread.
  */
 Result gspInitEventHandler(Handle gspEvent, vu8* gspSharedMem, u8 gspThreadId);
 
-/// Exits the GSP event handler.
+/// Exits the GSPGPU event handler.
 void gspExitEventHandler(void);
 
 /**
- * @brief Waits for a GSP event to occur.
+ * @brief Waits for a GSPGPU event to occur.
  * @param id ID of the event.
  * @param Whether to discard the current event and wait for the next event.
  */
-void gspWaitForEvent(GSP_Event id, bool nextEvent);
+void gspWaitForEvent(GSPGPU_Event id, bool nextEvent);
 
 /// Waits for PSC0
-#define gspWaitForPSC0() gspWaitForEvent(GSPEVENT_PSC0, false)
+#define gspWaitForPSC0() gspWaitForEvent(GSPGPU_EVENT_PSC0, false)
 
 /// Waits for PSC1
-#define gspWaitForPSC1() gspWaitForEvent(GSPEVENT_PSC1, false)
+#define gspWaitForPSC1() gspWaitForEvent(GSPGPU_EVENT_PSC1, false)
 
 /// Waits for VBlank.
 #define gspWaitForVBlank() gspWaitForVBlank0()
 
 /// Waits for VBlank0.
-#define gspWaitForVBlank0() gspWaitForEvent(GSPEVENT_VBlank0, true)
+#define gspWaitForVBlank0() gspWaitForEvent(GSPGPU_EVENT_VBlank0, true)
 
 /// Waits for VBlank1.
-#define gspWaitForVBlank1() gspWaitForEvent(GSPEVENT_VBlank1, true)
+#define gspWaitForVBlank1() gspWaitForEvent(GSPGPU_EVENT_VBlank1, true)
 
 /// Waits for PPF.
-#define gspWaitForPPF() gspWaitForEvent(GSPEVENT_PPF, false)
+#define gspWaitForPPF() gspWaitForEvent(GSPGPU_EVENT_PPF, false)
 
 /// Waits for P3D.
-#define gspWaitForP3D() gspWaitForEvent(GSPEVENT_P3D, false)
+#define gspWaitForP3D() gspWaitForEvent(GSPGPU_EVENT_P3D, false)
 
 /// Waits for DMA.
-#define gspWaitForDMA() gspWaitForEvent(GSPEVENT_DMA, false)
+#define gspWaitForDMA() gspWaitForEvent(GSPGPU_EVENT_DMA, false)
+
+/**
+ * @brief Submits a GX command.
+ * @param sharedGspCmdBuf Command buffer to use.
+ * @param gxCommand GX command to execute.
+ */
+Result gspSubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8]);
 
 /**
  * @brief Acquires GPU rights.
@@ -132,7 +125,7 @@ Result GSPGPU_ReleaseRight(void);
  * @brief Retrieves display capture info.
  * @param captureinfo Pointer to output capture info to.
  */
-Result GSPGPU_ImportDisplayCaptureInfo(GSP_CaptureInfo *captureinfo);
+Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo*captureinfo);
 
 /// Sames the VRAM sys area.
 Result GSPGPU_SaveVramSysArea(void);
@@ -151,7 +144,7 @@ Result GSPGPU_SetLcdForceBlack(u8 flags);
  * @param screenid ID of the screen to update.
  * @param framebufinfo Framebuffer information to update with.
  */
-Result GSPGPU_SetBufferSwap(u32 screenid, GSP_FramebufferInfo *framebufinfo);
+Result GSPGPU_SetBufferSwap(u32 screenid, GSPGPU_FramebufferInfo*framebufinfo);
 
 /**
  * @brief Flushes memory from the data cache.
@@ -208,21 +201,3 @@ Result GSPGPU_UnregisterInterruptRelayQueue(void);
 /// Triggers a handling of commands written to shared memory.
 Result GSPGPU_TriggerCmdReqQueue(void);
 
-/**
- * @brief Submits a GX command.
- * @param sharedGspCmdBuf Command buffer to use.
- * @param gxCommand GX command to execute.
- */
-Result GSPGPU_SubmitGxCommand(u32* sharedGspCmdBuf, u32 gxCommand[0x8]);
-
-/**
- * @brief Powers off the backlight.
- * @param screen Screen to power off.
- */
-Result GSPLCD_PowerOffBacklight(GSPLCD_Screens screen);
-
-/**
- * @brief Powers on the backlight.
- * @param screen Screen to power on.
- */
-Result GSPLCD_PowerOnBacklight(GSPLCD_Screens screen);

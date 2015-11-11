@@ -8,7 +8,7 @@
 #pragma once
 
 #include <3ds/types.h>
-#include <3ds/services/gsp.h>
+#include <3ds/services/gspgpu.h>
 
 /// Converts red, green, and blue components to packed RGB565.
 #define RGB565(r,g,b)  (((b)&0x1f)|(((g)&0x3f)<<5)|(((r)&0x1f)<<11))
@@ -63,7 +63,7 @@ void gfxInitDefault(void);
  * @note Even if the double buffering is disabled, it will allocate two buffer per screen.
  * @note You should always call @ref gfxExit once done to free the memory and services
  */
-void gfxInit(GSP_FramebufferFormats topFormat, GSP_FramebufferFormats bottomFormat, bool vrambuffers);
+void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bottomFormat, bool vrambuffers);
 
 /**
  * @brief Closes the gsp service and frees the framebuffers.
@@ -86,14 +86,14 @@ void gfxSet3D(bool enable);
  * @param screen The screen of which format should be changed
  * @param format One of the gsp pixel formats.
  */
-void gfxSetScreenFormat(gfxScreen_t screen, GSP_FramebufferFormats format);
+void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormats format);
 
 /**
  * @brief Gets a screen pixel format.
  * @param screen Screen to get the pixel format of.
  * @return the pixel format of the chosen screen set by ctrulib.
  */
-GSP_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen);
+GSPGPU_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen);
 
 /**
  * @brief Sets whether to use ctrulib's double buffering

@@ -16,22 +16,21 @@ Result srvExit(void);
  */
 Handle *srvGetSessionHandle(void);
 
-/// Registers the current process as a client to the service API.
-Result srvRegisterClient(void);
-
 /**
- * @brief Retrieves a service handle, bypassing the handle list.
- * @param out Pointer to write the handle to.
- * @param name Name of the service.
- */
-Result srvGetServiceHandleDirect(Handle* out, const char* name);
-
-/**
- * @brief Retrieves a service handle.
+ * @brief Retrieves a service handle, retrieving from the launcher handle list if possible.
  * @param out Pointer to write the handle to.
  * @param name Name of the service.
  */
 Result srvGetServiceHandle(Handle* out, const char* name);
+
+/// Registers the current process as a client to the service API.
+Result srvRegisterClient(void);
+
+/**
+ * @brief Enables service notificatios, returning a notification semaphore.
+ * @param semaphoreOut Pointer to output the notification semaphore to.
+ */
+Result srvEnableNotification(Handle* semaphoreOut);
 
 /**
  * @brief Registers the current process as a service.
@@ -47,19 +46,69 @@ Result srvRegisterService(Handle* out, const char* name, int maxSessions);
  */
 Result srvUnregisterService(const char* name);
 
-/// Initializes the srv:pm port.
-Result srvPmInit(void);
+/**
+ * @brief Retrieves a service handle.
+ * @param out Pointer to output the handle to.
+ * @param name Name of the service.
+ */
+Result srvGetServiceHandleDirect(Handle* out, const char* name);
 
 /**
- * @brief Registers a process with srv:pm.
- * @param procid ID of the process to register.
- * @param count Number of services to register access to.
- * @param serviceaccesscontrol Service access permissions of the process.
+ * @brief Registers a port.
+ * @param name Name of the port.
+ * @param clientHandle Client handle of the port.
  */
-Result srvRegisterProcess(u32 procid, u32 count, void *serviceaccesscontrol);
+Result srvRegisterPort(const char* name, Handle clientHandle);
 
 /**
- * @brief Unregisters a process with srv:pm.
- * @param procid ID of the process to unregister.
+ * @brief Unregisters a port.
+ * @param name Name of the port.
  */
-Result srvUnregisterProcess(u32 procid);
+Result srvUnregisterPort(const char* name);
+
+/**
+ * @brief Retrieves a port handle.
+ * @param out Pointer to output the handle to.
+ * @param name Name of the port.
+ */
+Result srvGetPort(Handle* out, const char* name);
+
+/**
+ * @brief Subscribes to a notification.
+ * @param notificationId ID of the notification.
+ */
+Result srvSubscribe(u32 notificationId);
+
+/**
+ * @brief Unsubscribes from a notification.
+ * @param notificationId ID of the notification.
+ */
+Result srvUnsubscribe(u32 notificationId);
+
+/**
+ * @brief Receives a notification.
+ * @param notificationIdOut Pointer to output the ID of the received notification to.
+ */
+Result srvReceiveNotification(u32* notificationIdOut);
+
+/**
+ * @brief Publishes a notification to subscribers.
+ * @param notificationId ID of the notification.
+ * @param flags Flags to publish with. (bit 0 = only fire if not fired, bit 1 = report errors)
+ */
+Result srvPublishToSubscriber(u32 notificationId, u32 flags);
+
+/**
+ * @brief Publishes a notification to subscribers and retrieves a list of all processes that were notified.
+ * @param processIdCountOut Pointer to output the number of process IDs to.
+ * @param processIdsOut Pointer to output the process IDs to. Should have size "60 * sizeof(u32)".
+ * @param notificationId ID of the notification.
+ */
+Result srvPublishAndGetSubscriber(u32* processIdCountOut, u32* processIdsOut, u32 notificationId);
+
+/**
+ * @brief Checks whether a service is registered.
+ * @param registeredOut Pointer to output the registration status to.
+ * @param name Name of the service to check.
+ */
+Result srvIsServiceRegistered(bool* registeredOut, const char* name);

@@ -10,16 +10,16 @@
 typedef struct {
 	float x; ///< X coordinate.
 	float y; ///< Y coordinate.
-} qtmHeadtrackingInfoCoord;
+} QTM_HeadTrackingInfoCoord;
 
 /// Head tracking info.
 typedef struct {
 	u8 flags[5];                         ///< Flags.
 	u8 padding[3];                       ///< Padding.
 	float floatdata_x08;                 ///< Unknown. Not used by System_Settings.
-	qtmHeadtrackingInfoCoord coords0[4]; ///< Head coordinates.
+	QTM_HeadTrackingInfoCoord coords0[4]; ///< Head coordinates.
 	u32 unk_x2c[5];                      ///< Unknown. Not used by System_Settings.
-} qtmHeadtrackingInfo;
+} QTM_HeadTrackingInfo;
 
 /// Initializes QTM.
 Result qtmInit(void);
@@ -34,17 +34,10 @@ void qtmExit(void);
 bool qtmCheckInitialized(void);
 
 /**
- * @brief Gets the current head tracking info.
- * @param val Normally 0.
- * @param out Pointer to write head tracking info to.
- */
-Result qtmGetHeadtrackingInfo(u64 val, qtmHeadtrackingInfo *out);
-
-/**
  * @brief Checks whether a head is fully detected.
  * @param info Tracking info to check.
  */
-bool qtmCheckHeadFullyDetected(qtmHeadtrackingInfo *info);
+bool qtmCheckHeadFullyDetected(QTM_HeadTrackingInfo *info);
 
 /**
  * @brief Converts QTM coordinates to screen coordinates.
@@ -54,5 +47,11 @@ bool qtmCheckHeadFullyDetected(qtmHeadtrackingInfo *info);
  * @param x Pointer to output the screen X coordinate to.
  * @param y Pointer to output the screen Y coordinate to.
  */
-Result qtmConvertCoordToScreen(qtmHeadtrackingInfoCoord *coord, float *screen_width, float *screen_height, u32 *x, u32 *y);
+Result qtmConvertCoordToScreen(QTM_HeadTrackingInfoCoord *coord, float *screen_width, float *screen_height, u32 *x, u32 *y);
 
+/**
+ * @brief Gets the current head tracking info.
+ * @param val Normally 0.
+ * @param out Pointer to write head tracking info to.
+ */
+Result QTM_GetHeadTrackingInfo(u64 val, QTM_HeadTrackingInfo* out);

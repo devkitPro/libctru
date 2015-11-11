@@ -88,9 +88,7 @@ typedef struct
   // 0x00
   u16 name[0x106];     ///< UTF-16 encoded name
   // 0x20C
-  u8  shortName[0x09]; ///< 8.3 File name
-  // 0x215
-  u8  unknown1;        ///< ???
+  u8  shortName[0x0A]; ///< 8.3 File name
   // 0x216
   u8  shortExt[0x04];  ///< 8.3 File extension (set to spaces for directories)
   // 0x21A
@@ -127,7 +125,7 @@ Handle *fsGetSessionHandle(void);
  * @param path Path to use.
  * @return The created FS_path instance.
  */
-FS_path FS_makePath(FS_pathType type, const char *path);
+FS_path fsMakePath(FS_pathType type, const char *path);
 
 /**
  * @brief Initializes FSUSER.

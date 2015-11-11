@@ -10,7 +10,7 @@
 #include <3ds/srv.h>
 #include <3ds/synchronization.h>
 #include <3ds/services/apt.h>
-#include <3ds/services/gsp.h>
+#include <3ds/services/gspgpu.h>
 #include <3ds/ipc.h>
 
 
@@ -37,8 +37,8 @@ u64 aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]; // u64 so that it's 8-byte al
 
 LightLock aptStatusMutex;
 Handle aptStatusEvent;
-APP_STATUS aptStatus = APP_NOTINITIALIZED;
-APP_STATUS aptStatusBeforeSleep = APP_NOTINITIALIZED;
+APT_AppStatus aptStatus = APP_NOTINITIALIZED;
+APT_AppStatus aptStatusBeforeSleep = APP_NOTINITIALIZED;
 u32 aptStatusPower;
 Handle aptSleepSync;
 
@@ -53,7 +53,7 @@ static u32 __apt_launchapplet_parambufsize;
 
 static aptHookCookie aptFirstHook;
 
-static void aptCallHook(int hookType)
+static void aptCallHook(APT_HookType hookType)
 {
 	aptHookCookie* c;
 	for (c = &aptFirstHook; c && c->callback; c = c->next)
@@ -106,9 +106,9 @@ void aptInitCaptureInfo(u32 *ns_capinfo)
 {
 	u32 tmp=0;
 	u32 main_pixsz, sub_pixsz;
-	GSP_CaptureInfo gspcapinfo;
+	GSPGPU_CaptureInfo gspcapinfo;
 
-	memset(&gspcapinfo, 0, sizeof(GSP_CaptureInfo));
+	memset(&gspcapinfo, 0, sizeof(GSPGPU_CaptureInfo));
 
 	// Get display-capture info from GSP.
 	GSPGPU_ImportDisplayCaptureInfo(&gspcapinfo);
@@ -310,7 +310,7 @@ void aptAppletClosed(void)
 }
 
 static void __handle_notification(void) {
-	u8 type;
+	APT_Signal type;
 	Result ret=0;
 
 	// Get notification type.
@@ -371,6 +371,9 @@ static void __handle_notification(void) {
 			// Restore old aptStatus.
 			aptSetStatus(aptStatusBeforeSleep);
 		}
+		break;
+
+	default:
 		break;
 	}
 }
@@ -656,16 +659,16 @@ void aptAppStarted(void)
 	}
 }
 
-APP_STATUS aptGetStatus(void)
+APT_AppStatus aptGetStatus(void)
 {
-	APP_STATUS ret;
+	APT_AppStatus ret;
 	LightLock_Lock(&aptStatusMutex);
 	ret = aptStatus;
 	LightLock_Unlock(&aptStatusMutex);
 	return ret;
 }
 
-void aptSetStatus(APP_STATUS status)
+void aptSetStatus(APT_AppStatus status)
 {
 	LightLock_Lock(&aptStatusMutex);
 
@@ -862,7 +865,7 @@ Result APT_IsRegistered(NS_APPID appID, u8* out)
 	return cmdbuf[1];
 }
 
-Result APT_InquireNotification(u32 appID, u8* signalType)
+Result APT_InquireNotification(u32 appID, APT_Signal* signalType)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=IPC_MakeHeader(0xB,1,0); // 0xB0040
@@ -1137,7 +1140,7 @@ Result APT_CheckNew3DS_Application(u8 *out)
 	if(out)
 	{
 		*out = 0;
-		if(ret==0)*out=cmdbuf[2];
+		if(ret==0)*out=cmdbuf[2] & 0xFF;
 	}
 
 	return ret;
@@ -1156,7 +1159,7 @@ Result APT_CheckNew3DS_System(u8 *out)
 	if(out)
 	{
 		*out = 0;
-		if(ret==0)*out=cmdbuf[2];
+		if(ret==0)*out=cmdbuf[2] & 0xFF;
 	}
 
 	return ret;

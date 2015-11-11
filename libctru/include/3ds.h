@@ -14,13 +14,15 @@ extern "C" {
 #include <3ds/ipc.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
-#include <3ds/linear.h>
-#include <3ds/vram.h>
 #include <3ds/os.h>
 #include <3ds/synchronization.h>
 #include <3ds/gfx.h>
 #include <3ds/console.h>
 #include <3ds/util/utf.h>
+
+#include <3ds/allocator/linear.h>
+#include <3ds/allocator/mappable.h>
+#include <3ds/allocator/vram.h>
 
 #include <3ds/services/ac.h>
 #include <3ds/services/am.h>
@@ -31,7 +33,8 @@ extern "C" {
 #include <3ds/services/csnd.h>
 #include <3ds/services/dsp.h>
 #include <3ds/services/fs.h>
-#include <3ds/services/gsp.h>
+#include <3ds/services/gspgpu.h>
+#include <3ds/services/gsplcd.h>
 #include <3ds/services/hid.h>
 #include <3ds/services/irrst.h>
 #include <3ds/services/httpc.h>
@@ -39,7 +42,8 @@ extern "C" {
 #include <3ds/services/ns.h>
 #include <3ds/services/pm.h>
 #include <3ds/services/ps.h>
-#include <3ds/services/ptm.h>
+#include <3ds/services/ptmu.h>
+#include <3ds/services/ptmsysm.h>
 #include <3ds/services/soc.h>
 #include <3ds/services/mic.h>
 #include <3ds/services/mvd.h>
