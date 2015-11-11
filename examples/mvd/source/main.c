@@ -29,7 +29,7 @@ void draw_startup()
 	u8* bufAdr = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 	u8* gfxtopadr = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
-	mvdstdConfig config;
+	MVDSTD_Config config;
 
 	char str[256];
 
@@ -62,7 +62,7 @@ void draw_startup()
 
 	printstring("mvd example\n");
 
-	ret = mvdstdInit(MVDMODE_COLORFORMATCONV, MVDTYPEIN_YUYV422, MVDTYPEOUT_RGB565, 0);
+	ret = mvdstdInit(MVDMODE_COLORFORMATCONV, MVD_INPUT_YUYV422, MVD_OUTPUT_RGB565, 0);
 	memset(str, 0, 256);
 	snprintf(str, sizeof(str)-1, "mvdstdInit(): 0x%08x\n", (unsigned int)ret);
 	printstring(str);
@@ -97,7 +97,7 @@ void draw_startup()
 
 	memcpy(gfxtopadr, outaddr, 0x46500);
 
-	mvdstdShutdown();
+	mvdstdExit();
 
 	gfxFlushBuffers();
 	gfxSwapBuffers();

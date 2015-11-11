@@ -8,7 +8,7 @@ int main()
 	u32 x, y;
 	Result ret;
 	bool qtm_usable;
-	qtmHeadtrackingInfo qtminfo;
+	QTM_HeadTrackingInfo qtminfo;
 	u32 colors[4] = {0x0000FF, 0x00FF00, 0xFF0000, 0xFFFFFF};
 
 	gfxInitDefault();
@@ -38,7 +38,7 @@ int main()
 			u8* fb = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 			memset(fb, 0, 400*240*3);
 
-			ret = qtmGetHeadtrackingInfo(0, &qtminfo);
+			ret = QTM_GetHeadTrackingInfo(0, &qtminfo);
 			if(ret==0)
 			{
 				consoleClear();

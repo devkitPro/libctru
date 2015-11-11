@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 
 		//wait & swap
 		gfxSwapBuffersGpu();
-		gspWaitForEvent(GSPEVENT_VBlank0, false);
+		gspWaitForEvent(GSPGPU_EVENT_VBlank0, false);
 	}
 
 	//cleanup and return

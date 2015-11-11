@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
 	// Initialize services
 	gfxInitDefault();
-	initCfgu();
+	cfguInit();
 
 
 	u8 language = 0;
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 	}
 
 	// Exit services
-	exitCfgu();
+	cfguExit();
 	gfxExit();
 	return 0;
 }
