@@ -11,14 +11,6 @@
 /// The maximum value of a u64.
 #define U64_MAX	UINT64_MAX
 
-/// Possible media types.
-typedef enum
-{
-	mediatype_NAND,     ///< NAND
-	mediatype_SDMC,     ///< SDMC
-	mediatype_GAMECARD, ///< Game card
-} mediatypes_enum;
-
 typedef uint8_t u8;   ///<  8-bit unsigned integer
 typedef uint16_t u16; ///< 16-bit unsigned integer
 typedef uint32_t u32; ///< 32-bit unsigned integer
