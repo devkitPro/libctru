@@ -48,7 +48,7 @@ FS_Path fsMakePath(FS_PathType type, const void* path)
 		{
 			const u16* str = (const u16*)path;
 			while (*str++) p.size++;
-			p.size++;
+			p.size = (p.size+1)*2;
 			break;
 		}
 		case PATH_EMPTY:
