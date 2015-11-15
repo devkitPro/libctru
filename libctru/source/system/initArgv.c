@@ -1,11 +1,11 @@
 #include <3ds/types.h>
+#include <3ds/env.h>
 
 #include <string.h>
 
 // System globals we define here
 int __system_argc;
 char** __system_argv;
-extern const char* __system_arglist;
 
 extern char* fake_heap_start;
 extern char* fake_heap_end;
@@ -13,7 +13,8 @@ extern char* fake_heap_end;
 void __system_initArgv()
 {
 	int i;
-	const char* temp = __system_arglist;
+	const char* arglist = envGetSystemArgList();
+	const char* temp = arglist;
 
 	// Check if the argument list is present
 	if (!temp)
@@ -31,14 +32,14 @@ void __system_initArgv()
 	}
 
 	// Reserve heap memory for argv data
-	u32 argSize = temp - __system_arglist - sizeof(u32);
+	u32 argSize = temp - arglist - sizeof(u32);
 	__system_argv = (char**)fake_heap_start;
 	fake_heap_start += sizeof(char**)*(__system_argc + 1);
 	char* argCopy = fake_heap_start;
 	fake_heap_start += argSize;
 
 	// Fill argv array
-	memcpy(argCopy, &__system_arglist[4], argSize);
+	memcpy(argCopy, &arglist[4], argSize);
 	temp = argCopy;
 	for (i = 0; i < __system_argc; i ++)
 	{

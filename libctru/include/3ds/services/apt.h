@@ -4,12 +4,6 @@
  */
 #pragma once
 
-// TODO: find a better place to put this
-/// APT workaround flag.
-#define RUNFLAG_APTWORKAROUND (BIT(0))
-/// APT reinititalize flag.
-#define RUNFLAG_APTREINIT (BIT(1))
-
 /**
  * @brief NS Application IDs.
  *

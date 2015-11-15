@@ -8,7 +8,7 @@
 Result srvInit(void);
 
 /// Exits the service API.
-Result srvExit(void);
+void srvExit(void);
 
 /**
  * @brief Gets the current service API session handle.
@@ -17,7 +17,7 @@ Result srvExit(void);
 Handle *srvGetSessionHandle(void);
 
 /**
- * @brief Retrieves a service handle, retrieving from the launcher handle list if possible.
+ * @brief Retrieves a service handle, retrieving from the environment handle list if possible.
  * @param out Pointer to write the handle to.
  * @param name Name of the service.
  */

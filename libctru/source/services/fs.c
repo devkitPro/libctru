@@ -6,12 +6,10 @@
 #include <3ds/synchronization.h>
 #include <3ds/services/fs.h>
 #include <3ds/ipc.h>
+#include <3ds/env.h>
 
 static Handle fsuHandle;
 static int fsuRefCount;
-
-// used to determine whether or not we should do FSUSER_Initialize on fsuHandle
-Handle __get_handle_from_list(char* name);
 
 Result fsInit(void)
 {
@@ -20,7 +18,7 @@ Result fsInit(void)
 	if (AtomicPostIncrement(&fsuRefCount)) return 0;
 
 	ret = srvGetServiceHandle(&fsuHandle, "fs:USER");
-	if (R_SUCCEEDED(ret) && __get_handle_from_list("fs:USER") == 0)
+	if (R_SUCCEEDED(ret) && envGetHandle("fs:USER") == 0)
 	{
 		ret = FSUSER_Initialize();
 		if (R_FAILED(ret)) svcCloseHandle(fsuHandle);

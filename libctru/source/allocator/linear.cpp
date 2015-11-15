@@ -8,13 +8,14 @@ extern "C"
 #include "mem_pool.h"
 #include "addrmap.h"
 
-extern u32 __linear_heap, __linear_heap_size;
+extern u32 __ctru_linear_heap;
+extern u32 __ctru_linear_heap_size;
 
 static MemPool sLinearPool;
 
 static bool linearInit()
 {
-	auto blk = MemBlock::Create((u8*)__linear_heap, __linear_heap_size);
+	auto blk = MemBlock::Create((u8*)__ctru_linear_heap, __ctru_linear_heap_size);
 	if (blk)
 	{
 		sLinearPool.AddBlock(blk);
