@@ -137,10 +137,10 @@ Result romfsInit(void)
 		if (units == (size_t)-1) return 3;
 		__utf16path[units] = 0;
 
-		FS_archive arch = { ARCH_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0, 0 };
-		FS_path path = { PATH_WCHAR, (units+1)*2, (u8*)__utf16path };
+		FS_Archive arch = { ARCHIVE_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0 };
+		FS_Path path = { PATH_UTF16, (units+1)*2, (u8*)__utf16path };
 
-		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
+		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, 0);
 		if (R_FAILED(rc)) return rc;
 
 		_3DSX_Header hdr;
@@ -155,10 +155,10 @@ Result romfsInit(void)
 		u8 zeros[0xC];
 		memset(zeros, 0, sizeof(zeros));
 
-		FS_archive arch = { ARCH_ROMFS, { PATH_EMPTY, 1, (u8*)"" }, 0, 0 };
-		FS_path path = { PATH_BINARY, sizeof(zeros), zeros };
+		FS_Archive arch = { ARCHIVE_ROMFS, { PATH_EMPTY, 1, (u8*)"" }, 0 };
+		FS_Path path = { PATH_BINARY, sizeof(zeros), zeros };
 
-		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
+		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, 0);
 		if (R_FAILED(rc)) return rc;
 	}
 

@@ -60,8 +60,8 @@ typedef struct
 /*! Open directory struct */
 typedef struct
 {
-  Handle    fd;         /*! CTRU handle */
-  FS_dirent entry_data; /*! Temporary storage for reading entries */
+  Handle    fd;                 /*! CTRU handle */
+  FS_DirectoryEntry entry_data; /*! Temporary storage for reading entries */
 } sdmc_dir_t;
 
 /*! SDMC devoptab */
@@ -97,9 +97,9 @@ sdmc_devoptab =
 };
 
 /*! SDMC archive handle */
-static FS_archive sdmcArchive =
+static FS_Archive sdmcArchive =
 {
-  .id = ARCH_SDMC,
+  .id = ARCHIVE_SDMC,
   .lowPath =
   {
     .type = PATH_EMPTY,
@@ -178,12 +178,12 @@ sdmc_fixpath(struct _reent *r,
   return __fixedpath;
 }
 
-static const FS_path
+static const FS_Path
 sdmc_utf16path(struct _reent *r,
                const char    *path)
 {
   size_t  units;
-  FS_path fspath;
+  FS_Path fspath;
 
   fspath.data = NULL;
 
@@ -205,7 +205,7 @@ sdmc_utf16path(struct _reent *r,
 
   __utf16path[units] = 0;
 
-  fspath.type = PATH_WCHAR;
+  fspath.type = PATH_UTF16;
   fspath.size = (units+1)*sizeof(uint16_t);
   fspath.data = (const u8*)__utf16path;
 
@@ -316,11 +316,11 @@ sdmc_open(struct _reent *r,
           int           flags,
           int           mode)
 {
-  Handle      fd;
-  Result      rc;
-  u32         sdmc_flags = 0;
-  u32         attributes = FS_ATTRIBUTE_NONE;
-  FS_path     fs_path;
+  Handle        fd;
+  Result        rc;
+  u32           sdmc_flags = 0;
+  u32           attributes = 0;
+  FS_Path       fs_path;
 
   fs_path = sdmc_utf16path(r, path);
   if(fs_path.data == NULL)
@@ -365,7 +365,7 @@ sdmc_open(struct _reent *r,
   /* Test O_EXCL. */
   if((flags & O_CREAT) && (flags & O_EXCL))
   {
-    rc = FSUSER_CreateFile(sdmcArchive, fs_path, 0);
+    rc = FSUSER_CreateFile(sdmcArchive, fs_path, attributes, 0);
     if(R_FAILED(rc))
     {
       r->_errno = sdmc_translate_error(rc);
@@ -662,14 +662,13 @@ sdmc_stat(struct _reent *r,
 {
   Handle  fd;
   Result  rc;
-  FS_path fs_path;
+  FS_Path fs_path;
 
   fs_path = sdmc_utf16path(r, file);
   if(fs_path.data == NULL)
     return -1;
 
-  if(R_SUCCEEDED(rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path,
-                           FS_OPEN_READ, FS_ATTRIBUTE_NONE)))
+  if(R_SUCCEEDED(rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path, FS_OPEN_READ, 0)))
   {
     sdmc_file_t tmpfd = { .fd = fd };
     rc = sdmc_fstat(r, (int)&tmpfd, st);
@@ -721,7 +720,7 @@ sdmc_unlink(struct _reent *r,
             const char    *name)
 {
   Result  rc;
-  FS_path fs_path;
+  FS_Path fs_path;
 
   fs_path = sdmc_utf16path(r, name);
   if(fs_path.data == NULL)
@@ -749,7 +748,7 @@ sdmc_chdir(struct _reent *r,
 {
   Handle  fd;
   Result  rc;
-  FS_path fs_path;
+  FS_Path fs_path;
 
   fs_path = sdmc_utf16path(r, name);
   if(fs_path.data == NULL)
@@ -782,7 +781,7 @@ sdmc_rename(struct _reent *r,
             const char    *newName)
 {
   Result  rc;
-  FS_path fs_path_old, fs_path_new;
+  FS_Path fs_path_old, fs_path_new;
   static uint16_t __utf16path_old[PATH_MAX+1];
 
   fs_path_old = sdmc_utf16path(r, oldName);
@@ -823,7 +822,7 @@ sdmc_mkdir(struct _reent *r,
            int           mode)
 {
   Result rc;
-  FS_path fs_path;
+  FS_Path fs_path;
 
   fs_path = sdmc_utf16path(r, path);
   if(fs_path.data == NULL)
@@ -831,7 +830,7 @@ sdmc_mkdir(struct _reent *r,
 
   /* TODO: Use mode to set directory attributes. */
 
-  rc = FSUSER_CreateDirectory(sdmcArchive, fs_path);
+  rc = FSUSER_CreateDirectory(sdmcArchive, fs_path, 0);
   if(R_SUCCEEDED(rc))
     return 0;
 
@@ -855,7 +854,7 @@ sdmc_diropen(struct _reent *r,
 {
   Handle  fd;
   Result  rc;
-  FS_path fs_path;
+  FS_Path fs_path;
 
   fs_path = sdmc_utf16path(r, path);
 
@@ -931,7 +930,7 @@ sdmc_dirnext(struct _reent *r,
 
     /* fill in the stat info */
     filestat->st_ino = 0;
-    if(dir->entry_data.isDirectory)
+    if(dir->entry_data.attributes & FS_ATTRIBUTE_DIRECTORY)
       filestat->st_mode = S_IFDIR;
     else
       filestat->st_mode = S_IFREG;
@@ -999,24 +998,21 @@ sdmc_statvfs(struct _reent  *r,
              struct statvfs *buf)
 {
   Result rc;
-  u32    clusterSize, numClusters, freeClusters;
-  u8    writable = 0;
+  FS_ArchiveResource resource;
+  bool writable = false;
 
-  rc = FSUSER_GetSdmcArchiveResource(NULL,
-                                     &clusterSize,
-                                     &numClusters,
-                                     &freeClusters);
+  rc = FSUSER_GetSdmcArchiveResource(&resource);
 
   if(R_SUCCEEDED(rc))
   {
-    buf->f_bsize   = clusterSize;
-    buf->f_frsize  = clusterSize;
-    buf->f_blocks  = numClusters;
-    buf->f_bfree   = freeClusters;
-    buf->f_bavail  = freeClusters;
+    buf->f_bsize   = resource.clusterSize;
+    buf->f_frsize  = resource.clusterSize;
+    buf->f_blocks  = resource.totalClusters;
+    buf->f_bfree   = resource.freeClusters;
+    buf->f_bavail  = resource.freeClusters;
     buf->f_files   = 0; //??? how to get
-    buf->f_ffree   = freeClusters;
-    buf->f_favail  = freeClusters;
+    buf->f_ffree   = resource.freeClusters;
+    buf->f_favail  = resource.freeClusters;
     buf->f_fsid    = 0; //??? how to get
     buf->f_flag    = ST_NOSUID;
     buf->f_namemax = 0; //??? how to get
@@ -1141,7 +1137,7 @@ sdmc_rmdir(struct _reent *r,
            const char    *name)
 {
   Result  rc;
-  FS_path fs_path;
+  FS_Path fs_path;
 
   fs_path = sdmc_utf16path(r, name);
   if(fs_path.data == NULL)

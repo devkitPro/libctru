@@ -400,10 +400,10 @@ static bool ndspFindAndLoadComponent(void)
 	do
 	{
 		static const char dsp_filename[] = "/3ds/dspfirm.cdc";
-		FS_archive arch = { ARCH_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0, 0 };
-		FS_path path = { PATH_CHAR, sizeof(dsp_filename), (u8*)dsp_filename };
+		FS_Archive arch = { ARCHIVE_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0 };
+		FS_Path path = { PATH_ASCII, sizeof(dsp_filename), (u8*)dsp_filename };
 
-		rc = FSUSER_OpenFileDirectly(&rsrc, arch, path, FS_OPEN_READ, FS_ATTRIBUTE_NONE);
+		rc = FSUSER_OpenFileDirectly(&rsrc, arch, path, FS_OPEN_READ, 0);
 		if (R_FAILED(rc)) break;
 
 		u64 size = 0;
