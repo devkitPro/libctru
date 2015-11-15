@@ -10,21 +10,31 @@
 
 #include <3ds/types.h>
 
-/// Initializes HB.
-Result hbInit(void);
+/**
+ * @brief Initializes HB.
+ * @deprecated Only available with the outdated Ninjhax 1.1.
+ */
+Result hbInit(void) DEPRECATED;
 
-/// Exits HB.
-void hbExit(void);
+/**
+ * @brief Exits HB.
+ * @deprecated Only available with the outdated Ninjhax 1.1.
+ */
+void hbExit(void) DEPRECATED;
 
-/// Flushes/invalidates the entire data/instruction cache.
-Result HB_FlushInvalidateCache(void);
+/**
+ * @brief Flushes/invalidates the entire data/instruction cache.
+ * @deprecated Only available with the outdated Ninjhax 1.1.
+ */
+Result HB_FlushInvalidateCache(void) DEPRECATED;
 
 /**
  * @brief Fetches the address for Ninjhax 1.x bootloader addresses.
  * @param load3dsx void (*callBootloader)(Handle hb, Handle file);
  * @param setArgv void (*setArgs)(u32* src, u32 length);
+ * @deprecated Only available with the outdated Ninjhax 1.1.
  */
-Result HB_GetBootloaderAddresses(void** load3dsx, void** setArgv);
+Result HB_GetBootloaderAddresses(void** load3dsx, void** setArgv) DEPRECATED;
 
 /**
  * @brief Changes the permissions of a given number of pages at address addr to mode.
@@ -34,5 +44,6 @@ Result HB_GetBootloaderAddresses(void** load3dsx, void** setArgv);
  * @param pages Number of pages to reprotect.
  * @param mode Mode to reprotect to.
  * @param reprotectedPages Number of successfully reprotected pages, on failure.
+ * @deprecated Only available with the outdated Ninjhax 1.1.
  */
-Result HB_ReprotectMemory(u32* addr, u32 pages, u32 mode, u32* reprotectedPages);
+Result HB_ReprotectMemory(u32* addr, u32 pages, u32 mode, u32* reprotectedPages) DEPRECATED;
