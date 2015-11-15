@@ -1,6 +1,7 @@
 #include "ndsp-internal.h"
 #include <3ds/services/cfgu.h>
 #include <3ds/services/fs.h>
+#include <3ds/env.h>
 
 #define NDSP_THREAD_STACK_SIZE 0x1000
 
@@ -388,7 +389,6 @@ void ndspUseComponent(const void* binary, u32 size, u16 progMask, u16 dataMask)
 
 static bool ndspFindAndLoadComponent(void)
 {
-	extern Handle __get_handle_from_list(const char* name);
 	Result rc;
 	Handle rsrc;
 	void* bin;
@@ -425,7 +425,7 @@ static bool ndspFindAndLoadComponent(void)
 	} while (0);
 
 	// Try loading the DSP component from hb:ndsp
-	rsrc = __get_handle_from_list("hb:ndsp");
+	rsrc = envGetHandle("hb:ndsp");
 	if (rsrc) do
 	{
 		extern u32 fake_heap_end;

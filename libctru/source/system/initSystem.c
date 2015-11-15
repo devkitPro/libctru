@@ -1,14 +1,12 @@
 #include <sys/iosupport.h>
 #include <sys/time.h>
-
 #include <string.h>
+
 #include <3ds/types.h>
 #include <3ds/svc.h>
+#include <3ds/env.h>
 
 void (*__system_retAddr)(void);
-
-// Data from _prm structure
-extern void* __service_ptr; // used to detect if we're run from a homebrew launcher
 
 void __system_allocateHeaps();
 void __system_initArgv();
@@ -27,7 +25,7 @@ void __attribute__((weak)) __libctru_init(void (*retAddr)(void))
 	__syscalls.exit = __ctru_exit;
     __syscalls.gettod_r = __libctru_gtod;
 
-	__system_retAddr = __service_ptr ? retAddr : NULL;
+	__system_retAddr = envIsHomebrew() ? retAddr : NULL;
 
 	if (__sync_init)
 		__sync_init();

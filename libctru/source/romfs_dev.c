@@ -14,6 +14,7 @@
 #include <3ds/romfs.h>
 #include <3ds/services/fs.h>
 #include <3ds/util/utf.h>
+#include <3ds/env.h>
 
 static bool romFS_active;
 static Handle romFS_file;
@@ -24,7 +25,6 @@ static romfs_dir* romFS_cwd;
 static u32 *dirHashTable, *fileHashTable;
 static void *dirTable, *fileTable;
 
-extern u32 __service_ptr;
 extern int __system_argc;
 extern char** __system_argv;
 
@@ -117,7 +117,7 @@ static Result romfsInitCommon(void);
 Result romfsInit(void)
 {
 	if (romFS_active) return 0;
-	if (__service_ptr)
+	if (envIsHomebrew())
 	{
 		// RomFS appended to a 3DSX file
 		if (__system_argc == 0 || !__system_argv[0]) return 1;

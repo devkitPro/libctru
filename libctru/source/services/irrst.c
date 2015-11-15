@@ -11,9 +11,7 @@
 #include <3ds/synchronization.h>
 #include <3ds/services/irrst.h>
 #include <3ds/ipc.h>
-
-// used to determine whether or not we should do IRRST_Initialize
-Handle __get_handle_from_list(char* name);
+#include <3ds/env.h>
 
 Handle irrstHandle;
 Handle irrstMemHandle;
@@ -38,7 +36,7 @@ Result irrstInit(void)
 	if(R_FAILED(ret=IRRST_GetHandles(&irrstMemHandle, &irrstEvent))) goto cleanup1;
 
 	// Initialize ir:rst
-	if(__get_handle_from_list("ir:rst")==0)ret=IRRST_Initialize(10, 0);
+	if(envGetHandle("ir:rst") == 0) ret = IRRST_Initialize(10, 0);
 
 	// Map ir:rst shared memory.
 	irrstSharedMem=(vu32*)mappableAlloc(0x98);
@@ -48,7 +46,7 @@ Result irrstInit(void)
 		goto cleanup1;
 	}
 
-	if(R_FAILED(ret=svcMapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem, MEMPERM_READ, 0x10000000)))goto cleanup2;
+	if(R_FAILED(ret = svcMapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem, MEMPERM_READ, 0x10000000))) goto cleanup2;
 
 	// Reset internal state.
 	kHeld = 0;
@@ -75,7 +73,7 @@ void irrstExit(void)
 	svcCloseHandle(irrstEvent);
 	// Unmap ir:rst sharedmem and close handles.
 	svcUnmapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem);
-	if(__get_handle_from_list("ir:rst")==0) IRRST_Shutdown();
+	if(envGetHandle("ir:rst") == 0) IRRST_Shutdown();
 	svcCloseHandle(irrstMemHandle);
 	svcCloseHandle(irrstHandle);
 

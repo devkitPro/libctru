@@ -8,93 +8,33 @@
 #include <3ds/srv.h>
 #include <3ds/svc.h>
 #include <3ds/ipc.h>
-
-
-/*
-  The homebrew loader can choose to supply a list of service handles that have
-  been "stolen" from other processes that have been compromised. This allows us
-  to access services that are normally restricted from the current process.
-
-  For every service requested by the application, we shall first check if the
-  list given to us contains the requested service and if so use it. If we don't
-  find the service in that list, we ask the service manager and hope for the
-  best.
- */
-
-typedef struct {
-	u32 num;
-
-	struct {
-		char name[8];
-		Handle handle;
-	} services[];
-} service_list_t;
-
-extern service_list_t* __service_ptr;
-
-static int __name_cmp(const char* a, const char* b) {
-	u32 i;
-
-	for(i=0; i<8; i++) {
-		if(a[i] != b[i])
-			return 1;
-		if(a[i] == '\0')
-			return 0;
-	}
-
-	return 0;
-}
-
-Handle __get_handle_from_list(const char* name) {
-	if((u32)__service_ptr == 0)
-		return 0;
-
-	u32 i, num = __service_ptr->num;
-
-	for(i=0; i<num; i++) {
-		if(__name_cmp(__service_ptr->services[i].name, name) == 0)
-			return __service_ptr->services[i].handle;
-	}
-
-	return 0;
-}
-
-void __destroy_handle_list(void) {
-	if((u32)__service_ptr == 0)
-		return;
-
-	u32 i, num = __service_ptr->num;
-
-	for(i=0; i<num; i++)
-		svcCloseHandle(__service_ptr->services[i].handle);
-
-	__service_ptr->num = 0;
-}
+#include <3ds/synchronization.h>
+#include <3ds/env.h>
 
 static Handle srvHandle;
+static int srvRefCount;
 
 Result srvInit(void)
 {
 	Result rc = 0;
 
-	if(srvHandle != 0) return rc;
+	if (AtomicPostIncrement(&srvRefCount)) return 0;
 
-	if(R_FAILED(rc = svcConnectToPort(&srvHandle, "srv:"))) return rc;
+	rc = svcConnectToPort(&srvHandle, "srv:");
+	if (R_FAILED(rc)) goto end;
 
-	if(R_FAILED(rc = srvRegisterClient())) {
-		svcCloseHandle(srvHandle);
-		srvHandle = 0;
-	}
-
+	rc = srvRegisterClient();
+end:
+	if (R_FAILED(rc)) srvExit();
 	return rc;
 }
 
-Result srvExit(void)
+void srvExit(void)
 {
-	if(srvHandle != 0) svcCloseHandle(srvHandle);
+	if (AtomicDecrement(&srvRefCount)) return;
 
+	if (srvHandle != 0) svcCloseHandle(srvHandle);
 	srvHandle = 0;
-	return 0;
 }
 
 Handle *srvGetSessionHandle(void)
@@ -106,7 +46,7 @@ Result srvGetServiceHandle(Handle* out, const char* name)
 {
 	/* Look in service-list given to us by loader. If we find find a match,
 	   we return it. */
-	Handle h = __get_handle_from_list(name);
+	Handle h = envGetHandle(name);
 
 	if(h != 0) {
 		return svcDuplicateHandle(out, h);

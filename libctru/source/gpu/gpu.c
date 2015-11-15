@@ -45,13 +45,13 @@ void GPUCMD_Run(void)
 	GX_ProcessCommandList(gpuCmdBuf, gpuCmdBufOffset*4, GX_CMDLIST_FLUSH);
 }
 
-extern u32 __linear_heap_size;
-extern u32 __linear_heap;
+extern u32 __ctru_linear_heap;
+extern u32 __ctru_linear_heap_size;
 
 void GPUCMD_FlushAndRun(void)
 {
 	//take advantage of GX_FlushCacheRegions to flush gsp heap
-	GX_FlushCacheRegions(gpuCmdBuf, gpuCmdBufOffset*4, (u32 *) __linear_heap, __linear_heap_size, NULL, 0);
+	GX_FlushCacheRegions(gpuCmdBuf, gpuCmdBufOffset*4, (u32 *) __ctru_linear_heap, __ctru_linear_heap_size, NULL, 0);
 	GX_ProcessCommandList(gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
 }
 

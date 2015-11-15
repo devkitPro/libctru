@@ -12,13 +12,9 @@
 #include <3ds/services/apt.h>
 #include <3ds/services/gspgpu.h>
 #include <3ds/ipc.h>
-
+#include <3ds/env.h>
 
 #define APT_HANDLER_STACKSIZE (0x1000)
-
-//TODO : better place to put this ?
-extern u32 __apt_appid;
-extern u32 __system_runflags;
 
 NS_APPID currentAppId;
 
@@ -71,12 +67,12 @@ static void aptAppStarted(void);
 
 static bool aptIsReinit(void)
 {
-	return (__system_runflags & RUNFLAG_APTREINIT) != 0;
+	return (envGetSystemRunFlags() & RUNFLAG_APTREINIT) != 0;
 }
 
 static bool aptIsCrippled(void)
 {
-	return (__system_runflags & RUNFLAG_APTWORKAROUND) != 0 && !aptIsReinit();
+	return (envGetSystemRunFlags() & RUNFLAG_APTWORKAROUND) != 0 && !aptIsReinit();
 }
 
 static Result __apt_initservicehandle(void)
@@ -464,7 +460,7 @@ Result aptInit(void)
 	if(R_FAILED(ret=APT_GetLockHandle(0x0, &aptLockHandle))) goto _fail;
 	svcCloseHandle(aptuHandle);
 
-	currentAppId = __apt_appid;
+	currentAppId = envGetAptAppId();
 
 	svcCreateEvent(&aptStatusEvent, 0);
 	svcCreateEvent(&aptSleepSync, 0);

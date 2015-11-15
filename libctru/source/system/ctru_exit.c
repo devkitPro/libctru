@@ -1,12 +1,16 @@
 #include <3ds/types.h>
 #include <3ds/svc.h>
+#include <3ds/env.h>
 
-extern u32 __linear_heap;
-extern u32 __heapBase;
-extern u32 __heap_size, __linear_heap_size;
+extern u32 __ctru_heap;
+extern u32 __ctru_heap_size;
+extern u32 __ctru_linear_heap;
+extern u32 __ctru_linear_heap_size;
+
 extern void (*__system_retAddr)(void);
 
-void __destroy_handle_list(void);
+void envDestroyHandles(void);
+
 void __appExit();
 
 void __libc_fini_array(void);
@@ -18,13 +22,13 @@ void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 	u32 tmp=0;
 
 	// Unmap the linear heap
-	svcControlMemory(&tmp, __linear_heap, 0x0, __linear_heap_size, MEMOP_FREE, 0x0);
+	svcControlMemory(&tmp, __ctru_linear_heap, 0x0, __ctru_linear_heap_size, MEMOP_FREE, 0x0);
 
 	// Unmap the application heap
-	svcControlMemory(&tmp, __heapBase, 0x0, __heap_size, MEMOP_FREE, 0x0);
+	svcControlMemory(&tmp, __ctru_heap, 0x0, __ctru_heap_size, MEMOP_FREE, 0x0);
 
 	// Close some handles
-	__destroy_handle_list();
+	envDestroyHandles();
 
 	if (__sync_fini)
 		__sync_fini();
