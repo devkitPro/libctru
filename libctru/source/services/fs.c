@@ -36,6 +36,30 @@ void fsExit(void)
 	svcCloseHandle(fsuHandle);
 }
 
+FS_Path fsMakePath(FS_PathType type, const void* path)
+{
+	FS_Path p = { type, 0, path };
+	switch (type)
+	{
+		case PATH_ASCII:
+			p.size = strlen((const char*)path)+1;
+			break;
+		case PATH_UTF16:
+		{
+			const u16* str = (const u16*)path;
+			while (*str++) p.size++;
+			p.size++;
+			break;
+		}
+		case PATH_EMPTY:
+			p.size = 1;
+			p.data = "";
+		default:
+			break;
+	}
+	return p;
+}
+
 Handle* fsGetSessionHandle(void)
 {
 	return &fsuHandle;

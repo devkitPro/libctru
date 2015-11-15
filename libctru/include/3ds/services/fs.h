@@ -221,7 +221,7 @@ typedef struct
 {
 	FS_PathType type; ///< FS path type.
 	u32 size;         ///< FS path size.
-	const u8* data;   ///< Pointer to FS path data.
+	const void* data; ///< Pointer to FS path data.
 } FS_Path;
 
 /// FS archive.
@@ -237,6 +237,14 @@ Result fsInit(void);
 
 /// Exits FS.
 void fsExit(void);
+
+/**
+ * Creates an FS_Path instance.
+ * @param type Type of path.
+ * @param path Path to use.
+ * @return The created FS_Path instance.
+ */
+FS_Path fsMakePath(FS_PathType type, const void* path);
 
 /**
  * @brief Gets the current FS session handle.
