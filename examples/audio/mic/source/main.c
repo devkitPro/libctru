@@ -13,7 +13,7 @@ int main()
 
 	u32 micbuf_size = 0x30000;
 	u32 micbuf_pos = 0;
-	u8* micbuf = memalign(micbuf_size, 0x1000);
+	u8* micbuf = memalign(0x1000, micbuf_size);
 
 	printf("Initializing CSND...\n");
 	if(R_FAILED(csndInit()))
