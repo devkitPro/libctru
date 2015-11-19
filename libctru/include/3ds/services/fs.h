@@ -1,5 +1,5 @@
 /**
- * @file FS.h
+ * @file fs.h
  * @brief Filesystem Services
  */
 #pragma once

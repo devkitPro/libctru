@@ -1,3 +1,7 @@
+/**
+ * @file cfgu.h
+ * @brief CFGU (Configuration) Service
+ */
 #pragma once
 
 /// Configuration region values.
