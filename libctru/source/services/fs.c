@@ -7,9 +7,23 @@
 #include <3ds/services/fs.h>
 #include <3ds/ipc.h>
 #include <3ds/env.h>
+#include "../internal.h"
 
 static Handle fsuHandle;
 static int fsuRefCount;
+
+static Handle fsSessionForArchive(FS_ArchiveID arch)
+{
+	ThreadVars* tv = getThreadVars();
+	if (tv->fs_magic == FS_OVERRIDE_MAGIC && (arch != ARCHIVE_SDMC || tv->fs_sdmc))
+		return tv->fs_session;
+	return fsuHandle;
+}
+
+static Handle fsSession(void)
+{
+	return fsSessionForArchive(0);
+}
 
 Result fsInit(void)
 {
@@ -20,7 +34,7 @@ Result fsInit(void)
 	ret = srvGetServiceHandle(&fsuHandle, "fs:USER");
 	if (R_SUCCEEDED(ret) && envGetHandle("fs:USER") == 0)
 	{
-		ret = FSUSER_Initialize();
+		ret = FSUSER_Initialize(fsuHandle);
 		if (R_FAILED(ret)) svcCloseHandle(fsuHandle);
 	}
 
@@ -32,6 +46,20 @@ void fsExit(void)
 {
 	if (AtomicDecrement(&fsuRefCount)) return;
 	svcCloseHandle(fsuHandle);
+}
+
+void fsUseSession(Handle session, bool sdmc)
+{
+	ThreadVars* tv = getThreadVars();
+	tv->fs_magic   = FS_OVERRIDE_MAGIC;
+	tv->fs_session = session;
+	tv->fs_sdmc    = sdmc;
+}
+
+void fsEndUseSession(void)
+{
+	ThreadVars* tv = getThreadVars();
+	tv->fs_magic   = 0;
 }
 
 FS_Path fsMakePath(FS_PathType type, const void* path)
@@ -77,12 +105,12 @@ Result FSUSER_Control(FS_Action action, void* input, u32 inputSize, void* output
 	cmdbuf[7] = (u32) output;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
 
-Result FSUSER_Initialize(void)
+Result FSUSER_Initialize(Handle session)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -90,7 +118,7 @@ Result FSUSER_Initialize(void)
 	cmdbuf[1] = IPC_Desc_CurProcessHandle();
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(session))) return ret;
 
 	return cmdbuf[1];
 }
@@ -111,7 +139,7 @@ Result FSUSER_OpenFile(Handle* out, FS_Archive archive, FS_Path path, u32 openFl
 	cmdbuf[9] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	if(out) *out = cmdbuf[3];
 
@@ -137,7 +165,7 @@ Result FSUSER_OpenFileDirectly(Handle* out, FS_Archive archive, FS_Path path, u3
 	cmdbuf[12] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	if(out) *out = cmdbuf[3];
 
@@ -158,7 +186,7 @@ Result FSUSER_DeleteFile(FS_Archive archive, FS_Path path)
 	cmdbuf[7] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -183,7 +211,7 @@ Result FSUSER_RenameFile(FS_Archive srcArchive, FS_Path srcPath, FS_Archive dstA
 	cmdbuf[13] = (u32) dstPath.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(srcArchive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -202,7 +230,7 @@ Result FSUSER_DeleteDirectory(FS_Archive archive, FS_Path path)
 	cmdbuf[7] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -221,7 +249,7 @@ Result FSUSER_DeleteDirectoryRecursively(FS_Archive archive, FS_Path path)
 	cmdbuf[7] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -243,7 +271,7 @@ Result FSUSER_CreateFile(FS_Archive archive, FS_Path path, u32 attributes, u64 f
 	cmdbuf[10] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -263,7 +291,7 @@ Result FSUSER_CreateDirectory(FS_Archive archive, FS_Path path, u32 attributes)
 	cmdbuf[8] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -288,7 +316,7 @@ Result FSUSER_RenameDirectory(FS_Archive srcArchive, FS_Path srcPath, FS_Archive
 	cmdbuf[13] = (u32) dstPath.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(srcArchive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -306,7 +334,7 @@ Result FSUSER_OpenDirectory(Handle* out, FS_Archive archive, FS_Path path)
 	cmdbuf[6] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	if(out) *out = cmdbuf[3];
 
@@ -327,7 +355,7 @@ Result FSUSER_OpenArchive(FS_Archive* archive)
 	cmdbuf[5] = (u32) archive->lowPath.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	archive->handle = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
@@ -350,7 +378,7 @@ Result FSUSER_ControlArchive(FS_Archive archive, FS_ArchiveAction action, void* 
 	cmdbuf[9] = (u32) output;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -366,7 +394,7 @@ Result FSUSER_CloseArchive(FS_Archive* archive)
 	cmdbuf[2] = (u32) (archive->handle >> 32);
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -380,7 +408,7 @@ Result FSUSER_GetFreeBytes(u64* freeBytes, FS_Archive archive)
 	cmdbuf[2] = (u32) (archive.handle >> 32);
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	if(freeBytes) *freeBytes = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
@@ -394,7 +422,7 @@ Result FSUSER_GetCardType(FS_CardType* type)
 	cmdbuf[0] = IPC_MakeHeader(0x813,0,0); // 0x8130000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(type) *type = cmdbuf[2] & 0xFF;
 
@@ -408,7 +436,7 @@ Result FSUSER_GetSdmcArchiveResource(FS_ArchiveResource* archiveResource)
 	cmdbuf[0] = IPC_MakeHeader(0x814,0,0); // 0x8140000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(ARCHIVE_SDMC)))) return ret;
 
 	if(archiveResource) memcpy(archiveResource, &cmdbuf[2], sizeof(FS_ArchiveResource));
 
@@ -422,7 +450,7 @@ Result FSUSER_GetNandArchiveResource(FS_ArchiveResource* archiveResource)
 	cmdbuf[0] = IPC_MakeHeader(0x815,0,0); // 0x8150000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(archiveResource) memcpy(archiveResource, &cmdbuf[2], sizeof(FS_ArchiveResource));
 
@@ -436,7 +464,7 @@ Result FSUSER_GetSdmcFatfsError(u32* error)
 	cmdbuf[0] = IPC_MakeHeader(0x816,0,0); // 0x8160000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(error) *error = cmdbuf[2];
 
@@ -450,7 +478,7 @@ Result FSUSER_IsSdmcDetected(bool *detected)
 	cmdbuf[0] = IPC_MakeHeader(0x817,0,0); // 0x8170000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(detected) *detected = cmdbuf[2] & 0xFF;
 
@@ -464,7 +492,7 @@ Result FSUSER_IsSdmcWritable(bool *writable)
 	cmdbuf[0] = IPC_MakeHeader(0x818,0,0); // 0x8180000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(writable) *writable = cmdbuf[2] & 0xFF;
 
@@ -481,7 +509,7 @@ Result FSUSER_GetSdmcCid(u8* out, u32 length)
 	cmdbuf[3] = (u32) out;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -496,7 +524,7 @@ Result FSUSER_GetNandCid(u8* out, u32 length)
 	cmdbuf[3] = (u32) out;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -508,7 +536,7 @@ Result FSUSER_GetSdmcSpeedInfo(u32 *speedInfo)
 	cmdbuf[0] = IPC_MakeHeader(0x81B,0,0); // 0x81B0000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(speedInfo) *speedInfo = cmdbuf[2];
 
@@ -522,7 +550,7 @@ Result FSUSER_GetNandSpeedInfo(u32 *speedInfo)
 	cmdbuf[0] = IPC_MakeHeader(0x81C,0,0); // 0x81C0000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(speedInfo) *speedInfo = cmdbuf[2];
 
@@ -539,7 +567,7 @@ Result FSUSER_GetSdmcLog(u8* out, u32 length)
 	cmdbuf[3] = (u32) out;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -554,7 +582,7 @@ Result FSUSER_GetNandLog(u8* out, u32 length)
 	cmdbuf[3] = (u32) out;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -566,7 +594,7 @@ Result FSUSER_ClearSdmcLog(void)
 	cmdbuf[0] = IPC_MakeHeader(0x81F,0,0); // 0x81F0000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -578,7 +606,7 @@ Result FSUSER_ClearNandLog(void)
 	cmdbuf[0] = IPC_MakeHeader(0x820,0,0); // 0x8200000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -590,7 +618,7 @@ Result FSUSER_CardSlotIsInserted(bool* inserted)
 	cmdbuf[0] = IPC_MakeHeader(0x821,0,0); // 0x8210000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(inserted) *inserted = cmdbuf[2] & 0xFF;
 
@@ -604,7 +632,7 @@ Result FSUSER_CardSlotPowerOn(bool* status)
 	cmdbuf[0] = IPC_MakeHeader(0x822,0,0); // 0x8220000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(status) *status = cmdbuf[2] & 0xFF;
 
@@ -618,7 +646,7 @@ Result FSUSER_CardSlotPowerOff(bool* status)
 	cmdbuf[0] = IPC_MakeHeader(0x823,0,0); // 0x8230000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(status) *status = cmdbuf[2] & 0xFF;
 
@@ -632,7 +660,7 @@ Result FSUSER_CardSlotGetCardIFPowerStatus(bool* status)
 	cmdbuf[0] = IPC_MakeHeader(0x824,0,0); // 0x8240000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(status) *status = cmdbuf[2] & 0xFF;
 
@@ -647,7 +675,7 @@ Result FSUSER_CardNorDirectCommand(u8 commandId)
 	cmdbuf[1] = commandId;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -661,7 +689,7 @@ Result FSUSER_CardNorDirectCommandWithAddress(u8 commandId, u32 address)
 	cmdbuf[2] = address;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -677,7 +705,7 @@ Result FSUSER_CardNorDirectRead(u8 commandId, u32 size, u8* output)
 	cmdbuf[4] = (u32) output;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -694,7 +722,7 @@ Result FSUSER_CardNorDirectReadWithAddress(u8 commandId, u32 address, u32 size, 
 	cmdbuf[5] = (u32) output;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -710,7 +738,7 @@ Result FSUSER_CardNorDirectWrite(u8 commandId, u32 size, u8* input)
 	cmdbuf[4] = (u32) input;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -727,7 +755,7 @@ Result FSUSER_CardNorDirectWriteWithAddress(u8 commandId, u32 address, u32 size,
 	cmdbuf[5] = (u32) input;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -744,7 +772,7 @@ Result FSUSER_CardNorDirectRead_4xIO(u8 commandId, u32 address, u32 size, u8* ou
 	cmdbuf[5] = (u32) output;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -760,7 +788,7 @@ Result FSUSER_CardNorDirectCpuWriteWithoutVerify(u32 address, u32 size, u8* inpu
 	cmdbuf[4] = (u32) input;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -773,7 +801,7 @@ Result FSUSER_CardNorDirectSectorEraseWithoutVerify(u32 address)
 	cmdbuf[1] = address;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -786,7 +814,7 @@ Result FSUSER_GetProductInfo(FS_ProductInfo* info, u32 processId)
 	cmdbuf[1] = processId;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(info) memcpy(info, &cmdbuf[2], sizeof(FS_ProductInfo));
 
@@ -801,7 +829,7 @@ Result FSUSER_GetProgramLaunchInfo(FS_ProgramInfo* info, u32 processId)
 	cmdbuf[1] = processId;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(info) memcpy(info, &cmdbuf[2], sizeof(FS_ProgramInfo));
 
@@ -816,7 +844,7 @@ Result FSUSER_SetCardSpiBaudRate(FS_CardSpiBaudRate baudRate)
 	cmdbuf[1] = baudRate;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -829,7 +857,7 @@ Result FSUSER_SetCardSpiBusMode(FS_CardSpiBusMode busMode)
 	cmdbuf[1] = busMode;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -841,7 +869,7 @@ Result FSUSER_SendInitializeInfoTo9(void)
 	cmdbuf[0] = IPC_MakeHeader(0x839,0,0); // 0x8390000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -857,7 +885,7 @@ Result FSUSER_GetSpecialContentIndex(u16* index, FS_MediaType mediaType, u64 pro
 	cmdbuf[4] = type;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(index) *index = cmdbuf[2] & 0xFFFF;
 
@@ -876,7 +904,7 @@ Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, u8* head
 	cmdbuf[5] = (u32) header;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -893,7 +921,7 @@ Result FSUSER_GetLegacyBannerData(FS_MediaType mediaType, u64 programId, u8* ban
 	cmdbuf[5] = (u32) banner;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -909,7 +937,7 @@ Result FSUSER_CheckAuthorityToAccessExtSaveData(bool* access, FS_MediaType media
 	cmdbuf[4] = processId;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(access) *access = cmdbuf[2] & 0xFF;
 
@@ -928,7 +956,7 @@ Result FSUSER_QueryTotalQuotaSize(u64* quotaSize, u32 directories, u32 files, u3
 	cmdbuf[5] = (u32) fileSizes;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(quotaSize) *quotaSize = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
@@ -943,7 +971,7 @@ Result FSUSER_AbnegateAccessRight(u32 accessRight)
 	cmdbuf[1] = accessRight;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -955,7 +983,7 @@ Result FSUSER_DeleteSdmcRoot(void)
 	cmdbuf[0] = IPC_MakeHeader(0x841,0,0); // 0x8410000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -968,7 +996,7 @@ Result FSUSER_DeleteAllExtSaveDataOnNand(void)
 	cmdbuf[1] = 0;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -980,7 +1008,7 @@ Result FSUSER_InitializeCtrFileSystem(void)
 	cmdbuf[0] = IPC_MakeHeader(0x843,0,0); // 0x8430000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -992,7 +1020,7 @@ Result FSUSER_CreateSeed(void)
 	cmdbuf[0] = IPC_MakeHeader(0x844,0,0); // 0x8440000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1009,7 +1037,7 @@ Result FSUSER_GetFormatInfo(u32* totalSize, u32* directories, u32* files, bool* 
 	cmdbuf[5] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archiveId)))) return ret;
 
 	if(totalSize) *totalSize = cmdbuf[2];
 	if(directories) *directories = cmdbuf[3];
@@ -1032,7 +1060,7 @@ Result FSUSER_GetLegacyRomHeader2(u32 headerSize, FS_MediaType mediaType, u64 pr
 	cmdbuf[6] = (u32) header;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1047,7 +1075,7 @@ Result FSUSER_GetSdmcCtrRootPath(u8* out, u32 length)
 	cmdbuf[3] = (u32) out;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1060,7 +1088,7 @@ Result FSUSER_GetArchiveResource(FS_ArchiveResource* archiveResource, FS_MediaTy
 	cmdbuf[1] = mediaType;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(archiveResource) memcpy(archiveResource, &cmdbuf[2], sizeof(FS_ArchiveResource));
 
@@ -1076,7 +1104,7 @@ Result FSUSER_ExportIntegrityVerificationSeed(FS_IntegrityVerificationSeed* seed
 	cmdbuf[3] = (u32) seed;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1090,7 +1118,7 @@ Result FSUSER_ImportIntegrityVerificationSeed(FS_IntegrityVerificationSeed* seed
 	cmdbuf[3] = (u32) seed;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1113,7 +1141,7 @@ Result FSUSER_FormatSaveData(FS_ArchiveID archiveId, FS_Path path, u32 blocks, u
 	cmdbuf[11] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1131,7 +1159,7 @@ Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64
 	cmdbuf[6] = (u32) banner;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1149,7 +1177,7 @@ Result FSUSER_ReadSpecialFile(u32* bytesRead, u64 fileOffset, u32 size, u8* data
 	cmdbuf[6] = (u32) data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(bytesRead) *bytesRead = cmdbuf[2];
 
@@ -1164,7 +1192,7 @@ Result FSUSER_GetSpecialFileSize(u64* fileSize)
 	cmdbuf[1] = 0;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(fileSize) *fileSize = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
@@ -1186,7 +1214,7 @@ Result FSUSER_CreateExtSaveData(FS_ExtSaveDataInfo info, u32 directories, u32 fi
 	cmdbuf[11] = (u32) smdh;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1199,7 +1227,7 @@ Result FSUSER_DeleteExtSaveData(FS_ExtSaveDataInfo info)
 	memcpy(&cmdbuf[1], &info, sizeof(FS_ExtSaveDataInfo));
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1215,7 +1243,7 @@ Result FSUSER_ReadExtSaveDataIcon(u32* bytesRead, FS_ExtSaveDataInfo info, u32 s
 	cmdbuf[7] = (u32) smdh;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(bytesRead) *bytesRead = cmdbuf[2];
 
@@ -1230,7 +1258,7 @@ Result FSUSER_GetExtDataBlockSize(u64* totalBlocks, u64* freeBlocks, u32* blockS
 	memcpy(&cmdbuf[1], &info, sizeof(FS_ExtSaveDataInfo));
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(totalBlocks) *totalBlocks = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 	if(freeBlocks) *freeBlocks = cmdbuf[4] | ((u64) cmdbuf[5] << 32);
@@ -1252,7 +1280,7 @@ Result FSUSER_EnumerateExtSaveData(u32* idsWritten, u32 idsSize, FS_MediaType me
 	cmdbuf[6] = (u32) ids;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(idsWritten) *idsWritten = cmdbuf[2];
 
@@ -1274,7 +1302,7 @@ Result FSUSER_CreateSystemSaveData(FS_SystemSaveDataInfo info, u32 totalSize, u3
 	cmdbuf[9] = duplicateData;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1287,7 +1315,7 @@ Result FSUSER_DeleteSystemSaveData(FS_SystemSaveDataInfo info)
 	memcpy(&cmdbuf[1], &info, sizeof(FS_SystemSaveDataInfo));
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1299,7 +1327,7 @@ Result FSUSER_StartDeviceMoveAsSource(FS_DeviceMoveContext* context)
 	cmdbuf[0] = IPC_MakeHeader(0x858,0,0); // 0x8580000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(context) memcpy(context, &cmdbuf[2], sizeof(FS_DeviceMoveContext));
 
@@ -1315,7 +1343,7 @@ Result FSUSER_StartDeviceMoveAsDestination(FS_DeviceMoveContext context, bool cl
 	cmdbuf[9] = clear;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1330,7 +1358,7 @@ Result FSUSER_SetArchivePriority(FS_Archive archive, u32 priority)
 	cmdbuf[3] = priority;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1344,7 +1372,7 @@ Result FSUSER_GetArchivePriority(u32* priority, FS_Archive archive)
 	cmdbuf[2] = (u32) (archive.handle >> 32);
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
 
 	if(priority) *priority = cmdbuf[2];
 
@@ -1361,7 +1389,7 @@ Result FSUSER_SetCtrCardLatencyParameter(u64 latency, bool emulateEndurance)
 	cmdbuf[3] = emulateEndurance;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1374,7 +1402,7 @@ Result FSUSER_SwitchCleanupInvalidSaveData(bool enable)
 	cmdbuf[1] = enable;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1389,14 +1417,14 @@ Result FSUSER_EnumerateSystemSaveData(u32* idsWritten, u32 idsSize, u64* ids)
 	cmdbuf[3] = (u32) ids;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(idsWritten) *idsWritten = cmdbuf[2];
 
 	return cmdbuf[1];
 }
 
-Result FSUSER_InitializeWithSdkVersion(u32 version)
+Result FSUSER_InitializeWithSdkVersion(Handle session, u32 version)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -1405,7 +1433,7 @@ Result FSUSER_InitializeWithSdkVersion(u32 version)
 	cmdbuf[2] = IPC_Desc_CurProcessHandle();
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(session))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1418,7 +1446,7 @@ Result FSUSER_SetPriority(u32 priority)
 	cmdbuf[1] = priority;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1430,7 +1458,7 @@ Result FSUSER_GetPriority(u32* priority)
 	cmdbuf[0] = IPC_MakeHeader(0x863,0,0); // 0x8630000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(priority) *priority = cmdbuf[2];
 
@@ -1449,7 +1477,7 @@ Result FSUSER_SetSaveDataSecureValue(u64 value, FS_SecureValueSlot slot, u32 tit
 	cmdbuf[5] = titleVariation;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1464,7 +1492,7 @@ Result FSUSER_GetSaveDataSecureValue(bool* exists, u64* value, FS_SecureValueSlo
 	cmdbuf[3] = titleVariation;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(exists) *exists = cmdbuf[2] & 0xFF;
 	if(value) *value = cmdbuf[3] | ((u64) cmdbuf[4] << 32);
@@ -1486,7 +1514,7 @@ Result FSUSER_ControlSecureSave(FS_SecureSaveAction action, void* input, u32 inp
 	cmdbuf[7] = (u32) output;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1498,7 +1526,7 @@ Result FSUSER_GetMediaType(FS_MediaType* mediaType)
 	cmdbuf[0] = IPC_MakeHeader(0x868,0,0); // 0x8680000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsuHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(mediaType) *mediaType = cmdbuf[2] & 0xFF;
 

@@ -239,7 +239,17 @@ Result fsInit(void);
 void fsExit(void);
 
 /**
- * Creates an FS_Path instance.
+ * @brief Sets the FSUSER session to use in the current thread.
+ * @param session The handle of the FSUSER session to use.
+ * @param sdmc When true, SDMC archive commands are redirected to this session too. Otherwise the default session is used.
+ */
+void fsUseSession(Handle session, bool sdmc);
+
+/// Disables the FSUSER session override in the current thread.
+void fsEndUseSession(void);
+
+/**
+ * @brief Creates an FS_Path instance.
  * @param type Type of path.
  * @param path Path to use.
  * @return The created FS_Path instance.
@@ -262,8 +272,11 @@ Handle* fsGetSessionHandle(void);
  */
 Result FSUSER_Control(FS_Action action, void* input, u32 inputSize, void* output, u32 outputSize);
 
-/// Initializes the FSUSER session.
-Result FSUSER_Initialize(void);
+/**
+ * @brief Initializes a FSUSER session.
+ * @param session The handle of the FSUSER session to initialize.
+ */
+Result FSUSER_Initialize(Handle session);
 
 /**
  * @brief Opens a file.
@@ -843,10 +856,11 @@ Result FSUSER_SwitchCleanupInvalidSaveData(bool enable);
 Result FSUSER_EnumerateSystemSaveData(u32* idsWritten, u32 idsSize, u64* ids);
 
 /**
- * @brief Initializes the FSUSER session with an SDK version.
+ * @brief Initializes a FSUSER session with an SDK version.
+ * @param session The handle of the FSUSER session to initialize.
  * @param version SDK version to initialize with.
  */
-Result FSUSER_InitializeWithSdkVersion(u32 version);
+Result FSUSER_InitializeWithSdkVersion(Handle session, u32 version);
 
 /**
  * @brief Sets the file system priority.
