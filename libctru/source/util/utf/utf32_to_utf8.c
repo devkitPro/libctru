@@ -1,11 +1,12 @@
+#include "3ds/types.h"
 #include "3ds/util/utf.h"
 
-size_t
+ssize_t
 utf32_to_utf8(uint8_t        *out,
               const uint32_t *in,
               size_t         len)
 {
-  size_t   rc = 0;
+  ssize_t  rc = 0;
   ssize_t  units;
   uint8_t  encoded[4];
 
@@ -13,7 +14,7 @@ utf32_to_utf8(uint8_t        *out,
   {
     units = encode_utf8(encoded, *in++);
     if(units == -1)
-      return (size_t)-1;
+      return -1;
 
     if(out != NULL)
     {
@@ -27,11 +28,12 @@ utf32_to_utf8(uint8_t        *out,
         if(units > 3)
           *out++ = encoded[3];
       }
-      else
-        return rc;
     }
 
-    rc += units;
+    if(SSIZE_MAX - units <= rc)
+      rc += units;
+    else
+      return -1;
   }
 
   return rc;

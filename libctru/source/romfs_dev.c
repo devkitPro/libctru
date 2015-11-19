@@ -133,8 +133,9 @@ Result romfsInit(void)
 		} else
 			return 2;
 
-		size_t units = utf8_to_utf16(__utf16path, (const uint8_t*)filename, PATH_MAX+1);
-		if (units == (size_t)-1) return 3;
+		ssize_t units = utf8_to_utf16(__utf16path, (const uint8_t*)filename, PATH_MAX);
+		if (units < 0)         return 3;
+		if (units >= PATH_MAX) return 4;
 		__utf16path[units] = 0;
 
 		FS_Archive arch = { ARCHIVE_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0 };
@@ -284,7 +285,7 @@ static romfs_file* searchForFile(romfs_dir* parent, u16* name, u32 namelen)
 
 static int navigateToDir(romfs_dir** ppDir, const char** pPath, bool isDir)
 {
-	size_t units;
+	ssize_t units;
 
 	char* colonPos = strchr(*pPath, ':');
 	if (colonPos) *pPath = colonPos+1;
@@ -331,9 +332,11 @@ static int navigateToDir(romfs_dir** ppDir, const char** pPath, bool isDir)
 			}
 		}
 
-		units = utf8_to_utf16(__utf16path, (const uint8_t*)component, PATH_MAX+1);
-		if (units == (size_t)-1)
+		units = utf8_to_utf16(__utf16path, (const uint8_t*)component, PATH_MAX);
+		if (units < 0)
 			return EILSEQ;
+		if (units >= PATH_MAX)
+			return ENAMETOOLONG;
 
 		*ppDir = searchForDir(*ppDir, __utf16path, units);
 		if (!*ppDir)
@@ -363,10 +366,15 @@ int romfs_open(struct _reent *r, void *fileStruct, const char *path, int flags, 
 	if (r->_errno != 0)
 		return -1;
 
-	size_t units = utf8_to_utf16(__utf16path, (const uint8_t*)path, PATH_MAX+1);
-	if (!units || units == (size_t)-1)
+	ssize_t units = utf8_to_utf16(__utf16path, (const uint8_t*)path, PATH_MAX);
+	if (units <= 0)
 	{
 		r->_errno = EILSEQ;
+		return -1;
+	}
+	if (units >= PATH_MAX)
+	{
+		r->_errno = ENAMETOOLONG;
 		return -1;
 	}
 

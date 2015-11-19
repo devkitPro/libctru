@@ -118,7 +118,7 @@ static const char*
 sdmc_fixpath(struct _reent *r,
              const char    *path)
 {
-  size_t        units;
+  ssize_t       units;
   uint32_t      code;
   const uint8_t *p = (const uint8_t*)path;
 
@@ -126,7 +126,7 @@ sdmc_fixpath(struct _reent *r,
   do
   {
     units = decode_utf8(&code, p);
-    if(units == (size_t)-1)
+    if(units < 0)
     {
       r->_errno = EILSEQ;
       return NULL;
@@ -145,7 +145,7 @@ sdmc_fixpath(struct _reent *r,
   do
   {
     units = decode_utf8(&code, p);
-    if(units == (size_t)-1)
+    if(units < 0)
     {
       r->_errno = EILSEQ;
       return NULL;
@@ -182,7 +182,7 @@ static const FS_Path
 sdmc_utf16path(struct _reent *r,
                const char    *path)
 {
-  size_t  units;
+  ssize_t units;
   FS_Path fspath;
 
   fspath.data = NULL;
@@ -190,14 +190,13 @@ sdmc_utf16path(struct _reent *r,
   if(sdmc_fixpath(r, path) == NULL)
     return fspath;
 
-  units = utf8_to_utf16(__utf16path, (const uint8_t*)__fixedpath, PATH_MAX+1);
-  if(units == (size_t)-1)
+  units = utf8_to_utf16(__utf16path, (const uint8_t*)__fixedpath, PATH_MAX);
+  if(units < 0)
   {
     r->_errno = EILSEQ;
     return fspath;
   }
-
-  if(__utf16path[PATH_MAX] != 0)
+  if(units >= PATH_MAX)
   {
     r->_errno = ENAMETOOLONG;
     return fspath;
@@ -220,7 +219,7 @@ static bool sdmcInitialised = false;
 /*! Initialize SDMC device */
 Result sdmcInit(void)
 {
-  size_t   units;
+  ssize_t  units;
   uint32_t code;
   char     *p;
   Result   rc = 0;
@@ -253,7 +252,7 @@ Result sdmcInit(void)
             do
             {
               units = decode_utf8(&code, (const uint8_t*)p);
-              if(units == (size_t)-1)
+              if(units < 0)
               {
                 last_slash = NULL;
                 break;
@@ -909,9 +908,9 @@ sdmc_dirnext(struct _reent *r,
              char          *filename,
              struct stat   *filestat)
 {
-  Result rc;
-  u32    entries;
-  size_t units;
+  Result  rc;
+  u32     entries;
+  ssize_t units;
 
   /* get pointer to our data */
   sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
@@ -938,13 +937,13 @@ sdmc_dirnext(struct _reent *r,
     /* convert name from UTF-16 to UTF-8 */
     memset(filename, 0, NAME_MAX);
     units = utf16_to_utf8((uint8_t*)filename, dir->entry_data.name, NAME_MAX);
-    if(units == (size_t)-1)
+    if(units < 0)
     {
       r->_errno = EILSEQ;
       return -1;
     }
 
-    if(filename[NAME_MAX-1] != 0)
+    if(units >= NAME_MAX)
     {
       r->_errno = ENAMETOOLONG;
       return -1;
