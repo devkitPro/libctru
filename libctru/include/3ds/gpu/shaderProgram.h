@@ -19,8 +19,10 @@ typedef struct
 {
 	DVLE_s* dvle;                      ///< Shader DVLE.
 	u16 boolUniforms;                  ///< Boolean uniforms.
+	u16 boolUniformMask;               ///< Used boolean uniform mask.
 	u32 intUniforms[4];                ///< Integer uniforms.
 	float24Uniform_s* float24Uniforms; ///< 24-bit float uniforms.
+	u8 intUniformMask;                 ///< Used integer uniform mask.
 	u8 numFloat24Uniforms;             ///< Float uniform count.
 }shaderInstance_s;
 
@@ -29,7 +31,8 @@ typedef struct
 {
 	shaderInstance_s* vertexShader;   ///< Vertex shader.
 	shaderInstance_s* geometryShader; ///< Geometry shader.
-	u8 geometryShaderInputStride;     ///< Geometry shader input stride.
+	u32 geoShaderInputPermutation[2]; ///< Geometry shader input permutation.
+	u8 geoShaderInputStride;          ///< Geometry shader input stride.
 }shaderProgram_s;
 
 /**
@@ -66,7 +69,7 @@ Result shaderInstanceGetBool(shaderInstance_s* si, int id, bool* value);
  * @param si Shader instance to use.
  * @param name Name of the uniform.
  */
-Result shaderInstanceGetUniformLocation(shaderInstance_s* si, const char* name);
+s8 shaderInstanceGetUniformLocation(shaderInstance_s* si, const char* name);
 
 /**
  * @brief Initializes a shader program.
@@ -96,7 +99,22 @@ Result shaderProgramSetVsh(shaderProgram_s* sp, DVLE_s* dvle);
 Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride);
 
 /**
- * @brief Sets the active shader program.
+ * @brief Configures the permutation of the input attributes of the geometry shader of a shader program.
+ * @param sp Shader program to use.
+ * @param permutation Attribute permutation to use.
+ */
+Result shaderProgramSetGshInputPermutation(shaderProgram_s* sp, u64 permutation);
+
+/**
+ * @brief Configures the shader units to use the specified shader program.
+ * @param sp Shader program to use.
+ * @param sendVshCode When true, the vertex shader's code and operand descriptors are uploaded.
+ * @param sendGshCode When true, the geometry shader's code and operand descriptors are uploaded.
+ */
+Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGshCode);
+
+/**
+ * @brief Same as shaderProgramConfigure, but always loading code/operand descriptors and uploading DVLE constants afterwards.
  * @param sp Shader program to use.
  */
 Result shaderProgramUse(shaderProgram_s* sp);

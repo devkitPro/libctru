@@ -1,6 +1,6 @@
 /**
  * @file registers.h
- * @param GPU registers.
+ * @description GPU registers.
  */
 #pragma once
 
