@@ -24,10 +24,10 @@ enum
 /// Attribute flags.
 enum
 {
-	FS_ATTRIBUTE_READ_ONLY = BIT(0),  ///< Read-only.
-	FS_ATTRIBUTE_ARCHIVE   = BIT(8),  ///< Archive.
-	FS_ATTRIBUTE_HIDDEN    = BIT(16), ///< Hidden.
-	FS_ATTRIBUTE_DIRECTORY = BIT(24), ///< Directory.
+	FS_ATTRIBUTE_DIRECTORY = BIT(0),  ///< Directory.
+	FS_ATTRIBUTE_HIDDEN    = BIT(8),  ///< Hidden.
+	FS_ATTRIBUTE_ARCHIVE   = BIT(16), ///< Archive.
+	FS_ATTRIBUTE_READ_ONLY = BIT(24), ///< Read-only.
 };
 
 /// Media types.
