@@ -26,7 +26,7 @@ utf8_to_utf32(uint32_t      *out,
           *out++ = code;
       }
 
-      if(SSIZE_MAX - 1 <= rc)
+      if(SSIZE_MAX - 1 >= rc)
         ++rc;
       else
         return -1;

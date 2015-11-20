@@ -39,7 +39,7 @@ utf16_to_utf8(uint8_t        *out,
         }
       }
 
-      if(SSIZE_MAX - units <= rc)
+      if(SSIZE_MAX - units >= rc)
         rc += units;
       else
         return -1;

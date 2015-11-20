@@ -26,7 +26,7 @@ utf32_to_utf16(uint16_t       *out,
       }
     }
 
-    if(SSIZE_MAX - units <= rc)
+    if(SSIZE_MAX - units >= rc)
       rc += units;
     else
       return -1;
