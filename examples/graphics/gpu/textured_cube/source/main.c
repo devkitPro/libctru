@@ -145,7 +145,7 @@ static void sceneRender(void)
 	GPU_SetTextureEnable(GPU_TEXUNIT0);
 	GPU_SetTexture(
 		GPU_TEXUNIT0,
-		(u32*)osConvertVirtToPhys((u32)tex_data),
+		(u32*)osConvertVirtToPhys(tex_data),
 		64, // Width
 		64, // Height
 		GPU_TEXTURE_MAG_FILTER(GPU_LINEAR) | GPU_TEXTURE_WRAP_S(GPU_REPEAT) | GPU_TEXTURE_WRAP_T(GPU_REPEAT), // Flags
@@ -155,7 +155,7 @@ static void sceneRender(void)
 	// Configure the "attribute buffers" (that is, the vertex input buffers)
 	GPU_SetAttributeBuffers(
 		3, // Number of inputs per vertex
-		(u32*)osConvertVirtToPhys((u32)vbo_data), // Location of the VBO
+		(u32*)osConvertVirtToPhys(vbo_data), // Location of the VBO
 		GPU_ATTRIBFMT(0, 3, GPU_FLOAT) | // Format of the inputs
 		GPU_ATTRIBFMT(1, 2, GPU_FLOAT) |
 		GPU_ATTRIBFMT(2, 3, GPU_FLOAT),

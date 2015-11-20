@@ -34,14 +34,14 @@ typedef struct
  * @return The corresponding physical address.
  * It is sometimes required by services or when using the GPU command buffer.
  */
-u32 osConvertVirtToPhys(u32 vaddr);
+u32 osConvertVirtToPhys(const void* vaddr);
 
 /**
  * @brief Converts 0x14* vmem to 0x30*.
- * @param addr Input address.
+ * @param vaddr Input virtual address.
  * @return The corresponding address in the 0x30* range, the input address if it's already within the new vmem, or 0 if it's outside of both ranges.
  */
-u32 osConvertOldLINEARMemToNew(u32 addr);
+void* osConvertOldLINEARMemToNew(const void* vaddr);
 
 /**
  * @brief Retrieves basic information about a service error.

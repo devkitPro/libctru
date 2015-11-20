@@ -37,8 +37,8 @@ void gpuFrameBegin(void)
 {
 	// Configure the viewport and the depth linear conversion function
 	GPU_SetViewport(
-		(u32*)osConvertVirtToPhys((u32)depthBuf),
-		(u32*)osConvertVirtToPhys((u32)colorBuf),
+		(u32*)osConvertVirtToPhys(depthBuf),
+		(u32*)osConvertVirtToPhys(colorBuf),
 		0, 0, 240, 400); // The top screen is physically 240x400 pixels
 	GPU_DepthMap(-1.0f, 0.0f); // calculate the depth value from the Z coordinate in the following way: -1.0*z + 0.0
 

@@ -117,7 +117,7 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 	mvdstd_workbuf = linearAlloc(mvdstd_workbufsize);
 	if(mvdstd_workbuf==NULL) goto cleanup1;
 
-	ret = MVDSTD_Initialize((u32*) osConvertOldLINEARMemToNew((u32) mvdstd_workbuf), mvdstd_workbufsize);
+	ret = MVDSTD_Initialize((u32*) osConvertOldLINEARMemToNew(mvdstd_workbuf), mvdstd_workbufsize);
 	if(R_FAILED(ret)) goto cleanup2;
 
 	ret = MVDSTD_cmd18();
@@ -161,7 +161,7 @@ void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 inpu
 	config->inwidth = input_width;
 	config->inheight = input_height;
 
-	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)config->physaddr_colorconv_indata = osConvertVirtToPhys((u32)vaddr_colorconv_indata);
+	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)config->physaddr_colorconv_indata = osConvertVirtToPhys(vaddr_colorconv_indata);
 
 	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
 	{
@@ -175,8 +175,8 @@ void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 inpu
 	config->outwidth1 = output_width;
 	config->outheight1 = output_height;
 
-	config->physaddr_outdata0 = osConvertVirtToPhys((u32)vaddr_outdata0);
-	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)config->physaddr_outdata1_colorconv = osConvertVirtToPhys((u32)vaddr_outdata1_colorconv);
+	config->physaddr_outdata0 = osConvertVirtToPhys(vaddr_outdata0);
+	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)config->physaddr_outdata1_colorconv = osConvertVirtToPhys(vaddr_outdata1_colorconv);
 
 	config->unk_x6c[0] = 0x1;
 	config->unk_x6c[(0x84-0x6c)>>2] = 0x12a;

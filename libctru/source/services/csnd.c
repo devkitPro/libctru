@@ -524,8 +524,8 @@ Result csndPlaySound(int chn, u32 flags, u32 sampleRate, float vol, float pan, v
 
 	if (encoding != CSND_ENCODING_PSG)
 	{
-		if (data0) paddr0 = osConvertVirtToPhys((u32)data0);
-		if (data1) paddr1 = osConvertVirtToPhys((u32)data1);
+		if (data0) paddr0 = osConvertVirtToPhys(data0);
+		if (data1) paddr1 = osConvertVirtToPhys(data1);
 
 		if (data0 && encoding == CSND_ENCODING_ADPCM)
 		{

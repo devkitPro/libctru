@@ -28,8 +28,9 @@ typedef struct {
 __attribute__((weak)) bool __ctru_speedup = false;
 
 //---------------------------------------------------------------------------------
-u32 osConvertVirtToPhys(u32 vaddr) {
+u32 osConvertVirtToPhys(const void* addr) {
 //---------------------------------------------------------------------------------
+	u32 vaddr = (u32)addr;
 	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)
 		return vaddr + 0x0c000000; // LINEAR heap
 	if(vaddr >= 0x1F000000 && vaddr < 0x1F600000)
@@ -42,10 +43,11 @@ u32 osConvertVirtToPhys(u32 vaddr) {
 }
 
 //---------------------------------------------------------------------------------
-u32 osConvertOldLINEARMemToNew(u32 vaddr) {
+void* osConvertOldLINEARMemToNew(const void* addr) {
 //---------------------------------------------------------------------------------
-	if(vaddr >= 0x30000000 && vaddr < 0x40000000)return vaddr;
-	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)return vaddr+=0x1c000000;
+	u32 vaddr = (u32)addr;
+	if(vaddr >= 0x30000000 && vaddr < 0x40000000)return (void*)vaddr;
+	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)return (void*)(vaddr+0x1c000000);
 	return 0;
 }
 

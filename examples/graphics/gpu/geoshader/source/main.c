@@ -69,7 +69,7 @@ static void sceneRender(void)
 	// Configure the "attribute buffers" (that is, the vertex input buffers)
 	GPU_SetAttributeBuffers(
 		2, // Number of inputs per vertex
-		(u32*)osConvertVirtToPhys((u32)vbo_data), // Location of the VBO
+		(u32*)osConvertVirtToPhys(vbo_data), // Location of the VBO
 		GPU_ATTRIBFMT(0, 3, GPU_FLOAT) |
 		GPU_ATTRIBFMT(1, 4, GPU_FLOAT), // Format of the inputs (in this case the only input is a 3-element float vector)
 		0xFFC, // Unused attribute mask, in our case bit 0 is cleared since it is used
