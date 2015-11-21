@@ -579,7 +579,7 @@ Result svcSetThreadIdealProcessor(Handle thread, s32 processorid);
  * @brief Returns the ID of the processor the current thread is running on.
  * @sa svcCreateThread
  */
-s32    svcGetProcessorID();
+s32    svcGetProcessorID(void);
 
 /**
  * @brief Gets the ID of a thread.
@@ -755,7 +755,7 @@ Result svcClearTimer(Handle timer);
  * @brief Gets the current system tick.
  * @return The current system tick.
  */
-u64    svcGetSystemTick();
+u64    svcGetSystemTick(void);
 ///@}
 
 ///@name System

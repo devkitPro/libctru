@@ -16,6 +16,7 @@ extern "C" {
 #include <3ds/srv.h>
 #include <3ds/os.h>
 #include <3ds/synchronization.h>
+#include <3ds/thread.h>
 #include <3ds/gfx.h>
 #include <3ds/console.h>
 #include <3ds/env.h>

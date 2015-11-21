@@ -45,4 +45,5 @@ void __system_initSyscalls(void)
 	ThreadVars* tv = getThreadVars();
 	tv->magic = THREADVARS_MAGIC;
 	tv->reent = _impure_ptr;
+	tv->thread_ptr = NULL;
 }
