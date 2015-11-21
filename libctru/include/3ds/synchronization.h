@@ -76,6 +76,13 @@ void LightLock_Init(LightLock* lock);
 void LightLock_Lock(LightLock* lock);
 
 /**
+ * @brief Attempts to lock a light lock.
+ * @param lock Pointer to the lock.
+ * @return Zero on success, non-zero on failure.
+ */
+int LightLock_TryLock(LightLock* lock);
+
+/**
  * @brief Unlocks a light lock.
  * @param lock Pointer to the lock.
  */
@@ -92,6 +99,13 @@ void RecursiveLock_Init(RecursiveLock* lock);
  * @param lock Pointer to the lock.
  */
 void RecursiveLock_Lock(RecursiveLock* lock);
+
+/**
+ * @brief Attempts to lock a recursive lock.
+ * @param lock Pointer to the lock.
+ * @return Zero on success, non-zero on failure.
+ */
+int RecursiveLock_TryLock(RecursiveLock* lock);
 
 /**
  * @brief Unlocks a recursive lock.

@@ -39,6 +39,21 @@ _begin:
 	} while (__strex(lock, -val));
 }
 
+int LightLock_TryLock(LightLock* lock)
+{
+	s32 val;
+	do
+	{
+		val = __ldrex(lock);
+		if (val < 0)
+		{
+			__clrex();
+			return 1; // Failure
+		}
+	} while (__strex(lock, -val));
+	return 0; // Success
+}
+
 void LightLock_Unlock(LightLock* lock)
 {
 	s32 val;
@@ -71,6 +86,19 @@ void RecursiveLock_Lock(RecursiveLock* lock)
 		lock->thread_tag = tag;
 	}
 	lock->counter ++;
+}
+
+int RecursiveLock_TryLock(RecursiveLock* lock)
+{
+	u32 tag = (u32)getThreadLocalStorage();
+	if (lock->thread_tag != tag)
+	{
+		if (LightLock_TryLock(&lock->lock))
+			return 1; // Failure
+		lock->thread_tag = tag;
+	}
+	lock->counter ++;
+	return 0; // Success
 }
 
 void RecursiveLock_Unlock(RecursiveLock* lock)
