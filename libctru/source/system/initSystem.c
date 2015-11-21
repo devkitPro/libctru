@@ -8,31 +8,27 @@
 
 void (*__system_retAddr)(void);
 
-void __system_allocateHeaps();
-void __system_initArgv();
-void __appInit();
+void __system_initSyscalls(void);
+void __system_allocateHeaps(void);
+void __system_initArgv(void);
+void __appInit(void);
 
-
-void __ctru_exit(int rc);
-int __libctru_gtod(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
-
-Result __sync_init(void) __attribute__((weak));
+Result __sync_init(void);
 
 void __attribute__((weak)) __libctru_init(void (*retAddr)(void))
 {
-
-	// Register newlib exit() syscall
-	__syscalls.exit = __ctru_exit;
-    __syscalls.gettod_r = __libctru_gtod;
-
+	// Store the return address
 	__system_retAddr = envIsHomebrew() ? retAddr : NULL;
 
-	if (__sync_init)
-		__sync_init();
+	// Initialize the synchronization subsystem
+	__sync_init();
 
+	// Initialize newlib support system calls
+	__system_initSyscalls();
+
+	// Allocate application and linear heaps
 	__system_allocateHeaps();
 
 	// Build argc/argv if present
 	__system_initArgv();
-
 }

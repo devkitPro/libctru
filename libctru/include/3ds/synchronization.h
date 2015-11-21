@@ -3,17 +3,13 @@
  * @brief Provides synchronization locks.
  */
 #pragma once
+#include <sys/lock.h>
 
 /// A light lock.
-typedef s32 LightLock;
+typedef _LOCK_T LightLock;
 
 /// A recursive lock.
-typedef struct
-{
-	LightLock lock; ///< Inner light lock.
-	u32 thread_tag; ///< Tag of the thread that currently has the lock.
-	u32 counter;    ///< Lock count.
-} RecursiveLock;
+typedef _LOCK_RECURSIVE_T RecursiveLock;
 
 /// Performs a Data Synchronization Barrier operation.
 static inline void __dsb(void)

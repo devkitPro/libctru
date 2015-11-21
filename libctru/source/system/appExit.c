@@ -6,7 +6,7 @@
 #include <3ds/services/fs.h>
 #include <3ds/services/hid.h>
 
-void __attribute__((weak)) __appExit() {
+void __attribute__((weak)) __appExit(void) {
 	// Exit services
 	sdmcExit();
 	fsExit();

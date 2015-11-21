@@ -11,7 +11,7 @@ u32 __ctru_heap_size;
 u32 __ctru_linear_heap;
 u32 __ctru_linear_heap_size;
 
-void __attribute__((weak)) __system_allocateHeaps() {
+void __attribute__((weak)) __system_allocateHeaps(void) {
 	u32 tmp=0;
 
 	if(envIsHomebrew()) {
