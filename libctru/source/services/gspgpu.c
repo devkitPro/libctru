@@ -7,6 +7,7 @@
 #include <3ds/synchronization.h>
 #include <3ds/services/gspgpu.h>
 #include <3ds/ipc.h>
+#include <3ds/thread.h>
 
 #define GSP_EVENT_STACK_SIZE 0x1000
 
@@ -15,9 +16,8 @@ static int gspRefCount;
 
 Handle gspEvents[GSPGPU_EVENT_MAX];
 vu32 gspEventCounts[GSPGPU_EVENT_MAX];
-u64 gspEventStack[GSP_EVENT_STACK_SIZE/sizeof(u64)]; //u64 so that it's 8-byte aligned
 volatile bool gspRunEvents;
-Handle gspEventThread;
+Thread gspEventThread;
 
 static Handle gspEvent;
 static vu8* gspEventData;
@@ -60,15 +60,16 @@ Result gspInitEventHandler(Handle _gspEvent, vu8* _gspSharedMem, u8 gspThreadId)
 	gspEvent = _gspEvent;
 	gspEventData = _gspSharedMem + gspThreadId*0x40;
 	gspRunEvents = true;
-	return svcCreateThread(&gspEventThread, gspEventThreadMain, 0x0, (u32*)((char*)gspEventStack + sizeof(gspEventStack)), 0x31, 0xfffffffe);
+	gspEventThread = threadCreate(gspEventThreadMain, 0x0, GSP_EVENT_STACK_SIZE, 0x31, -2, true);
+	return 0;
 }
 
 void gspExitEventHandler(void)
 {
 	// Stop event thread
 	gspRunEvents = false;
-	svcWaitSynchronization(gspEventThread, 1000000000);
-	svcCloseHandle(gspEventThread);
+	svcSignalEvent(gspEvent);
+	threadJoin(gspEventThread, U64_MAX);
 
 	// Free events
 	int i;
@@ -143,7 +144,6 @@ void gspEventThreadMain(void *arg)
 			}
 		}
 	}
-	svcExitThread();
 }
 
 //essentially : get commandIndex and totalCommands, calculate offset of new command, copy command and update totalCommands

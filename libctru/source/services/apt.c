@@ -13,6 +13,7 @@
 #include <3ds/services/gspgpu.h>
 #include <3ds/ipc.h>
 #include <3ds/env.h>
+#include <3ds/thread.h>
 
 #define APT_HANDLER_STACKSIZE (0x1000)
 
@@ -28,8 +29,7 @@ Handle aptLockHandle;
 Handle aptuHandle;
 Handle aptEvents[3];
 
-Handle aptEventHandlerThread;
-u64 aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]; // u64 so that it's 8-byte aligned
+Thread aptEventHandlerThread;
 
 LightLock aptStatusMutex;
 Handle aptStatusEvent;
@@ -442,8 +442,6 @@ void aptEventHandler(void *arg)
 				break;
 		}
 	}
-
-	svcExitThread();
 }
 
 static int aptRefCount = 0;
@@ -498,8 +496,7 @@ Result aptInit(void)
 		aptCloseSession();
 
 		// create APT event handler thread
-		svcCreateThread(&aptEventHandlerThread, aptEventHandler, 0x0,
-			(u32*)(&aptEventHandlerStack[APT_HANDLER_STACKSIZE/8]), 0x31, 0xfffffffe);
+		aptEventHandlerThread = threadCreate(aptEventHandler, 0x0, APT_HANDLER_STACKSIZE, 0x31, -2, true);
 
 		// Wait for the state to become APT_RUNNING
 		aptWaitStatusEvent();
@@ -554,8 +551,7 @@ void aptExit(void)
 	}
 
 	svcSignalEvent(aptEvents[2]);
-	svcWaitSynchronization(aptEventHandlerThread, U64_MAX);
-	svcCloseHandle(aptEventHandlerThread);
+	threadJoin(aptEventHandlerThread, U64_MAX);
 	svcCloseHandle(aptEvents[2]);
 	
 	svcCloseHandle(aptSleepSync);

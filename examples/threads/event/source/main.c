@@ -6,39 +6,34 @@
 
 #include <3ds.h>
 
-Handle threadHandle, threadRequest;
+Thread threadHandle;
+Handle threadRequest;
 
 #define STACKSIZE (4 * 1024)
 
-volatile bool threadExit = false;
+volatile bool runThread = true;
 
 volatile int threadcount=0;
 
 void threadMain(void *arg) {
 
-	while(1) {
+	while(runThread) {
 		svcWaitSynchronization(threadRequest, U64_MAX);
-		svcClearEvent(threadRequest);		
-
-		if(threadExit) svcExitThread();
+		svcClearEvent(threadRequest);
 
 		threadcount++;
 	}
 }
 
-int main(int argc, char** argv) {
-
-
+int main(int argc, char** argv)
+{
 	gfxInitDefault();
-
 	consoleInit(GFX_TOP, NULL);
 
-
 	svcCreateEvent(&threadRequest,0);
-	u32 *threadStack = memalign(32, STACKSIZE);
-	Result ret = svcCreateThread(&threadHandle, threadMain, 0, &threadStack[STACKSIZE/4], 0x3f, 0);
+	threadHandle = threadCreate(threadMain, 0, STACKSIZE, 0x3f, -2, true);
 
-	printf("thread create returned %lx\n", ret);
+	printf("thread handle: %p\n", threadHandle);
 
 	// Main loop
 	while (aptMainLoop())
@@ -62,19 +57,14 @@ int main(int argc, char** argv) {
 	}
 
 	// tell thread to exit
-	threadExit = true;
+	runThread = false;
 
-	// signal the thread
+	// signal the thread and wait for it to exit
 	svcSignalEvent(threadRequest);
+	threadJoin(threadHandle, U64_MAX);
 
-	// give it time to exit
-	svcSleepThread(10000000ULL);
-
-	// close handles and free allocated stack
+	// close event handle
 	svcCloseHandle(threadRequest);
-	svcCloseHandle(threadHandle);
-	free(threadStack);
-
 
 	gfxExit();
 	return 0;

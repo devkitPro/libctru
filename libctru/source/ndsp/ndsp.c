@@ -2,6 +2,7 @@
 #include <3ds/services/cfgu.h>
 #include <3ds/services/fs.h>
 #include <3ds/env.h>
+#include <3ds/thread.h>
 
 #define NDSP_THREAD_STACK_SIZE 0x1000
 
@@ -24,8 +25,7 @@ static LightLock ndspMutex;
 static u8 dspVar5Backup[0x1080];
 
 static volatile bool ndspThreadRun;
-static Handle ndspThread;
-static u64 ndspThreadStack[NDSP_THREAD_STACK_SIZE/8]; // u64 so that it's 8-byte aligned
+static Thread ndspThread;
 
 static Result ndspLoadComponent(void)
 {
@@ -374,8 +374,6 @@ static void ndspThreadMain(void* arg)
 		frameCount++;
 		bNeedsSync = true;
 	}
-
-	svcExitThread();
 }
 
 void ndspUseComponent(const void* binary, u32 size, u16 progMask, u16 dataMask)
@@ -484,8 +482,8 @@ Result ndspInit(void)
 	rc = svcCreateEvent(&sleepEvent, 0);
 	if (R_FAILED(rc)) goto _fail2;
 
-	rc = svcCreateThread(&ndspThread, ndspThreadMain, 0x0, (u32*)(&ndspThreadStack[NDSP_THREAD_STACK_SIZE/8]), 0x31, -2);
-	if (R_FAILED(rc)) goto _fail3;
+	ndspThread = threadCreate(ndspThreadMain, 0x0, NDSP_THREAD_STACK_SIZE, 0x31, -2, true);
+	if (!ndspThread) goto _fail3;
 
 	aptHook(&aptCookie, ndspAptHook, NULL);
 	return 0;
@@ -513,8 +511,7 @@ void ndspExit(void)
 	ndspThreadRun = false;
 	if (bSleeping)
 		svcSignalEvent(sleepEvent);
-	svcWaitSynchronization(ndspThread, U64_MAX);
-	svcCloseHandle(ndspThread);
+	threadJoin(ndspThread, U64_MAX);
 	svcCloseHandle(sleepEvent);
 	aptUnhook(&aptCookie);
 	if (!bSleeping)
