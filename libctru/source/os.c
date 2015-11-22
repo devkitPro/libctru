@@ -51,12 +51,6 @@ void* osConvertOldLINEARMemToNew(const void* addr) {
 	return 0;
 }
 
-s64 osGetMemRegionUsed(MemRegion region) {
-	s64 mem_used;
-	svcGetSystemInfo(&mem_used, 0, region);
-	return mem_used;
-}
-
 //---------------------------------------------------------------------------------
 static datetime_t getSysTime(void) {
 //---------------------------------------------------------------------------------

@@ -17,16 +17,7 @@
 /// Retrieves the revision version from a packed system version.
 #define GET_VERSION_REVISION(version) (((version)>> 8)&0xFF)
 
-/// Memory regions.
-typedef enum
-{
-	MEMREGION_ALL = 0,         ///< All regions.
-	MEMREGION_APPLICATION = 1, ///< APPLICATION memory.
-	MEMREGION_SYSTEM = 2,      ///< SYSTEM memory.
-	MEMREGION_BASE = 3,        ///< BASE memory.
-} MemRegion;
-
-/// OS_VersionBin. Format of the system version: "<major>.<minor>.<build>-<nupver><region>"
+/*! OS_VersionBin. Format of the system version: "<major>.<minor>.<build>-<nupver><region>" */
 typedef struct
 {
 	u8 build;
@@ -85,37 +76,6 @@ static inline u32 osGetFirmVersion(void)
 static inline u32 osGetKernelVersion(void)
 {
 	return (*(vu32*)0x1FF80000) & ~0xFF;
-}
-
-/**
- * @brief Gets the size of the specified memory region.
- * @param region Memory region to check.
- * @return The size of the memory region, in bytes.
- */
-static inline u32 osGetMemRegionSize(MemRegion region)
-{
-	if(region == MEMREGION_ALL) {
-		return osGetMemRegionSize(MEMREGION_APPLICATION) + osGetMemRegionSize(MEMREGION_SYSTEM) + osGetMemRegionSize(MEMREGION_BASE);
-	} else {
-		return *(vu32*) (0x1FF80040 + (region - 1) * 0x4);
-	}
-}
-
-/**
- * @brief Gets the number of used bytes within the specified memory region.
- * @param region Memory region to check.
- * @return The number of used bytes of memory.
- */
-s64 osGetMemRegionUsed(MemRegion region);
-
-/**
- * @brief Gets the number of free bytes within the specified memory region.
- * @param region Memory region to check.
- * @return The number of free bytes of memory.
- */
-static inline s64 osGetMemRegionFree(MemRegion region)
-{
-	return (s64) osGetMemRegionSize(region) - osGetMemRegionUsed(region);
 }
 
 /**
