@@ -52,6 +52,21 @@ typedef enum
 
 typedef enum
 {
+	GPU_COLOR_RGBA8		= 0x00002,
+	GPU_COLOR_RGBA5551	= 0x20000,
+	GPU_COLOR_RGB565  	= 0x30000,
+	GPU_COLOR_RGBA4		= 0x40000
+} GPU_COLOR_FORMAT;
+
+typedef enum
+{
+	GPU_DEPTH16		= 0x00000,
+	GPU_DEPTH24		= 0x00002,
+	GPU_DEPTH24_EXT8	= 0x00003
+} GPU_DEPTH_FORMAT;
+
+typedef enum
+{
 	GPU_TEXUNIT0 = 0x1,
 	GPU_TEXUNIT1 = 0x2,
 	GPU_TEXUNIT2 = 0x4
@@ -260,7 +275,8 @@ typedef enum{
 
 void GPU_SetFloatUniform(GPU_SHADER_TYPE type, u32 startreg, u32* data, u32 numreg);
 
-void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h);
+void GPU_OutputBuffers(GPU_DEPTH_FORMAT depth, GPU_COLOR_FORMAT color, u32* depthBuffer, u32* colorBuffer, u32 w, u32 h);
+void GPU_SetViewport(u32 x, u32 y, u32 w, u32 h);
 
 void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h);
 

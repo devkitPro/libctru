@@ -35,11 +35,12 @@ void gpuClearBuffers(u32 clearColor)
 
 void gpuFrameBegin(void)
 {
-	// Configure the viewport and the depth linear conversion function
-	GPU_SetViewport(
+	// Configure the output buffers, viewport and the depth linear conversion function
+	GPU_OutputBuffers(GPU_DEPTH24_EXT8, GPU_COLOR_RGBA8, 
 		(u32*)osConvertVirtToPhys((u32)depthBuf),
 		(u32*)osConvertVirtToPhys((u32)colorBuf),
-		0, 0, 240, 400); // The top screen is physically 240x400 pixels
+		240, 400); // The top screen is physically 240x400 pixels
+	GPU_SetViewport(0, 0, 240, 400); 
 	GPU_DepthMap(-1.0f, 0.0f); // calculate the depth value from the Z coordinate in the following way: -1.0*z + 0.0
 
 	// Configure some boilerplate

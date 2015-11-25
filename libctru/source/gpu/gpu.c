@@ -291,11 +291,10 @@ static u32 f32tof31(float f)
 }
 
 //takes PAs as arguments
-void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u32 h)
+
+void GPU_OutputBuffers(GPU_DEPTH_FORMAT depth, GPU_COLOR_FORMAT color, u32* depthBuffer, u32* colorBuffer, u32 w, u32 h)
 {
 	u32 param[0x4];
-	float fw=(float)w;
-	float fh=(float)h;
 
 	GPUCMD_AddWrite(GPUREG_0111, 0x00000001);
 	GPUCMD_AddWrite(GPUREG_0110, 0x00000001);
@@ -308,9 +307,23 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	GPUCMD_AddIncrementalWrites(GPUREG_DEPTHBUFFER_LOC, param, 0x00000003);
 
 	GPUCMD_AddWrite(GPUREG_006E, f116e);
-	GPUCMD_AddWrite(GPUREG_DEPTHBUFFER_FORMAT, 0x00000003); //depth buffer format
-	GPUCMD_AddWrite(GPUREG_COLORBUFFER_FORMAT, 0x00000002); //color buffer format
-	GPUCMD_AddWrite(GPUREG_011B, 0x00000000); //?
+	GPUCMD_AddWrite(GPUREG_DEPTHBUFFER_FORMAT, depth); //depth buffer format
+	GPUCMD_AddWrite(GPUREG_COLORBUFFER_FORMAT, color); //color buffer format
+	GPUCMD_AddWrite(GPUREG_011B, 0x00000000); //block mode (0x0 = 8x8, 0x1 = 32x32)
+
+	//enable depth buffer
+	param[0x0]=0x0000000F;
+	param[0x1]=0x0000000F;
+	param[0x2]=0x00000002;
+	param[0x3]=0x00000002;
+	GPUCMD_AddIncrementalWrites(GPUREG_0112, param, 0x00000004);
+}
+
+void GPU_SetViewport(u32 x, u32 y, u32 w, u32 h)
+{
+	u32 param[0x4];
+	float fw=(float)w;
+	float fh=(float)h;
 
 	param[0x0]=f32tof24(fw/2);
 	param[0x1]=f32tof31(2.0f / fw) << 1;
@@ -324,13 +337,6 @@ void GPU_SetViewport(u32* depthBuffer, u32* colorBuffer, u32 x, u32 y, u32 w, u3
 	param[0x1]=0x00000000;
 	param[0x2]=((h-1)<<16)|((w-1)&0xFFFF);
 	GPUCMD_AddIncrementalWrites(GPUREG_SCISSORTEST_MODE, param, 0x00000003);
-
-	//enable depth buffer
-	param[0x0]=0x0000000F;
-	param[0x1]=0x0000000F;
-	param[0x2]=0x00000002;
-	param[0x3]=0x00000002;
-	GPUCMD_AddIncrementalWrites(GPUREG_0112, param, 0x00000004);
 }
 
 void GPU_SetScissorTest(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h)
