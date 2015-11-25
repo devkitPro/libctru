@@ -309,7 +309,7 @@ void GPU_OutputBuffers(GPU_DEPTH_FORMAT depth, GPU_COLOR_FORMAT color, u32* dept
 	GPUCMD_AddWrite(GPUREG_006E, f116e);
 	GPUCMD_AddWrite(GPUREG_DEPTHBUFFER_FORMAT, depth); //depth buffer format
 	GPUCMD_AddWrite(GPUREG_COLORBUFFER_FORMAT, color); //color buffer format
-	GPUCMD_AddWrite(GPUREG_BLOCKMODE, 0x00000000); //block mode (0x0 = 8x8, 0x1 = 32x32)
+	GPUCMD_AddWrite(GPUREG_011B, 0x00000000); //block mode (0x0 = 8x8, 0x1 = 32x32)
 
 	//enable depth buffer
 	param[0x0]=0x0000000F;
