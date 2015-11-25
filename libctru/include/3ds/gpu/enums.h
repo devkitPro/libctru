@@ -40,7 +40,7 @@ typedef enum
 	GPU_TEXUNIT2 = 0x4, ///< Texture unit 2.
 } GPU_TEXUNIT;
 
-/// Supported pixel formats.
+/// Supported texture formats.
 typedef enum
 {
 	GPU_RGBA8    = 0x0, ///< 8-bit Red + 8-bit Green + 8-bit Blue + 8-bit Alpha
@@ -57,6 +57,24 @@ typedef enum
 	GPU_ETC1     = 0xB, ///< ETC1 texture compression
 	GPU_ETC1A4   = 0xC, ///< ETC1 texture compression + 4-bit Alpha
 } GPU_TEXCOLOR;
+
+/// Supported color buffer formats.
+typedef enum
+{
+	GPU_RB_RGBA8    = 0, ///< 8-bit Red + 8-bit Green + 8-bit Blue + 8-bit Alpha
+	GPU_RB_RGB8     = 1, ///< 8-bit Red + 8-bit Green + 8-bit Blue
+	GPU_RB_RGBA5551 = 2, ///< 5-bit Red + 5-bit Green + 5-bit Blue + 1-bit Alpha
+	GPU_RB_RGB565   = 3, ///< 5-bit Red + 6-bit Green + 5-bit Blue
+	GPU_RB_RGBA4    = 4, ///< 4-bit Red + 4-bit Green + 4-bit Blue + 4-bit Alpha
+} GPU_COLORBUF;
+
+/// Supported depth buffer formats.
+typedef enum
+{
+	GPU_RB_DEPTH16          = 0, ///< 16-bit Depth
+	GPU_RB_DEPTH24          = 2, ///< 24-bit Depth
+	GPU_RB_DEPTH24_STENCIL8 = 3, ///< 24-bit Depth + 8-bit Stencil
+} GPU_DEPTHBUF;
 
 /// Test functions.
 typedef enum
@@ -156,6 +174,14 @@ typedef enum
 	GPU_LOGICOP_OR_REVERSE    = 14, ///< Reverse bitwise OR.
 	GPU_LOGICOP_OR_INVERTED   = 15, ///< Inverted bitwize OR.
 } GPU_LOGICOP;
+
+/// Fragment operation modes.
+typedef enum
+{
+	GPU_FRAGOPMODE_GL      = 0, ///< OpenGL mode.
+	GPU_FRAGOPMODE_GAS_ACC = 1, ///< Gas mode (?).
+	GPU_FRAGOPMODE_SHADOW  = 3, ///< Shadow mode (?).
+} GPU_FRAGOPMODE;
 
 /// Supported component formats.
 typedef enum
