@@ -20,6 +20,9 @@ typedef struct
 	// Pointer to this thread's newlib state
 	struct _reent* reent;
 
+	// Pointer to this thread's thread-local segment
+	void* tls_tp; // !! Keep offset in sync inside __aeabi_read_tp !!
+
 	// FS session override
 	u32    fs_magic;
 	Handle fs_session;
