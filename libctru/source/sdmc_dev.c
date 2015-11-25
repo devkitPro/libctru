@@ -111,8 +111,8 @@ static FS_Archive sdmcArchive =
 /*! @endcond */
 
 static char     __cwd[PATH_MAX+1] = "/";
-static char     __fixedpath[PATH_MAX+1];
-static uint16_t __utf16path[PATH_MAX+1];
+static __thread char     __fixedpath[PATH_MAX+1];
+static __thread uint16_t __utf16path[PATH_MAX+1];
 
 static const char*
 sdmc_fixpath(struct _reent *r,
@@ -475,7 +475,7 @@ sdmc_write(struct _reent *r,
   /* Copy to internal buffer and write in chunks.
    * You cannot write from read-only memory.
    */
-  static char tmp_buffer[8192];
+  static __thread char tmp_buffer[8192];
   while(len > 0)
   {
     size_t toWrite = len;
@@ -781,7 +781,7 @@ sdmc_rename(struct _reent *r,
 {
   Result  rc;
   FS_Path fs_path_old, fs_path_new;
-  static uint16_t __utf16path_old[PATH_MAX+1];
+  static __thread uint16_t __utf16path_old[PATH_MAX+1];
 
   fs_path_old = sdmc_utf16path(r, oldName);
   if(fs_path_old.data == NULL)
