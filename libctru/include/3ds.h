@@ -127,6 +127,7 @@ extern "C" {
  * @example mvd/source/main.c
  * @example qtm/source/main.c
  * @example sdmc/source/main.c
+ * @example threads/thread-basic/source/main.c
  * @example threads/event/source/main.c
  * @example time/rtc/source/main.c
  */
