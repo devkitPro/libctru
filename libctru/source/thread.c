@@ -1,5 +1,6 @@
 #include "internal.h"
 #include <stdlib.h>
+#include <malloc.h>
 #include <string.h>
 
 extern const u8 __tdata_lma[];
@@ -49,7 +50,7 @@ Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int pri
 	if ((allocsize-stackoffset) < stack_size) return NULL;
 	if ((allocsize+tlssize) < allocsize) return NULL;
 
-	Thread t = (Thread)malloc(allocsize+tlssize);
+	Thread t = (Thread)memalign(8,allocsize+tlssize);
 	if (!t) return NULL;
 
 	t->ep       = entrypoint;
