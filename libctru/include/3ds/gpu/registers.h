@@ -81,11 +81,11 @@
 #define GPUREG_VIEWPORT_INVH 0x0044      ///< Inverted viewport height.
 #define GPUREG_0045 0x0045               ///< Unknown
 #define GPUREG_0046 0x0046               ///< Unknown
-#define GPUREG_0047 0x0047               ///< Unknown
-#define GPUREG_0048 0x0048               ///< Unknown
-#define GPUREG_0049 0x0049               ///< Unknown
-#define GPUREG_004A 0x004A               ///< Unknown
-#define GPUREG_004B 0x004B               ///< Unknown
+#define GPUREG_FRAGOP_CLIP 0x0047        ///< Unknown
+#define GPUREG_FRAGOP_CLIP_DATA0 0x0048  ///< Unknown
+#define GPUREG_FRAGOP_CLIP_DATA1 0x0049  ///< Unknown
+#define GPUREG_FRAGOP_CLIP_DATA2 0x004A  ///< Unknown
+#define GPUREG_FRAGOP_CLIP_DATA3 0x004B  ///< Unknown
 #define GPUREG_004C 0x004C               ///< Unknown
 #define GPUREG_DEPTHMAP_SCALE 0x004D     ///< Depth map scale.
 #define GPUREG_DEPTHMAP_OFFSET 0x004E    ///< Depth map offset.
@@ -107,21 +107,21 @@
 #define GPUREG_005E 0x005E               ///< Unknown
 #define GPUREG_005F 0x005F               ///< Unknown
 #define GPUREG_0060 0x0060               ///< Unknown
-#define GPUREG_0061 0x0061               ///< Unknown
-#define GPUREG_0062 0x0062               ///< Unknown
-#define GPUREG_0063 0x0063               ///< Unknown
-#define GPUREG_0064 0x0064               ///< Unknown
+#define GPUREG_EARLYDEPTH_FUNC 0x0061    ///< Unknown
+#define GPUREG_EARLYDEPTH_TEST1 0x0062   ///< Unknown
+#define GPUREG_EARLYDEPTH_CLEAR 0x0063   ///< Unknown
+#define GPUREG_SH_OUTATTR_MODE 0x0064    ///< Shader output attributes mode.
 #define GPUREG_SCISSORTEST_MODE 0x0065   ///< Scissor test mode.
 #define GPUREG_SCISSORTEST_POS 0x0066    ///< Scissor test position.
 #define GPUREG_SCISSORTEST_DIM 0x0067    ///< Scissor text dimensions.
 #define GPUREG_VIEWPORT_XY 0x0068        ///< Viewport X and Y.
 #define GPUREG_0069 0x0069               ///< Unknown
-#define GPUREG_006A 0x006A               ///< Unknown
+#define GPUREG_EARLYDEPTH_DATA 0x006A    ///< Unknown
 #define GPUREG_006B 0x006B               ///< Unknown
 #define GPUREG_006C 0x006C               ///< Unknown
-#define GPUREG_006D 0x006D               ///< Unknown
-#define GPUREG_FRAMEBUFFER_DIM2 0x006E   ///< Framebuffer dimensions.
-#define GPUREG_006F 0x006F               ///< Unknown
+#define GPUREG_DEPTHMAP_ENABLE 0x006D    ///< Depth map enable.
+#define GPUREG_RENDERBUF_DIM 0x006E      ///< Renderbuffer dimensions.
+#define GPUREG_SH_OUTATTR_CLOCK 0x006F   ///< Shader output attributes clock enable.
 #define GPUREG_0070 0x0070               ///< Unknown
 #define GPUREG_0071 0x0071               ///< Unknown
 #define GPUREG_0072 0x0072               ///< Unknown
@@ -142,18 +142,18 @@
 
 ///@name Texturing registers (0x080-0x0FF)
 ///@{
-#define GPUREG_TEXUNIT_ENABLE 0x0080        ///< Enabled texture units.
+#define GPUREG_TEXUNIT_CONFIG 0x0080        ///< Texture unit configuration.
 #define GPUREG_TEXUNIT0_BORDER_COLOR 0x0081 ///< Texture unit 0 border color.
 #define GPUREG_TEXUNIT0_DIM 0x0082          ///< Texture unit 0 dimensions.
 #define GPUREG_TEXUNIT0_PARAM 0x0083        ///< Texture unit 0 parameters.
-#define GPUREG_0084 0x0084                  ///< Unknown.
-#define GPUREG_TEXUNIT0_LOC 0x0085          ///< Texture unit 0 address.
-#define GPUREG_0086 0x0086                  ///< Unknown.
-#define GPUREG_0087 0x0087                  ///< Unknown.
-#define GPUREG_0088 0x0088                  ///< Unknown.
-#define GPUREG_0089 0x0089                  ///< Unknown.
-#define GPUREG_008A 0x008A                  ///< Unknown.
-#define GPUREG_008B 0x008B                  ///< Unknown.
+#define GPUREG_TEXUNIT0_LOD 0x0084          ///< Texture unit 0 LOD.
+#define GPUREG_TEXUNIT0_ADDR1 0x0085        ///< Texture unit 0 address.
+#define GPUREG_TEXUNIT0_ADDR2 0x0086        ///< Unknown.
+#define GPUREG_TEXUNIT0_ADDR3 0x0087        ///< Unknown.
+#define GPUREG_TEXUNIT0_ADDR4 0x0088        ///< Unknown.
+#define GPUREG_TEXUNIT0_ADDR5 0x0089        ///< Unknown.
+#define GPUREG_TEXUNIT0_ADDR6 0x008A        ///< Unknown.
+#define GPUREG_TEXUNIT0_SHADOW 0x008B       ///< Unknown.
 #define GPUREG_008C 0x008C                  ///< Unknown.
 #define GPUREG_008D 0x008D                  ///< Unknown.
 #define GPUREG_TEXUNIT0_TYPE 0x008E         ///< Texture unit 0 type.
@@ -162,16 +162,16 @@
 #define GPUREG_TEXUNIT1_BORDER_COLOR 0x0091 ///< Texture unit 1 border color.
 #define GPUREG_TEXUNIT1_DIM 0x0092          ///< Texture unit 1 dimensions.
 #define GPUREG_TEXUNIT1_PARAM 0x0093        ///< Texture unit 1 parameters.
-#define GPUREG_0094 0x0094                  ///< Unknown.
-#define GPUREG_TEXUNIT1_LOC 0x0095          ///< Texture unit 1 address.
+#define GPUREG_TEXUNIT1_LOD 0x0094          ///< Texture unit 1 LOD.
+#define GPUREG_TEXUNIT1_ADDR 0x0095         ///< Texture unit 1 address.
 #define GPUREG_TEXUNIT1_TYPE 0x0096         ///< Texture unit 1 type.
 #define GPUREG_0097 0x0097                  ///< Unknown.
 #define GPUREG_0098 0x0098                  ///< Unknown.
 #define GPUREG_TEXUNIT2_BORDER_COLOR 0x0099 ///< Texture unit 2 border color.
 #define GPUREG_TEXUNIT2_DIM 0x009A          ///< Texture unit 2 dimensions.
 #define GPUREG_TEXUNIT2_PARAM 0x009B        ///< Texture unit 2 parameters.
-#define GPUREG_009C 0x009C                  ///< Unknown.
-#define GPUREG_TEXUNIT2_LOC 0x009D          ///< Texture unit 2 location.
+#define GPUREG_TEXUNIT2_LOD 0x009C          ///< Texture unit 2 LOD.
+#define GPUREG_TEXUNIT2_ADDR 0x009D         ///< Texture unit 2 address.
 #define GPUREG_TEXUNIT2_TYPE 0x009E         ///< Texture unit 2 type.
 #define GPUREG_009F 0x009F                  ///< Unknown.
 #define GPUREG_00A0 0x00A0                  ///< Unknown.
@@ -182,22 +182,22 @@
 #define GPUREG_00A5 0x00A5                  ///< Unknown.
 #define GPUREG_00A6 0x00A6                  ///< Unknown.
 #define GPUREG_00A7 0x00A7                  ///< Unknown.
-#define GPUREG_00A8 0x00A8                  ///< Unknown.
-#define GPUREG_00A9 0x00A9                  ///< Unknown.
-#define GPUREG_00AA 0x00AA                  ///< Unknown.
-#define GPUREG_00AB 0x00AB                  ///< Unknown.
-#define GPUREG_00AC 0x00AC                  ///< Unknown.
-#define GPUREG_00AD 0x00AD                  ///< Unknown.
+#define GPUREG_TEXUNIT3_PROTEX0 0x00A8      ///< Unknown.
+#define GPUREG_TEXUNIT3_PROTEX1 0x00A9      ///< Unknown.
+#define GPUREG_TEXUNIT3_PROTEX2 0x00AA      ///< Unknown.
+#define GPUREG_TEXUNIT3_PROTEX3 0x00AB      ///< Unknown.
+#define GPUREG_TEXUNIT3_PROTEX4 0x00AC      ///< Unknown.
+#define GPUREG_TEXUNIT3_PROTEX5 0x00AD      ///< Unknown.
 #define GPUREG_00AE 0x00AE                  ///< Unknown.
-#define GPUREG_00AF 0x00AF                  ///< Unknown.
-#define GPUREG_00B0 0x00B0                  ///< Unknown.
-#define GPUREG_00B1 0x00B1                  ///< Unknown.
-#define GPUREG_00B2 0x00B2                  ///< Unknown.
-#define GPUREG_00B3 0x00B3                  ///< Unknown.
-#define GPUREG_00B4 0x00B4                  ///< Unknown.
-#define GPUREG_00B5 0x00B5                  ///< Unknown.
-#define GPUREG_00B6 0x00B6                  ///< Unknown.
-#define GPUREG_00B7 0x00B7                  ///< Unknown.
+#define GPUREG_PROTEX_LUT 0x00AF            ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA0 0x00B0      ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA1 0x00B1      ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA2 0x00B2      ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA3 0x00B3      ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA4 0x00B4      ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA5 0x00B5      ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA6 0x00B6      ///< Unknown.
+#define GPUREG_PROTEX_LUT_DATA7 0x00B7      ///< Unknown.
 #define GPUREG_00B8 0x00B8                  ///< Unknown.
 #define GPUREG_00B9 0x00B9                  ///< Unknown.
 #define GPUREG_00BA 0x00BA                  ///< Unknown.
@@ -239,21 +239,21 @@
 #define GPUREG_00DE 0x00DE                  ///< Unknown.
 #define GPUREG_00DF 0x00DF                  ///< Unknown.
 #define GPUREG_TEXENV_UPDATE_BUFFER 0x00E0  ///< Texture env buffer update flag.
-#define GPUREG_00E1 0x00E1                  ///< Unknown.
+#define GPUREG_FOG_COLOR 0x00E1             ///< Unknown.
 #define GPUREG_00E2 0x00E2                  ///< Unknown.
 #define GPUREG_00E3 0x00E3                  ///< Unknown.
-#define GPUREG_00E4 0x00E4                  ///< Unknown.
-#define GPUREG_00E5 0x00E5                  ///< Unknown.
-#define GPUREG_00E6 0x00E6                  ///< Unknown.
+#define GPUREG_GAS_ATTENUATION 0x00E4       ///< Unknown.
+#define GPUREG_GAS_ACCMAX 0x00E5            ///< Unknown.
+#define GPUREG_FOG_LUT_INDEX 0x00E6         ///< Unknown.
 #define GPUREG_00E7 0x00E7                  ///< Unknown.
-#define GPUREG_00E8 0x00E8                  ///< Unknown.
-#define GPUREG_00E9 0x00E9                  ///< Unknown.
-#define GPUREG_00EA 0x00EA                  ///< Unknown.
-#define GPUREG_00EB 0x00EB                  ///< Unknown.
-#define GPUREG_00EC 0x00EC                  ///< Unknown.
-#define GPUREG_00ED 0x00ED                  ///< Unknown.
-#define GPUREG_00EE 0x00EE                  ///< Unknown.
-#define GPUREG_00EF 0x00EF                  ///< Unknown.
+#define GPUREG_FOG_LUT_DATA0 0x00E8         ///< Unknown.
+#define GPUREG_FOG_LUT_DATA1 0x00E9         ///< Unknown.
+#define GPUREG_FOG_LUT_DATA2 0x00EA         ///< Unknown.
+#define GPUREG_FOG_LUT_DATA3 0x00EB         ///< Unknown.
+#define GPUREG_FOG_LUT_DATA4 0x00EC         ///< Unknown.
+#define GPUREG_FOG_LUT_DATA5 0x00ED         ///< Unknown.
+#define GPUREG_FOG_LUT_DATA6 0x00EE         ///< Unknown.
+#define GPUREG_FOG_LUT_DATA7 0x00EF         ///< Unknown.
 #define GPUREG_TEXENV4_SOURCE 0x00F0        ///< Texture env 4 source.
 #define GPUREG_TEXENV4_OPERAND 0x00F1       ///< Texture env 4 operand.
 #define GPUREG_TEXENV4_COMBINER 0x00F2      ///< Texture env 4 combiner.
@@ -298,7 +298,7 @@
 #define GPUREG_DEPTHBUFFER_WRITE 0x0115      ///< Writes to the depth buffer.
 #define GPUREG_DEPTHBUFFER_FORMAT 0x0116     ///< Depth buffer format.
 #define GPUREG_COLORBUFFER_FORMAT 0x0117     ///< Color buffer format.
-#define GPUREG_0118 0x0118                   ///< Unknown.
+#define GPUREG_EARLYDEPTH_TEST2 0x0118       ///< Unknown.
 #define GPUREG_0119 0x0119                   ///< Unknown.
 #define GPUREG_011A 0x011A                   ///< Unknown.
 #define GPUREG_FRAMEBUFFER_BLOCK32 0x011B    ///< Frame buffer block 32.
@@ -306,13 +306,13 @@
 #define GPUREG_COLORBUFFER_LOC 0x011D        ///< Color buffer location.
 #define GPUREG_FRAMEBUFFER_DIM 0x011E        ///< Frame buffer dimensions.
 #define GPUREG_011F 0x011F                   ///< Unknown.
-#define GPUREG_0120 0x0120                   ///< Unknown.
-#define GPUREG_0121 0x0121                   ///< Unknown.
-#define GPUREG_0122 0x0122                   ///< Unknown.
-#define GPUREG_0123 0x0123                   ///< Unknown.
-#define GPUREG_0124 0x0124                   ///< Unknown.
+#define GPUREG_GAS_LIGHT_XY 0x0120           ///< Unknown.
+#define GPUREG_GAS_LIGHT_Z 0x0121            ///< Unknown.
+#define GPUREG_GAS_LIGHT_Z_COLOR 0x0122      ///< Unknown.
+#define GPUREG_GAS_LUT_INDEX 0x0123          ///< Unknown.
+#define GPUREG_GAS_LUT_DATA 0x0124           ///< Unknown.
 #define GPUREG_0125 0x0125                   ///< Unknown.
-#define GPUREG_0126 0x0126                   ///< Unknown.
+#define GPUREG_GAS_DELTAZ_DEPTH 0x0126       ///< Unknown.
 #define GPUREG_0127 0x0127                   ///< Unknown.
 #define GPUREG_0128 0x0128                   ///< Unknown.
 #define GPUREG_0129 0x0129                   ///< Unknown.
@@ -322,7 +322,7 @@
 #define GPUREG_012D 0x012D                   ///< Unknown.
 #define GPUREG_012E 0x012E                   ///< Unknown.
 #define GPUREG_012F 0x012F                   ///< Unknown.
-#define GPUREG_0130 0x0130                   ///< Unknown.
+#define GPUREG_FRAGOP_SHADOW 0x0130          ///< Unknown.
 #define GPUREG_0131 0x0131                   ///< Unknown.
 #define GPUREG_0132 0x0132                   ///< Unknown.
 #define GPUREG_0133 0x0133                   ///< Unknown.
@@ -583,11 +583,11 @@
 #define GPUREG_VERTEX_OFFSET 0x022A             ///< Vertex offset.
 #define GPUREG_022B 0x022B                      ///< Unknown.
 #define GPUREG_022C 0x022C                      ///< Unknown.
-#define GPUREG_022D 0x022D                      ///< Unknown.
+#define GPUREG_POST_VERTEX_CACHE_NUM 0x022D     ///< Unknown.
 #define GPUREG_DRAWARRAYS 0x022E                ///< Draw arrays trigger.
 #define GPUREG_DRAWELEMENTS 0x022F              ///< Draw arrays elements.
 #define GPUREG_0230 0x0230                      ///< Unknown.
-#define GPUREG_0231 0x0231                      ///< Unknown.
+#define GPUREG_VTX_FUNC 0x0231                  ///< Unknown.
 #define GPUREG_FIXEDATTRIB_INDEX 0x0232         ///< Fixed attribute index.
 #define GPUREG_FIXEDATTRIB_DATA0 0x0233         ///< Fixed attribute data 0.
 #define GPUREG_FIXEDATTRIB_DATA1 0x0234         ///< Fixed attribute data 1.
@@ -604,25 +604,25 @@
 #define GPUREG_023F 0x023F                      ///< Unknown.
 #define GPUREG_0240 0x0240                      ///< Unknown.
 #define GPUREG_0241 0x0241                      ///< Unknown.
-#define GPUREG_0242 0x0242                      ///< Unknown.
+#define GPUREG_VSH_NUM_ATTR 0x0242              ///< Unknown.
 #define GPUREG_0243 0x0243                      ///< Unknown.
-#define GPUREG_0244 0x0244                      ///< Unknown.
-#define GPUREG_0245 0x0245                      ///< Unknown.
+#define GPUREG_VSH_COM_MODE 0x0244              ///< Unknown.
+#define GPUREG_START_DRAW_FUNC0 0x0245          ///< Unknown.
 #define GPUREG_0246 0x0246                      ///< Unknown.
 #define GPUREG_0247 0x0247                      ///< Unknown.
 #define GPUREG_0248 0x0248                      ///< Unknown.
 #define GPUREG_0249 0x0249                      ///< Unknown.
-#define GPUREG_024A 0x024A                      ///< Unknown.
+#define GPUREG_VSH_OUTMAP_TOTAL1 0x024A         ///< Unknown.
 #define GPUREG_024B 0x024B                      ///< Unknown.
 #define GPUREG_024C 0x024C                      ///< Unknown.
 #define GPUREG_024D 0x024D                      ///< Unknown.
 #define GPUREG_024E 0x024E                      ///< Unknown.
 #define GPUREG_024F 0x024F                      ///< Unknown.
 #define GPUREG_0250 0x0250                      ///< Unknown.
-#define GPUREG_0251 0x0251                      ///< Unknown.
-#define GPUREG_0252 0x0252                      ///< Unknown.
-#define GPUREG_0253 0x0253                      ///< Unknown.
-#define GPUREG_0254 0x0254                      ///< Unknown.
+#define GPUREG_VSH_OUTMAP_TOTAL2 0x0251         ///< Unknown.
+#define GPUREG_GSH_MISC0 0x0252                 ///< Unknown.
+#define GPUREG_GEOSTAGE_CONFIG2 0x0253          ///< Unknown.
+#define GPUREG_GSH_MISC1 0x0254                 ///< Unknown.
 #define GPUREG_0255 0x0255                      ///< Unknown.
 #define GPUREG_0256 0x0256                      ///< Unknown.
 #define GPUREG_0257 0x0257                      ///< Unknown.

@@ -32,6 +32,17 @@ typedef enum
 	GPU_MIRRORED_REPEAT = 0x3, ///< Repeats with mirrored texture.
 } GPU_TEXTURE_WRAP_PARAM;
 
+/// Texture modes.
+typedef enum
+{
+	GPU_TEX_2D          = 0x0, ///< 2D texture
+	GPU_TEX_CUBE_MAP    = 0x1, ///< Cube map
+	GPU_TEX_SHADOW_2D   = 0x2, ///< 2D Shadow texture
+	GPU_TEX_PROJECTION  = 0x3, ///< Projection texture
+	GPU_TEX_SHADOW_CUBE = 0x4, ///< Shadow cube map
+	GPU_TEX_DISABLED    = 0x5, ///< Disabled
+} GPU_TEXTURE_MODE_PARAM;
+
 /// Supported texture units.
 typedef enum
 {
@@ -87,7 +98,16 @@ typedef enum
 	GPU_LEQUAL   = 5, ///< Pass if less than or equal.
 	GPU_GREATER  = 6, ///< Pass if greater than.
 	GPU_GEQUAL   = 7, ///< Pass if greater than or equal.
-}GPU_TESTFUNC;
+} GPU_TESTFUNC;
+
+/// Early depth test functions.
+typedef enum
+{
+	GPU_EARLYDEPTH_GEQUAL  = 0, ///< Pass if greater than or equal.
+	GPU_EARLYDEPTH_GREATER = 1, ///< Pass if greater than.
+	GPU_EARLYDEPTH_LEQUAL  = 2, ///< Pass if less than or equal.
+	GPU_EARLYDEPTH_LESS    = 3, ///< Pass if less than.
+} GPU_EARLYDEPTHFUNC;
 
 /// Scissor test modes.
 typedef enum

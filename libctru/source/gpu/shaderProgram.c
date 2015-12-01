@@ -192,10 +192,10 @@ Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGs
 	if(!sp->geometryShader)
 	{
 		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000000);
-		GPUCMD_AddMaskedWrite(GPUREG_0244, 0x1, 0x00000000);
+		GPUCMD_AddMaskedWrite(GPUREG_VSH_COM_MODE, 0x1, 0x00000000);
 	}else{
 		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000002);
-		GPUCMD_AddMaskedWrite(GPUREG_0244, 0x1, 0x00000001);
+		GPUCMD_AddMaskedWrite(GPUREG_VSH_COM_MODE, 0x1, 0x00000001);
 	}
 
 	// setup vertex shader stuff no matter what
@@ -209,19 +209,19 @@ Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGs
 	GPUCMD_AddWrite(GPUREG_VSH_ENTRYPOINT, 0x7FFF0000|(vshDvle->mainOffset&0xFFFF));
 	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_MASK, vshDvle->outmapMask);
 
-	GPUCMD_AddWrite(GPUREG_024A, vshDvle->outmapData[0]-1); // ?
-	GPUCMD_AddWrite(GPUREG_0251, vshDvle->outmapData[0]-1); // ?
+	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL1, vshDvle->outmapData[0]-1); // ?
+	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL2, vshDvle->outmapData[0]-1); // ?
 
 	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x8, 0x00000000); // ?
-	GPUCMD_AddWrite(GPUREG_0252, 0x00000000); // ?
+	GPUCMD_AddWrite(GPUREG_GSH_MISC0, 0x00000000); // ?
 
 	if(!sp->geometryShader)
 	{
 		// finish setting up vertex shader alone
 		GPU_SetShaderOutmap((u32*)vshDvle->outmapData);
 
-		GPUCMD_AddWrite(GPUREG_0064, 0x00000001); // ?
-		GPUCMD_AddWrite(GPUREG_006F, 0x00000703); // ?
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, 0x00000001); // ?
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, 0x00000703); // ?
 	}else{
 		// setup both vertex and geometry shader
 		const DVLE_s* gshDvle = sp->geometryShader->dvle;
@@ -240,8 +240,8 @@ Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGs
 		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000|(sp->geoShaderInputStride-1));
 		GPUCMD_AddIncrementalWrites(GPUREG_GSH_ATTRIBUTES_PERMUTATION_LOW, sp->geoShaderInputPermutation, 2);
 
-		GPUCMD_AddWrite(GPUREG_0064, 0x00000001); // ?
-		GPUCMD_AddWrite(GPUREG_006F, 0x01030703); // ?
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, 0x00000001); // ?
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, 0x01030703); // ?
 	}
 
 	return 0;
