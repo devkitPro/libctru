@@ -233,3 +233,34 @@ Result AM_GetCiaFileInfo(u8 mediatype, AM_TitleEntry *titleEntry, Handle fileHan
 
 	return (Result)cmdbuf[1];
 }
+
+Result AM_InitializeExternalTitleDatabase(bool overwrite)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x18,2,0); // 0x180080
+	cmdbuf[1] = 1; // No other media type is accepted
+	cmdbuf[2] = overwrite;
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result AM_QueryAvailableExternalTitleDatabase(bool* available)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x19,1,0); // 0x190040
+	cmdbuf[1] = 1; // No other media type is accepted
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+	if(R_FAILED(ret = (Result)cmdbuf[1])) return ret;
+
+	// Only accept this if the command was a success
+	if(available) *available = cmdbuf[2];
+
+	return ret;
+}
