@@ -112,3 +112,15 @@ Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode);
  * @param fileHandle Handle of the CIA file to read.
  */
 Result AM_GetCiaFileInfo(u8 mediatype, AM_TitleEntry *titleEntry, Handle fileHandle);
+
+/**
+ * @brief Initializes the external (SD) title database.
+ * @param overwrite Overwrites the database if it already exists.
+ */
+Result AM_InitializeExternalTitleDatabase(bool overwrite);
+
+/**
+ * @brief Queries whether the external title database is available.
+ * @param[out] available Pointer to output the availability status to.
+ */
+Result AM_QueryAvailableExternalTitleDatabase(bool* available);
