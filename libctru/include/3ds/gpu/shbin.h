@@ -76,6 +76,8 @@ typedef struct{
 	char* symbolTableData;                 ///< Symbol table data.
 	u8 outmapMask;                         ///< Output map mask.
 	u32 outmapData[8];                     ///< Output map data.
+	u32 outmapMode;                        ///< Output map mode.
+	u32 outmapClock;                       ///< Output map attribute clock.
 }DVLE_s;
 
 /// DVLB data.

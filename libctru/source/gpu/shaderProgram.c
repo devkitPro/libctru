@@ -220,8 +220,8 @@ Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGs
 		// finish setting up vertex shader alone
 		GPU_SetShaderOutmap((u32*)vshDvle->outmapData);
 
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, 0x00000001); // ?
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, 0x00000703); // ?
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, vshDvle->outmapMode);
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, vshDvle->outmapClock);
 	}else{
 		// setup both vertex and geometry shader
 		const DVLE_s* gshDvle = sp->geometryShader->dvle;
@@ -240,8 +240,8 @@ Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGs
 		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000|(sp->geoShaderInputStride-1));
 		GPUCMD_AddIncrementalWrites(GPUREG_GSH_ATTRIBUTES_PERMUTATION_LOW, sp->geoShaderInputPermutation, 2);
 
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, 0x00000001); // ?
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, 0x01030703); // ?
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, gshDvle->outmapMode);
+		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, gshDvle->outmapClock);
 	}
 
 	return 0;

@@ -97,6 +97,8 @@ void DVLE_GenerateOutmap(DVLE_s* dvle)
 	u8 numAttr=0;
 	u8 maxAttr=0;
 	u8 attrMask=0;
+	u32 attrMode=0;
+	u32 attrClock=0;
 
 	for(i=0;i<dvle->outTableSize;i++)
 	{
@@ -124,10 +126,43 @@ void DVLE_GenerateOutmap(DVLE_s* dvle)
 		}
 		*out=((*out)&~mask)|(val&mask);
 
+		switch(dvle->outTableData[i].type)
+		{
+			case RESULT_POSITION:
+				if ((*out & 0xFF0000)==0x020000)
+					attrClock |= BIT(0);
+				break;
+			case RESULT_COLOR:
+				attrClock |= BIT(1);
+				break;
+			case RESULT_TEXCOORD0:
+				attrMode = 1;
+				attrClock |= BIT(8);
+				break;
+			case RESULT_TEXCOORD1:
+				attrMode = 1;
+				attrClock |= BIT(9);
+				break;
+			case RESULT_TEXCOORD2:
+				attrMode = 1;
+				attrClock |= BIT(10);
+				break;
+			case RESULT_TEXCOORD0W:
+				attrMode = 1;
+				attrClock |= BIT(16);
+				break;
+			case RESULT_NORMALQUAT:
+			case RESULT_VIEW:
+				attrClock |= BIT(24);
+				break;
+		}
+
 		attrMask|=1<<dvle->outTableData[i].regID;
 		if(dvle->outTableData[i].regID+1>maxAttr)maxAttr=dvle->outTableData[i].regID+1;
 	}
 
 	dvle->outmapData[0]=numAttr;
 	dvle->outmapMask=attrMask;
+	dvle->outmapMode=attrMode;
+	dvle->outmapClock=attrClock;
 }
