@@ -8,10 +8,18 @@
 #define GPU_TEXTURE_MAG_FILTER(v) (((v)&0x1)<<1)
 /// Creates a texture minification filter parameter from a @ref GPU_TEXTURE_FILTER_PARAM
 #define GPU_TEXTURE_MIN_FILTER(v) (((v)&0x1)<<2)
+/// Creates a texture mipmap filter parameter from a @ref GPU_TEXTURE_FILTER_PARAM
+#define GPU_TEXTURE_MIP_FILTER(v) (((v)&0x1)<<24)
 /// Creates a texture wrap S parameter from a @ref GPU_TEXTURE_WRAP_PARAM
 #define GPU_TEXTURE_WRAP_S(v)     (((v)&0x3)<<12)
 /// Creates a texture wrap T parameter from a @ref GPU_TEXTURE_WRAP_PARAM
 #define GPU_TEXTURE_WRAP_T(v)     (((v)&0x3)<<8)
+/// Creates a texture mode parameter from a @ref GPU_TEXTURE_MODE_PARAM
+#define GPU_TEXTURE_MODE(v)       (((v)&0x7)<<28)
+/// Texture parameter indicating ETC1 texture.
+#define GPU_TEXTURE_ETC1_PARAM    BIT(5)
+/// Texture parameter indicating shadow texture.
+#define GPU_TEXTURE_SHADOW_PARAM  BIT(20)
 
 /// Creates a combiner buffer write configuration.
 #define GPU_TEV_BUFFER_WRITE_CONFIG(stage0, stage1, stage2, stage3) ((stage0) | ((stage1) << 1) | ((stage2) << 2) | ((stage3) << 3))
@@ -68,6 +76,60 @@ typedef enum
 	GPU_ETC1     = 0xB, ///< ETC1 texture compression
 	GPU_ETC1A4   = 0xC, ///< ETC1 texture compression + 4-bit Alpha
 } GPU_TEXCOLOR;
+
+/// Procedural texture clamp modes.
+typedef enum
+{
+	GPU_PT_CLAMP_TO_ZERO   = 0, ///< Clamp to zero.
+	GPU_PT_CLAMP_TO_EDGE   = 1, ///< Clamp to edge.
+	GPU_PT_REPEAT          = 2, ///< Symmetrical repeat.
+	GPU_PT_MIRRORED_REPEAT = 3, ///< Mirrored repeat.
+	GPU_PT_PULSE           = 4, ///< Pulse.
+} GPU_PROCTEX_CLAMP;
+
+/// Procedural texture mapping functions.
+typedef enum
+{
+	GPU_PT_U     = 0, ///< U
+	GPU_PT_U2    = 1, ///< U2
+	GPU_PT_V     = 2, ///< V
+	GPU_PT_V2    = 3, ///< V2
+	GPU_PT_ADD   = 4, ///< U+V
+	GPU_PT_ADD2  = 5, ///< U2+V2
+	GPU_PT_SQRT2 = 6, ///< sqrt(U2+V2)
+	GPU_PT_MIN   = 7, ///< min
+	GPU_PT_MAX   = 8, ///< max
+	GPU_PT_RMAX  = 9, ///< rmax
+} GPU_PROCTEX_MAPFUNC;
+
+/// Procedural texture shift values.
+typedef enum
+{
+	GPU_PT_NONE = 0, ///< No shift.
+	GPU_PT_ODD  = 1, ///< Odd shift.
+	GPU_PT_EVEN = 2, ///< Even shift.
+} GPU_PROCTEX_SHIFT;
+
+/// Procedural texture filter values.
+typedef enum
+{
+	GPU_PT_NEAREST             = 0, ///< Nearest-neighbor
+	GPU_PT_LINEAR              = 1, ///< Linear interpolation
+	GPU_PT_NEAREST_MIP_NEAREST = 2, ///< Nearest-neighbor with mipmap using nearest-neighbor
+	GPU_PT_LINEAR_MIP_NEAREST  = 3, ///< Linear interpolation with mipmap using nearest-neighbor
+	GPU_PT_NEAREST_MIP_LINEAR  = 4, ///< Nearest-neighbor with mipmap using linear interpolation
+	GPU_PT_LINEAR_MIP_LINEAR   = 5, ///< Linear interpolation with mipmap using linear interpolation
+} GPU_PROCTEX_FILTER;
+
+/// Procedural texture LUT IDs.
+typedef enum
+{
+	GPU_LUT_NOISE    = 0, ///< Noise table
+	GPU_LUT_RGBMAP   = 1, ///< RGB mapping function table
+	GPU_LUT_ALPHAMAP = 2, ///< Alpha mapping function table
+	GPU_LUT_COLOR    = 3, ///< Color table
+	GPU_LUT_COLORDIF = 4, ///< Color difference table
+} GPU_PROCTEX_LUTID;
 
 /// Supported color buffer formats.
 typedef enum
