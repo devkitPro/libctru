@@ -355,7 +355,7 @@ Result FSUSER_OpenArchive(FS_Archive* archive)
 	cmdbuf[5] = (u32) archive->lowPath.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive->id)))) return ret;
 
 	archive->handle = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
@@ -394,7 +394,7 @@ Result FSUSER_CloseArchive(FS_Archive* archive)
 	cmdbuf[2] = (u32) (archive->handle >> 32);
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive->id)))) return ret;
 
 	return cmdbuf[1];
 }
