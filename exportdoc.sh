@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "$TRAVIS_REPO_SLUG" = "smealum/ctrulib" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "great-refactor" ]; then
+if [ "$TRAVIS_REPO_SLUG" = "smealum/ctrulib" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ -n "$TRAVIS_TAG" ]; then
 git clone --branch=gh-pages --single-branch --depth 1 https://${GH_TOKEN}@github.com/$TRAVIS_REPO_SLUG docs
 git rm -rf docs/*
 cd libctru

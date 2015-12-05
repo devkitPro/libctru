@@ -8,8 +8,8 @@ endif
 
 include $(DEVKITARM)/base_rules
 
-export LIBCTRU_MAJOR	:= 0
-export LIBCTRU_MINOR	:= 6
+export LIBCTRU_MAJOR	:= 1
+export LIBCTRU_MINOR	:= 0
 export LIBCTRU_PATCH	:= 0
 
 
@@ -105,10 +105,10 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 all: $(BUILD)
 
 dist-bin: all
-	@tar -cjf libctru-$(VERSION).tar.bz2 include lib default_icon.png
+	@tar --exclude=*~ -cjf libctru-$(VERSION).tar.bz2 include lib default_icon.png
 
 dist-src:
-	@tar -cjf libctru-src-$(VERSION).tar.bz2 include source data Makefile Doxyfile Doxyfile.internal default_icon.png
+	@tar --exclude=*~ -cjf libctru-src-$(VERSION).tar.bz2 include source data Makefile Doxyfile Doxyfile.internal default_icon.png
 
 dist: dist-src dist-bin
 

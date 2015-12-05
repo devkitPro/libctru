@@ -1,19 +1,17 @@
-# ctrulib
+# libctru - CTR User Library
 
-CTR User Library
+Library for writing user mode ARM11 code for the 3DS (CTR)
 
-Library for writing user mode arm11 code for the 3DS (CTR)
-
-The goal with this is to create a very straightforward interface with the 3DS's OS.
-It is not meant to provide higher level functions; to put things in perspective, the purpose of ctrulib would be to sit between the OS and a possible port of SDL rather than replace it.
+This library aims to provide the foundations necessary to write 3DS Homebrew, and straightforwardly access the different functionalities provided by the 3DS operating system.
+It is not meant to provide higher level functions; to put things in perspective, the purpose of libctru would be to sit between the OS and a possible port of SDL rather than replace it.
 
 # Setup
 
-ctrulib is just a library and needs a toolchain to function. We built ctrulib to be used in conjunction with devkitARM. You may find instructions on how to install devkitARM on [the devkitPro Wiki](http://devkitpro.org/wiki/Getting_Started).
+libctru is just a library and needs a toolchain to function. devkitARM (created by [devkitPro](http://devkitpro.org)) is the officially supported ARM cross compiling toolchain, which provides the framework necessary to supply a usable POSIX-like environment, with working C and C++ standard libraries; as well as the tools required to compile homebrew in the 3DSX format, and assemble GPU shaders. The use of other ARM toolchains is severely discouraged.
 
-The most recent devkitARM (r44) includes 3DS support and a prebuilt libctru.
+The most recent version of devkitARM (r45 at the time of writing) is always recommended. The installers/setup scripts supplied by devkitPro install a prebuilt copy of the latest stable version of libctru, which is recommended for general use. Please note that devkitPro has a policy of keeping legacy code to a minimum, so a library upgrade may result in older code failing to compile or behave properly. Developers are encouraged to keep their code working with the latest versions of the tools and libraries.
 
-To keep up to date with the most recent changes you'll want to checkout ctrulib, build it and install it.
+You may find instructions on how to install devkitARM on [the devkitPro Wiki](http://devkitpro.org/wiki/Getting_Started).
 
 # License
 
