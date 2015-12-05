@@ -168,6 +168,7 @@ Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride)
 	sp->geoShaderInputPermutation[0] = 0x76543210;
 	sp->geoShaderInputPermutation[1] = 0xFEDCBA98;
 	sp->geoShaderInputStride = stride;
+	sp->geoShaderMode = GSH_NORMAL;
 
 	return shaderInstanceInit(sp->geometryShader, dvle);
 }
@@ -178,6 +179,14 @@ Result shaderProgramSetGshInputPermutation(shaderProgram_s* sp, u64 permutation)
 
 	sp->geoShaderInputPermutation[0] = permutation & 0xFFFFFFFF;
 	sp->geoShaderInputPermutation[0] = permutation>>32;
+	return 0;
+}
+
+Result shaderProgramSetGshMode(shaderProgram_s* sp, geoShaderMode mode)
+{
+	if(!sp || !sp->geometryShader)return -1;
+
+	sp->geoShaderMode = mode & 3;
 	return 0;
 }
 
@@ -212,8 +221,15 @@ Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGs
 	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL1, vshDvle->outmapData[0]-1); // ?
 	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL2, vshDvle->outmapData[0]-1); // ?
 
-	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x8, 0x00000000); // ?
-	GPUCMD_AddWrite(GPUREG_GSH_MISC0, 0x00000000); // ?
+	bool subdivision = sp->geoShaderMode >= GSH_SUBDIVISION_LOOP;
+	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x8, subdivision ? 0x80000000 : 0); // Enable or disable subdivision
+	u32 gshMisc = 0;
+	if (subdivision)
+		gshMisc = 1;
+	else if (sp->geoShaderMode == GSH_PARTICLE)
+		gshMisc = 0x01004302;
+	GPUCMD_AddWrite(GPUREG_GSH_MISC0, gshMisc);
+	GPUCMD_AddWrite(GPUREG_GSH_MISC1, sp->geoShaderMode);
 
 	if(!sp->geometryShader)
 	{
@@ -237,7 +253,7 @@ Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGs
 		GPU_SetShaderOutmap((u32*)gshDvle->outmapData);
 
 		//GSH input attributes stuff
-		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000|(sp->geoShaderInputStride-1));
+		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000|(sp->geoShaderInputStride-1)|(subdivision?0x100:0));
 		GPUCMD_AddIncrementalWrites(GPUREG_GSH_ATTRIBUTES_PERMUTATION_LOW, sp->geoShaderInputPermutation, 2);
 
 		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, gshDvle->outmapMode);
