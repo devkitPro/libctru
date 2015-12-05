@@ -274,14 +274,14 @@
 
 ///@name Framebuffer registers (0x100-0x13F)
 ///@{
-#define GPUREG_BLEND_ENABLE 0x0100           ///< Blend toggle.
-#define GPUREG_BLEND_CONFIG 0x0101           ///< Blend configuration.
-#define GPUREG_LOGICOP_CONFIG 0x0102         ///< Logical operator configuration.
+#define GPUREG_COLOR_OPERATION 0x0100        ///< Configures fragment operation and blend mode.
+#define GPUREG_BLEND_FUNC 0x0101             ///< Blend function configuration.
+#define GPUREG_LOGIC_OP 0x0102               ///< Logical operator configuration.
 #define GPUREG_BLEND_COLOR 0x0103            ///< Blend color.
-#define GPUREG_ALPHATEST_CONFIG 0x0104       ///< Alpha test configuration.
+#define GPUREG_FRAGOP_ALPHA_TEST 0x0104      ///< Alpha test configuration.
 #define GPUREG_STENCIL_TEST 0x0105           ///< Stencil test configuration.
-#define GPUREG_STENCIL_ACTION 0x0106         ///< Stencil test action.
-#define GPUREG_DEPTHTEST_CONFIG 0x0107       ///< Depth test configuration.
+#define GPUREG_STENCIL_OP 0x0106             ///< Stencil test operation.
+#define GPUREG_DEPTH_COLOR_MASK 0x0107       ///< Depth test and color mask configuration.
 #define GPUREG_0108 0x0108                   ///< Unknown.
 #define GPUREG_0109 0x0109                   ///< Unknown.
 #define GPUREG_010A 0x010A                   ///< Unknown.

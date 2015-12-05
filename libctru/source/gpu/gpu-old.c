@@ -97,7 +97,7 @@ void GPU_DepthMap(float zScale, float zOffset)
 
 void GPU_SetAlphaTest(bool enable, GPU_TESTFUNC function, u8 ref)
 {
-	GPUCMD_AddWrite(GPUREG_ALPHATEST_CONFIG, (enable&1)|((function&7)<<4)|(ref<<8));
+	GPUCMD_AddWrite(GPUREG_FRAGOP_ALPHA_TEST, (enable&1)|((function&7)<<4)|(ref<<8));
 }
 
 void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 input_mask, u8 write_mask)
@@ -107,26 +107,26 @@ void GPU_SetStencilTest(bool enable, GPU_TESTFUNC function, u8 ref, u8 input_mas
 
 void GPU_SetStencilOp(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass)
 {
-	GPUCMD_AddWrite(GPUREG_STENCIL_ACTION, sfail | (dfail << 4) | (pass << 8));
+	GPUCMD_AddWrite(GPUREG_STENCIL_OP, sfail | (dfail << 4) | (pass << 8));
 }
 
 void GPU_SetDepthTestAndWriteMask(bool enable, GPU_TESTFUNC function, GPU_WRITEMASK writemask)
 {
-	GPUCMD_AddWrite(GPUREG_DEPTHTEST_CONFIG, (enable&1)|((function&7)<<4)|(writemask<<8));
+	GPUCMD_AddWrite(GPUREG_DEPTH_COLOR_MASK, (enable&1)|((function&7)<<4)|(writemask<<8));
 }
 
 void GPU_SetAlphaBlending(GPU_BLENDEQUATION colorEquation, GPU_BLENDEQUATION alphaEquation,
 	GPU_BLENDFACTOR colorSrc, GPU_BLENDFACTOR colorDst,
 	GPU_BLENDFACTOR alphaSrc, GPU_BLENDFACTOR alphaDst)
 {
-	GPUCMD_AddWrite(GPUREG_BLEND_CONFIG, colorEquation | (alphaEquation<<8) | (colorSrc<<16) | (colorDst<<20) | (alphaSrc<<24) | (alphaDst<<28));
-	GPUCMD_AddMaskedWrite(GPUREG_BLEND_ENABLE, 0x2, 0x00000100);
+	GPUCMD_AddWrite(GPUREG_BLEND_FUNC, colorEquation | (alphaEquation<<8) | (colorSrc<<16) | (colorDst<<20) | (alphaSrc<<24) | (alphaDst<<28));
+	GPUCMD_AddMaskedWrite(GPUREG_COLOR_OPERATION, 0x2, 0x00000100);
 }
 
 void GPU_SetColorLogicOp(GPU_LOGICOP op)
 {
-	GPUCMD_AddWrite(GPUREG_LOGICOP_CONFIG, op);
-	GPUCMD_AddMaskedWrite(GPUREG_BLEND_ENABLE, 0x2, 0x00000000);
+	GPUCMD_AddWrite(GPUREG_LOGIC_OP, op);
+	GPUCMD_AddMaskedWrite(GPUREG_COLOR_OPERATION, 0x2, 0x00000000);
 }
 
 void GPU_SetBlendingColor(u8 r, u8 g, u8 b, u8 a)
