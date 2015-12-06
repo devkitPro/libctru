@@ -54,10 +54,10 @@ struct tag_ndspWaveBuf
 {
 	union
 	{
-		s8*   data_pcm8;  ///< Pointer to PCM8 sample data.
-		s16*  data_pcm16; ///< Pointer to PCM16 sample data.
-		u8*   data_adpcm; ///< Pointer to DSPADPCM sample data.
-		void* data_vaddr; ///< Data virtual address.
+		s8*         data_pcm8;  ///< Pointer to PCM8 sample data.
+		s16*        data_pcm16; ///< Pointer to PCM16 sample data.
+		u8*         data_adpcm; ///< Pointer to DSPADPCM sample data.
+		const void* data_vaddr; ///< Data virtual address.
 	};
 	u32 nsamples;              ///< Total number of samples (PCM8=bytes, PCM16=halfwords, DSPADPCM=nibbles without frame headers)
 	ndspAdpcmData* adpcm_data; ///< ADPCM data.
