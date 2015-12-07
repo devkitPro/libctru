@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 	u32 *threadStack = memalign(32, STACKSIZE);
 	Result ret = svcCreateThread(&threadHandle, threadMain, 0, &threadStack[STACKSIZE/4], 0x3f, 0);
 
-	printf("thread create returned %x\n", ret);
+	printf("thread create returned %lx\n", ret);
 
 	// Main loop
 	while (aptMainLoop())
