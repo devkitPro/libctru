@@ -2,14 +2,6 @@
 	Multiple Windows Text example made by Aurelio Mannara for ctrulib
 	This code was modified for the last time on: 12/12/2014 23:50 UTC+1
 
-	This wouldn't be possible without the amazing work done by:
-	-Smealum
-	-fincs
-	-WinterMute
-	-yellows8
-	-plutoo
-	-mtheall
-	-Many others who worked on 3DS and I'm surely forgetting about
 */
 
 #include <3ds.h>
