@@ -13,6 +13,10 @@ The most recent version of devkitARM (r45 at the time of writing) is always reco
 
 You may find instructions on how to install devkitARM on [the devkitPro Wiki](http://devkitpro.org/wiki/Getting_Started).
 
+# Documentation
+
+The documentation is automatically built upon release and can be found at the following url: [http://smealum.github.io/ctrulib](http://smealum.github.io/ctrulib)
+
 # License
 
   This software is provided 'as-is', without any express or implied
