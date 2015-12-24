@@ -6,5 +6,6 @@ Thumbs.db
 build/
 lib/
 docs/
+examples/
 internal_docs
 build.sh

@@ -2,6 +2,7 @@
 if [ "$TRAVIS_REPO_SLUG" = "smealum/ctrulib" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ -n "$TRAVIS_TAG" ]; then
 git clone --branch=gh-pages --single-branch --depth 1 https://${GH_TOKEN}@github.com/$TRAVIS_REPO_SLUG docs
 git rm -rf docs/*
+git clone --branch=master --single-branch --depth 1 https://github.com/devkitPro/3ds-examples examples
 cd libctru
 doxygen Doxyfile
 mv ./docs/html/* ../docs
