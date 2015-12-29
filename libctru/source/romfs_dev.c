@@ -203,7 +203,6 @@ Result romfsInitCommon(void)
 	romFS_active = true;
 
 	AddDevice(&romFS_devoptab);
-	chdir("romfs:/");
 
 	return 0;
 
