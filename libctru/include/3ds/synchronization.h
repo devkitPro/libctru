@@ -60,6 +60,12 @@ static inline bool __strex(s32* addr, s32 val)
 #define AtomicSwap(ptr, value) __atomic_exchange_n((u32*)(ptr), (value), __ATOMIC_SEQ_CST)
 
 /**
+ * @brief Retrieves the synchronization subsystem's address arbiter handle.
+ * @return The synchronization subsystem's address arbiter handle.
+ */
+Handle __sync_get_arbiter(void);
+
+/**
  * @brief Initializes a light lock.
  * @param lock Pointer to the lock.
  */

@@ -16,6 +16,11 @@ void __sync_fini(void)
 		svcCloseHandle(arbiter);
 }
 
+Handle __sync_get_arbiter(void)
+{
+	return arbiter;
+}
+
 void LightLock_Init(LightLock* lock)
 {
 	do
