@@ -137,7 +137,11 @@ SVC_BEGIN svcCreateTimer
 	bx  lr
 
 SVC_BEGIN svcSetTimer
+	str r4, [sp, #-4]!
+	ldr r1, [sp, #4]
+	ldr r4, [sp, #8]
 	svc 0x1B
+	ldr r4, [sp], #4
 	bx  lr
 
 SVC_BEGIN svcCancelTimer
