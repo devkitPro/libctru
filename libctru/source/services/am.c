@@ -199,6 +199,19 @@ Result AM_InstallNativeFirm(void)
 	return (Result)cmdbuf[1];
 }
 
+Result AM_InstallFirm(u64 titleID){
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x401,2,0); // 0x04010080
+	cmdbuf[1] = titleID & 0xffffffff;
+	cmdbuf[2] = (u32)(titleID >> 32);
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode)
 {
 	Result ret = 0;
