@@ -4,7 +4,11 @@
  */
 #pragma once
 
-/// Creates a buffer dimension parameter from width and height values.
+/**
+ * @brief Creates a buffer dimension parameter from width and height values.
+ * @param w buffer width for GX_DisplayTransfer, linesize for GX_TextureCopy
+ * @param h buffer height for GX_DisplayTransfer, gap for GX_TextureCopy
+ */
 #define GX_BUFFER_DIM(w, h) (((h)<<16)|((w)&0xFFFF))
 
 /**
