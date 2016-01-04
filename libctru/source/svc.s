@@ -177,10 +177,8 @@ SVC_BEGIN svcCreateAddressArbiter
 
 SVC_BEGIN svcArbitrateAddress
 	push {r4, r5}
-	add sp, #8
-	ldr r4, [sp]
-	ldr r5, [sp, #4]
-	sub sp, #8
+	ldr r4, [sp, #8]
+	ldr r5, [sp, #12]
 	svc 0x22
 	pop {r4, r5}
 	bx  lr
