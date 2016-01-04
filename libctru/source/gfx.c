@@ -26,9 +26,16 @@ Handle gspEvent, gspSharedMemHandle;
 static GSPGPU_FramebufferFormats topFormat = GSP_BGR8_OES;
 static GSPGPU_FramebufferFormats botFormat = GSP_BGR8_OES;
 
+static GSPGPU_FramebufferInfo* const framebufferInfoSt[] = { &topFramebufferInfo, &bottomFramebufferInfo };
+
 void gfxSet3D(bool enable)
 {
 	enable3d=enable;
+}
+
+bool gfxIs3D(void)
+{
+	return enable3d;
 }
 
 void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormats format) {
@@ -94,7 +101,7 @@ void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x40;
 	GSPGPU_FramebufferInfo* framebufferInfo=(GSPGPU_FramebufferInfo*)&framebufferInfoHeader[0x4];
 	framebufferInfoHeader[0x0]^=doubleBuf[screen];
-	framebufferInfo[framebufferInfoHeader[0x0]]=(screen==GFX_TOP)?(topFramebufferInfo):(bottomFramebufferInfo);
+	framebufferInfo[framebufferInfoHeader[0x0]]=*framebufferInfoSt[screen];
 	framebufferInfoHeader[0x1]=1;
 }
 
@@ -231,22 +238,24 @@ void gfxFlushBuffers(void)
 	GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), bottomSize);
 }
 
+void gfxConfigScreen(gfxScreen_t scr, bool immediate)
+{
+	currentBuffer[scr]^=doubleBuf[scr];
+	gfxSetFramebufferInfo(scr, currentBuffer[scr]);
+	if (immediate)
+		GSPGPU_SetBufferSwap(scr, framebufferInfoSt[scr]);
+	else
+		gfxWriteFramebufferInfo(scr);
+}
+
 void gfxSwapBuffers(void)
 {
-	currentBuffer[0]^=doubleBuf[0];
-	currentBuffer[1]^=doubleBuf[1];
-	gfxSetFramebufferInfo(GFX_TOP, currentBuffer[0]);
-	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer[1]);
-	GSPGPU_SetBufferSwap(GFX_TOP, &topFramebufferInfo);
-	GSPGPU_SetBufferSwap(GFX_BOTTOM, &bottomFramebufferInfo);
+	gfxConfigScreen(GFX_TOP, true);
+	gfxConfigScreen(GFX_BOTTOM, true);
 }
 
 void gfxSwapBuffersGpu(void)
 {
-	currentBuffer[0]^=doubleBuf[0];
-	currentBuffer[1]^=doubleBuf[1];
-	gfxSetFramebufferInfo(GFX_TOP, currentBuffer[0]);
-	gfxSetFramebufferInfo(GFX_BOTTOM, currentBuffer[1]);
-	gfxWriteFramebufferInfo(GFX_TOP);
-	gfxWriteFramebufferInfo(GFX_BOTTOM);
+	gfxConfigScreen(GFX_TOP, false);
+	gfxConfigScreen(GFX_BOTTOM, false);
 }

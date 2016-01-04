@@ -82,6 +82,12 @@ void gfxExit(void);
 void gfxSet3D(bool enable);
 
 /**
+ * @brief Retrieves the status of the 3D stereoscopic effect.
+ * @return true if 3D enabled, false otherwise.
+ */
+bool gfxIs3D(void);
+
+/**
  * @brief Changes the color format of a screen
  * @param screen The screen of which format should be changed
  * @param format One of the gsp pixel formats.
@@ -116,6 +122,13 @@ void gfxSetDoubleBuffering(gfxScreen_t screen, bool doubleBuffering);
  * This shouldn't be needed and has a significant overhead.
  */
 void gfxFlushBuffers(void);
+
+/**
+ * @brief Updates the configuration of the specified screen (swapping the buffers if double-buffering is enabled).
+ * @param scr Screen to configure.
+ * @param immediate Whether to apply the updated configuration immediately or let GSPGPU apply it after the next GX transfer completes.
+ */
+void gfxConfigScreen(gfxScreen_t scr, bool immediate);
 
 /**
  * @brief Swaps the buffers and sets the gsp state

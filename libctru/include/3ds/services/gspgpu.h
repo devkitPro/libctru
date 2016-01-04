@@ -64,6 +64,15 @@ Result gspInit(void);
 void gspExit(void);
 
 /**
+ * @brief Configures a callback to run when a GSPGPU event occurs.
+ * @param id ID of the event.
+ * @param cb Callback to run.
+ * @param data Data to be passed to the callback.
+ * @param oneShot When true, the callback is only executed once. When false, the callback is executed every time the event occurs.
+ */
+void gspSetEventCallback(GSPGPU_Event id, ThreadFunc cb, void* data, bool oneShot);
+
+/**
  * @brief Initializes the GSPGPU event handler.
  * @param gspEvent Event handle to use.
  * @param gspSharedMem GSP shared memory.
@@ -77,9 +86,17 @@ void gspExitEventHandler(void);
 /**
  * @brief Waits for a GSPGPU event to occur.
  * @param id ID of the event.
- * @param Whether to discard the current event and wait for the next event.
+ * @param nextEvent Whether to discard the current event and wait for the next event.
  */
 void gspWaitForEvent(GSPGPU_Event id, bool nextEvent);
+
+/**
+ * @brief Waits for any GSPGPU event to occur.
+ * @return The ID of the event that occurred.
+ *
+ * The function returns immediately if there are unprocessed events at the time of call.
+ */
+GSPGPU_Event gspWaitForAnyEvent(void);
 
 /// Waits for PSC0
 #define gspWaitForPSC0() gspWaitForEvent(GSPGPU_EVENT_PSC0, false)

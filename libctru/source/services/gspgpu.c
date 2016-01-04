@@ -16,6 +16,9 @@ static int gspRefCount;
 
 Handle gspEvents[GSPGPU_EVENT_MAX];
 vu32 gspEventCounts[GSPGPU_EVENT_MAX];
+ThreadFunc gspEventCb[GSPGPU_EVENT_MAX];
+void* gspEventCbData[GSPGPU_EVENT_MAX];
+bool gspEventCbOneShot[GSPGPU_EVENT_MAX];
 volatile bool gspRunEvents;
 Thread gspEventThread;
 
@@ -37,6 +40,15 @@ void gspExit(void)
 {
 	if (AtomicDecrement(&gspRefCount)) return;
 	svcCloseHandle(gspGpuHandle);
+}
+
+void gspSetEventCallback(GSPGPU_Event id, ThreadFunc cb, void* data, bool oneShot)
+{
+	if(id>= GSPGPU_EVENT_MAX)return;
+
+	gspEventCb[id] = cb;
+	gspEventCbData[id] = data;
+	gspEventCbOneShot[id] = oneShot;
 }
 
 Result gspInitEventHandler(Handle _gspEvent, vu8* _gspSharedMem, u8 gspThreadId)
@@ -86,6 +98,15 @@ void gspWaitForEvent(GSPGPU_Event id, bool nextEvent)
 	svcWaitSynchronization(gspEvents[id], U64_MAX);
 	if (!nextEvent)
 		svcClearEvent(gspEvents[id]);
+}
+
+GSPGPU_Event gspWaitForAnyEvent(void)
+{
+	s32 which = 0;
+	Result rc = svcWaitSynchronizationN(&which, gspEvents, GSPGPU_EVENT_MAX, false, U64_MAX);
+	if (R_FAILED(rc)) return -1;
+	svcClearEvent(gspEvents[which]);
+	return which;
 }
 
 static int popInterrupt()
@@ -138,7 +159,15 @@ void gspEventThreadMain(void *arg)
 			if (curEvt == -1)
 				break;
 
-			if (curEvt < GSPGPU_EVENT_MAX) {
+			if (curEvt < GSPGPU_EVENT_MAX)
+			{
+				if (gspEventCb[curEvt])
+				{
+					ThreadFunc func = gspEventCb[curEvt];
+					if (gspEventCbOneShot[curEvt])
+						gspEventCb[curEvt] = NULL;
+					func(gspEventCbData[curEvt]);
+				}
 				svcSignalEvent(gspEvents[curEvt]);
 				gspEventCounts[curEvt]++;
 			}
