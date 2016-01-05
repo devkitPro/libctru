@@ -6,6 +6,7 @@
 
 #include <sys/time.h>
 #include <reent.h>
+#include <unistd.h>
 
 #define TICKS_PER_USEC 268.123480
 #define TICKS_PER_MSEC 268123.480
@@ -158,4 +159,13 @@ void osSetSpeedupEnable(bool enable)
 {
 	__ctru_speedup = enable;
 	__ctru_speedup_config();
+}
+
+int usleep(useconds_t useconds)
+{
+
+	svcSleepThread(useconds * 1000);
+
+	return 0;
+
 }
