@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.1.0
+
+* Additions:
+  - GSPGPU/GX code was revised and enhanced:
+    - Screens can be buffer-swapped independently using the new gfxConfigScreen function.
+    - Added gspSetEventCallback for running event code directly on the GSP thread.
+    - Added gspWaitForAnyEvent for waiting for any GSP event.
+    - Added gfxIs3D for retrieving 3D-enable status.
+  - Added AM_InstallFirm.
+  - Added __sync_get_arbiter.
+  - Added support for usleep.
+
+* Changes:
+  - NDSP thread priority has been increasing, therefore mitigating potential sound issues due to high CPU usage on the main thread.
+  - RomFS initialization no longer makes romfs:/ the default device.
+
+* Bug fixes:
+  - Fixed the timeout parameter in svcArbitrateAddress.
+  - Fixed svcSetTimer.
+
 ## Version 1.0.0
 
 * New features:
