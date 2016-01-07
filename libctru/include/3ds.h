@@ -55,6 +55,8 @@ extern "C" {
 #include <3ds/services/y2r.h>
 #include <3ds/services/hb.h>
 
+#include <3ds/services/ampxi.h>
+
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
 #include <3ds/gpu/gpu-old.h>
