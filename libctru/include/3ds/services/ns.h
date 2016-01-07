@@ -24,3 +24,9 @@ Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid);
  * @param titleid ID of the title to launch.
  */
 Result NS_RebootToTitle(u8 mediatype, u64 titleid);
+
+/**
+ * @brief Terminates the process with the specified titleid.
+ * @param titleid ID of the title to terminate.
+ */
+Result NS_TerminateProcessTID(u64 titleid);

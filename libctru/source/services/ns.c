@@ -59,3 +59,19 @@ Result NS_RebootToTitle(u8 mediatype, u64 titleid)
 
 	return (Result)cmdbuf[1];
 }
+
+Result NS_TerminateProcessTID(u64 titleid)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x11,4,0); // 0x110100
+	cmdbuf[1] = titleid & 0xffffffff;
+	cmdbuf[2] = (titleid >> 32) & 0xffffffff;
+	cmdbuf[3] = 0x0;
+	cmdbuf[4] = 0x0;
+
+	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
