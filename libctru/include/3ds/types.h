@@ -41,6 +41,7 @@ typedef volatile s64 vs64; ///< 64-bit volatile signed integer.
 typedef u32 Handle;                 ///< Resource handle.
 typedef s32 Result;                 ///< Function result.
 typedef void (*ThreadFunc)(void *); ///< Thread entrypoint function.
+typedef void (*voidfn)(void);
 
 /// Creates a bitmask from a bit number.
 #define BIT(n) (1U<<(n))
