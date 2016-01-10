@@ -30,13 +30,14 @@ struct hostent* gethostbyname(const char *name)
 	staticbufs[1] = (u32)outbuf;
 
 	ret = svcSendSyncRequest(SOCU_handle);
+
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
+
 	if(ret != 0) {
 		h_errno = NO_RECOVERY;
 		return NULL;
 	}
-
-	staticbufs[0] = saved_threadstorage[0];
-	staticbufs[1] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret == 0)
