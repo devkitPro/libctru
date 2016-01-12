@@ -7,7 +7,7 @@
 
 #define PF_UNSPEC	0
 #define PF_INET		2
-#define PF_INET6	10
+#define PF_INET6	23
 
 #define AF_UNSPEC	PF_UNSPEC
 #define AF_INET		PF_INET
