@@ -27,6 +27,7 @@ static int sdmc_translate_error(Result error);
 static int       sdmc_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
 static int       sdmc_close(struct _reent *r, int fd);
 static ssize_t   sdmc_write(struct _reent *r, int fd, const char *ptr, size_t len);
+static ssize_t   sdmc_write_safe(struct _reent *r, int fd, const char *ptr, size_t len);
 static ssize_t   sdmc_read(struct _reent *r, int fd, char *ptr, size_t len);
 static off_t     sdmc_seek(struct _reent *r, int fd, off_t pos, int dir);
 static int       sdmc_fstat(struct _reent *r, int fd, struct stat *st);
@@ -72,7 +73,7 @@ sdmc_devoptab =
   .structSize   = sizeof(sdmc_file_t),
   .open_r       = sdmc_open,
   .close_r      = sdmc_close,
-  .write_r      = sdmc_write,
+  .write_r      = sdmc_write_safe,
   .read_r       = sdmc_read,
   .seek_r       = sdmc_seek,
   .fstat_r      = sdmc_fstat,
@@ -280,6 +281,21 @@ Result sdmcInit(void)
   return rc;
 }
 
+/*! Enable/disable safe sdmc_write
+ *
+ *  Safe sdmc_write is enabled by default. If it is disabled, you will be
+ *  unable to write from read-only buffers.
+ *
+ *  @param[in] enable Whether to enable
+ */
+void sdmcWriteSafe(bool enable)
+{
+  if(enable)
+    sdmc_devoptab.write_r = sdmc_write_safe;
+  else
+    sdmc_devoptab.write_r = sdmc_write;
+}
+
 /*! Clean up SDMC device */
 Result sdmcExit(void)
 {
@@ -444,6 +460,64 @@ sdmc_write(struct _reent *r,
            size_t        len)
 {
   Result      rc;
+  u32         bytes;
+  u32         sync = 0;
+
+  /* get pointer to our data */
+  sdmc_file_t *file = (sdmc_file_t*)fd;
+
+  /* check that the file was opened with write access */
+  if((file->flags & O_ACCMODE) == O_RDONLY)
+  {
+    r->_errno = EBADF;
+    return -1;
+  }
+
+  /* check if this is synchronous or not */
+  if(file->flags & O_SYNC)
+    sync = FS_WRITE_FLUSH | FS_WRITE_UPDATE_TIME;
+
+  if(file->flags & O_APPEND)
+  {
+    /* append means write from the end of the file */
+    rc = FSFILE_GetSize(file->fd, &file->offset);
+    if(R_FAILED(rc))
+    {
+      r->_errno = sdmc_translate_error(rc);
+      return -1;
+    }
+  }
+
+  rc = FSFILE_Write(file->fd, &bytes, file->offset,
+                    (u32*)ptr, len, sync);
+  if(R_FAILED(rc))
+  {
+    r->_errno = sdmc_translate_error(rc);
+    return -1;
+  }
+
+  file->offset += bytes;
+
+  return bytes;
+}
+
+/*! Write to an open file
+ *
+ *  @param[in,out] r   newlib reentrancy struct
+ *  @param[in,out] fd  Pointer to sdmc_file_t
+ *  @param[in]     ptr Pointer to data to write
+ *  @param[in]     len Length of data to write
+ *
+ *  @returns number of bytes written
+ *  @returns -1 for error
+ */
+static ssize_t
+sdmc_write_safe(struct _reent *r,
+                int           fd,
+                const char    *ptr,
+                size_t        len)
+{
+  Result      rc;
   u32         bytes, bytesWritten = 0;
   u32         sync = 0;
 
@@ -459,7 +533,7 @@ sdmc_write(struct _reent *r,
 
   /* check if this is synchronous or not */
   if(file->flags & O_SYNC)
-    sync = FS_WRITE_FLUSH;
+    sync = FS_WRITE_FLUSH | FS_WRITE_UPDATE_TIME;
 
   if(file->flags & O_APPEND)
   {

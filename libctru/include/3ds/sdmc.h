@@ -9,5 +9,8 @@
 /// Initializes the SDMC driver.
 Result sdmcInit(void);
 
+/// Enable/disable copy in sdmc_write
+void sdmcWriteSafe(bool enable);
+
 /// Exits the SDMC driver.
 Result sdmcExit(void);
