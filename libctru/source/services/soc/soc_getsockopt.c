@@ -30,13 +30,14 @@ int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optl
 	staticbufs[1] = (u32)optval;
 
 	ret = svcSendSyncRequest(SOCU_handle);
+	
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
+	
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;
 	}
-
-	staticbufs[0] = saved_threadstorage[0];
-	staticbufs[1] = saved_threadstorage[1];
 
 	ret = (int)cmdbuf[1];
 	if(ret == 0)

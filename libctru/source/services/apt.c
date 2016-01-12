@@ -940,6 +940,8 @@ Result APT_NotifyToWait(NS_APPID appID)
 
 Result APT_AppletUtility(u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2)
 {
+	u32 saved_threadstorage[2];
+	
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=IPC_MakeHeader(0x4B,3,2); // 0x4B00C2
 	cmdbuf[1]=a;
@@ -949,12 +951,19 @@ Result APT_AppletUtility(u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* bu
 	cmdbuf[5]=(u32)buf1;
 
 	u32 *staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0]=staticbufs[0];
+	saved_threadstorage[1]=staticbufs[1];
+	
 	staticbufs[0]=IPC_Desc_StaticBuffer(size2,0);
 	staticbufs[1]=(u32)buf2;
 	
-	Result ret=0;
-	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
-
+	Result ret=svcSendSyncRequest(aptuHandle);
+	
+	staticbufs[0]=saved_threadstorage[0];
+	staticbufs[1]=saved_threadstorage[1];
+	
+	if(R_FAILED(ret))return ret;
+	
 	if(out)*out=cmdbuf[2];
 
 	return cmdbuf[1];
