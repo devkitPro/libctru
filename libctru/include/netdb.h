@@ -17,6 +17,16 @@ struct hostent {
 	char	*h_addr;
 };
 
+
+#define AI_PASSIVE     0x01
+#define AI_CANONNAME   0x02
+#define AI_NUMERICHOST 0x04
+#define AI_NUMERICSERV 0x00 /* probably 0x08 but services names are never resolved */
+
+// doesn't apply to 3ds
+#define AI_ADDRCONFIG  0x00
+
+
 #define NI_MAXHOST     1025
 #define NI_MAXSERV       32
 
@@ -31,6 +41,16 @@ struct hostent {
 #define EAI_NONAME   (-305)
 #define EAI_SOCKTYPE (-307)
 
+struct addrinfo {
+	int             ai_flags;
+	int             ai_family;
+	int             ai_socktype;
+	int             ai_protocol;
+	socklen_t       ai_addrlen;
+	char            *ai_canonname;
+	struct sockaddr *ai_addr;
+	struct addrinfo *ai_next;
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +65,12 @@ extern "C" {
 	int getnameinfo(const struct sockaddr *sa, socklen_t salen,
 		char *host, socklen_t hostlen,
 		char *serv, socklen_t servlen, int flags);
+
+	int getaddrinfo(const char *node, const char *service,
+		const struct addrinfo *hints,
+		struct addrinfo **res);
+
+	void freeaddrinfo(struct addrinfo *ai);
 
 #ifdef __cplusplus
 }
