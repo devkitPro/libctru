@@ -72,6 +72,7 @@ extern "C" {
 
 	void freeaddrinfo(struct addrinfo *ai);
 
+	const char *gai_strerror(int ecode);
 #ifdef __cplusplus
 }
 #endif
