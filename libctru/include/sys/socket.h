@@ -7,7 +7,7 @@
 
 #define PF_UNSPEC	0
 #define PF_INET		2
-#define PF_INET6	10
+#define PF_INET6	23
 
 #define AF_UNSPEC	PF_UNSPEC
 #define AF_INET		PF_INET
@@ -60,9 +60,10 @@ struct sockaddr {
 	char		sa_data[];
 };
 
+// biggest size on 3ds is 0x1C (sockaddr_in6)
 struct sockaddr_storage {
 	sa_family_t	ss_family;
-	char		__ss_padding[14];
+	char		__ss_padding[26];
 };
 
 struct linger {
