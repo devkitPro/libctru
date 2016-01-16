@@ -164,7 +164,7 @@ void osSetSpeedupEnable(bool enable)
 int usleep(useconds_t useconds)
 {
 
-	svcSleepThread(useconds * 1000);
+	svcSleepThread(useconds * 1000ull);
 
 	return 0;
 
