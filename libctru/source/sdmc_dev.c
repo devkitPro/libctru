@@ -58,13 +58,6 @@ typedef struct
   u64    offset; /*! Current file offset */
 } sdmc_file_t;
 
-/*! Open directory struct */
-typedef struct
-{
-  Handle    fd;                 /*! CTRU handle */
-  FS_DirectoryEntry entry_data; /*! Temporary storage for reading entries */
-} sdmc_dir_t;
-
 /*! SDMC devoptab */
 static devoptab_t
 sdmc_devoptab =

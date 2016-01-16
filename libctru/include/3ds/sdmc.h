@@ -5,6 +5,14 @@
 #pragma once
 
 #include <3ds/types.h>
+#include <3ds/services/fs.h>
+
+/*! Open directory struct */
+typedef struct
+{
+  Handle    fd;                 /*! CTRU handle */
+  FS_DirectoryEntry entry_data; /*! Temporary storage for reading entries */
+} sdmc_dir_t;
 
 /// Initializes the SDMC driver.
 Result sdmcInit(void);
