@@ -887,7 +887,7 @@ sdmc_mkdir(struct _reent *r,
            const char    *path,
            int           mode)
 {
-  Result rc;
+  Result  rc;
   FS_Path fs_path;
 
   fs_path = sdmc_utf16path(r, path);
@@ -897,7 +897,12 @@ sdmc_mkdir(struct _reent *r,
   /* TODO: Use mode to set directory attributes. */
 
   rc = FSUSER_CreateDirectory(sdmcArchive, fs_path, 0);
-  if(R_SUCCEEDED(rc))
+  if(rc == 0xC82044BE)
+  {
+    r->_errno = EEXIST;
+    return -1;
+  }
+  else if(R_SUCCEEDED(rc))
     return 0;
 
   r->_errno = sdmc_translate_error(rc);
