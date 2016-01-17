@@ -27,9 +27,9 @@ static inline uint16_t ntohs(uint16_t netshort)
 extern "C" {
 #endif
 
-	in_addr_t	inet_addr(const char *cp);
-	int		inet_aton(const char *cp, struct in_addr *inp);
-	char*		inet_ntoa(struct in_addr in);
+	in_addr_t inet_addr(const char *cp);
+	int       inet_aton(const char *cp, struct in_addr *inp);
+	char*     inet_ntoa(struct in_addr in);
 
 #ifdef __cplusplus
 }
