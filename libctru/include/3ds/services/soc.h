@@ -27,3 +27,6 @@ Result socExit(void);
  */
 long gethostid(void);
 
+int SOCU_ShutdownSockets();
+
+int SOCU_CloseSockets();
