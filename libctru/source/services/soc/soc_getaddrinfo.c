@@ -1,5 +1,6 @@
 #include "soc_common.h"
 #include <netdb.h>
+#include <arpa/inet.h>
 #include <3ds/ipc.h>
 #include <3ds/result.h>
 #include <stdlib.h>
@@ -52,6 +53,7 @@ static struct addrinfo * buffer2addrinfo(addrinfo_3ds_t * entry)
 
 		memcpy(ai->ai_canonname, entry->ai_canonname, ai_canonname_len);
 		memcpy(ai->ai_addr, &entry->ai_addr, ai->ai_addrlen);
+		ai->ai_addr->sa_family = ntohs(ai->ai_addr->sa_family) & 0xFF; // Clear sa_len to match the API
 	}
 	return ai;
 }
