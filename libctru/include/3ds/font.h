@@ -129,12 +129,12 @@ typedef struct
 	float xOffset;  ///< Horizontal offset to draw the glyph width.
 	float xAdvance; ///< Horizontal distance to advance after drawing the glyph.
 	float width;    ///< Glyph width.
-	///< Texture coordinates to use to render the glyph.
+	/// Texture coordinates to use to render the glyph.
 	struct
 	{
 		float left, top, right, bottom;
 	} texcoord;
-	///< Vertex coordinates to use to render the glyph.
+	/// Vertex coordinates to use to render the glyph.
 	struct
 	{
 		float left, top, right, bottom;

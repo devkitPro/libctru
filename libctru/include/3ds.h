@@ -82,6 +82,7 @@ extern "C" {
  * @example graphics/printing/both-screen-text/source/main.c
  * @example graphics/printing/colored-text/source/main.c
  * @example graphics/printing/multiple-windows-text/source/main.c
+ * @example graphics/printing/system-font/source/main.c
  * @example graphics/gpu/fragment_light/source/main.c
  * @example graphics/gpu/geoshader/source/main.c
  * @example graphics/gpu/gpusprites/source/main.c
