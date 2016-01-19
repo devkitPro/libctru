@@ -224,7 +224,7 @@ Result romfsExit(void)
 	if (!romFS_active) return 0;
 	romFS_active = false;
 
-	RemoveDevice("romfs");
+	RemoveDevice("romfs:");
 	FSFILE_Close(romFS_file);
 	free(dirHashTable);
 	free(fileHashTable);

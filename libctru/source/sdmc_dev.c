@@ -299,7 +299,7 @@ Result sdmcExit(void)
   rc = FSUSER_CloseArchive(&sdmcArchive);
   if(R_SUCCEEDED(rc))
   {
-    RemoveDevice("sdmc");
+    RemoveDevice("sdmc:");
     sdmcInitialised = false;
   }
 
