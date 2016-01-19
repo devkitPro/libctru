@@ -444,3 +444,9 @@ Result APT_PrepareToStartSystemApplet(NS_APPID appID);
  */
 Result APT_StartSystemApplet(NS_APPID appID, u32 bufSize, Handle applHandle, u8 *buf);
 
+/**
+ * @brief Retrieves the shared system font.
+ * @brief fontHandle Pointer to write the handle of the system font memory block to.
+ * @brief mapAddr Pointer to write the mapping address of the system font memory block to.
+ */
+Result APT_GetSharedFont(Handle* fontHandle, u32* mapAddr);

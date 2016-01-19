@@ -1342,3 +1342,16 @@ Result APT_StartSystemApplet(NS_APPID appID, u32 bufSize, Handle applHandle, u8 
 	return cmdbuf[1];
 }
 
+Result APT_GetSharedFont(Handle* fontHandle, u32* mapAddr)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x44,0,0); // 0x00440000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(aptuHandle)))return ret;
+
+	if(fontHandle) *fontHandle = cmdbuf[4];
+	if(mapAddr) *mapAddr = cmdbuf[2];
+
+	return cmdbuf[1];
+}
