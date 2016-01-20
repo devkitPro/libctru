@@ -31,8 +31,8 @@ extern "C" {
 	int       inet_aton(const char *cp, struct in_addr *inp);
 	char*     inet_ntoa(struct in_addr in);
 
-	const char *inet_ntop(int af, const void *restrict src, char *restrict dst, socklen_t size);
-	int        inet_pton(int af, const char *restrict src, void *restrict dst);
+	const char *inet_ntop(int af, const void * src, char * dst, socklen_t size);
+	int        inet_pton(int af, const char * src, void * dst);
 
 #ifdef __cplusplus
 }
