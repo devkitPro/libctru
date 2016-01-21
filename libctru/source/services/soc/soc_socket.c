@@ -1,5 +1,6 @@
 #include "soc_common.h"
 #include <errno.h>
+#include <netinet/in.h>
 #include <sys/iosupport.h>
 #include <sys/socket.h>
 #include <3ds/ipc.h>
@@ -13,10 +14,14 @@ int socket(int domain, int type, int protocol)
 
 	// The protocol on the 3DS *must* be 0 to work
 	// To that end, when appropriate, we will make the change for the user
-	if (domain == AF_INET && type == SOCK_STREAM && protocol == 6) {
+	if (domain == AF_INET
+	&& type == SOCK_STREAM
+	&& protocol == IPPROTO_TCP) {
 		protocol = 0; // TCP is the only option, so 0 will work as expected
 	}
-	if (domain == AF_INET && type == SOCK_DGRAM && protocol == 17) {
+	if (domain == AF_INET
+	&& type == SOCK_DGRAM
+	&& protocol == IPPROTO_UDP) {
 		protocol = 0; // UDP is the only option, so 0 will work as expected
 	}
 
