@@ -20,12 +20,15 @@ Result socInit(u32 *context_addr, u32 context_size);
  */
 Result socExit(void);
 
-// this is supposed to be in unistd.h but newlib only puts it for cygwin
+// this is supposed to be in unistd.h but newlib only puts it for cygwin, waiting for newlib patch from dkA
 /**
  * @brief Gets the system's host ID.
  * @return The system's host ID.
  */
 long gethostid(void);
+
+// this is supposed to be in unistd.h but newlib only puts it for cygwin, waiting for newlib patch from dkA
+int gethostname(char *name, size_t namelen);
 
 int SOCU_ShutdownSockets();
 
