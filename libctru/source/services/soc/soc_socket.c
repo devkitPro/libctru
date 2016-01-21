@@ -11,6 +11,15 @@ int socket(int domain, int type, int protocol)
 	__handle *handle;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
+	// The protocol on the 3DS *must* be 0 to work
+	// To that end, when appropriate, we will make the change for the user
+	if (domain == AF_INET && type == SOCK_STREAM && protocol == 6) {
+		protocol = 0; // TCP is the only option, so 0 will work as expected
+	}
+	if (domain == AF_INET && type == SOCK_DGRAM && protocol == 17) {
+		protocol = 0; // UDP is the only option, so 0 will work as expected
+	}
+
 	cmdbuf[0] = IPC_MakeHeader(0x2,3,2); // 0x200C2
 	cmdbuf[1] = domain;
 	cmdbuf[2] = type;
