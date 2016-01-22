@@ -77,7 +77,7 @@ Result NEWS_GetTotalNotifications(u32* num)
 	return (Result)cmdbuf[1];
 }
 
-Result NEWS_SetNotificationHeader(u32 news_id, NotificationHeader header)
+Result NEWS_SetNotificationHeader(u32 news_id, const NotificationHeader* header)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -86,7 +86,7 @@ Result NEWS_SetNotificationHeader(u32 news_id, NotificationHeader header)
 	cmdbuf[1] = news_id;
 	cmdbuf[2] = sizeof(NotificationHeader);
 	cmdbuf[3] = IPC_Desc_Buffer(sizeof(NotificationHeader),IPC_BUFFER_R);
-	cmdbuf[4] = (u32)&header;
+	cmdbuf[4] = (u32)header;
 	
 	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
 	return (Result)cmdbuf[1];	

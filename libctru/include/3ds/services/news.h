@@ -44,9 +44,9 @@ Result NEWS_GetTotalNotifications(u32* num);
 /**
  * @brief Sets a custom header for a specific notification.
  * @param news_id Identification number of the notification.
- * @param header Notification header to set.
+ * @param header Pointer to the notification header to set.
  */
-Result NEWS_SetNotificationHeader(u32 news_id, NotificationHeader header);
+Result NEWS_SetNotificationHeader(u32 news_id, const NotificationHeader* header);
 
 /**
  * @brief Gets the header of a specific notification.
@@ -68,4 +68,4 @@ Result NEWS_GetNotificationMessage(u32 news_id, u16* message);
  * @param buffer Pointer where MPO image of the notification will be saved.
  * @param size Pointer where size of the image data will be saved in bytes.
  */
-Result NEWS_GetNotificationImage(u32 id, u8* buffer, u32* size);
+Result NEWS_GetNotificationImage(u32 news_id, void* buffer, u32* size);
