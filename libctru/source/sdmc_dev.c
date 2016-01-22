@@ -1222,6 +1222,38 @@ sdmc_rmdir(struct _reent *r,
   return -1;
 }
 
+Result
+sdmc_getmtime(const char *name,
+              u64        *mtime)
+{
+  Result        rc;
+  FS_Path       fs_path;
+  struct _reent r;
+
+  r._errno = 0;
+
+  fs_path = sdmc_utf16path(&r, name);
+  if(r._errno != 0)
+    errno = r._errno;
+
+  if(fs_path.data == NULL)
+    return -1;
+
+  rc = FSUSER_ControlArchive(sdmcArchive, ARCHIVE_ACTION_GET_TIMESTAMP,
+                             (void*)fs_path.data, fs_path.size,
+                             mtime, sizeof(*mtime));
+  if(rc == 0)
+  {
+    /* convert from milliseconds to seconds */
+    *mtime /= 1000;
+    /* convert from 2000-based timestamp to UNIX timestamp */
+    *mtime += 946684800;
+  }
+
+  return rc;
+
+}
+
 /*! Error map */
 typedef struct
 {

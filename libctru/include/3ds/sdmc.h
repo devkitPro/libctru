@@ -22,3 +22,6 @@ void sdmcWriteSafe(bool enable);
 
 /// Exits the SDMC driver.
 Result sdmcExit(void);
+
+/// Get a file's mtime
+Result sdmc_getmtime(const char *name, u64 *mtime);
