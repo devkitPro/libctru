@@ -5,6 +5,7 @@
  * After initializing this service you will be able to use system calls from netdb.h, sys/socket.h etc.
  */
 #pragma once
+#include <netinet/in.h>
 
 /**
  * @brief Initializes the SOC service.
@@ -33,3 +34,9 @@ int gethostname(char *name, size_t namelen);
 int SOCU_ShutdownSockets();
 
 int SOCU_CloseSockets();
+
+/**
+ * @brief Gets the system's IP address, netmask, and subnet broadcast
+ * @return error
+ */
+int SOCU_GetIPInfo(struct in_addr *ip, struct in_addr *netmask, struct in_addr *broadcast);
