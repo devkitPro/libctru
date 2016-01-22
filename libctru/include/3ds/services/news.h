@@ -65,7 +65,7 @@ Result NEWS_GetNotificationMessage(u32 news_id, u16* message);
 /**
  * @brief Gets the image of a specific notification.
  * @param news_id Identification number of the notification.
- * @param message Pointer where MPO image of the notification will be saved.
+ * @param buffer Pointer where MPO image of the notification will be saved.
  * @param size Pointer where size of the image data will be saved in bytes.
  */
 Result NEWS_GetNotificationImage(u32 id, u8* buffer, u32* size);
