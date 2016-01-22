@@ -122,7 +122,7 @@ Result NEWS_GetNotificationMessage(u32 news_id, u16* message)
 	return (Result)cmdbuf[1];
 }
 
-Result NEWS_GetNotificationImage(u32 news_id, u8* buffer, u32* size)
+Result NEWS_GetNotificationImage(u32 news_id, void* buffer, u32* size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
