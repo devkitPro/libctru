@@ -11,10 +11,10 @@ typedef struct
 
 int SOCU_GetIPInfo(struct in_addr *ip, struct in_addr *netmask, struct in_addr *broadcast)
 {
-	int             i, ret;
-	u32             *cmdbuf     = getThreadCommandBuffer();
-	u32             *staticbufs = getThreadStaticBuffers();
-	u32             saved_threadstorage[2];
+	int           i, ret;
+	u32           *cmdbuf     = getThreadCommandBuffer();
+	u32           *staticbufs = getThreadStaticBuffers();
+	u32           saved_threadstorage[2];
 	SOCU_IPInfo_t info;
 
 	cmdbuf[0] = IPC_MakeHeader(0x1A,3,0); //0x1A00C0
