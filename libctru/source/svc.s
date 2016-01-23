@@ -404,6 +404,23 @@ SVC_BEGIN svcUnmapProcessMemory
 	svc 0x72
 	bx  lr
 
+SVC_BEGIN svcCreateCodeSet
+	str r0, [sp, #-0x4]!
+	ldr r0, [sp, #4]
+	svc 0x73
+	ldr r2, [sp, #0]
+	str r1, [r2]
+	add sp, sp, #4
+	bx  lr
+
+SVC_BEGIN svcCreateProcess
+	str r0, [sp, #-0x4]!
+	svc 0x75
+	ldr r2, [sp, #0]
+	str r1, [r2]
+	add sp, sp, #4
+	bx  lr
+
 SVC_BEGIN svcTerminateProcess
 	svc 0x76
 	bx  lr

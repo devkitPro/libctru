@@ -241,6 +241,30 @@ typedef struct {
 
 ///@}
 
+///@name Processes
+///@{
+
+/// Information on address space for process. All sizes are in pages (0x1000 bytes)
+typedef struct {
+	u8 name[8];           ///< ASCII name of codeset
+	u16 unk1;
+	u16 unk2;
+	u32 unk3;
+	u32 text_addr;        ///< .text start address
+	u32 text_size;        ///< .text number of pages
+	u32 ro_addr;          ///< .rodata start address
+	u32 ro_size;          ///< .rodata number of pages
+	u32 rw_addr;          ///< .data, .bss start address
+	u32 rw_size;          ///< .data number of pages
+	u32 text_size_total;  ///< total pages for .text (aligned)
+	u32 ro_size_total;    ///< total pages for .rodata (aligned)
+	u32 rw_size_total;    ///< total pages for .data, .bss (aligned)
+	u32 unk4;
+	u64 program_id;       ///< Program ID
+} CodeSetInfo;
+
+///@}
+
 /**
  * @brief Gets the thread local storage buffer.
  * @return The thread local storage bufger.
@@ -487,6 +511,25 @@ Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s
  * @param portName Name of the port.
  */
 Result svcConnectToPort(volatile Handle* out, const char* portName);
+
+/**
+ * @brief Sets up virtual address space for a new process
+ * @param[out] out Pointer to output the code set handle to.
+ * @param info Description for setting up the addresses
+ * @param code_ptr Pointer to .text in shared memory
+ * @param ro_ptr Pointer to .rodata in shared memory
+ * @param data_ptr Pointer to .data in shared memory
+ */
+Result svcCreateCodeSet(Handle* out, const CodeSetInfo *info, void* code_ptr, void* ro_ptr, void* data_ptr);
+
+/**
+ * @brief Sets up virtual address space for a new process
+ * @param[out] out Pointer to output the process handle to.
+ * @param codeset Codeset created for this process
+ * @param arm11kernelcaps ARM11 Kernel Capabilities from exheader
+ * @param arm11kernelcaps_num Number of kernel capabilities
+ */
+Result svcCreateProcess(Handle* out, Handle codeset, u32 *arm11kernelcaps, u32 arm11kernelcaps_num);
 ///@}
 
 ///@name Multithreading
