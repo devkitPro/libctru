@@ -42,9 +42,9 @@ INCLUDES	:=	include
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -Werror -O2 -mword-relocations \
-			-ffunction-sections -fno-strict-aliasing \
-			-fomit-frame-pointer \
+CFLAGS	:=	-g -Wall -Werror -Os -mword-relocations \
+			-flto -ffunction-sections -fdata-sections \
+			-fno-strict-aliasing -fomit-frame-pointer \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
