@@ -4,6 +4,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/synchronization.h>
+#include <3ds/services/fs.h>
 #include <3ds/services/ampxi.h>
 #include <3ds/ipc.h>
 
@@ -52,3 +53,22 @@ Result ampxiWriteTWLSavedata(u64 titleid, u8 *buffer, u32 size, u32 image_filepo
 
 	return (Result)cmdbuf[1];
 }
+
+Result ampxiInstallTitlesFinish(FS_MediaType mediaType, u8 db, u32 titlecount, u64 *tidlist)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x2A,3,2); // 0x2A00C2
+	cmdbuf[1] = mediaType;
+	cmdbuf[2] = titlecount;
+	cmdbuf[3] = db;
+
+	cmdbuf[4] = IPC_Desc_PXIBuffer(titlecount*8, 0, 0);
+	cmdbuf[5] = (u32)tidlist;
+
+	if(R_FAILED(ret = svcSendSyncRequest(ampxiHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
