@@ -81,6 +81,21 @@ u32  ndspChnGetSamplePos(int id);
  * @return The sequence ID of the wave buffer.
  */
 u16  ndspChnGetWaveBufSeq(int id);
+
+/**
+ * @brief Checks whether a channel is currently paused.
+ * @param id ID of the channel (0..23).
+ * @return Whether the channel is currently paused.
+ */
+bool ndspChnIsPaused(int id);
+
+/**
+ * @brief Sets the pause status of a channel.
+ * @param id ID of the channel (0..23).
+ * @param paused Whether the channel is to be paused (true) or unpaused (false).
+ */
+void ndspChnSetPaused(int id, bool paused);
+
 ///@}
 
 ///@name Configuration

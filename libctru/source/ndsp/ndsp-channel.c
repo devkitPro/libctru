@@ -24,7 +24,7 @@ typedef struct
 	ndspWaveBuf* waveBuf;
 	u16 wavBufCount, wavBufIdNext;
 
-	bool playing;
+	bool playing, paused;
 	u8 interpType, iirFilterType;
 
 	u16 format;
@@ -52,6 +52,7 @@ void ndspChnReset(int id)
 	chn->wavBufIdNext = 0;
 	chn->wavBufSeq = 0;
 	chn->playing = false;
+	chn->paused = false;
 	chn->interpType = 0;
 	chn->iirFilterType = 0;
 	chn->format = NDSP_FORMAT_PCM16;
@@ -87,6 +88,20 @@ u16 ndspChnGetWaveBufSeq(int id)
 void ndspChnSetFormat(int id, u16 format)
 {
 	ndspChn[id].format = format;
+}
+
+bool ndspChnIsPaused(int id)
+{
+	return ndspChn[id].paused;
+}
+
+void ndspChnSetPaused(int id, bool paused)
+{
+	ndspChnSt* chn = &ndspChn[id];
+	LightLock_Lock(&chn->lock);
+	chn->paused = paused;
+	chn->flags |= CFLAG_PLAYSTATUS;
+	LightLock_Unlock(&chn->lock);
 }
 
 void ndspChnSetInterp(int id, ndspInterpType type)
@@ -336,7 +351,7 @@ void ndspiUpdateChn(void)
 		if (flags & CFLAG_PLAYSTATUS)
 		{
 			u16 playStatus = st->playStatus &~ 0xFF;
-			if (chn->playing)
+			if (chn->playing && !chn->paused)
 				playStatus |= 1;
 			st->playStatus = playStatus;
 			stflags |= 0x10000;
