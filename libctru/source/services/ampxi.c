@@ -33,7 +33,7 @@ void ampxiExit(void)
 	svcCloseHandle(ampxiHandle);
 }
 
-Result ampxiWriteTWLSavedata(u64 titleid, u8 *buffer, u32 size, u32 image_filepos, u8 section_type, u8 operation)
+Result AMPXI_WriteTWLSavedata(u64 titleid, u8 *buffer, u32 size, u32 image_filepos, u8 section_type, u8 operation)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -54,7 +54,7 @@ Result ampxiWriteTWLSavedata(u64 titleid, u8 *buffer, u32 size, u32 image_filepo
 	return (Result)cmdbuf[1];
 }
 
-Result ampxiInstallTitlesFinish(FS_MediaType mediaType, u8 db, u32 titlecount, u64 *tidlist)
+Result AMPXI_InstallTitlesFinish(FS_MediaType mediaType, u8 db, u32 titlecount, u64 *tidlist)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();

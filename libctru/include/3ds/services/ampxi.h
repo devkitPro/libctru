@@ -22,7 +22,7 @@ void ampxiExit(void);
  * @param section_type https://www.3dbrew.org/wiki/AMPXI:WriteTWLSavedata
  * @param operation https://3dbrew.org/wiki/AM:ImportDSiWare
  */
-Result ampxiWriteTWLSavedata(u64 titleid, u8 *buffer, u32 size, u32 image_filepos, u8 section_type, u8 operation);
+Result AMPXI_WriteTWLSavedata(u64 titleid, u8 *buffer, u32 size, u32 image_filepos, u8 section_type, u8 operation);
 
 /**
  * @brief Finalizes title installation. https://3dbrew.org/wiki/AMPXI:InstallTitlesFinish
@@ -32,4 +32,4 @@ Result ampxiWriteTWLSavedata(u64 titleid, u8 *buffer, u32 size, u32 image_filepo
  * @param titlecount Total titles.
  * @param tidlist List of titleIDs.
  */
-Result ampxiInstallTitlesFinish(FS_MediaType mediaType, u8 db, u32 titlecount, u64 *tidlist);
+Result AMPXI_InstallTitlesFinish(FS_MediaType mediaType, u8 db, u32 titlecount, u64 *tidlist);
