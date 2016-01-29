@@ -170,7 +170,7 @@ Result HTTPC_CreateContext(Handle handle, char* url, Handle* contextHandle)
 
 	cmdbuf[0]=IPC_MakeHeader(0x2,2,2); // 0x20082
 	cmdbuf[1]=l;
-	cmdbuf[2]=0x01; //unk
+	cmdbuf[2]=0x01; //0x01 == GET, 0x02 == POST, more to be determined.
 	cmdbuf[3]=IPC_Desc_Buffer(l,IPC_BUFFER_R);
 	cmdbuf[4]=(u32)url;
 	
