@@ -33,11 +33,11 @@ void httpcExit(void)
 	svcCloseHandle(__httpc_servhandle);
 }
 
-Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy)
+Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, char* url, u32 use_defaultproxy)
 {
 	Result ret=0;
 
-	ret = HTTPC_CreateContext(__httpc_servhandle, url, &context->httphandle);
+	ret = HTTPC_CreateContext(__httpc_servhandle, method, url, &context->httphandle);
 	if(R_FAILED(ret))return ret;
 
 	ret = srvGetServiceHandle(&context->servhandle, "http:C");
@@ -163,14 +163,14 @@ Result HTTPC_Initialize(Handle handle)
 	return cmdbuf[1];
 }
 
-Result HTTPC_CreateContext(Handle handle, char* url, Handle* contextHandle)
+Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, char* url, Handle* contextHandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	u32 l=strlen(url)+1;
 
 	cmdbuf[0]=IPC_MakeHeader(0x2,2,2); // 0x20082
 	cmdbuf[1]=l;
-	cmdbuf[2]=0x01; // 0x01 == GET, 0x02 == POST, 0x03 == HEAD, 0x04 == PUT, 0x05 == DELETE
+	cmdbuf[2]=method;
         cmdbuf[3]=IPC_Desc_Buffer(l,IPC_BUFFER_R);
 	cmdbuf[4]=(u32)url;
 	

@@ -10,6 +10,15 @@ typedef struct {
 	u32 httphandle;    ///< HTTP handle.
 } httpcContext;
 
+/// HTTP request method.
+typedef enum {
+	HTTPC_METHOD_GET = 0x1,
+	HTTPC_METHOD_POST = 0x2,
+	HTTPC_METHOD_HEAD = 0x3,
+	HTTPC_METHOD_PUT = 0x4,
+	HTTPC_METHOD_DELETE = 0x5
+} HTTPC_RequestMethod;
+
 /// HTTP request status.
 typedef enum {
 	HTTPC_STATUS_REQUEST_IN_PROGRESS = 0x5, ///< Request in progress.
@@ -31,7 +40,7 @@ void httpcExit(void);
  * @param url URL to connect to.
  * @param use_defaultproxy Whether the default proxy should be used (0 for default)
  */
-Result httpcOpenContext(httpcContext *context, char* url, u32 use_defaultproxy);
+Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, char* url, u32 use_defaultproxy);
 
 /**
  * @brief Closes a HTTP context.
@@ -124,7 +133,7 @@ Result HTTPC_InitializeConnectionSession(Handle handle, Handle contextHandle);
  * @param url URL to connect to.
  * @param contextHandle Pointer to output the created HTTP context handle to.
  */
-Result HTTPC_CreateContext(Handle handle, char* url, Handle* contextHandle);
+Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, char* url, Handle* contextHandle);
 
 /**
  * @brief Closes a HTTP context.
