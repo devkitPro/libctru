@@ -113,12 +113,13 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay)
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize)
 {
 	Result ret=0;
-	u32 contentsize=0;
 	u32 pos=0, sz=0;
+	u32 dlstartpos=0;
+	u32 dlpos=0;
 
 	if(downloadedsize)*downloadedsize = 0;
 
-	ret=httpcGetDownloadSizeState(context, NULL, &contentsize);
+	ret=httpcGetDownloadSizeState(context, &dlstartpos, NULL);
 	if(R_FAILED(ret))return ret;
 
 	while(pos < size)
@@ -126,25 +127,23 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 		sz = size - pos;
 
 		ret=httpcReceiveData(context, &buffer[pos], sz);
+		if(ret!=HTTPC_RESULTCODE_DOWNLOADPENDING)break;
 
-		if(ret==HTTPC_RESULTCODE_DOWNLOADPENDING)
-		{
-			ret=httpcGetDownloadSizeState(context, &pos, NULL);
-			if(R_FAILED(ret))return ret;
-		}
-		else if(R_FAILED(ret))
-		{
-			return ret;
-		}
-		else
-		{
-			pos+= sz;
-		}
+		ret=httpcGetDownloadSizeState(context, &dlpos, NULL);
+		if(R_FAILED(ret))return ret;
 
-		if(downloadedsize)*downloadedsize = pos;
+		pos = dlpos - dlstartpos;
 	}
 
-	return 0;
+	// This duplication is awful, but if I reorder the loop to avoid it
+	// then I get failure returns from httpcReceiveData()... wtf?
+	ret=httpcGetDownloadSizeState(context, &dlpos, NULL);
+	if(R_FAILED(ret))return ret;
+	pos = dlpos - dlstartpos;
+
+	if(downloadedsize)*downloadedsize = pos;
+
+	return ret;
 }
 
 Result HTTPC_Initialize(Handle handle)
@@ -152,10 +151,10 @@ Result HTTPC_Initialize(Handle handle)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x1,1,4); // 0x10044
-	cmdbuf[1]=0x1000; //unk
+	cmdbuf[1]=0x1000; // POST buffer size (page aligned)
 	cmdbuf[2]=IPC_Desc_CurProcessHandle();
 	cmdbuf[4]=IPC_Desc_SharedHandles(1);
-	cmdbuf[5]=0;//Some sort of handle.
+	cmdbuf[5]=0;// POST buffer memory block handle
 	
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
