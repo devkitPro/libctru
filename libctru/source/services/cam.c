@@ -6,6 +6,7 @@
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/ipc.h>
+#include <string.h>
 
 Handle camHandle;
 static int camRefCount;
@@ -534,7 +535,7 @@ Result CAMU_GetStereoCameraCalibrationData(CAMU_StereoCameraCalibrationData* dat
 	cmdbuf[0] = IPC_MakeHeader(0x2B,0,0); // 0x2B0000
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
-	*data = *(CAMU_StereoCameraCalibrationData*) cmdbuf[2];
+	memcpy(data, &cmdbuf[2], sizeof(*data));
 	return cmdbuf[1];
 }
 
@@ -542,7 +543,7 @@ Result CAMU_SetStereoCameraCalibrationData(CAMU_StereoCameraCalibrationData data
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x2C,16,0); // 0x2C0400
-	*(CAMU_StereoCameraCalibrationData*) cmdbuf[1] = data;
+	memcpy(&cmdbuf[1], &data, sizeof(data));
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
@@ -600,7 +601,7 @@ Result CAMU_SetImageQualityCalibrationData(CAMU_ImageQualityCalibrationData data
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x31,6,0); // 0x310180
-	*(CAMU_ImageQualityCalibrationData*) cmdbuf[1] = data;
+	memcpy(&cmdbuf[1], &data, sizeof(data));
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
@@ -612,7 +613,7 @@ Result CAMU_GetImageQualityCalibrationData(CAMU_ImageQualityCalibrationData* dat
 	cmdbuf[0] = IPC_MakeHeader(0x32,0,0); // 0x320000
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
-	*data = *(CAMU_ImageQualityCalibrationData*) cmdbuf[2];
+	memcpy(data, &cmdbuf[2], sizeof(*data));
 	return cmdbuf[1];
 }
 
@@ -620,7 +621,7 @@ Result CAMU_SetPackageParameterWithoutContext(CAMU_PackageParameterCameraSelect 
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x33,11,0); // 0x3302C0
-	*(CAMU_PackageParameterCameraSelect*) cmdbuf[1] = param;
+	memcpy(&cmdbuf[1], &param, sizeof(param));
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
@@ -630,7 +631,7 @@ Result CAMU_SetPackageParameterWithContext(CAMU_PackageParameterContext param) {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x34,5,0); // 0x340140
-	*(CAMU_PackageParameterContext*) cmdbuf[1] = param;
+	memcpy(&cmdbuf[1], &param, sizeof(param));
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
@@ -640,7 +641,7 @@ Result CAMU_SetPackageParameterWithContextDetail(CAMU_PackageParameterContextDet
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x35,7,0); // 0x3501C0
-	*(CAMU_PackageParameterContextDetail*) cmdbuf[1] = param;
+	memcpy(&cmdbuf[1], &param, sizeof(param));
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
