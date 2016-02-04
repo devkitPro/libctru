@@ -1,3 +1,8 @@
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <inttypes.h>
+//#include <3ds.h>
+
 #include <string.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
@@ -113,6 +118,7 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay)
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize)
 {
 	Result ret=0;
+	Result dlret=HTTPC_RESULTCODE_DOWNLOADPENDING;
 	u32 pos=0, sz=0;
 	u32 dlstartpos=0;
 	u32 dlpos=0;
@@ -122,12 +128,11 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 	ret=httpcGetDownloadSizeState(context, &dlstartpos, NULL);
 	if(R_FAILED(ret))return ret;
 
-	while(pos < size)
+	while(pos < size && dlret==HTTPC_RESULTCODE_DOWNLOADPENDING)
 	{
 		sz = size - pos;
 
-		ret=httpcReceiveData(context, &buffer[pos], sz);
-		if(ret!=HTTPC_RESULTCODE_DOWNLOADPENDING)break;
+		dlret=httpcReceiveData(context, &buffer[pos], sz);
 
 		ret=httpcGetDownloadSizeState(context, &dlpos, NULL);
 		if(R_FAILED(ret))return ret;
@@ -135,15 +140,9 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 		pos = dlpos - dlstartpos;
 	}
 
-	// This duplication is awful, but if I reorder the loop to avoid it
-	// then I get failure returns from httpcReceiveData()... wtf?
-	ret=httpcGetDownloadSizeState(context, &dlpos, NULL);
-	if(R_FAILED(ret))return ret;
-	pos = dlpos - dlstartpos;
-
 	if(downloadedsize)*downloadedsize = pos;
 
-	return ret;
+	return dlret;
 }
 
 Result HTTPC_Initialize(Handle handle)
