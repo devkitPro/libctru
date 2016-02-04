@@ -18,7 +18,7 @@ Result nfcInit(void)
 	ret = srvGetServiceHandle(&nfcHandle, "nfc:u");
 	if (R_SUCCEEDED(ret))
 	{
-		ret = nfc_Initialize(0x02);
+		ret = NFC_Initialize(0x02);
 		if (R_FAILED(ret)) svcCloseHandle(nfcHandle);
 	}
 	if (R_FAILED(ret)) AtomicDecrement(&nfcRefCount);
