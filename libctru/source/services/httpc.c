@@ -1,8 +1,3 @@
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <inttypes.h>
-//#include <3ds.h>
-
 #include <string.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
@@ -169,7 +164,7 @@ Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, char* url,
 	cmdbuf[0]=IPC_MakeHeader(0x2,2,2); // 0x20082
 	cmdbuf[1]=l;
 	cmdbuf[2]=method;
-        cmdbuf[3]=IPC_Desc_Buffer(l,IPC_BUFFER_R);
+	cmdbuf[3]=IPC_Desc_Buffer(l,IPC_BUFFER_R);
 	cmdbuf[4]=(u32)url;
 	
 	Result ret=0;
