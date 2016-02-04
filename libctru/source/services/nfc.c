@@ -37,7 +37,7 @@ Handle nfcGetSessionHandle(void)
 	return nfcHandle;
 }
 
-Result nfc_Initialize(u8 type)
+Result NFC_Initialize(u8 type)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -52,7 +52,7 @@ Result nfc_Initialize(u8 type)
 	return ret;
 }
 
-Result nfc_Shutdown(u8 type)
+Result NFC_Shutdown(u8 type)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -67,7 +67,7 @@ Result nfc_Shutdown(u8 type)
 	return ret;
 }
 
-Result nfc_StartCommunication()
+Result NFC_StartCommunication(void)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -81,7 +81,7 @@ Result nfc_StartCommunication()
 	return ret;
 }
 
-Result nfc_StopCommunication()
+Result NFC_StopCommunication(void)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -95,7 +95,7 @@ Result nfc_StopCommunication()
 	return ret;
 }
 
-Result nfc_StartTagScanning(u16 unknown)
+Result NFC_StartTagScanning(u16 unknown)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -110,7 +110,7 @@ Result nfc_StartTagScanning(u16 unknown)
 	return ret;
 }
 
-Result nfc_StopTagScanning()
+Result NFC_StopTagScanning(void)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -124,7 +124,7 @@ Result nfc_StopTagScanning()
 	return ret;
 }
 
-Result nfc_LoadAmiiboData()
+Result NFC_LoadAmiiboData(void)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -138,7 +138,7 @@ Result nfc_LoadAmiiboData()
 	return ret;
 }
 
-Result nfc_ResetTagScanState()
+Result NFC_ResetTagScanState(void)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -152,7 +152,7 @@ Result nfc_ResetTagScanState()
 	return ret;
 }
 
-Result nfc_GetTagState(u8 *state)
+Result NFC_GetTagState(u8 *state)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
