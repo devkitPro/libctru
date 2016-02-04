@@ -28,6 +28,9 @@ typedef enum {
 /// Result code returned when a download is pending.
 #define HTTPC_RESULTCODE_DOWNLOADPENDING 0xd840a02b
 
+// Result code returned when asked about a non-existing header
+#define HTTPC_RESULTCODE_NOTFOUND 0xd840a028
+
 /// Initializes HTTPC.
 Result httpcInit(void);
 
