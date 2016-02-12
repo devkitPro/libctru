@@ -1,4 +1,6 @@
 #include <string.h>
+#include <stdlib.h>
+#include <malloc.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/svc.h>
@@ -10,7 +12,11 @@
 Handle __httpc_servhandle;
 static int __httpc_refcount;
 
-Result httpcInit(void)
+u32 *__httpc_sharedmem_addr;
+static u32 __httpc_sharedmem_size;
+static Handle __httpc_sharedmem_handle;
+
+Result httpcInit(u32 sharedmem_size)
 {
 	Result ret=0;
 
@@ -19,10 +25,31 @@ Result httpcInit(void)
 	ret = srvGetServiceHandle(&__httpc_servhandle, "http:C");
 	if (R_SUCCEEDED(ret))
 	{
-		ret = HTTPC_Initialize(__httpc_servhandle);
+		__httpc_sharedmem_size = sharedmem_size;
+		__httpc_sharedmem_handle = 0;
+
+		if(__httpc_sharedmem_size)
+		{
+			__httpc_sharedmem_addr = memalign(0x1000, __httpc_sharedmem_size);
+			if(__httpc_sharedmem_addr==NULL)ret = -1;
+
+			if (R_SUCCEEDED(ret))ret = svcCreateMemoryBlock(&__httpc_sharedmem_handle, (u32)__httpc_sharedmem_addr, __httpc_sharedmem_size, 0, 3);
+		}
+
+		if (R_SUCCEEDED(ret))ret = HTTPC_Initialize(__httpc_servhandle, __httpc_sharedmem_size, __httpc_sharedmem_handle);
 		if (R_FAILED(ret)) svcCloseHandle(__httpc_servhandle);
 	}
 	if (R_FAILED(ret)) AtomicDecrement(&__httpc_refcount);
+
+	if (R_FAILED(ret) && __httpc_sharedmem_handle)
+	{
+		svcCloseHandle(__httpc_sharedmem_handle);
+		__httpc_sharedmem_handle = 0;
+		__httpc_sharedmem_size = 0;
+
+		free(__httpc_sharedmem_addr);
+		__httpc_sharedmem_addr = NULL;
+	}
 
 	return ret;
 }
@@ -31,6 +58,16 @@ void httpcExit(void)
 {
 	if (AtomicDecrement(&__httpc_refcount)) return;
 	svcCloseHandle(__httpc_servhandle);
+
+	if(__httpc_sharedmem_handle)
+	{
+		svcCloseHandle(__httpc_sharedmem_handle);
+		__httpc_sharedmem_handle = 0;
+		__httpc_sharedmem_size = 0;
+
+		free(__httpc_sharedmem_addr);
+		__httpc_sharedmem_addr = NULL;
+	}
 }
 
 Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, char* url, u32 use_defaultproxy)
@@ -78,6 +115,11 @@ Result httpcCloseContext(httpcContext *context)
 Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value)
 {
 	return HTTPC_AddRequestHeaderField(context->servhandle, context->httphandle, name, value);
+}
+
+Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value)
+{
+	return HTTPC_AddPostDataAscii(context->servhandle, context->httphandle, name, value);
 }
 
 Result httpcBeginRequest(httpcContext *context)
@@ -140,15 +182,15 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 	return dlret;
 }
 
-Result HTTPC_Initialize(Handle handle)
+Result HTTPC_Initialize(Handle handle, u32 sharedmem_size, Handle sharedmem_handle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x1,1,4); // 0x10044
-	cmdbuf[1]=0x1000; // POST buffer size (page aligned)
+	cmdbuf[1]=sharedmem_size; // POST buffer size (page aligned)
 	cmdbuf[2]=IPC_Desc_CurProcessHandle();
 	cmdbuf[4]=IPC_Desc_SharedHandles(1);
-	cmdbuf[5]=0;// POST buffer memory block handle
+	cmdbuf[5]=sharedmem_handle;// POST buffer memory block handle
 	
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
@@ -223,6 +265,28 @@ Result HTTPC_AddRequestHeaderField(Handle handle, Handle contextHandle, char* na
 	int value_len=strlen(value)+1;
 
 	cmdbuf[0]=IPC_MakeHeader(0x11,3,4); // 0x1100C4
+	cmdbuf[1]=contextHandle;
+	cmdbuf[2]=name_len;
+	cmdbuf[3]=value_len;
+	cmdbuf[4]=IPC_Desc_StaticBuffer(name_len,3);
+	cmdbuf[5]=(u32)name;
+	cmdbuf[6]=IPC_Desc_Buffer(value_len,IPC_BUFFER_R);
+	cmdbuf[7]=(u32)value;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result HTTPC_AddPostDataAscii(Handle handle, Handle contextHandle, char* name, char* value)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	int name_len=strlen(name)+1;
+	int value_len=strlen(value)+1;
+
+	cmdbuf[0]=IPC_MakeHeader(0x12,3,4); // 0x1200C4
 	cmdbuf[1]=contextHandle;
 	cmdbuf[2]=name_len;
 	cmdbuf[3]=value_len;

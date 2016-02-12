@@ -31,8 +31,8 @@ typedef enum {
 // Result code returned when asked about a non-existing header
 #define HTTPC_RESULTCODE_NOTFOUND 0xd840a028
 
-/// Initializes HTTPC.
-Result httpcInit(void);
+/// Initializes HTTPC. For HTTP GET the sharedmem_size can be zero. The sharedmem contains data which will be later uploaded for HTTP POST. sharedmem_size should be aligned to 0x1000-bytes.
+Result httpcInit(u32 sharedmem_size);
 
 /// Exits HTTPC.
 void httpcExit(void);
@@ -58,6 +58,14 @@ Result httpcCloseContext(httpcContext *context);
  * @param value Value of the field.
  */
 Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value);
+
+/**
+ * @brief Adds a POST form field to a HTTP context.
+ * @param context Context to use.
+ * @param name Name of the field.
+ * @param value Value of the field.
+ */
+Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value);
 
 /**
  * @brief Begins a HTTP request.
@@ -121,7 +129,7 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
  * @brief Initializes HTTPC.
  * @param handle HTTPC service handle to use.
  */
-Result HTTPC_Initialize(Handle handle);
+Result HTTPC_Initialize(Handle handle, u32 sharedmem_size, Handle sharedmem_handle);
 
 /**
  * @brief Initializes a HTTP connection session.
@@ -160,6 +168,15 @@ Result HTTPC_SetProxyDefault(Handle handle, Handle contextHandle);
  * @param value of the field.
  */
 Result HTTPC_AddRequestHeaderField(Handle handle, Handle contextHandle, char* name, char* value);
+
+/**
+ * @brief Adds a POST form field to a HTTP context.
+ * @param handle HTTPC service handle to use.
+ * @param contextHandle HTTP context handle to use.
+ * @param name Name of the field.
+ * @param value of the field.
+ */
+Result HTTPC_AddPostDataAscii(Handle handle, Handle contextHandle, char* name, char* value);
 
 /**
  * @brief Begins a HTTP request.
