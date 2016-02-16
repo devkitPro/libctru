@@ -31,6 +31,9 @@ typedef struct Thread_tag* Thread;
  * - Processor #2 is New3DS exclusive. Normal applications can create threads on this core if the exheader kernel flags bitmask has 0x2000 set.
  * - Processor #3 is New3DS exclusive. Normal applications cannot create threads on this core.
  * - Processes in the BASE memory region can always create threads on processors #2 and #3.
+ *
+ * @note Default exit code of a thread is 0.
+ * @warning @ref svcExitThread should never be called from the thread, use @ref threadExit instead.
  */
 Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int prio, int affinity, bool detached);
 
