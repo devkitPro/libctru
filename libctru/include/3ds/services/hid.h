@@ -95,23 +95,23 @@ void hidExit(void);
 void hidScanInput(void);
 
 /**
- * @brief Gets the currently held keys.
- * Individual keys can be checked by ORing them with this value.
- * @return Keys held.
+ * @brief Returns a bitmask of held buttons.
+ * Individual buttons can be extracted using binary AND.
+ * @return 32-bit bitmask of held buttons (1+ frames).
  */
 u32 hidKeysHeld(void);
 
 /**
- * @brief Gets keys that were just pressed.
- * Individual keys can be checked by ORing them with this value.
- * @return Keys down.
+ * @brief Returns a bitmask of newly pressed buttons, this frame.
+ * Individual buttons can be extracted using binary AND.
+ * @return 32-bit bitmask of newly pressed buttons.
  */
 u32 hidKeysDown(void);
 
 /**
- * @brief Gets keys that were just released.
- * Individual keys can be checked by ORing them with this value.
- * @return Keys up.
+* @brief Returns a bitmask of newly released buttons, this frame.
+ * Individual buttons can be extracted using binary AND.
+ * @return 32-bit bitmask of newly released buttons.
  */
 u32 hidKeysUp(void);
 
