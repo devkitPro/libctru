@@ -33,7 +33,11 @@ Result httpcInit(u32 sharedmem_size)
 			__httpc_sharedmem_addr = memalign(0x1000, __httpc_sharedmem_size);
 			if(__httpc_sharedmem_addr==NULL)ret = -1;
 
-			if (R_SUCCEEDED(ret))ret = svcCreateMemoryBlock(&__httpc_sharedmem_handle, (u32)__httpc_sharedmem_addr, __httpc_sharedmem_size, 0, 3);
+			if (R_SUCCEEDED(ret))
+			{
+				memset(__httpc_sharedmem_addr, 0, __httpc_sharedmem_size);
+				ret = svcCreateMemoryBlock(&__httpc_sharedmem_handle, (u32)__httpc_sharedmem_addr, __httpc_sharedmem_size, 0, 3);
+			}
 		}
 
 		if (R_SUCCEEDED(ret))ret = HTTPC_Initialize(__httpc_servhandle, __httpc_sharedmem_size, __httpc_sharedmem_handle);
