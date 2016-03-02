@@ -126,6 +126,11 @@ Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value)
 	return HTTPC_AddPostDataAscii(context->servhandle, context->httphandle, name, value);
 }
 
+Result httpcAddPostDataRaw(httpcContext *context, u32* data, u32 len)
+{
+	return HTTPC_AddPostDataRaw(context->servhandle, context->httphandle, data, len);
+}
+
 Result httpcBeginRequest(httpcContext *context)
 {
 	return HTTPC_BeginRequest(context->servhandle, context->httphandle);
@@ -302,6 +307,24 @@ Result HTTPC_AddPostDataAscii(Handle handle, Handle contextHandle, char* name, c
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
+	return cmdbuf[1];
+}
+
+Result HTTPC_AddPostDataRaw(Handle handle, Handle contextHandle, u32* data, u32 len)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x14, 2, 2); // 0x140082
+	cmdbuf[1]=contextHandle;
+	cmdbuf[2]=len;
+	cmdbuf[3]=IPC_Desc_Buffer(len, IPC_BUFFER_R);
+	cmdbuf[4]=(u32)data;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))
+	{
+		return ret;
+	}
 	return cmdbuf[1];
 }
 
