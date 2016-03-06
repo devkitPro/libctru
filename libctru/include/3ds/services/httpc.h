@@ -68,6 +68,14 @@ Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value
 Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value);
 
 /**
+ * @brief Adds a POST body to a HTTP context.
+ * @param context Context to use.
+ * @param data The data to be passed as raw into the body of the post request.
+ * @param len Length of data passed by data param.
+ */
+Result httpcAddPostDataRaw(httpcContext *context, u32* data, u32 len);
+
+/**
  * @brief Begins a HTTP request.
  * @param context Context to use.
  */
@@ -177,6 +185,15 @@ Result HTTPC_AddRequestHeaderField(Handle handle, Handle contextHandle, char* na
  * @param value of the field.
  */
 Result HTTPC_AddPostDataAscii(Handle handle, Handle contextHandle, char* name, char* value);
+
+/**
+ * @brief Adds a POST body to a HTTP context.
+ * @param handle HTTPC service handle to use.
+ * @param contextHandle HTTP context handle to use.
+ * @param data Data to be passed as raw into the body of the post request.
+ * @param len Length of data passed by data param.
+ */
+Result HTTPC_AddPostDataRaw(Handle handle, Handle contextHandle, u32* data, u32 len);
 
 /**
  * @brief Begins a HTTP request.
