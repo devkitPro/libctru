@@ -164,6 +164,11 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay)
 	return HTTPC_GetResponseStatusCode(context->servhandle, context->httphandle, out);
 }
 
+Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize)
+{
+	return HTTPC_AddTrustedRootCA(context->servhandle, context->httphandle, cert, certsize);
+}
+
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize)
 {
 	Result ret=0;
@@ -435,6 +440,22 @@ Result HTTPC_GetResponseStatusCode(Handle handle, Handle contextHandle, u32* out
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	*out = cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+Result HTTPC_AddTrustedRootCA(Handle handle, Handle contextHandle, u8 *cert, u32 certsize)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x24,2,2); // 0x240082
+	cmdbuf[1]=contextHandle;
+	cmdbuf[2]=certsize;
+	cmdbuf[3]=IPC_Desc_Buffer(certsize, IPC_BUFFER_R);
+	cmdbuf[4]=(u32)cert;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
 	return cmdbuf[1];
 }

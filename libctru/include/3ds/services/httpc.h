@@ -122,6 +122,14 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);
 Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u32 valuebuf_maxsize);
 
 /**
+ * @brief Adds a trusted RootCA cert to a HTTP context.
+ * @param context Context to use.
+ * @param cert Pointer to DER cert.
+ * @param certsize Size of the DER cert.
+ */
+Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize);
+
+/**
  * @brief Downloads data from the HTTP context into a buffer.
  * The *entire* content must be downloaded before using httpcCloseContext(), otherwise httpcCloseContext() will hang.
  * @param context Context to download data from.
@@ -251,4 +259,13 @@ Result HTTPC_GetResponseHeader(Handle handle, Handle contextHandle, char* name, 
  * @param out Pointer to output the status code to.
  */
 Result HTTPC_GetResponseStatusCode(Handle handle, Handle contextHandle, u32* out);
+
+/**
+ * @brief Adds a trusted RootCA cert to a HTTP context.
+ * @param handle HTTPC service handle to use.
+ * @param contextHandle HTTP context handle to use.
+ * @param cert Pointer to DER cert.
+ * @param certsize Size of the DER cert.
+ */
+Result HTTPC_AddTrustedRootCA(Handle handle, Handle contextHandle, u8 *cert, u32 certsize);
 
