@@ -140,6 +140,12 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 Result HTTPC_Initialize(Handle handle, u32 sharedmem_size, Handle sharedmem_handle);
 
 /**
+ * @brief Finalizes HTTPC.
+ * @param handle HTTPC service handle to use.
+ */
+Result HTTPC_Finalize(Handle handle);
+
+/**
  * @brief Initializes a HTTP connection session.
  * @param handle HTTPC service handle to use.
  * @param contextHandle HTTP context handle to use.

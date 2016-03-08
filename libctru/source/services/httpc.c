@@ -61,6 +61,9 @@ Result httpcInit(u32 sharedmem_size)
 void httpcExit(void)
 {
 	if (AtomicDecrement(&__httpc_refcount)) return;
+
+	HTTPC_Finalize(__httpc_servhandle);
+
 	svcCloseHandle(__httpc_servhandle);
 
 	if(__httpc_sharedmem_handle)
@@ -201,6 +204,18 @@ Result HTTPC_Initialize(Handle handle, u32 sharedmem_size, Handle sharedmem_hand
 	cmdbuf[4]=IPC_Desc_SharedHandles(1);
 	cmdbuf[5]=sharedmem_handle;// POST buffer memory block handle
 	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result HTTPC_Finalize(Handle handle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x39,0,0); // 0x390000
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
