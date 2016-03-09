@@ -40,6 +40,7 @@ extern "C" {
 #include <3ds/services/hid.h>
 #include <3ds/services/irrst.h>
 #include <3ds/services/httpc.h>
+#include <3ds/services/sslc.h>
 #include <3ds/services/ir.h>
 #include <3ds/services/ns.h>
 #include <3ds/services/pm.h>
