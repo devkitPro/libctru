@@ -286,7 +286,7 @@ Result HIDUSER_GetGyroscopeRawToDpsCoefficient(float *coeff)
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(hidHandle)))return ret;
 
-	*coeff = (float)cmdbuf[2];
+	*coeff = *(float*)(cmdbuf+2);
 
 	return cmdbuf[1];
 }
