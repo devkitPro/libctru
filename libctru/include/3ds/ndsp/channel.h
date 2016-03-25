@@ -167,12 +167,69 @@ void ndspChnWaveBufAdd(int id, ndspWaveBuf* buf);
  * @param enable Whether to enable the IIR monopole filter.
  */
 void ndspChnIirMonoSetEnable(int id, bool enable);
-//   ndspChnIirMonoSetParams
+/**
+ * @brief Manually sets up the parameters on monopole filter
+ * @param id ID of the channel (0..23).
+ * @param enable Whether to enable the IIR monopole filter.
+ */
+bool ndspChnIirMonoSetParamsCustomFilter(int id, float a0, float a1, float b0);
+/**
+ * @brief Sets the monopole to be a low pass filter. (Note: This is a lower-quality filter than the biquad one.)
+ * @param id ID of the channel (0..23).
+ * @param f0 Low pass cut-off frequency.
+ */
+bool ndspChnIirMonoSetParamsLowPassFilter(int id, float f0);
+/**
+ * @brief Sets the monopole to be a high pass filter. (Note: This is a lower-quality filter than the biquad one.)
+ * @param id ID of the channel (0..23).
+ * @param f0 High pass cut-off frequency.
+ */
+bool ndspChnIirMonoSetParamsHighPassFilter(int id, float f0);
 /**
  * @brief Configures whether the IIR biquad filter of a channel is enabled.
  * @param id ID of the channel (0..23).
  * @param enable Whether to enable the IIR biquad filter.
  */
 void ndspChnIirBiquadSetEnable(int id, bool enable);
-//   ndspChnIirBiquadSetParams
+/**
+ * @brief Manually sets up the parameters of the biquad filter
+ * @param id ID of the channel (0..23).
+ */
+bool ndspChnIirBiquadSetParamsCustomFilter(int id, float a0, float a1, float a2, float b0, float b1, float b2);
+/**
+ * @brief Sets the biquad to be a low pass filter.
+ * @param id ID of the channel (0..23).
+ * @param f0 Low pass cut-off frequency.
+ * @param Q "Quality factor", typically should be sqrt(2)/2 (i.e. 0.7071).
+ */
+bool ndspChnIirBiquadSetParamsLowPassFilter(int id, float f0, float Q);
+/**
+ * @brief Sets the biquad to be a high pass filter.
+ * @param id ID of the channel (0..23).
+ * @param f0 High pass cut-off frequency.
+ * @param Q "Quality factor", typically should be sqrt(2)/2 (i.e. 0.7071).
+ */
+bool ndspChnIirBiquadSetParamsHighPassFilter(int id, float f0, float Q);
+/**
+ * @brief Sets the biquad to be a band pass filter.
+ * @param id ID of the channel (0..23).
+ * @param f0 Mid-frequency.
+ * @param Q "Quality factor", typically should be sqrt(2)/2 (i.e. 0.7071).
+ */
+bool ndspChnIirBiquadSetParamsBandPassFilter(int id, float f0, float Q);
+/**
+ * @brief Sets the biquad to be a notch filter.
+ * @param id ID of the channel (0..23).
+ * @param f0 Notch frequency.
+ * @param Q "Quality factor", typically should be sqrt(2)/2 (i.e. 0.7071).
+ */
+bool ndspChnIirBiquadSetParamsNotchFilter(int id, float f0, float Q);
+/**
+ * @brief Sets the biquad to be a peaking equalizer.
+ * @param id ID of the channel (0..23).
+ * @param f0 Central frequency.
+ * @param Q "Quality factor", typically should be sqrt(2)/2 (i.e. 0.7071).
+ * @param gain Amount of gain (raw value = 10 ^ dB/40)
+ */
+bool ndspChnIirBiquadSetParamsPeakingEqualizer(int id, float f0, float Q, float gain);
 ///@}
