@@ -11,6 +11,8 @@ enum
 	CFLAG_RATE          = BIT(5),
 	CFLAG_MIX           = BIT(6),
 	CFLAG_ADPCMCOEFS    = BIT(7),
+	CFLAG_IIRMONO       = BIT(8),
+	CFLAG_IIRBIQUAD     = BIT(9),
 };
 
 typedef struct
@@ -25,7 +27,11 @@ typedef struct
 	u16 wavBufCount, wavBufIdNext;
 
 	bool playing, paused;
-	u8 interpType, iirFilterType;
+	u8 interpType;
+
+	u8 iirFilterType;
+	s16 iirMono[2];
+	s16 iirBiquad[5];
 
 	u16 format;
 	u16 wavBufSeq;
@@ -202,6 +208,66 @@ void ndspChnIirBiquadSetEnable(int id, bool enable)
 	LightLock_Unlock(&chn->lock);
 }
 
+static s16 iirParamClamp(float param, float scale_factor, bool* success)
+{
+	float scaled = param * scale_factor;
+	s16 result = (s16) scaled;
+	if (scaled > 0x7FFF)
+	{
+		result = 0x7FFF;
+		*success = false;
+	}
+	else if (scaled < -0x8000)
+	{
+		result = -0x8000;
+		*success = false;
+	}
+	return result;
+}
+
+bool ndspChnIirMonoSetParamsCustomFilter(int id, float a0, float a1, float b0)
+{
+	bool success = true;
+	s16 params[2];
+	params[0] = iirParamClamp(+b0 / a0, (float)(1 << 15), &success);
+	params[1] = iirParamClamp(-a1 / a0, (float)(1 << 15), &success);
+
+	ndspChnSt* chn = &ndspChn[id];
+	LightLock_Lock(&chn->lock);
+
+	memcpy(chn->iirMono, params, sizeof(chn->iirMono));
+	chn->iirFilterType |= BIT(0);
+
+	chn->flags |= CFLAG_IIRMONO | CFLAG_IIRFILTERTYPE;
+
+	LightLock_Unlock(&chn->lock);
+
+	return success;
+}
+
+bool ndspChnIirBiquadSetParamsCustomFilter(int id, float a0, float a1, float a2, float b0, float b1, float b2)
+{
+	bool success = true;
+	s16 params[5];
+	params[0] = iirParamClamp(-a2 / a0, (float)(1 << 14), &success);
+	params[1] = iirParamClamp(-a1 / a0, (float)(1 << 14), &success);
+	params[2] = iirParamClamp(+b2 / a0, (float)(1 << 14), &success);
+	params[3] = iirParamClamp(+b1 / a0, (float)(1 << 14), &success);
+	params[4] = iirParamClamp(+b0 / a0, (float)(1 << 14), &success);
+
+	ndspChnSt* chn = &ndspChn[id];
+	LightLock_Lock(&chn->lock);
+
+	memcpy(chn->iirBiquad, params, sizeof(chn->iirBiquad));
+	chn->iirFilterType |= BIT(1);
+
+	chn->flags |= CFLAG_IIRBIQUAD | CFLAG_IIRFILTERTYPE;
+
+	LightLock_Unlock(&chn->lock);
+
+	return success;
+}
+
 void ndspiInitChn(void)
 {
 	int i;
@@ -276,6 +342,18 @@ void ndspiUpdateChn(void)
 		{
 			memcpy(ndspiGetChnAdpcmCoefs(i), chn->adpcmCoefs, sizeof(chn->adpcmCoefs));
 			stflags |= 4;
+		}
+
+		if (flags & CFLAG_IIRBIQUAD)
+		{
+			memcpy(st->iirFilter_biquad, chn->iirBiquad, sizeof(chn->iirBiquad));
+			stflags |= 0x1000000;
+		}
+
+		if (flags & CFLAG_IIRMONO)
+		{
+			memcpy(st->iirFilter_mono, chn->iirMono, sizeof(chn->iirMono));
+			stflags |= 0x800000;
 		}
 
 		// Do wavebuf stuff
