@@ -51,7 +51,7 @@ static Result sslcipc_Initialize(void)
 	return cmdbuf[1];
 }
 
-static Result sslcipc_CreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
+static Result sslcipc_CreateContext(sslcContext *context, int sockfd, SSLC_SSLOpt input_opt, char *hostname)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	u32 size = strlen(hostname)+1;
@@ -341,7 +341,7 @@ static Result sslcipc_DestroyContext(sslcContext *context)
 	return cmdbuf[1];
 }
 
-Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
+Result sslcCreateContext(sslcContext *context, int sockfd, SSLC_SSLOpt input_opt, char *hostname)
 {
 	Result ret=0;
 
@@ -390,7 +390,11 @@ Result sslcStartConnection(sslcContext *context, int *internal_retval, u32 *out)
 
 Result sslcRead(sslcContext *context, void *buf, size_t len, bool peek)
 {
-	return sslcipc_DataTransfer(context, buf, len, peek);
+	u32 type = 0;
+
+	if(peek==true)type = 1;
+
+	return sslcipc_DataTransfer(context, buf, len, type);
 }
 
 Result sslcWrite(sslcContext *context, void *buf, size_t len)
@@ -413,7 +417,7 @@ Result sslcContextSetHandle8(sslcContext *context, u32 handle)
 	return sslcipc_ContextSetValue(context, 2, handle);
 }
 
-Result sslcContextClearOpt(sslcContext *context, u32 bitmask)
+Result sslcContextClearOpt(sslcContext *context, SSLC_SSLOpt bitmask)
 {
 	return sslcipc_ContextSetValue(context, 3, bitmask);
 }

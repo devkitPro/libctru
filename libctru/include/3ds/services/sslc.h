@@ -28,6 +28,13 @@ typedef enum {
 	SSLC_DefaultClientCert_ClCertA = 0x40
 } SSLC_DefaultClientCert;
 
+/// sslc options. https://www.3dbrew.org/wiki/SSL_Services#SSLOpt
+typedef enum {
+	SSLCOPT_Default = 0,
+	SSLCOPT_DisableVerify = BIT(9), // "Disables server cert verification when set."
+	SSLCOPT_TLSv10 = BIT(11) // "Use TLSv1.0."
+} SSLC_SSLOpt;
+
 /// Initializes SSLC. Normally session_handle should be 0. When non-zero this will use the specified handle for the main-service-session without using the Initialize command, instead of using srvGetServiceHandle.
 Result sslcInit(Handle session_handle);
 
@@ -108,10 +115,10 @@ Result sslcGenerateRandomData(u8 *buf, u32 size);
  * @brief Creates a sslc context.
  * @param context sslc context.
  * @param sockfd Socket fd, this code automatically uses the required SOC command before using the actual sslc command.
- * @param input_opt Input sslc options bitmask. The default value for this param is 0.
+ * @param input_opt Input sslc options bitmask.
  * @param hostname Server hostname.
  */
-Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname);
+Result sslcCreateContext(sslcContext *context, int sockfd, SSLC_SSLOpt input_opt, char *hostname);
 
 /*
  * @brief Destroys a sslc context. The associated sockfd must be closed manually.
@@ -132,7 +139,7 @@ Result sslcStartConnection(sslcContext *context, int *internal_retval, u32 *out)
  * @param context sslc context.
  * @param buf Output buffer.
  * @param len Size to receive.
- * @param peek When set, this is equivalent to setting the recv() MSG_PEEK flag.
+ * @param peek When true, this is equivalent to setting the recv() MSG_PEEK flag.
  * @return When this isn't an error-code, this is the total transferred data size.
  */
 Result sslcRead(sslcContext *context, void *buf, size_t len, bool peek);
@@ -172,7 +179,7 @@ Result sslcContextSetHandle8(sslcContext *context, u32 handle);
  * @param context sslc context.
  * @param bitmask opt bitmask.
  */
-Result sslcContextClearOpt(sslcContext *context, u32 bitmask);
+Result sslcContextClearOpt(sslcContext *context, SSLC_SSLOpt bitmask);
 
 /*
  * @brief This loads an u32 from the specified context state. This needs updated once it's known what this field is for.
