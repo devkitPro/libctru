@@ -8,6 +8,7 @@
 typedef struct {
 	Handle servhandle; ///< Service handle.
 	u32 sslchandle;    ///< SSLC handle.
+	Handle sharedmem_handle;
 } sslcContext;
 
 typedef enum {
@@ -197,4 +198,12 @@ Result sslcContextGetProtocolCipher(sslcContext *context, char *outprotocols, u3
  * @param out Output ptr to write the value to.
  */
 Result sslcContextGetState(sslcContext *context, u32 *out);
+
+/*
+ * @brief This initializes sharedmem for the specified context.
+ * @param context sslc context.
+ * @param buf Sharedmem buffer with address aligned to 0x1000-bytes.
+ * @param size Sharedmem size aligned to 0x1000-bytes.
+ */
+Result sslcContextInitSharedmem(sslcContext *context, u8 *buf, u32 size);
 

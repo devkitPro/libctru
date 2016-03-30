@@ -361,9 +361,27 @@ static Result sslcipc_DestroyContext(sslcContext *context)
 	return cmdbuf[1];
 }
 
+static Result sslcipc_ContextInitSharedmem(sslcContext *context, u32 size)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x1F,2,2); // 0x1F0082
+	cmdbuf[1]=context->sslchandle;
+	cmdbuf[2]=size;
+	cmdbuf[3]=IPC_Desc_SharedHandles(1);
+	cmdbuf[4]=context->sharedmem_handle;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
 {
 	Result ret=0;
+
+	memset(context, 0, sizeof(sslcContext));
 
 	ret = SOCU_AddGlobalSocket(sockfd);
 	if(R_FAILED(ret))return ret;
@@ -398,6 +416,10 @@ Result sslcDestroyContext(sslcContext *context)
 
 	svcCloseHandle(context->servhandle);
 	ret = sslcipc_DestroyContext(context);
+
+	if(context->sharedmem_handle)svcCloseHandle(context->sharedmem_handle);
+
+	memset(context, 0, sizeof(sslcContext));
 
 	return ret;
 }
@@ -440,5 +462,23 @@ Result sslcContextSetHandle8(sslcContext *context, u32 handle)
 Result sslcContextClearOpt(sslcContext *context, u32 bitmask)
 {
 	return sslcipc_ContextSetValue(context, 3, bitmask);
+}
+
+Result sslcContextInitSharedmem(sslcContext *context, u8 *buf, u32 size)
+{
+	Result ret=0;
+
+	ret = svcCreateMemoryBlock(&context->sharedmem_handle, (u32)buf, size, 1, 3);
+	if(R_FAILED(ret))return ret;
+
+	ret = sslcipc_ContextInitSharedmem(context, size);
+
+	if(R_FAILED(ret))
+	{
+		svcCloseHandle(context->sharedmem_handle);
+		context->sharedmem_handle = 0;
+	}
+
+	return ret;
 }
 
