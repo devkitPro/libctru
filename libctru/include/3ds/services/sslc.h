@@ -29,11 +29,11 @@ typedef enum {
 } SSLC_DefaultClientCert;
 
 /// sslc options. https://www.3dbrew.org/wiki/SSL_Services#SSLOpt
-typedef enum {
+enum {
 	SSLCOPT_Default = 0,
 	SSLCOPT_DisableVerify = BIT(9), // "Disables server cert verification when set."
 	SSLCOPT_TLSv10 = BIT(11) // "Use TLSv1.0."
-} SSLC_SSLOpt;
+};
 
 /// Initializes SSLC. Normally session_handle should be 0. When non-zero this will use the specified handle for the main-service-session without using the Initialize command, instead of using srvGetServiceHandle.
 Result sslcInit(Handle session_handle);
@@ -118,7 +118,7 @@ Result sslcGenerateRandomData(u8 *buf, u32 size);
  * @param input_opt Input sslc options bitmask.
  * @param hostname Server hostname.
  */
-Result sslcCreateContext(sslcContext *context, int sockfd, SSLC_SSLOpt input_opt, char *hostname);
+Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname);
 
 /*
  * @brief Destroys a sslc context. The associated sockfd must be closed manually.
@@ -179,7 +179,17 @@ Result sslcContextSetHandle8(sslcContext *context, u32 handle);
  * @param context sslc context.
  * @param bitmask opt bitmask.
  */
-Result sslcContextClearOpt(sslcContext *context, SSLC_SSLOpt bitmask);
+Result sslcContextClearOpt(sslcContext *context, u32 bitmask);
+
+/*
+ * @brief This copies two strings from context state to the specified output buffers. Each string is only copied if it was successfully loaded. The maxsizes include the nul-terminator. TODO: Update this with what these strings actually are.
+ * @param context sslc context.
+ * @param str0 Output buffer for str0.
+ * @param str0_maxsize Max size of the str0 output buffer.
+ * @param str0 Output buffer for str1.
+ * @param str0_maxsize Max size of the str1 output buffer.
+ */
+Result sslcContextGetStrings(sslcContext *context, char *str0, u32 str0_maxsize, char *str1, u32 str1_maxsize);
 
 /*
  * @brief This loads an u32 from the specified context state. This needs updated once it's known what this field is for.

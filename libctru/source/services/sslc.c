@@ -51,7 +51,7 @@ static Result sslcipc_Initialize(void)
 	return cmdbuf[1];
 }
 
-static Result sslcipc_CreateContext(sslcContext *context, int sockfd, SSLC_SSLOpt input_opt, char *hostname)
+static Result sslcipc_CreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	u32 size = strlen(hostname)+1;
@@ -312,6 +312,26 @@ static Result sslcipc_ContextSetValue(sslcContext *context, u32 type, u32 value)
 	return cmdbuf[1];
 }
 
+Result sslcContextGetStrings(sslcContext *context, char *str0, u32 str0_maxsize, char *str1, u32 str1_maxsize)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x1C,3,4); // 0x1C00C4
+	cmdbuf[1]=context->sslchandle;
+	cmdbuf[2]=str0_maxsize;
+	cmdbuf[3]=str1_maxsize;
+	cmdbuf[4]=IPC_Desc_Buffer(str0_maxsize, IPC_BUFFER_W);
+	cmdbuf[5]=(u32)str0;
+	cmdbuf[6]=IPC_Desc_Buffer(str1_maxsize, IPC_BUFFER_W);
+	cmdbuf[7]=(u32)str1;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	return ret;
+}
+
 Result sslcContextGetState(sslcContext *context, u32 *out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -341,7 +361,7 @@ static Result sslcipc_DestroyContext(sslcContext *context)
 	return cmdbuf[1];
 }
 
-Result sslcCreateContext(sslcContext *context, int sockfd, SSLC_SSLOpt input_opt, char *hostname)
+Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
 {
 	Result ret=0;
 
@@ -392,7 +412,7 @@ Result sslcRead(sslcContext *context, void *buf, size_t len, bool peek)
 {
 	u32 type = 0;
 
-	if(peek==true)type = 1;
+	if(peek)type = 1;
 
 	return sslcipc_DataTransfer(context, buf, len, type);
 }
@@ -417,7 +437,7 @@ Result sslcContextSetHandle8(sslcContext *context, u32 handle)
 	return sslcipc_ContextSetValue(context, 2, handle);
 }
 
-Result sslcContextClearOpt(sslcContext *context, SSLC_SSLOpt bitmask)
+Result sslcContextClearOpt(sslcContext *context, u32 bitmask)
 {
 	return sslcipc_ContextSetValue(context, 3, bitmask);
 }
