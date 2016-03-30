@@ -138,3 +138,10 @@ int SOCU_GetNetworkOpt(int level, NetworkOpt optname, void * optval, socklen_t *
  * @return error
  */
 int SOCU_GetIPInfo(struct in_addr *ip, struct in_addr *netmask, struct in_addr *broadcast);
+
+/**
+ * @brief Adds a global socket.
+ * @param sockfd   The socket fd.
+ * @return error
+ */
+int SOCU_AddGlobalSocket(int sockfd);
