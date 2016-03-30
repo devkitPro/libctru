@@ -182,14 +182,14 @@ Result sslcContextSetHandle8(sslcContext *context, u32 handle);
 Result sslcContextClearOpt(sslcContext *context, u32 bitmask);
 
 /*
- * @brief This copies two strings from context state to the specified output buffers. Each string is only copied if it was successfully loaded. The maxsizes include the nul-terminator. TODO: Update this with what these strings actually are.
+ * @brief This copies two strings from context state to the specified output buffers. Each string is only copied if it was successfully loaded. The maxsizes include the nul-terminator. This can only be used if sslcStartConnection() was already used successfully.
  * @param context sslc context.
- * @param str0 Output buffer for str0.
- * @param str0_maxsize Max size of the str0 output buffer.
- * @param str0 Output buffer for str1.
- * @param str0_maxsize Max size of the str1 output buffer.
+ * @param outprotocols Output buffer for a string containing all protocol versions supported by SSL-module.
+ * @param outprotocols_maxsize Max size of the above output buffer.
+ * @param outcipher Output buffer for a string containing the cipher suite currently being used.
+ * @param outcipher_maxsize Max size of the above output buffer.
  */
-Result sslcContextGetStrings(sslcContext *context, char *str0, u32 str0_maxsize, char *str1, u32 str1_maxsize);
+Result sslcContextGetProtocolCipher(sslcContext *context, char *outprotocols, u32 outprotocols_maxsize, char *outcipher, u32 outcipher_maxsize);
 
 /*
  * @brief This loads an u32 from the specified context state. This needs updated once it's known what this field is for.
