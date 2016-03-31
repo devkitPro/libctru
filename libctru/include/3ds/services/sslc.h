@@ -78,6 +78,41 @@ Result sslcRootCertChainAddDefaultCert(u32 RootCertChain_contexthandle, SSLC_Def
 Result sslcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_contexthandle);
 
 /**
+ * @brief Creates an unknown CertChain.
+ * @param CertChain_contexthandle Output contexthandle.
+ */
+Result sslcCreate8CertChain(u32 *CertChain_contexthandle);
+
+/**
+ * @brief Destroys a CertChain from sslcCreate8CertChain().
+ * @param CertChain_contexthandle CertChain contexthandle.
+ */
+Result sslcDestroy8CertChain(u32 CertChain_contexthandle);
+
+/**
+ * @brief Adds a cert to a CertChain from sslcCreate8CertChain().
+ * @param CertChain_contexthandle CertChain to use.
+ * @param cert Pointer to the cert.
+ * @param certsize Size of the cert.
+ */
+Result sslc8CertChainAddCert(u32 CertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle);
+
+/**
+ * @brief Adds a default cert to a CertChain from sslcCreate8CertChain(). Not actually usable since no certIDs are implemented in SSL-module for this.
+ * @param CertChain_contexthandle CertChain to use.
+ * @param certID ID of the cert to add.
+ * @param cert_contexthandle Optional, the cert contexthandle can be written here.
+ */
+Result sslc8CertChainAddDefaultCert(u32 CertChain_contexthandle, u8 certID, u32 *cert_contexthandle);
+
+/**
+ * @brief Removes the specified cert from the CertChain from sslcCreate8CertChain().
+ * @param CertChain_contexthandle CertChain to use.
+ * @param cert_contexthandle Cert contexthandle to remove from the CertChain.
+ */
+Result sslc8CertChainRemoveCert(u32 CertChain_contexthandle, u32 cert_contexthandle);
+
+/**
  * @brief Opens a new ClientCert-context.
  * @param cert Pointer to the DER cert.
  * @param certsize Size of the DER cert.
@@ -169,7 +204,7 @@ Result sslcContextSetRootCertChain(sslcContext *context, u32 handle);
 Result sslcContextSetClientCert(sslcContext *context, u32 handle);
 
 /*
- * @brief Set the context which was created by command 0x00080000, for the specified sslc context. This needs updated once it's known what this context is for.
+ * @brief Set the context for a CertChain from sslcCreate8CertChain(), for the specified sslc context. This needs updated once it's known what this context is for.
  * @param context sslc context.
  * @param handle contexthandle.
  */

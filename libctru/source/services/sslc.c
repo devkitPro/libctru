@@ -36,6 +36,7 @@ void sslcExit(void)
 	if (AtomicDecrement(&__sslc_refcount)) return;
 
 	svcCloseHandle(__sslc_servhandle);
+	__sslc_servhandle = 0;
 }
 
 static Result sslcipc_Initialize(void)
@@ -72,27 +73,27 @@ static Result sslcipc_CreateContext(sslcContext *context, int sockfd, u32 input_
 	return ret;
 }
 
-Result sslcCreateRootCertChain(u32 *RootCertChain_contexthandle)
+static Result sslcipc_CreateCertChain(u32 type, u32 *contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0]=IPC_MakeHeader(0x3,0,0); // 0x30000
+	cmdbuf[0]=IPC_MakeHeader(0x3 + type*0x5,0,0); // 0x30000
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__sslc_servhandle)))return ret;
 	ret = cmdbuf[1];
 
-	if(R_SUCCEEDED(ret))*RootCertChain_contexthandle = cmdbuf[2];
+	if(R_SUCCEEDED(ret))*contexthandle = cmdbuf[2];
 
 	return ret;
 }
 
-Result sslcDestroyRootCertChain(u32 RootCertChain_contexthandle)
+static Result sslcipc_DestroyCertChain(u32 type, u32 contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0]=IPC_MakeHeader(0x4,1,0); // 0x40040
-	cmdbuf[1]=RootCertChain_contexthandle;
+	cmdbuf[0]=IPC_MakeHeader(0x4 + type*0x5,1,0); // 0x40040
+	cmdbuf[1]=contexthandle;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__sslc_servhandle)))return ret;
@@ -100,12 +101,12 @@ Result sslcDestroyRootCertChain(u32 RootCertChain_contexthandle)
 	return cmdbuf[1];
 }
 
-Result sslcAddTrustedRootCA(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+static Result sslcipc_CertChainAddCert(u32 type, u32 contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0]=IPC_MakeHeader(0x5,2,2); // 0x50082
-	cmdbuf[1]=RootCertChain_contexthandle;
+	cmdbuf[0]=IPC_MakeHeader(0x5 + type*0x5,2,2); // 0x50082
+	cmdbuf[1]=contexthandle;
 	cmdbuf[2]=certsize;
 	cmdbuf[3]=IPC_Desc_Buffer(certsize, IPC_BUFFER_R);
 	cmdbuf[4]=(u32)cert;
@@ -119,12 +120,12 @@ Result sslcAddTrustedRootCA(u32 RootCertChain_contexthandle, u8 *cert, u32 certs
 	return ret;
 }
 
-Result sslcRootCertChainAddDefaultCert(u32 RootCertChain_contexthandle, SSLC_DefaultRootCert certID, u32 *cert_contexthandle)
+static Result sslcipc_CertChainAddDefaultCert(u32 type, u32 contexthandle, u8 certID, u32 *cert_contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0]=IPC_MakeHeader(0x6,2,0); // 0x60080
-	cmdbuf[1]=RootCertChain_contexthandle;
+	cmdbuf[0]=IPC_MakeHeader(0x6 + type*0x5,2,0); // 0x60080
+	cmdbuf[1]=contexthandle;
 	cmdbuf[2]=certID;
 
 	Result ret=0;
@@ -136,12 +137,12 @@ Result sslcRootCertChainAddDefaultCert(u32 RootCertChain_contexthandle, SSLC_Def
 	return ret;
 }
 
-Result sslcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_contexthandle)
+static Result sslcipc_CertChainRemoveCert(u32 type, u32 contexthandle, u32 cert_contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0]=IPC_MakeHeader(0x7,2,0); // 0x70080
-	cmdbuf[1]=RootCertChain_contexthandle;
+	cmdbuf[0]=IPC_MakeHeader(0x7 + type*0x5,2,0); // 0x70080
+	cmdbuf[1]=contexthandle;
 	cmdbuf[2]=cert_contexthandle;
 
 	Result ret=0;
@@ -392,6 +393,56 @@ Result sslcAddCert(sslcContext *context, u8 *buf, u32 size)
 	ret = cmdbuf[1];
 
 	return ret;
+}
+
+Result sslcCreateRootCertChain(u32 *RootCertChain_contexthandle)
+{
+	return sslcipc_CreateCertChain(0, RootCertChain_contexthandle);
+}
+
+Result sslcDestroyRootCertChain(u32 RootCertChain_contexthandle)
+{
+	return sslcipc_DestroyCertChain(0, RootCertChain_contexthandle);
+}
+
+Result sslcAddTrustedRootCA(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+{
+	return sslcipc_CertChainAddCert(0, RootCertChain_contexthandle, cert, certsize, cert_contexthandle);
+}
+
+Result sslcRootCertChainAddDefaultCert(u32 RootCertChain_contexthandle, SSLC_DefaultRootCert certID, u32 *cert_contexthandle)
+{
+	return sslcipc_CertChainAddDefaultCert(0, RootCertChain_contexthandle, certID, cert_contexthandle);
+}
+
+Result sslcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_contexthandle)
+{
+	return sslcipc_CertChainRemoveCert(0, RootCertChain_contexthandle, cert_contexthandle);
+}
+
+Result sslcCreate8CertChain(u32 *PinnedCertChain_contexthandle)
+{
+	return sslcipc_CreateCertChain(1, PinnedCertChain_contexthandle);
+}
+
+Result sslcDestroy8CertChain(u32 PinnedCertChain_contexthandle)
+{
+	return sslcipc_DestroyCertChain(1, PinnedCertChain_contexthandle);
+}
+
+Result sslc8CertChainAddCert(u32 PinnedCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+{
+	return sslcipc_CertChainAddCert(1, PinnedCertChain_contexthandle, cert, certsize, cert_contexthandle);
+}
+
+Result sslc8CertChainAddDefaultCert(u32 PinnedCertChain_contexthandle, u8 certID, u32 *cert_contexthandle)
+{
+	return sslcipc_CertChainAddDefaultCert(1, PinnedCertChain_contexthandle, certID, cert_contexthandle);
+}
+
+Result sslc8CertChainRemoveCert(u32 PinnedCertChain_contexthandle, u32 cert_contexthandle)
+{
+	return sslcipc_CertChainRemoveCert(1, PinnedCertChain_contexthandle, cert_contexthandle);
 }
 
 Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
