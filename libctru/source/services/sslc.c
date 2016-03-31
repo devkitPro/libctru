@@ -377,6 +377,23 @@ static Result sslcipc_ContextInitSharedmem(sslcContext *context, u32 size)
 	return cmdbuf[1];
 }
 
+Result sslcAddCert(sslcContext *context, u8 *buf, u32 size)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x20,2,2); // 0x200082
+	cmdbuf[1]=context->sslchandle;
+	cmdbuf[2]=size;
+	cmdbuf[3]=IPC_Desc_Buffer(size, IPC_BUFFER_R);
+	cmdbuf[4]=(u32)buf;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	return ret;
+}
+
 Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
 {
 	Result ret=0;

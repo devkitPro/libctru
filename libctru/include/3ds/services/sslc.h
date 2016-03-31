@@ -207,3 +207,10 @@ Result sslcContextGetState(sslcContext *context, u32 *out);
  */
 Result sslcContextInitSharedmem(sslcContext *context, u8 *buf, u32 size);
 
+/*
+ * @brief This loads the specified cert. This needs updated once it's known what the cert format is and what the cert is used for later.
+ * @param buf Input cert.
+ * @param size Cert size.
+ */
+Result sslcAddCert(sslcContext *context, u8 *buf, u32 size);
+
