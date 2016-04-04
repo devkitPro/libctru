@@ -20,8 +20,10 @@ u32 *__uds_sharedmem_addr;
 static u32 __uds_sharedmem_size;
 static Handle __uds_sharedmem_handle;
 
-static Result uds_Initialize();
-static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedmem_handle, u32 sharedmem_size);
+static Handle __uds_connectionstatus_event;
+
+static Result uds_Initialize(u32 sharedmem_size, const uint8_t *username);
+static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedmem_handle, u32 sharedmem_size, Handle *eventhandle);
 static Result udsipc_Shutdown(void);
 
 Result udsInit(u32 sharedmem_size, const uint8_t *username)
@@ -85,6 +87,9 @@ void udsExit(void)
 
 	free(__uds_sharedmem_addr);
 	__uds_sharedmem_addr = NULL;
+
+	svcCloseHandle(__uds_connectionstatus_event);
+	__uds_connectionstatus_event = 0;
 
 	ndmuLeaveExclusiveState();
 	ndmuExit();
@@ -166,7 +171,7 @@ static Result uds_Initialize(u32 sharedmem_size, const uint8_t *username)
 		ret = svcCreateMemoryBlock(&__uds_sharedmem_handle, (u32)__uds_sharedmem_addr, __uds_sharedmem_size, 0x0, MEMPERM_READ | MEMPERM_WRITE);
 	}
 
-	if (R_SUCCEEDED(ret))ret = udsipc_InitializeWithVersion(&nodeinfo, __uds_sharedmem_handle, __uds_sharedmem_size);
+	if (R_SUCCEEDED(ret))ret = udsipc_InitializeWithVersion(&nodeinfo, __uds_sharedmem_handle, __uds_sharedmem_size, &__uds_connectionstatus_event);
 
 	if (R_FAILED(ret) && __uds_sharedmem_handle)
 	{
@@ -181,10 +186,16 @@ static Result uds_Initialize(u32 sharedmem_size, const uint8_t *username)
 		__uds_sharedmem_addr = NULL;
 	}
 
+	if(R_FAILED(ret) && __uds_connectionstatus_event)
+	{
+		svcCloseHandle(__uds_connectionstatus_event);
+		__uds_connectionstatus_event = 0;
+	}
+
 	return ret;
 }
 
-static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedmem_handle, u32 sharedmem_size)
+static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedmem_handle, u32 sharedmem_size, Handle *eventhandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -197,8 +208,14 @@ static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedm
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+	ret = cmdbuf[1];
 
-	return cmdbuf[1];
+	if(R_SUCCEEDED(ret))
+	{
+		if(eventhandle)*eventhandle = cmdbuf[3];
+	}
+
+	return ret;
 }
 
 static Result udsipc_Shutdown(void)
