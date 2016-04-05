@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <arpa/inet.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
@@ -30,10 +31,17 @@ static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedm
 static Result udsipc_Shutdown(void);
 
 static Result udsipc_BeginHostingNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size);
+static Result udsipc_ConnectToNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsConnectionType connection_type);
 static Result udsipc_SetProbeResponseParam(u32 oui, s8 data);
+
+static Result udsipc_RecvBeaconBroadcastData(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8, Handle event);
 
 static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 input1, u16 NetworkNodeID);
 static Result udsipc_Unbind(udsBindContext *bindcontext);
+
+static Result udsipc_DecryptBeaconData(udsNetworkStruct *network, u8 *tag0, u8 *tag1, udsNodeInfo *out);
+
+static Result usd_parsebeacon(u8 *buf, u32 size, udsNetworkScanInfo *networkscan);
 
 Result udsInit(u32 sharedmem_size, const uint8_t *username)
 {
@@ -162,6 +170,12 @@ Result udsGetNodeInfoUsername(udsNodeInfo *nodeinfo, uint8_t *username)
 	return 0;
 }
 
+bool udsCheckNodeInfoInitialized(udsNodeInfo *nodeinfo)
+{
+	if(nodeinfo->NetworkNodeID)return true;
+	return false;
+}
+
 void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, u8 id8, u8 max_nodes)
 {
 	u8 oui_value[3] = {0x00, 0x1f, 0x32};
@@ -176,7 +190,7 @@ void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, 
 	network->wlancommID = htonl(wlancommID);
 	network->id8 = id8;
 
-	network->attributes = UDSNETATTR_Default;
+	network->attributes = htons(UDSNETATTR_Default);
 
 	if(max_nodes > UDS_MAXNODES)max_nodes = UDS_MAXNODES;
 	network->max_nodes = max_nodes;
@@ -245,6 +259,20 @@ Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t pass
 	return ret;
 }
 
+Result udsConnectNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type)
+{
+	Result ret=0;
+	printf("connecting...\n");
+	ret = udsipc_ConnectToNetwork(network, passphrase, passphrase_size, connection_type);
+	if(R_FAILED(ret))return ret;
+	printf("bind...\n");
+	ret = udsBind(context, recv_NetworkNodeID);
+
+	if(R_FAILED(ret))udsDisconnectNetwork();
+
+	return ret;
+}
+
 static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedmem_handle, u32 sharedmem_size, Handle *eventhandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -292,6 +320,106 @@ Result udsDestroyNetwork(void)
 	return cmdbuf[1];
 }
 
+Result udsDisconnectNetwork(void)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0xA,0,0); // 0xA0000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8)
+{
+	Result ret=0;
+	Handle event=0;
+	u32 entpos, curpos;
+	nwmScanInputStruct scaninput;
+	nwmBeaconDataReplyHeader *hdr;
+	nwmBeaconDataReplyEntry *entry;
+	udsNetworkScanInfo *networks_ptr;
+
+	if(total_networks)*total_networks = 0;
+	if(networks)*networks = NULL;
+
+	memset(&scaninput, 0, sizeof(nwmScanInputStruct));
+
+	scaninput.unk_x0 = 0x1;
+	scaninput.unk_x2 = 0x2;
+	scaninput.unk_x4 = 0x0421;
+	scaninput.unk_x6 = 0x6e;
+
+	memset(scaninput.mac_address, 0xff, sizeof(scaninput.mac_address));
+
+	if(maxsize < sizeof(nwmBeaconDataReplyHeader))return -2;
+
+	ret = svcCreateEvent(&event, 0);
+	if(R_FAILED(ret))return ret;
+
+	ret = udsipc_RecvBeaconBroadcastData(outbuf, maxsize, &scaninput, wlancommID, id8, event);
+	svcCloseHandle(event);
+	if(R_FAILED(ret))return ret;
+
+	hdr = (nwmBeaconDataReplyHeader*)outbuf;
+	curpos = sizeof(nwmBeaconDataReplyHeader);
+
+	if(hdr->maxsize != maxsize)return -2;
+	if(hdr->size > maxsize)return -2;
+
+	if(hdr->total_entries)
+	{
+		if(networks)
+		{
+			networks_ptr = malloc(sizeof(udsNetworkScanInfo) * hdr->total_entries);
+			if(networks_ptr == NULL)return -1;
+			memset(networks_ptr, 0, sizeof(udsNetworkScanInfo) * hdr->total_entries);
+			*networks = networks_ptr;
+		}
+		if(total_networks)*total_networks = hdr->total_entries;
+
+		if(networks)
+		{
+			for(entpos=0; entpos<hdr->total_entries; entpos++)
+			{
+				if(curpos >= hdr->size)
+				{
+					ret = -2;
+					break;
+				}
+
+				entry = (nwmBeaconDataReplyEntry*)&outbuf[curpos];
+				if(entry->size > hdr->size || curpos + entry->size > hdr->size || entry->size <= sizeof(nwmBeaconDataReplyEntry))
+				{
+					ret = -2;
+					break;
+				}
+
+				memcpy(&networks_ptr[entpos].datareply_entry, entry, sizeof(nwmBeaconDataReplyEntry));
+
+				ret = usd_parsebeacon(&outbuf[curpos + sizeof(nwmBeaconDataReplyEntry)], entry->size - sizeof(nwmBeaconDataReplyEntry), &networks_ptr[entpos]);
+				if(R_FAILED(ret))break;
+
+				curpos+= entry->size;
+			}
+		}
+
+		if(R_FAILED(ret))
+		{
+			if(networks)
+			{
+				free(*networks);
+				*networks = NULL;
+			}
+			if(total_networks)*total_networks = 0;
+		}
+	}
+
+	return ret;
+}
+
 Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID)
 {
 	u32 pos;
@@ -329,6 +457,146 @@ Result udsUnbind(udsBindContext *bindcontext)
 	return ret;
 }
 
+static Result usd_parsebeacon(u8 *buf, u32 size, udsNetworkScanInfo *networkscan)
+{
+	Result ret=0;
+
+	u8 tagid, tag_datalen;
+	u8 *tagptr;
+	u8 oui[3] = {0x00, 0x1f, 0x32};
+	u8 oui_type;
+	u8 appdata_size;
+
+	//Index0 = 21(0x15), index1=24(0x18), index2=25(0x19).
+	u8 *tags_data[3] = {0};
+	u32 tags_sizes[3] = {0};
+	int tagindex;
+	u32 pos;
+
+	u8 tmp_tagdata[0xfe*2];
+
+	if(size < 0xc)return -3;
+
+	buf+=0xc;//Skip down to the tagged parameters in the beacon.
+	size-=0xc;
+
+	while(size)//Locate each of the Nintendo vendor tags which this code uses.
+	{
+		if(size < 2)return -3;
+
+		tagid = buf[0];
+		tag_datalen = buf[1];
+
+		buf+= 0x2;
+		size-= 0x2;
+
+		if(tag_datalen > size)return -3;
+
+		if(tagid==0xdd)//Vendor tag
+		{
+			if(tag_datalen < 4)return -3;
+
+			if(memcmp(buf, oui, sizeof(oui))==0)
+			{
+				oui_type = buf[3];
+
+				tagindex = -1;
+
+				if(oui_type==21)
+				{
+					tagindex = 0;
+				}
+				else if(oui_type==24)
+				{
+					tagindex = 1;
+				}
+				else if(oui_type==25)
+				{
+					tagindex = 2;
+				}
+
+				if(tagindex>=0)
+				{
+					tags_data[tagindex] = buf;
+					tags_sizes[tagindex] = tag_datalen;
+				}
+			}
+		}
+
+		buf+= tag_datalen;
+		size-= tag_datalen;
+	}
+
+	for(tagindex=0; tagindex<3; tagindex++)//Verify that the required tags exist and have valid sizes.
+	{
+		if(tagindex!=2 && (tags_data[tagindex]==NULL || tags_sizes[tagindex]==0))return -3;
+
+		if(tagindex && tags_sizes[tagindex] > 0xFE)return -3;
+		if(tagindex==1 && tags_sizes[tagindex] < 0x12)return -3;
+
+		if(tagindex==0 && ((tags_sizes[tagindex]<0x34) || (tags_sizes[tagindex]>0x34+0xC8)))return -3;
+	}
+
+	//Tag type21
+	tagindex = 0;
+	{
+		tagptr = tags_data[tagindex];
+		tag_datalen = tags_sizes[tagindex];
+
+		appdata_size = tagptr[0x33];
+		if((appdata_size > 0xC8) || (appdata_size > tag_datalen-0x34))return -3;//Verify the appdata size.
+
+		memset(&networkscan->network, 0, sizeof(udsNetworkStruct));
+
+		memcpy(&networkscan->network.oui_value, tagptr, 0x1F);
+
+		networkscan->network.appdata_size = appdata_size;
+		if(appdata_size)memcpy(networkscan->network.appdata, &tagptr[0x34], appdata_size);
+
+		networkscan->network.initialized_flag = 1;
+		networkscan->network.hostmacaddr_flag = 1;
+		memcpy(networkscan->network.host_macaddress, networkscan->datareply_entry.mac_address, sizeof(networkscan->network.host_macaddress));
+	}
+
+	memset(tmp_tagdata, 0, sizeof(tmp_tagdata));
+	for(tagindex=1; tagindex<3; tagindex++)
+	{
+		if(tags_data[tagindex])memcpy(&tmp_tagdata[0xfe * (tagindex-1)], tags_data[tagindex], tags_sizes[tagindex]);
+	}
+
+	ret = udsipc_DecryptBeaconData(&networkscan->network, tmp_tagdata, &tmp_tagdata[0xfe], networkscan->nodes);
+	if(R_FAILED(ret))return ret;
+
+	for(pos=0; pos<UDS_MAXNODES; pos++)
+	{
+		if(!udsCheckNodeInfoInitialized(&networkscan->nodes[pos]))break;
+
+		networkscan->total_nodes++;
+	}
+
+	return 0;
+}
+
+static Result udsipc_RecvBeaconBroadcastData(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8, Handle event)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0xF,16,4); // 0xF0404
+	cmdbuf[1]=maxsize;
+	memcpy(&cmdbuf[2], scaninput, sizeof(nwmScanInputStruct));
+	cmdbuf[15]=wlancommID;
+	cmdbuf[16]=id8;
+	cmdbuf[17]=IPC_Desc_SharedHandles(1);
+	cmdbuf[18]=event;
+	cmdbuf[19]=IPC_Desc_Buffer(maxsize, IPC_BUFFER_W);
+	cmdbuf[20]=(u32)outbuf;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 input1, u16 NetworkNodeID)//input0 and input1 are unknown.
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -364,6 +632,44 @@ static Result udsipc_Unbind(udsBindContext *bindcontext)
 	return cmdbuf[1];
 }
 
+Result udsPullPacket(udsBindContext *bindcontext, void* buf, size_t size, size_t *actual_size, u16 *src_NetworkNodeID)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	u32 saved_threadstorage[2];
+
+	u32 aligned_size = (size+0x3) & ~0x3;
+
+	cmdbuf[0]=IPC_MakeHeader(0x14,3,0); // 0x1400C0
+	cmdbuf[1]=bindcontext->BindNodeID;
+	cmdbuf[2]=aligned_size>>2;
+	cmdbuf[3]=size;
+
+	u32 * staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
+
+	staticbufs[0] = IPC_Desc_StaticBuffer(aligned_size,0);
+	staticbufs[1] = (u32)buf;
+
+	Result ret=0;
+	ret=svcSendSyncRequest(__uds_servhandle);
+
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
+
+	if(R_FAILED(ret))return ret;
+
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret))
+	{
+		if(actual_size)*actual_size = cmdbuf[2];
+		if(src_NetworkNodeID)*src_NetworkNodeID = cmdbuf[3];
+	}
+
+	return ret;
+}
+
 Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -386,6 +692,24 @@ Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t s
 	return cmdbuf[1];
 }
 
+Result udsGetChannel(u32 *channel)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x1A,0,0); // 0x1A0000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret))
+	{
+		*channel = cmdbuf[2];
+	}
+
+	return ret;
+}
+
 static Result udsipc_BeginHostingNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -395,10 +719,61 @@ static Result udsipc_BeginHostingNetwork(udsNetworkStruct *network, void* passph
 	cmdbuf[2]=IPC_Desc_StaticBuffer(sizeof(udsNetworkStruct), 1);
 	cmdbuf[3]=(u32)network;
 	cmdbuf[4]=IPC_Desc_StaticBuffer(passphrase_size, 0);
-	cmdbuf[5]=(u32)network;
+	cmdbuf[5]=(u32)passphrase;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result udsipc_ConnectToNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsConnectionType connection_type)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x1E,2,4); // 0x1E0084
+	cmdbuf[1]=connection_type;
+	cmdbuf[2]=passphrase_size;
+	cmdbuf[3]=IPC_Desc_StaticBuffer(sizeof(udsNetworkStruct), 1);
+	cmdbuf[4]=(u32)network;
+	cmdbuf[5]=IPC_Desc_StaticBuffer(passphrase_size, 0);
+	cmdbuf[6]=(u32)passphrase;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result udsipc_DecryptBeaconData(udsNetworkStruct *network, u8 *tag0, u8 *tag1, udsNodeInfo *out)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	u32 tagsize = 0xfe;
+
+	u32 saved_threadstorage[2];
+
+	cmdbuf[0]=IPC_MakeHeader(0x1F,0,6); // 0x1F0006
+	cmdbuf[1]=IPC_Desc_StaticBuffer(sizeof(udsNetworkStruct), 1);
+	cmdbuf[2]=(u32)network;
+	cmdbuf[3]=IPC_Desc_StaticBuffer(tagsize, 2);
+	cmdbuf[4]=(u32)tag0;
+	cmdbuf[5]=IPC_Desc_StaticBuffer(tagsize, 3);
+	cmdbuf[6]=(u32)tag1;
+
+	u32 * staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
+
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x280,0);
+	staticbufs[1] = (u32)out;
+
+	Result ret=0;
+	ret=svcSendSyncRequest(__uds_servhandle);
+
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
+
+	if(R_FAILED(ret))return ret;
 
 	return cmdbuf[1];
 }

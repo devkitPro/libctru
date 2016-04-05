@@ -1,20 +1,34 @@
 /**
  * @file uds.h
- * @brief UDS(NWMUDS) local-WLAN service. https://3dbrew.org/wiki/NWM_Services
+ * @brief UDS(NWMUDS) local-WLAN service. WARNING: This code is not ready to be used by applications yet. https://3dbrew.org/wiki/NWM_Services
  */
 #pragma once
+
+/// Maximum number of nodes(devices) that can be connected to the network.
+#define UDS_MAXNODES 16
+
+/// Broadcast value for NetworkNodeID / alias for all NetworkNodeIDs.
+#define UDS_BROADCAST_NETWORKNODEID 0xFFFF
+
+/// Default value that can be used for udsSendTo() input8.
+#define UDS_SEND_INPUT8_DEFAULT 0x2
 
 /// Node info struct.
 typedef struct {
 	u64 uds_friendcodeseed;//UDS version of the FriendCodeSeed.
 	u8 usercfg[0x18];//This is the first 0x18-bytes from this config block: https://www.3dbrew.org/wiki/Config_Savegame#0x000A0000_Block
-	u32 words_x20[2];//Not initialized by DLP-sysmodule.
+
+	//The rest of this is initialized by NWM-module.
+	u16 NetworkNodeID;
+	u16 pad_x22;
+	u32 word_x24;
 } udsNodeInfo;
 
 /// Network struct stored as big-endian.
 typedef struct {
 	u8 host_macaddress[6];
-	u8 unk_x6[2];
+	u8 hostmacaddr_flag;//"This flag being set to non-zero presumably indicates that the MAC address is set."
+	u8 unk_x7;
 
 	u8 initialized_flag;//Must be non-zero otherwise NWM-module will use zeros internally instead of the actual field data, for most/all(?) of the fields in this struct.
 
@@ -44,6 +58,47 @@ typedef struct {
 	Handle event;
 } udsBindContext;
 
+/// General NWM input structure used for AP scanning.
+typedef struct {
+	u16 unk_x0;
+	u16 unk_x2;
+	u16 unk_x4;
+	u16 unk_x6;
+
+	u8 mac_address[6];
+
+	u8 unk_xe[0x26];//Not initialized by dlp.
+} nwmScanInputStruct;
+
+/// General NWM output structure from AP scanning.
+typedef struct {
+	u32 maxsize;//"Max output size, from the command request."
+	u32 size;//"Total amount of output data written relative to struct+0. 0xC when there's no entries."
+	u32 total_entries;//"Total entries, 0 for none. "
+
+	//The entries start here.
+} nwmBeaconDataReplyHeader;
+
+/// General NWM output structure from AP scanning, for each entry.
+typedef struct {
+	u32 size;//"Size of this entire entry. The next entry starts at curentry_startoffset+curentry_size."
+	u32 unk_x4;
+	u8 mac_address[6];//"AP MAC address."
+	u8 unk_xe[6];
+	u32 unk_x14;
+	u32 val_x1c;//"Value 0x1C(size of this header and/or offset to the actual beacon data)."
+
+	//The actual beacon data starts here.
+} nwmBeaconDataReplyEntry;
+
+/// Output structure generated from host scanning output.
+typedef struct {
+	nwmBeaconDataReplyEntry datareply_entry;
+	udsNetworkStruct network;
+	u32 total_nodes;//Total number of nodes actually connected to the network, including the host.
+	udsNodeInfo nodes[UDS_MAXNODES];
+} udsNetworkScanInfo;
+
 enum {
 	UDSNETATTR_DisableConnectClients = BIT(1), //When set new Clients are not allowed to connect.
 	UDSNETATTR_DisableConnectSpectators = BIT(2), //When set new Spectators are (probably) not allowed to connect.
@@ -60,15 +115,6 @@ typedef enum {
 	UDSCONTYPE_Spectator = 0x2
 } udsConnectionType;
 
-/// Maximum number of nodes(devices) that can be connected to the network.
-#define UDS_MAXNODES 16
-
-/// Broadcast value for NetworkNodeID / alias for all NetworkNodeIDs.
-#define UDS_BROADCAST_NETWORKNODEID 0xFFFF
-
-/// Default value that can be used for udsSendTo() input8.
-#define UDS_SEND_INPUT8_DEFAULT 0x2
-
 /**
  * @brief Initializes UDS.
  * @param sharedmem_size This must be 0x1000-byte aligned.
@@ -81,15 +127,23 @@ void udsExit(void);
 
 /**
  * @brief Generates a NodeInfo struct with data loaded from system-config.
+ * @param nodeinfo Output NodeInfo struct.
  * @param username If set, this is the UTF-8 string to convert for use in the struct. Max len is 10 characters without NUL-terminator.
  */
 Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const uint8_t *username);
 
 /**
  * @brief Loads the UTF-16 username stored in the input NodeInfo struct, converted to UTF-8.
+ * @param nodeinfo Input NodeInfo struct.
  * @param username This is the output UTF-8 string. Max len is 10 characters without NUL-terminator.
  */
 Result udsGetNodeInfoUsername(udsNodeInfo *nodeinfo, uint8_t *username);
+
+/**
+ * @brief Checks whether a NodeInfo struct was initialized by NWM-module(not any output from udsGenerateNodeInfo()).
+ * @param nodeinfo Input NodeInfo struct.
+ */
+bool udsCheckNodeInfoInitialized(udsNodeInfo *nodeinfo);
 
 /**
  * @brief Generates a default NetworkStruct for creating networks.
@@ -99,6 +153,17 @@ Result udsGetNodeInfoUsername(udsNodeInfo *nodeinfo, uint8_t *username);
  * @param max_nodes Maximum number of nodes(devices) that can be connected to the network, including the host.
  */
 void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, u8 id8, u8 max_nodes);
+
+/**
+ * @brief Scans for networks via beacon-scanning.
+ * @param outbuf Buffer which will be used by the beacon-scanning command and for the data parsing afterwards. Normally there's no need to use the contents of this buffer once this function returns.
+ * @param maxsize Max size of the buffer.
+ * @Param networks Ptr where the allocated udsNetworkScanInfo array buffer is written. The allocsize is sizeof(udsNetworkScanInfo)*total_networks.
+ * @Param total_networks Total number of networks stored under the networks buffer.
+ * @param wlancommID Unique local-WLAN communications ID for each application.
+ * @param id8 Additional ID that can be used by the application for different types of networks.
+ */
+Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8);
 
 /**
  * @brief Create a bind.
@@ -114,6 +179,16 @@ Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID);
 Result udsUnbind(udsBindContext *bindcontext);
 
 /**
+ * @brief Receives data over the network.
+ * @param bindcontext Bind context.
+ * @param buf Output receive buffer.
+ * @param size Size of the buffer.
+ * @param actual_size If set, the actual size written into the output buffer is stored here. This is zero when no data was received.
+ * @param src_NetworkNodeID If set, the source NetworkNodeID is written here. This is zero when no data was received.
+ */
+Result udsPullPacket(udsBindContext *bindcontext, void* buf, size_t size, size_t *actual_size, u16 *src_NetworkNodeID);
+
+/**
  * @brief Sends data over the network.
  * @param dst_NetworkNodeID Destination NetworkNodeID.
  * @param input8 UDS_SEND_INPUT8_DEFAULT can be used for this. It's unknown what this field is actually for.
@@ -122,6 +197,12 @@ Result udsUnbind(udsBindContext *bindcontext);
  * @param size Size of the buffer.
  */
 Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t size);
+
+/**
+ * @brief Gets the wifi channel currently being used.
+ * @param channel Output channel.
+ */
+Result udsGetChannel(u32 *channel);
 
 /**
  * @brief Starts hosting a new network.
@@ -133,7 +214,23 @@ Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t s
 Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *bindcontext);
 
 /**
+ * @brief Connect to a network.
+ * @param network The NetworkStruct, you can use udsScanBeacons() for this.
+ * @param passphrase Raw input passphrase buffer.
+ * @param passphrase_size Size of the passphrase buffer.
+ * @param bindcontext Output bind context which will be created for this host.
+ * @param recv_NetworkNodeID This is the NetworkNodeID passed to udsBind() internally.
+ * @param connection_type Type of connection, see the udsConnectionType enum values.
+ */
+Result udsConnectNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type);
+
+/**
  * @brief Stop hosting the network.
  */
 Result udsDestroyNetwork(void);
+
+/**
+ * @brief Disconnect this client device from the network.
+ */
+Result udsDisconnectNetwork(void);
 
