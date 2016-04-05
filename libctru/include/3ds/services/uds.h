@@ -162,8 +162,9 @@ void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, 
  * @Param total_networks Total number of networks stored under the networks buffer.
  * @param wlancommID Unique local-WLAN communications ID for each application.
  * @param id8 Additional ID that can be used by the application for different types of networks.
+ * @param host_macaddress When set, this code will only return network info from the specified host MAC address.
  */
-Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8);
+Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress);
 
 /**
  * @brief Create a bind.

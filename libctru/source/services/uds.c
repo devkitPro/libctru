@@ -332,7 +332,7 @@ Result udsDisconnectNetwork(void)
 	return cmdbuf[1];
 }
 
-Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8)
+Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress)
 {
 	Result ret=0;
 	Handle event=0;
@@ -353,6 +353,7 @@ Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u3
 	scaninput.unk_x6 = 0x6e;
 
 	memset(scaninput.mac_address, 0xff, sizeof(scaninput.mac_address));
+	if(host_macaddress)memcpy(scaninput.mac_address, host_macaddress, sizeof(scaninput.mac_address));
 
 	if(maxsize < sizeof(nwmBeaconDataReplyHeader))return -2;
 
