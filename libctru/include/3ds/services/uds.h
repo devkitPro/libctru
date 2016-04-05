@@ -10,6 +10,9 @@
 /// Broadcast value for NetworkNodeID / alias for all NetworkNodeIDs.
 #define UDS_BROADCAST_NETWORKNODEID 0xFFFF
 
+/// NetworkNodeID for the host(the first node).
+#define UDS_HOST_NETWORKNODEID 0x1
+
 /// Default value that can be used for udsSendTo() input8.
 #define UDS_SEND_INPUT8_DEFAULT 0xF3
 
@@ -107,7 +110,7 @@ enum {
 
 enum {
 	UDS_SENDFLAG_Default = BIT(0), //Unknown what this bit is for.
-	UDS_SENDFLAG_Broadcast = BIT(1) //When set, broadcast the data frame even when UDS_BROADCAST_NETWORKNODEID isn't used. Needs verified.
+	UDS_SENDFLAG_Broadcast = BIT(1) //When set, broadcast the data frame via the destination MAC address even when UDS_BROADCAST_NETWORKNODEID isn't used.
 };
 
 typedef enum {
