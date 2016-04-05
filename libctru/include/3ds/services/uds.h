@@ -170,6 +170,21 @@ void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, 
 Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress);
 
 /**
+ * @brief This can be used by the host to set the appdata contained in the broadcasted beacons.
+ * @param buf Appdata buffer.
+ * @param size Size of the input appdata.
+ */
+Result udsSetApplicationData(u8 *buf, u32 size);
+
+/**
+ * @brief This can be used while on a network(host/client) to get the appdata from the current beacon.
+ * @param buf Appdata buffer.
+ * @param size Max size of the output buffer.
+ * @param actual_size If set, the actual size of the appdata written into the buffer is stored here.
+ */
+Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size);
+
+/**
  * @brief Create a bind.
  * @param bindcontext The output bind context.
  * @param NetworkNodeID This is the NetworkNodeID which this bind can receive data from.
@@ -215,7 +230,7 @@ Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t s
  * @brief Gets the wifi channel currently being used.
  * @param channel Output channel.
  */
-Result udsGetChannel(u32 *channel);
+Result udsGetChannel(u8 *channel);
 
 /**
  * @brief Starts hosting a new network.

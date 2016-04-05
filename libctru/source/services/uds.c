@@ -262,7 +262,7 @@ Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t pass
 Result udsConnectNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type)
 {
 	Result ret=0;
-	printf("connecting...\n");
+	printf("connecting...\n");//Removing these prints caused connecting to fail.
 	ret = udsipc_ConnectToNetwork(network, passphrase, passphrase_size, connection_type);
 	if(R_FAILED(ret))return ret;
 	printf("bind...\n");
@@ -614,6 +614,54 @@ static Result udsipc_RecvBeaconBroadcastData(u8 *outbuf, u32 maxsize, nwmScanInp
 	return cmdbuf[1];
 }
 
+Result udsSetApplicationData(u8 *buf, u32 size)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x10,1,2); // 0x100042
+	cmdbuf[1]=size;
+	cmdbuf[2]=IPC_Desc_StaticBuffer(size, 4);
+	cmdbuf[3]=(u32)buf;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	u32 saved_threadstorage[2];
+
+	cmdbuf[0]=IPC_MakeHeader(0x11,1,0); // 0x110040
+	cmdbuf[1]=size;
+
+	u32 * staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
+
+	staticbufs[0] = IPC_Desc_StaticBuffer(size,0);
+	staticbufs[1] = (u32)buf;
+
+	Result ret=0;
+	ret=svcSendSyncRequest(__uds_servhandle);
+
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
+
+	if(R_FAILED(ret))return ret;
+
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret))
+	{
+		if(actual_size)*actual_size = cmdbuf[2];
+	}
+
+	return ret;
+}
+
 static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 input1, u16 NetworkNodeID)//input0 and input1 are unknown.
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -709,7 +757,7 @@ Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t s
 	return cmdbuf[1];
 }
 
-Result udsGetChannel(u32 *channel)
+Result udsGetChannel(u8 *channel)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
