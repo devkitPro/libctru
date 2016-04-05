@@ -11,7 +11,7 @@
 #define UDS_BROADCAST_NETWORKNODEID 0xFFFF
 
 /// Default value that can be used for udsSendTo() input8.
-#define UDS_SEND_INPUT8_DEFAULT 0x2
+#define UDS_SEND_INPUT8_DEFAULT 0xF3
 
 /// Node info struct.
 typedef struct {
