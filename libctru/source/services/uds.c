@@ -662,6 +662,18 @@ Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size)
 	return ret;
 }
 
+Result udsGetNetworkStructApplicationData(udsNetworkStruct *network, u8 *buf, u32 size, u32 *actual_size)
+{
+	if(network->appdata_size > sizeof(network->appdata))return -1;
+	if(size > network->appdata_size)size = network->appdata_size;
+
+	if(buf)memcpy(buf, network->appdata, size);
+
+	if(actual_size)*actual_size = size;
+
+	return 0;
+}
+
 static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 input1, u16 NetworkNodeID)//input0 and input1 are unknown.
 {
 	u32* cmdbuf=getThreadCommandBuffer();

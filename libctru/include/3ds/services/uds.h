@@ -185,6 +185,14 @@ Result udsSetApplicationData(u8 *buf, u32 size);
 Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size);
 
 /**
+ * @brief This can be used with a NetworkStruct, from udsScanBeacons() mainly, for getting the appdata.
+ * @param buf Appdata buffer.
+ * @param size Max size of the output buffer.
+ * @param actual_size If set, the actual size of the appdata written into the buffer is stored here.
+ */
+Result udsGetNetworkStructApplicationData(udsNetworkStruct *network, u8 *buf, u32 size, u32 *actual_size);
+
+/**
  * @brief Create a bind.
  * @param bindcontext The output bind context.
  * @param NetworkNodeID This is the NetworkNodeID which this bind can receive data from.
