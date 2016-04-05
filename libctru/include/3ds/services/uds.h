@@ -183,6 +183,15 @@ Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID);
 Result udsUnbind(udsBindContext *bindcontext);
 
 /**
+ * @brief Waits for the bind event to occur, or checks if the event was signalled. This event is signalled every time new data is available via udsPullPacket().
+ * @return Always true. However if wait=false, this will return false if the event wasn't signalled.
+ * @param bindcontext The bind context.
+ * @param nextEvent Whether to discard the current event and wait for the next event.
+ * @param wait When true this will not return until the event is signalled. When false this checks if the event was signalled without waiting for it.
+ */
+bool udsWaitDataAvailable(udsBindContext *bindcontext, bool nextEvent, bool wait);
+
+/**
  * @brief Receives data over the network.
  * @param bindcontext Bind context.
  * @param buf Output receive buffer.

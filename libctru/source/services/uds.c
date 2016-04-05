@@ -458,6 +458,22 @@ Result udsUnbind(udsBindContext *bindcontext)
 	return ret;
 }
 
+bool udsWaitDataAvailable(udsBindContext *bindcontext, bool nextEvent, bool wait)
+{
+	bool ret = true;
+	u64 delayvalue = U64_MAX;
+
+	if(!wait)delayvalue = 0;
+
+	if(nextEvent)svcClearEvent(bindcontext->event);
+
+	if(svcWaitSynchronization(bindcontext->event, delayvalue)!=0 && !wait)ret = false;
+
+	if(!nextEvent)svcClearEvent(bindcontext->event);
+
+	return ret;
+}
+
 static Result usd_parsebeacon(u8 *buf, u32 size, udsNetworkScanInfo *networkscan)
 {
 	Result ret=0;
