@@ -4,14 +4,21 @@
  */
 #pragma once
 
+#include <sys/types.h>
+
 #include <3ds/types.h>
 #include <3ds/services/fs.h>
+
+#define SDMC_DIRITER_MAGIC 0x73646D63 /* "sdmc" */
 
 /*! Open directory struct */
 typedef struct
 {
-  Handle    fd;                 /*! CTRU handle */
-  FS_DirectoryEntry entry_data; /*! Temporary storage for reading entries */
+  u32               magic;          /*! "sdmc" */
+  Handle            fd;             /*! CTRU handle */
+  ssize_t           index;          /*! Current entry index */
+  size_t            size;           /*! Current batch size */
+  FS_DirectoryEntry entry_data[32]; /*! Temporary storage for reading entries */
 } sdmc_dir_t;
 
 /// Initializes the SDMC driver.

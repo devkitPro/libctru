@@ -939,8 +939,10 @@ sdmc_diropen(struct _reent *r,
   rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path);
   if(R_SUCCEEDED(rc))
   {
+    dir->magic = SDMC_DIRITER_MAGIC;
     dir->fd = fd;
     memset(&dir->entry_data, 0, sizeof(dir->entry_data));
+    dir->index = -1;
     return dirState;
   }
 
@@ -980,35 +982,58 @@ sdmc_dirnext(struct _reent *r,
              char          *filename,
              struct stat   *filestat)
 {
-  Result  rc;
-  u32     entries;
-  ssize_t units;
+  Result              rc;
+  u32                 entries;
+  ssize_t             units;
+  FS_DirectoryEntry   *entry;
 
   /* get pointer to our data */
   sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
 
-  /* fetch the next entry */
-  memset(&dir->entry_data, 0, sizeof(dir->entry_data));
-  rc = FSDIR_Read(dir->fd, &entries, 1, &dir->entry_data);
+  static const size_t max_entries = sizeof(dir->entry_data) / sizeof(dir->entry_data[0]);
+
+  /* check if it's in the batch already */
+  if(++dir->index < dir->size)
+  {
+    rc = 0;
+  }
+  else
+  {
+    /* reset batch info */
+    dir->index = -1;
+    dir->size  = 0;
+
+    /* fetch the next batch */
+    memset(dir->entry_data, 0, sizeof(dir->entry_data));
+    rc = FSDIR_Read(dir->fd, &entries, max_entries, dir->entry_data);
+    if(R_SUCCEEDED(rc))
+    {
+      if(entries == 0)
+      {
+        /* there are no more entries; ENOENT signals end-of-directory */
+        r->_errno = ENOENT;
+        return -1;
+      }
+
+      dir->index = 0;
+      dir->size  = entries;
+    }
+  }
+
   if(R_SUCCEEDED(rc))
   {
-    if(entries == 0)
-    {
-      /* there are no more entries; ENOENT signals end-of-directory */
-      r->_errno = ENOENT;
-      return -1;
-    }
+    entry = &dir->entry_data[dir->index];
 
     /* fill in the stat info */
     filestat->st_ino = 0;
-    if(dir->entry_data.attributes & FS_ATTRIBUTE_DIRECTORY)
+    if(entry->attributes & FS_ATTRIBUTE_DIRECTORY)
       filestat->st_mode = S_IFDIR;
     else
       filestat->st_mode = S_IFREG;
 
     /* convert name from UTF-16 to UTF-8 */
     memset(filename, 0, NAME_MAX);
-    units = utf16_to_utf8((uint8_t*)filename, dir->entry_data.name, NAME_MAX);
+    units = utf16_to_utf8((uint8_t*)filename, entry->name, NAME_MAX);
     if(units < 0)
     {
       r->_errno = EILSEQ;
