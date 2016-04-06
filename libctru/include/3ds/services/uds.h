@@ -103,7 +103,7 @@ typedef struct {
 } udsNetworkScanInfo;
 
 enum {
-	UDSNETATTR_DisableConnectClients = BIT(1), //When set new Clients are not allowed to connect.
+	UDSNETATTR_DisableConnectClients = BIT(1), //When set new Clients are (supposedly) not allowed to connect.
 	UDSNETATTR_DisableConnectSpectators = BIT(2), //When set new Spectators are (probably) not allowed to connect.
 	UDSNETATTR_Default = BIT(15), //Unknown what this bit is for.
 };
@@ -275,4 +275,19 @@ Result udsDisconnectNetwork(void);
  * @param NetworkNodeID Target NetworkNodeID. UDS_BROADCAST_NETWORKNODEID can be used to disconnect all clients.
  */
 Result udsEjectClient(u16 NetworkNodeID);
+
+/**
+ * @brief This can be used by the host to update the network attributes. If bitmask 0x4 is clear in the input bitmask, this clears that bit in the value before actually writing the value into state.
+ * @param bitmask Bitmask to clear/set in the attributes. See the UDSNETATTR enum values.
+ * @param flag When false, bit-clear, otherwise bit-set.
+ */
+Result udsUpdateNetworkAttribute(u16 bitmask, bool flag);
+
+/**
+ * @brief This uses udsUpdateNetworkAttribute() for (un)blocking new connections to this host with the specified type(s). This is what it was supposed to do, doesn't seem actually to affect new connections though.
+ * @param block When true, block the specified connection types. Otherwise allow them.
+ * @param clients When true, (un)block regular clients.
+ * @param clients When true, (un)block spectators(?).
+ */
+Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators);
 

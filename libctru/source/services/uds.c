@@ -321,6 +321,32 @@ Result udsEjectClient(u16 NetworkNodeID)
 	return cmdbuf[1];
 }
 
+Result udsUpdateNetworkAttribute(u16 bitmask, bool flag)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	if(flag)flag = 1;
+
+	cmdbuf[0]=IPC_MakeHeader(0x7,2,0); // 0x70080
+	cmdbuf[1]=bitmask;
+	cmdbuf[2]=flag;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators)
+{
+	u16 bitmask = 0;
+
+	if(clients)bitmask |= UDSNETATTR_DisableConnectClients;
+	if(spectators)bitmask |= UDSNETATTR_DisableConnectSpectators;
+
+	return udsUpdateNetworkAttribute(bitmask, block);
+}
+
 Result udsDestroyNetwork(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
