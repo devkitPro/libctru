@@ -27,6 +27,14 @@ typedef struct {
 	u32 word_x24;
 } udsNodeInfo;
 
+/// Connection status struct.
+typedef struct {
+	u32 event_type;
+	u32 unk_x4[0x28>>2];
+	u8 id8;
+	u8 pad_x2d[3];
+} udsConnectionStatus;
+
 /// Network struct stored as big-endian.
 typedef struct {
 	u8 host_macaddress[6];
@@ -290,6 +298,12 @@ Result udsUpdateNetworkAttribute(u16 bitmask, bool flag);
  * @param clients When true, (un)block spectators(?).
  */
 Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators);
+
+/**
+ * @brief This loads the current ConnectionStatus struct.
+ * @param output Output ConnectionStatus struct.
+ */
+Result udsGetConnectionStatus(udsConnectionStatus *output);
 
 /**
  * @brief This loads a NodeInfo struct for the specified NetworkNodeID. The broadcast alias can't be used with this.

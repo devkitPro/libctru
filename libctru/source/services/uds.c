@@ -371,6 +371,24 @@ Result udsDisconnectNetwork(void)
 	return cmdbuf[1];
 }
 
+Result udsGetConnectionStatus(udsConnectionStatus *output)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0xB,0,0); // 0xB0000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret))
+	{
+		if(output)memcpy(output, &cmdbuf[2], sizeof(udsConnectionStatus));
+	}
+
+	return ret;
+}
+
 Result udsGetNodeInformation(u16 NetworkNodeID, udsNodeInfo *output)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
