@@ -291,3 +291,10 @@ Result udsUpdateNetworkAttribute(u16 bitmask, bool flag);
  */
 Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators);
 
+/**
+ * @brief This loads a NodeInfo struct for the specified NetworkNodeID. The broadcast alias can't be used with this.
+ * @param NetworkNodeID Target NetworkNodeID.
+ * @param output Output NodeInfo struct.
+ */
+Result udsGetNodeInformation(u16 NetworkNodeID, udsNodeInfo *output);
+

@@ -371,6 +371,25 @@ Result udsDisconnectNetwork(void)
 	return cmdbuf[1];
 }
 
+Result udsGetNodeInformation(u16 NetworkNodeID, udsNodeInfo *output)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0xD,1,0); // 0xD0040
+	cmdbuf[1]=NetworkNodeID;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret))
+	{
+		if(output)memcpy(output, &cmdbuf[2], sizeof(udsNodeInfo));
+	}
+
+	return ret;
+}
+
 Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress)
 {
 	Result ret=0;
