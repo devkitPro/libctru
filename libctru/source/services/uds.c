@@ -325,6 +325,18 @@ Result udsEjectClient(u16 NetworkNodeID)
 	return cmdbuf[1];
 }
 
+Result udsEjectSpectator()
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x6,0,0); // 0x60000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result udsUpdateNetworkAttribute(u16 bitmask, bool flag)
 {
 	u32* cmdbuf=getThreadCommandBuffer();

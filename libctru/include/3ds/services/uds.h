@@ -288,6 +288,11 @@ Result udsDisconnectNetwork(void);
 Result udsEjectClient(u16 NetworkNodeID);
 
 /**
+ * @brief This can be used by the host to force-disconnect the spectator.
+ */
+Result udsEjectSpectator();
+
+/**
  * @brief This can be used by the host to update the network attributes. If bitmask 0x4 is clear in the input bitmask, this clears that bit in the value before actually writing the value into state.
  * @param bitmask Bitmask to clear/set in the attributes. See the UDSNETATTR enum values.
  * @param flag When false, bit-clear, otherwise bit-set.
