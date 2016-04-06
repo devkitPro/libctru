@@ -35,6 +35,7 @@ static Result udsipc_ConnectToNetwork(udsNetworkStruct *network, void* passphras
 static Result udsipc_SetProbeResponseParam(u32 oui, s8 data);
 
 static Result udsipc_RecvBeaconBroadcastData(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8, Handle event);
+static Result udsipc_ScanOnConnection(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8);
 
 static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 input1, u16 NetworkNodeID);
 static Result udsipc_Unbind(udsBindContext *bindcontext);
@@ -440,7 +441,7 @@ Result udsGetNodeInformation(u16 NetworkNodeID, udsNodeInfo *output)
 	return ret;
 }
 
-Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress)
+Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress, bool connected)
 {
 	Result ret=0;
 	Handle event=0;
@@ -468,7 +469,8 @@ Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u3
 	ret = svcCreateEvent(&event, 0);
 	if(R_FAILED(ret))return ret;
 
-	ret = udsipc_RecvBeaconBroadcastData(outbuf, maxsize, &scaninput, wlancommID, id8, event);
+	if(!connected)ret = udsipc_RecvBeaconBroadcastData(outbuf, maxsize, &scaninput, wlancommID, id8, event);
+	if(connected)ret = udsipc_ScanOnConnection(outbuf, maxsize, &scaninput, wlancommID, id8);
 	svcCloseHandle(event);
 	if(R_FAILED(ret))return ret;
 
@@ -983,6 +985,24 @@ static Result udsipc_SetProbeResponseParam(u32 oui, s8 data)
 	cmdbuf[0]=IPC_MakeHeader(0x21,2,0); // 0x210080
 	cmdbuf[1]=oui;
 	cmdbuf[2]=data;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result udsipc_ScanOnConnection(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x22,16,2); // 0x220402
+	cmdbuf[1]=maxsize;
+	memcpy(&cmdbuf[2], scaninput, sizeof(nwmScanInputStruct));
+	cmdbuf[15]=wlancommID;
+	cmdbuf[16]=id8;
+	cmdbuf[17]=IPC_Desc_Buffer(maxsize, IPC_BUFFER_W);
+	cmdbuf[18]=(u32)outbuf;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;

@@ -176,8 +176,9 @@ void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, 
  * @param wlancommID Unique local-WLAN communications ID for each application.
  * @param id8 Additional ID that can be used by the application for different types of networks.
  * @param host_macaddress When set, this code will only return network info from the specified host MAC address.
+ * @connected When not connected to a network this *must* be false. When connected to a network this *must* be true.
  */
-Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress);
+Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress, bool connected);
 
 /**
  * @brief This can be used by the host to set the appdata contained in the broadcasted beacons.
