@@ -31,8 +31,9 @@ typedef struct {
 typedef struct {
 	u32 status;
 	u32 unk_x4[0x28>>2];
-	u8 id8;
-	u8 pad_x2d[3];
+	u8 val_x2c;
+	u8 max_nodes;
+	u8 unk_x2e[2];
 } udsConnectionStatus;
 
 /// Network struct stored as big-endian.
