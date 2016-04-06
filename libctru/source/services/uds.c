@@ -252,7 +252,7 @@ Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t pass
 	ret = udsipc_BeginHostingNetwork(network, passphrase, passphrase_size);
 	if(R_FAILED(ret))return ret;
 
-	ret = udsBind(context, UDS_BROADCAST_NETWORKNODEID);
+	ret = udsBind(context, UDS_BROADCAST_NETWORKNODEID, false);
 
 	if(R_FAILED(ret))udsDestroyNetwork();
 
@@ -262,11 +262,15 @@ Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t pass
 Result udsConnectNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type)
 {
 	Result ret=0;
+	bool spectator=false;
+
+	if(connection_type==UDSCONTYPE_Spectator)spectator=true;
+
 	//printf("connecting...\n");//Removing these prints caused connecting to fail.
 	ret = udsipc_ConnectToNetwork(network, passphrase, passphrase_size, connection_type);
 	if(R_FAILED(ret))return ret;
 	//printf("bind...\n");
-	ret = udsBind(context, recv_NetworkNodeID);
+	ret = udsBind(context, recv_NetworkNodeID, spectator);
 
 	if(R_FAILED(ret))udsDisconnectNetwork();
 
@@ -513,21 +517,32 @@ Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u3
 	return ret;
 }
 
-Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID)
+Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator)
 {
 	u32 pos;
 
 	memset(bindcontext, 0, sizeof(udsBindContext));
 
-	for(pos=0; pos<UDS_MAXNODES; pos++)
+	if(spectator)
 	{
-		if((bind_allocbitmask & BIT(pos)) == 0)break;
+		pos = 0;
+		if((bind_allocbitmask & BIT(pos)))return -1;
 	}
-	if(pos==UDS_MAXNODES)return -1;
+	else
+	{
+		for(pos=1; pos<UDS_MAXNODES+1; pos++)
+		{
+			if((bind_allocbitmask & BIT(pos)) == 0)break;
+		}
+		if(pos==UDS_MAXNODES)return -1;
+	}
 
 	bind_allocbitmask |= BIT(pos);
 
-	bindcontext->BindNodeID = (pos+1)<<1;
+	bindcontext->BindNodeID = (pos<<1);
+	if(spectator)bindcontext->BindNodeID |= spectator;
+
+	bindcontext->spectator = spectator;
 
 	return udsipc_Bind(bindcontext, 0x2e30, 0xf3, NetworkNodeID);
 }
@@ -535,6 +550,7 @@ Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID)
 Result udsUnbind(udsBindContext *bindcontext)
 {
 	Result ret=0;
+	u32 bitpos = 0;
 
 	if(bindcontext->event)
 	{
@@ -543,7 +559,8 @@ Result udsUnbind(udsBindContext *bindcontext)
 
 	ret = udsipc_Unbind(bindcontext);
 
-	bind_allocbitmask &= ~BIT((bindcontext->BindNodeID>>1) - 1);
+	if(!bindcontext->spectator)bitpos = bindcontext->BindNodeID>>1;
+	bind_allocbitmask &= ~BIT(bitpos);
 
 	memset(bindcontext, 0, sizeof(udsBindContext));
 

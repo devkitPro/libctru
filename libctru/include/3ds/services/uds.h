@@ -68,6 +68,7 @@ typedef struct {
 typedef struct {
 	u32 BindNodeID;
 	Handle event;
+	bool spectator;
 } udsBindContext;
 
 /// General NWM input structure used for AP scanning.
@@ -205,8 +206,9 @@ Result udsGetNetworkStructApplicationData(udsNetworkStruct *network, u8 *buf, u3
  * @brief Create a bind.
  * @param bindcontext The output bind context.
  * @param NetworkNodeID This is the NetworkNodeID which this bind can receive data from.
+ * @param spectator False for a regular bind, true for a spectator.
  */
-Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID);
+Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator);
 
 /**
  * @brief Remove a bind.
