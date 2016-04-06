@@ -262,10 +262,10 @@ Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t pass
 Result udsConnectNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type)
 {
 	Result ret=0;
-	printf("connecting...\n");//Removing these prints caused connecting to fail.
+	//printf("connecting...\n");//Removing these prints caused connecting to fail.
 	ret = udsipc_ConnectToNetwork(network, passphrase, passphrase_size, connection_type);
 	if(R_FAILED(ret))return ret;
-	printf("bind...\n");
+	//printf("bind...\n");
 	ret = udsBind(context, recv_NetworkNodeID);
 
 	if(R_FAILED(ret))udsDisconnectNetwork();
@@ -301,6 +301,19 @@ static Result udsipc_Shutdown(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x3,0,0); // 0x30000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result udsEjectClient(u16 NetworkNodeID)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x5,1,0); // 0x50040
+	cmdbuf[1]=NetworkNodeID;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__uds_servhandle)))return ret;

@@ -270,3 +270,9 @@ Result udsDestroyNetwork(void);
  */
 Result udsDisconnectNetwork(void);
 
+/**
+ * @brief This can be used by the host to force-disconnect client(s).
+ * @param NetworkNodeID Target NetworkNodeID. UDS_BROADCAST_NETWORKNODEID can be used to disconnect all clients.
+ */
+Result udsEjectClient(u16 NetworkNodeID);
+
