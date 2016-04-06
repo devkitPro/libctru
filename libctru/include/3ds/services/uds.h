@@ -29,7 +29,7 @@ typedef struct {
 
 /// Connection status struct.
 typedef struct {
-	u32 event_type;
+	u32 status;
 	u32 unk_x4[0x28>>2];
 	u8 id8;
 	u8 pad_x2d[3];
@@ -304,6 +304,14 @@ Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators);
  * @param output Output ConnectionStatus struct.
  */
 Result udsGetConnectionStatus(udsConnectionStatus *output);
+
+/**
+ * @brief Waits for the ConnectionStatus event to occur, or checks if the event was signalled. This event is signalled when the data from udsGetConnectionStatus() was updated internally.
+ * @return Always true. However if wait=false, this will return false if the event wasn't signalled.
+ * @param nextEvent Whether to discard the current event and wait for the next event.
+ * @param wait When true this will not return until the event is signalled. When false this checks if the event was signalled without waiting for it.
+ */
+bool udsWaitConnectionStatusEvent(bool nextEvent, bool wait);
 
 /**
  * @brief This loads a NodeInfo struct for the specified NetworkNodeID. The broadcast alias can't be used with this.

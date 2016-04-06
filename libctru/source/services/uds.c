@@ -389,6 +389,22 @@ Result udsGetConnectionStatus(udsConnectionStatus *output)
 	return ret;
 }
 
+bool udsWaitConnectionStatusEvent(bool nextEvent, bool wait)
+{
+	bool ret = true;
+	u64 delayvalue = U64_MAX;
+
+	if(!wait)delayvalue = 0;
+
+	if(nextEvent)svcClearEvent(__uds_connectionstatus_event);
+
+	if(svcWaitSynchronization(__uds_connectionstatus_event, delayvalue)!=0 && !wait)ret = false;
+
+	if(!nextEvent)svcClearEvent(__uds_connectionstatus_event);
+
+	return ret;
+}
+
 Result udsGetNodeInformation(u16 NetworkNodeID, udsNodeInfo *output)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
