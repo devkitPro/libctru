@@ -19,7 +19,18 @@
 /// Node info struct.
 typedef struct {
 	u64 uds_friendcodeseed;//UDS version of the FriendCodeSeed.
-	u8 usercfg[0x18];//This is the first 0x18-bytes from this config block: https://www.3dbrew.org/wiki/Config_Savegame#0x000A0000_Block
+
+	union {
+		u8 usercfg[0x18];//This is the first 0x18-bytes from this config block: https://www.3dbrew.org/wiki/Config_Savegame#0x000A0000_Block
+
+		struct {
+			u16 username[10];
+
+			u16 unk_x1c;//Unknown. Set to 0x0 with the output from udsScanBeacons().
+			u8 flag;//"u8 flag, unknown. Originates from the u16 bitmask in the beacon node-list header. This flag is normally 0 since that bitmask is normally 0?"
+			u8 pad_x1f;//?
+		};
+	};
 
 	//The rest of this is initialized by NWM-module.
 	u16 NetworkNodeID;
@@ -37,8 +48,7 @@ typedef struct {
 
 	u8 total_nodes;
 	u8 max_nodes;
-	u8 node_bitmask;//"This is a bitmask of NetworkNodeIDs: bit0 for NetworkNodeID 0x1(host), bit1 for NetworkNodeID 0x2(first original client), and so on."
-	u8 unk_x2f;//"Padding maybe? Normally 0. "
+	u16 node_bitmask;//"This is a bitmask of NetworkNodeIDs: bit0 for NetworkNodeID 0x1(host), bit1 for NetworkNodeID 0x2(first original client), and so on."
 } udsConnectionStatus;
 
 /// Network struct stored as big-endian.

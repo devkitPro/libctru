@@ -148,9 +148,9 @@ Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const char *username)
 	{
 		len = 10;
 
-		memset(nodeinfo->usercfg, 0, len*2);
+		memset(nodeinfo->username, 0, sizeof(nodeinfo->username));
 
-		units = utf8_to_utf16((uint16_t*)nodeinfo->usercfg, (uint8_t*)username, len);
+		units = utf8_to_utf16((uint16_t*)nodeinfo->username, (uint8_t*)username, len);
 
 		if(units < 0 || units > len)ret = -2;
 	}
@@ -165,7 +165,7 @@ Result udsGetNodeInfoUsername(const udsNodeInfo *nodeinfo, char *username)
 	ssize_t units=0;
 	size_t len = 10;
 
-	units = utf16_to_utf8((uint8_t*)username, (uint16_t*)nodeinfo->usercfg, len);
+	units = utf16_to_utf8((uint8_t*)username, (uint16_t*)nodeinfo->username, len);
 
 	if(units < 0 || units > len)return -2;
 	return 0;
