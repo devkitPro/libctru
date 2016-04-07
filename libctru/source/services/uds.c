@@ -694,7 +694,7 @@ static Result usd_parsebeacon(u8 *buf, u32 size, udsNetworkScanInfo *networkscan
 		if(appdata_size)memcpy(networkscan->network.appdata, &tagptr[0x34], appdata_size);
 
 		networkscan->network.initialized_flag = 1;
-		networkscan->network.hostmacaddr_flag = 1;
+		networkscan->network.channel = networkscan->datareply_entry.channel;
 		memcpy(networkscan->network.host_macaddress, networkscan->datareply_entry.mac_address, sizeof(networkscan->network.host_macaddress));
 	}
 

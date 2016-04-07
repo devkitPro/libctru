@@ -39,8 +39,8 @@ typedef struct {
 /// Network struct stored as big-endian.
 typedef struct {
 	u8 host_macaddress[6];
-	u8 hostmacaddr_flag;//"This flag being set to non-zero presumably indicates that the MAC address is set."
-	u8 unk_x7;
+	u8 channel;//Wifi channel for this network.
+	u8 pad_x7;
 
 	u8 initialized_flag;//Must be non-zero otherwise NWM-module will use zeros internally instead of the actual field data, for most/all(?) of the fields in this struct.
 
@@ -95,7 +95,10 @@ typedef struct {
 /// General NWM output structure from AP scanning, for each entry.
 typedef struct {
 	u32 size;//"Size of this entire entry. The next entry starts at curentry_startoffset+curentry_size."
-	u32 unk_x4;
+	u8 unk_x4;
+	u8 channel;//Wifi channel for the AP.
+	u8 unk_x6;
+	u8 unk_x7;
 	u8 mac_address[6];//"AP MAC address."
 	u8 unk_xe[6];
 	u32 unk_x14;
