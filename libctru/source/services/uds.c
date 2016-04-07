@@ -612,7 +612,6 @@ static Result usd_parsebeacon(u8 *buf, u32 size, udsNetworkScanInfo *networkscan
 	u8 *tags_data[3] = {0};
 	u32 tags_sizes[3] = {0};
 	int tagindex;
-	u32 pos;
 
 	u8 tmp_tagdata[0xfe*2];
 
@@ -707,13 +706,6 @@ static Result usd_parsebeacon(u8 *buf, u32 size, udsNetworkScanInfo *networkscan
 
 	ret = udsipc_DecryptBeaconData(&networkscan->network, tmp_tagdata, &tmp_tagdata[0xfe], networkscan->nodes);
 	if(R_FAILED(ret))return ret;
-
-	for(pos=0; pos<UDS_MAXNODES; pos++)
-	{
-		if(!udsCheckNodeInfoInitialized(&networkscan->nodes[pos]))break;
-
-		networkscan->total_nodes++;
-	}
 
 	return 0;
 }

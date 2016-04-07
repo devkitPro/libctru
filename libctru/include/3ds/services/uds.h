@@ -30,10 +30,15 @@ typedef struct {
 /// Connection status struct.
 typedef struct {
 	u32 status;
-	u32 unk_x4[0x28>>2];
-	u8 val_x2c;
+	u32 unk_x4;
+	u16 cur_NetworkNodeID;//"u16 NetworkNodeID for this device."
+	u16 unk_xa;
+	u32 unk_xc[0x20>>2];
+
+	u8 total_nodes;
 	u8 max_nodes;
-	u8 unk_x2e[2];
+	u8 node_bitmask;//"This is a bitmask of NetworkNodeIDs: bit0 for NetworkNodeID 0x1(host), bit1 for NetworkNodeID 0x2(first original client), and so on."
+	u8 unk_x2f;//"Padding maybe? Normally 0. "
 } udsConnectionStatus;
 
 /// Network struct stored as big-endian.
@@ -54,8 +59,10 @@ typedef struct {
 	u8 unk_x15;
 
 	u16 attributes;//See the UDSNETATTR enum values below.
-	u8 unk_x18[5];
 
+	u32 networkID;
+
+	u8 total_nodes;
 	u8 max_nodes;
 	u8 unk_x1e;
 	u8 unk_x1f;
@@ -111,7 +118,6 @@ typedef struct {
 typedef struct {
 	nwmBeaconDataReplyEntry datareply_entry;
 	udsNetworkStruct network;
-	u32 total_nodes;//Total number of nodes actually connected to the network, including the host.
 	udsNodeInfo nodes[UDS_MAXNODES];
 } udsNetworkScanInfo;
 
