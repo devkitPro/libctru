@@ -26,16 +26,16 @@ typedef struct {
 		struct {
 			u16 username[10];
 
-			u16 unk_x1c;//Unknown. Set to 0x0 with the output from udsScanBeacons().
+			u16 unk_x1c;//Unknown, normally zero. Set to 0x0 with the output from udsScanBeacons().
 			u8 flag;//"u8 flag, unknown. Originates from the u16 bitmask in the beacon node-list header. This flag is normally 0 since that bitmask is normally 0?"
-			u8 pad_x1f;//?
+			u8 pad_x1f;//Unknown, normally zero.
 		};
 	};
 
 	//The rest of this is initialized by NWM-module.
 	u16 NetworkNodeID;
-	u16 pad_x22;
-	u32 word_x24;
+	u16 pad_x22;//Unknown, normally zero?
+	u32 word_x24;//Normally zero?
 } udsNodeInfo;
 
 /// Connection status struct.
