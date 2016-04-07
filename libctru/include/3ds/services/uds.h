@@ -136,7 +136,7 @@ typedef enum {
  * @param sharedmem_size This must be 0x1000-byte aligned.
  * @param username Optional custom UTF-8 username(converted to UTF-16 internally) that other nodes on the UDS network can use. If not set the username from system-config is used. Max len is 10 characters without NUL-terminator.
  */
-Result udsInit(u32 sharedmem_size, const uint8_t *username);
+Result udsInit(size_t sharedmem_size, const char *username);
 
 /// Exits UDS.
 void udsExit(void);
@@ -146,20 +146,20 @@ void udsExit(void);
  * @param nodeinfo Output NodeInfo struct.
  * @param username If set, this is the UTF-8 string to convert for use in the struct. Max len is 10 characters without NUL-terminator.
  */
-Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const uint8_t *username);
+Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const char *username);
 
 /**
  * @brief Loads the UTF-16 username stored in the input NodeInfo struct, converted to UTF-8.
  * @param nodeinfo Input NodeInfo struct.
  * @param username This is the output UTF-8 string. Max len is 10 characters without NUL-terminator.
  */
-Result udsGetNodeInfoUsername(udsNodeInfo *nodeinfo, uint8_t *username);
+Result udsGetNodeInfoUsername(const udsNodeInfo *nodeinfo, char *username);
 
 /**
  * @brief Checks whether a NodeInfo struct was initialized by NWM-module(not any output from udsGenerateNodeInfo()).
  * @param nodeinfo Input NodeInfo struct.
  */
-bool udsCheckNodeInfoInitialized(udsNodeInfo *nodeinfo);
+bool udsCheckNodeInfoInitialized(const udsNodeInfo *nodeinfo);
 
 /**
  * @brief Generates a default NetworkStruct for creating networks.
@@ -181,14 +181,14 @@ void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, 
  * @param host_macaddress When set, this code will only return network info from the specified host MAC address.
  * @connected When not connected to a network this *must* be false. When connected to a network this *must* be true.
  */
-Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress, bool connected);
+Result udsScanBeacons(void *outbuf, size_t maxsize, udsNetworkScanInfo **networks, size_t *total_networks, u32 wlancommID, u8 id8, const u8 *host_macaddress, bool connected);
 
 /**
  * @brief This can be used by the host to set the appdata contained in the broadcasted beacons.
  * @param buf Appdata buffer.
  * @param size Size of the input appdata.
  */
-Result udsSetApplicationData(u8 *buf, u32 size);
+Result udsSetApplicationData(const void *buf, size_t size);
 
 /**
  * @brief This can be used while on a network(host/client) to get the appdata from the current beacon.
@@ -196,7 +196,7 @@ Result udsSetApplicationData(u8 *buf, u32 size);
  * @param size Max size of the output buffer.
  * @param actual_size If set, the actual size of the appdata written into the buffer is stored here.
  */
-Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size);
+Result udsGetApplicationData(void *buf, size_t size, size_t *actual_size);
 
 /**
  * @brief This can be used with a NetworkStruct, from udsScanBeacons() mainly, for getting the appdata.
@@ -204,7 +204,7 @@ Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size);
  * @param size Max size of the output buffer.
  * @param actual_size If set, the actual size of the appdata written into the buffer is stored here.
  */
-Result udsGetNetworkStructApplicationData(udsNetworkStruct *network, u8 *buf, u32 size, u32 *actual_size);
+Result udsGetNetworkStructApplicationData(const udsNetworkStruct *network, void *buf, size_t size, size_t *actual_size);
 
 /**
  * @brief Create a bind.
@@ -227,7 +227,7 @@ Result udsUnbind(udsBindContext *bindcontext);
  * @param nextEvent Whether to discard the current event and wait for the next event.
  * @param wait When true this will not return until the event is signalled. When false this checks if the event was signalled without waiting for it.
  */
-bool udsWaitDataAvailable(udsBindContext *bindcontext, bool nextEvent, bool wait);
+bool udsWaitDataAvailable(const udsBindContext *bindcontext, bool nextEvent, bool wait);
 
 /**
  * @brief Receives data over the network.
@@ -237,7 +237,7 @@ bool udsWaitDataAvailable(udsBindContext *bindcontext, bool nextEvent, bool wait
  * @param actual_size If set, the actual size written into the output buffer is stored here. This is zero when no data was received.
  * @param src_NetworkNodeID If set, the source NetworkNodeID is written here. This is zero when no data was received.
  */
-Result udsPullPacket(udsBindContext *bindcontext, void* buf, size_t size, size_t *actual_size, u16 *src_NetworkNodeID);
+Result udsPullPacket(const udsBindContext *bindcontext, void *buf, size_t size, size_t *actual_size, u16 *src_NetworkNodeID);
 
 /**
  * @brief Sends data over the network.
@@ -247,7 +247,7 @@ Result udsPullPacket(udsBindContext *bindcontext, void* buf, size_t size, size_t
  * @param buf Input send buffer.
  * @param size Size of the buffer.
  */
-Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t size);
+Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, const void *buf, size_t size);
 
 /**
  * @brief Gets the wifi channel currently being used.
@@ -262,7 +262,7 @@ Result udsGetChannel(u8 *channel);
  * @param passphrase_size Size of the passphrase buffer.
  * @param bindcontext Output bind context which will be created for this host, with NetworkNodeID=UDS_BROADCAST_NETWORKNODEID.
  */
-Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *bindcontext);
+Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *bindcontext);
 
 /**
  * @brief Connect to a network.
@@ -273,7 +273,7 @@ Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t pass
  * @param recv_NetworkNodeID This is the NetworkNodeID passed to udsBind() internally.
  * @param connection_type Type of connection, see the udsConnectionType enum values.
  */
-Result udsConnectNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type);
+Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type);
 
 /**
  * @brief Stop hosting the network.

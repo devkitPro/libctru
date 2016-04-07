@@ -26,12 +26,12 @@ static Handle __uds_connectionstatus_event;
 
 static u32 bind_allocbitmask;
 
-static Result uds_Initialize(u32 sharedmem_size, const uint8_t *username);
+static Result uds_Initialize(u32 sharedmem_size, const char *username);
 static Result udsipc_InitializeWithVersion(udsNodeInfo *nodeinfo, Handle sharedmem_handle, u32 sharedmem_size, Handle *eventhandle);
 static Result udsipc_Shutdown(void);
 
-static Result udsipc_BeginHostingNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size);
-static Result udsipc_ConnectToNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsConnectionType connection_type);
+static Result udsipc_BeginHostingNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size);
+static Result udsipc_ConnectToNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsConnectionType connection_type);
 static Result udsipc_SetProbeResponseParam(u32 oui, s8 data);
 
 static Result udsipc_RecvBeaconBroadcastData(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8, Handle event);
@@ -44,7 +44,7 @@ static Result udsipc_DecryptBeaconData(udsNetworkStruct *network, u8 *tag0, u8 *
 
 static Result usd_parsebeacon(u8 *buf, u32 size, udsNetworkScanInfo *networkscan);
 
-Result udsInit(u32 sharedmem_size, const uint8_t *username)
+Result udsInit(size_t sharedmem_size, const char *username)
 {
 	Result ret=0;
 	u32 ndm_state = 0;
@@ -115,7 +115,7 @@ void udsExit(void)
 	ndmuExit();
 }
 
-Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const uint8_t *username)
+Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const char *username)
 {
 	Result ret=0;
 	ssize_t units=0;
@@ -150,7 +150,7 @@ Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const uint8_t *username)
 
 		memset(nodeinfo->usercfg, 0, len*2);
 
-		units = utf8_to_utf16((uint16_t*)nodeinfo->usercfg, username, len);
+		units = utf8_to_utf16((uint16_t*)nodeinfo->usercfg, (uint8_t*)username, len);
 
 		if(units < 0 || units > len)ret = -2;
 	}
@@ -160,18 +160,18 @@ Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const uint8_t *username)
 	return ret;
 }
 
-Result udsGetNodeInfoUsername(udsNodeInfo *nodeinfo, uint8_t *username)
+Result udsGetNodeInfoUsername(const udsNodeInfo *nodeinfo, char *username)
 {
 	ssize_t units=0;
 	size_t len = 10;
 
-	units = utf16_to_utf8(username, (uint16_t*)nodeinfo->usercfg, len);
+	units = utf16_to_utf8((uint8_t*)username, (uint16_t*)nodeinfo->usercfg, len);
 
 	if(units < 0 || units > len)return -2;
 	return 0;
 }
 
-bool udsCheckNodeInfoInitialized(udsNodeInfo *nodeinfo)
+bool udsCheckNodeInfoInitialized(const udsNodeInfo *nodeinfo)
 {
 	if(nodeinfo->NetworkNodeID)return true;
 	return false;
@@ -199,7 +199,7 @@ void udsGenerateDefaultNetworkStruct(udsNetworkStruct *network, u32 wlancommID, 
 	network->unk_x1f = 1;
 }
 
-static Result uds_Initialize(u32 sharedmem_size, const uint8_t *username)
+static Result uds_Initialize(u32 sharedmem_size, const char *username)
 {
 	Result ret=0;
 	udsNodeInfo nodeinfo;
@@ -243,7 +243,7 @@ static Result uds_Initialize(u32 sharedmem_size, const uint8_t *username)
 	return ret;
 }
 
-Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context)
+Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context)
 {
 	Result ret=0;
 
@@ -260,7 +260,7 @@ Result udsCreateNetwork(udsNetworkStruct *network, void* passphrase, size_t pass
 	return ret;
 }
 
-Result udsConnectNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type)
+Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type)
 {
 	Result ret=0;
 	bool spectator=false;
@@ -441,10 +441,11 @@ Result udsGetNodeInformation(u16 NetworkNodeID, udsNodeInfo *output)
 	return ret;
 }
 
-Result udsScanBeacons(u8 *outbuf, u32 maxsize, udsNetworkScanInfo **networks, u32 *total_networks, u32 wlancommID, u8 id8, u8 *host_macaddress, bool connected)
+Result udsScanBeacons(void *buf, size_t maxsize, udsNetworkScanInfo **networks, size_t *total_networks, u32 wlancommID, u8 id8, const u8 *host_macaddress, bool connected)
 {
 	Result ret=0;
 	Handle event=0;
+	u8 *outbuf = (u8*)buf;
 	u32 entpos, curpos;
 	nwmScanInputStruct scaninput;
 	nwmBeaconDataReplyHeader *hdr;
@@ -581,7 +582,7 @@ Result udsUnbind(udsBindContext *bindcontext)
 	return ret;
 }
 
-bool udsWaitDataAvailable(udsBindContext *bindcontext, bool nextEvent, bool wait)
+bool udsWaitDataAvailable(const udsBindContext *bindcontext, bool nextEvent, bool wait)
 {
 	bool ret = true;
 	u64 delayvalue = U64_MAX;
@@ -737,7 +738,7 @@ static Result udsipc_RecvBeaconBroadcastData(u8 *outbuf, u32 maxsize, nwmScanInp
 	return cmdbuf[1];
 }
 
-Result udsSetApplicationData(u8 *buf, u32 size)
+Result udsSetApplicationData(const void *buf, size_t size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -752,7 +753,7 @@ Result udsSetApplicationData(u8 *buf, u32 size)
 	return cmdbuf[1];
 }
 
-Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size)
+Result udsGetApplicationData(void *buf, size_t size, size_t *actual_size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	u32 saved_threadstorage[2];
@@ -785,7 +786,7 @@ Result udsGetApplicationData(u8 *buf, u32 size, u32 *actual_size)
 	return ret;
 }
 
-Result udsGetNetworkStructApplicationData(udsNetworkStruct *network, u8 *buf, u32 size, u32 *actual_size)
+Result udsGetNetworkStructApplicationData(const udsNetworkStruct *network, void *buf, size_t size, size_t *actual_size)
 {
 	if(network->appdata_size > sizeof(network->appdata))return -1;
 	if(size > network->appdata_size)size = network->appdata_size;
@@ -832,7 +833,7 @@ static Result udsipc_Unbind(udsBindContext *bindcontext)
 	return cmdbuf[1];
 }
 
-Result udsPullPacket(udsBindContext *bindcontext, void* buf, size_t size, size_t *actual_size, u16 *src_NetworkNodeID)
+Result udsPullPacket(const udsBindContext *bindcontext, void *buf, size_t size, size_t *actual_size, u16 *src_NetworkNodeID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	u32 saved_threadstorage[2];
@@ -870,7 +871,7 @@ Result udsPullPacket(udsBindContext *bindcontext, void* buf, size_t size, size_t
 	return ret;
 }
 
-Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, void* buf, size_t size)
+Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, const void *buf, size_t size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -910,7 +911,7 @@ Result udsGetChannel(u8 *channel)
 	return ret;
 }
 
-static Result udsipc_BeginHostingNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size)
+static Result udsipc_BeginHostingNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -927,7 +928,7 @@ static Result udsipc_BeginHostingNetwork(udsNetworkStruct *network, void* passph
 	return cmdbuf[1];
 }
 
-static Result udsipc_ConnectToNetwork(udsNetworkStruct *network, void* passphrase, size_t passphrase_size, udsConnectionType connection_type)
+static Result udsipc_ConnectToNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsConnectionType connection_type)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
