@@ -131,6 +131,7 @@ Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize);
 
 /**
  * @brief Sets SSL options for the context.
+ * The HTTPC SSL option bits are the same as those defined in sslc.h
  * @param contect Context to set flags on.
  * @param options SSL option flags.
  */
