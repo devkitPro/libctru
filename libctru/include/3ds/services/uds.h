@@ -13,9 +13,6 @@
 /// NetworkNodeID for the host(the first node).
 #define UDS_HOST_NETWORKNODEID 0x1
 
-/// Default value that can be used for udsSendTo() netflags.
-#define UDS_SEND_NETFLAGS_DEFAULT 0xF3
-
 /// Node info struct.
 typedef struct {
 	u64 uds_friendcodeseed;//UDS version of the FriendCodeSeed.
@@ -227,8 +224,9 @@ Result udsGetNetworkStructApplicationData(const udsNetworkStruct *network, void 
  * @param bindcontext The output bind context.
  * @param NetworkNodeID This is the NetworkNodeID which this bind can receive data from.
  * @param spectator False for a regular bind, true for a spectator.
+ * @param data_channel This is an arbitrary value to use for data-frame filtering. This bind will only receive data frames which contain a matching data_channel value, which was specified by udsSendTo(). The data_channel must be non-zero.
  */
-Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator);
+Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator, u8 data_channel);
 
 /**
  * @brief Remove a bind.
@@ -258,12 +256,12 @@ Result udsPullPacket(const udsBindContext *bindcontext, void *buf, size_t size, 
 /**
  * @brief Sends data over the network.
  * @param dst_NetworkNodeID Destination NetworkNodeID.
- * @param netflags UDS_SEND_NETFLAGS_DEFAULT can be used for this. This field is sent in the data frame NWM-module header.
+ * @param data_channel See udsBind().
  * @param flags Send flags, see the UDS_SENDFLAG enum values.
  * @param buf Input send buffer.
  * @param size Size of the buffer.
  */
-Result udsSendTo(u16 dst_NetworkNodeID, u8 netflags, u8 flags, const void *buf, size_t size);
+Result udsSendTo(u16 dst_NetworkNodeID, u8 data_channel, u8 flags, const void *buf, size_t size);
 
 /**
  * @brief Gets the wifi channel currently being used.
@@ -276,20 +274,22 @@ Result udsGetChannel(u8 *channel);
  * @param network The NetworkStruct, you can use udsGenerateDefaultNetworkStruct() for generating this.
  * @param passphrase Raw input passphrase buffer.
  * @param passphrase_size Size of the passphrase buffer.
- * @param bindcontext Output bind context which will be created for this host, with NetworkNodeID=UDS_BROADCAST_NETWORKNODEID.
+ * @param bindcontext Optional output bind context which will be created for this host, with NetworkNodeID=UDS_BROADCAST_NETWORKNODEID.
+ * @param data_channel This is the data_channel value which will be passed to udsBind().
  */
-Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *bindcontext);
+Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *bindcontext, u8 data_channel);
 
 /**
  * @brief Connect to a network.
  * @param network The NetworkStruct, you can use udsScanBeacons() for this.
  * @param passphrase Raw input passphrase buffer.
  * @param passphrase_size Size of the passphrase buffer.
- * @param bindcontext Output bind context which will be created for this host.
+ * @param bindcontext Optional output bind context which will be created for this host.
  * @param recv_NetworkNodeID This is the NetworkNodeID passed to udsBind() internally.
  * @param connection_type Type of connection, see the udsConnectionType enum values.
+ * @param data_channel This is the data_channel value which will be passed to udsBind() internally.
  */
-Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type);
+Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type, u8 data_channel);
 
 /**
  * @brief Stop hosting the network.

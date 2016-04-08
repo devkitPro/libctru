@@ -37,7 +37,7 @@ static Result udsipc_SetProbeResponseParam(u32 oui, s8 data);
 static Result udsipc_RecvBeaconBroadcastData(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8, Handle event);
 static Result udsipc_ScanOnConnection(u8 *outbuf, u32 maxsize, nwmScanInputStruct *scaninput, u32 wlancommID, u8 id8);
 
-static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 input1, u16 NetworkNodeID);
+static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 data_channel, u16 NetworkNodeID);
 static Result udsipc_Unbind(udsBindContext *bindcontext);
 
 static Result udsipc_DecryptBeaconData(udsNetworkStruct *network, u8 *tag0, u8 *tag1, udsNodeInfo *out);
@@ -243,7 +243,7 @@ static Result uds_Initialize(u32 sharedmem_size, const char *username)
 	return ret;
 }
 
-Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context)
+Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u8 data_channel)
 {
 	Result ret=0;
 
@@ -253,14 +253,14 @@ Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase,
 	ret = udsipc_BeginHostingNetwork(network, passphrase, passphrase_size);
 	if(R_FAILED(ret))return ret;
 
-	ret = udsBind(context, UDS_BROADCAST_NETWORKNODEID, false);
+	if(context)ret = udsBind(context, UDS_BROADCAST_NETWORKNODEID, false, data_channel);
 
 	if(R_FAILED(ret))udsDestroyNetwork();
 
 	return ret;
 }
 
-Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type)
+Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type, u8 data_channel)
 {
 	Result ret=0;
 	bool spectator=false;
@@ -271,7 +271,7 @@ Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase
 	ret = udsipc_ConnectToNetwork(network, passphrase, passphrase_size, connection_type);
 	if(R_FAILED(ret))return ret;
 	//printf("bind...\n");
-	ret = udsBind(context, recv_NetworkNodeID, spectator);
+	if(context)ret = udsBind(context, recv_NetworkNodeID, spectator, data_channel);
 
 	if(R_FAILED(ret))udsDisconnectNetwork();
 
@@ -532,7 +532,7 @@ Result udsScanBeacons(void *buf, size_t maxsize, udsNetworkScanInfo **networks, 
 	return ret;
 }
 
-Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator)
+Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator, u8 data_channel)
 {
 	u32 pos;
 
@@ -559,7 +559,7 @@ Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator)
 
 	bindcontext->spectator = spectator;
 
-	return udsipc_Bind(bindcontext, 0x2e30, 0xf3, NetworkNodeID);
+	return udsipc_Bind(bindcontext, 0x2e30, data_channel, NetworkNodeID);
 }
 
 Result udsUnbind(udsBindContext *bindcontext)
@@ -790,14 +790,14 @@ Result udsGetNetworkStructApplicationData(const udsNetworkStruct *network, void 
 	return 0;
 }
 
-static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 input1, u16 NetworkNodeID)//input0 and input1 are unknown.
+static Result udsipc_Bind(udsBindContext *bindcontext, u32 input0, u8 data_channel, u16 NetworkNodeID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x12,4,0); // 0x120100
 	cmdbuf[1]=bindcontext->BindNodeID;
 	cmdbuf[2]=input0;
-	cmdbuf[3]=input1;
+	cmdbuf[3]=data_channel;
 	cmdbuf[4]=NetworkNodeID;
 
 	Result ret=0;
@@ -863,7 +863,7 @@ Result udsPullPacket(const udsBindContext *bindcontext, void *buf, size_t size, 
 	return ret;
 }
 
-Result udsSendTo(u16 dst_NetworkNodeID, u8 netflags, u8 flags, const void *buf, size_t size)
+Result udsSendTo(u16 dst_NetworkNodeID, u8 data_channel, u8 flags, const void *buf, size_t size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -872,7 +872,7 @@ Result udsSendTo(u16 dst_NetworkNodeID, u8 netflags, u8 flags, const void *buf, 
 	cmdbuf[0]=IPC_MakeHeader(0x17,6,2); // 0x170182
 	cmdbuf[1]=0x1;//Unused
 	cmdbuf[2]=dst_NetworkNodeID;
-	cmdbuf[3]=netflags;
+	cmdbuf[3]=data_channel;
 	cmdbuf[4]=aligned_size>>2;
 	cmdbuf[5]=size;
 	cmdbuf[6]=flags;
