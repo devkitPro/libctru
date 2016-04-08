@@ -13,8 +13,8 @@
 /// NetworkNodeID for the host(the first node).
 #define UDS_HOST_NETWORKNODEID 0x1
 
-/// Default value that can be used for udsSendTo() input8.
-#define UDS_SEND_INPUT8_DEFAULT 0xF3
+/// Default value that can be used for udsSendTo() netflags.
+#define UDS_SEND_NETFLAGS_DEFAULT 0xF3
 
 /// Node info struct.
 typedef struct {
@@ -237,11 +237,11 @@ Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator);
 Result udsUnbind(udsBindContext *bindcontext);
 
 /**
- * @brief Waits for the bind event to occur, or checks if the event was signalled. This event is signalled every time new data is available via udsPullPacket().
- * @return Always true. However if wait=false, this will return false if the event wasn't signalled.
+ * @brief Waits for the bind event to occur, or checks if the event was signaled. This event is signaled every time new data is available via udsPullPacket().
+ * @return Always true. However if wait=false, this will return false if the event wasn't signaled.
  * @param bindcontext The bind context.
  * @param nextEvent Whether to discard the current event and wait for the next event.
- * @param wait When true this will not return until the event is signalled. When false this checks if the event was signalled without waiting for it.
+ * @param wait When true this will not return until the event is signaled. When false this checks if the event was signaled without waiting for it.
  */
 bool udsWaitDataAvailable(const udsBindContext *bindcontext, bool nextEvent, bool wait);
 
@@ -258,12 +258,12 @@ Result udsPullPacket(const udsBindContext *bindcontext, void *buf, size_t size, 
 /**
  * @brief Sends data over the network.
  * @param dst_NetworkNodeID Destination NetworkNodeID.
- * @param input8 UDS_SEND_INPUT8_DEFAULT can be used for this. It's unknown what this field is actually for.
+ * @param netflags UDS_SEND_NETFLAGS_DEFAULT can be used for this. This field is sent in the data frame NWM-module header.
  * @param flags Send flags, see the UDS_SENDFLAG enum values.
  * @param buf Input send buffer.
  * @param size Size of the buffer.
  */
-Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, const void *buf, size_t size);
+Result udsSendTo(u16 dst_NetworkNodeID, u8 netflags, u8 flags, const void *buf, size_t size);
 
 /**
  * @brief Gets the wifi channel currently being used.
@@ -334,10 +334,10 @@ Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators);
 Result udsGetConnectionStatus(udsConnectionStatus *output);
 
 /**
- * @brief Waits for the ConnectionStatus event to occur, or checks if the event was signalled. This event is signalled when the data from udsGetConnectionStatus() was updated internally.
- * @return Always true. However if wait=false, this will return false if the event wasn't signalled.
+ * @brief Waits for the ConnectionStatus event to occur, or checks if the event was signaled. This event is signaled when the data from udsGetConnectionStatus() was updated internally.
+ * @return Always true. However if wait=false, this will return false if the event wasn't signaled.
  * @param nextEvent Whether to discard the current event and wait for the next event.
- * @param wait When true this will not return until the event is signalled. When false this checks if the event was signalled without waiting for it.
+ * @param wait When true this will not return until the event is signaled. When false this checks if the event was signaled without waiting for it.
  */
 bool udsWaitConnectionStatusEvent(bool nextEvent, bool wait);
 

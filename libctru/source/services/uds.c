@@ -863,7 +863,7 @@ Result udsPullPacket(const udsBindContext *bindcontext, void *buf, size_t size, 
 	return ret;
 }
 
-Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, const void *buf, size_t size)
+Result udsSendTo(u16 dst_NetworkNodeID, u8 netflags, u8 flags, const void *buf, size_t size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -872,7 +872,7 @@ Result udsSendTo(u16 dst_NetworkNodeID, u8 input8, u8 flags, const void *buf, si
 	cmdbuf[0]=IPC_MakeHeader(0x17,6,2); // 0x170182
 	cmdbuf[1]=0x1;//Unused
 	cmdbuf[2]=dst_NetworkNodeID;
-	cmdbuf[3]=input8;
+	cmdbuf[3]=netflags;
 	cmdbuf[4]=aligned_size>>2;
 	cmdbuf[5]=size;
 	cmdbuf[6]=flags;
