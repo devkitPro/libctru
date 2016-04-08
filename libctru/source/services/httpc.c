@@ -169,6 +169,11 @@ Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize)
 	return HTTPC_AddTrustedRootCA(context->servhandle, context->httphandle, cert, certsize);
 }
 
+Result httpcSetSSLOpt(httpcContext *context, u32 options)
+{
+	return HTTPC_SetSSLOpt(context->servhandle, context->httphandle, options);
+}
+
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize)
 {
 	Result ret=0;
@@ -460,3 +465,16 @@ Result HTTPC_AddTrustedRootCA(Handle handle, Handle contextHandle, u8 *cert, u32
 	return cmdbuf[1];
 }
 
+Result HTTPC_SetSSLOpt(Handle handle, Handle contextHandle, u32 options)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x2B,2,0); // 0x2B0080
+	cmdbuf[1]=contextHandle;
+	cmdbuf[2]=options;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
+
+	return cmdbuf[1];
+}

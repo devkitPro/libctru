@@ -130,6 +130,13 @@ Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u3
 Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize);
 
 /**
+ * @brief Sets SSL options for the context.
+ * @param contect Context to set flags on.
+ * @param options SSL option flags.
+ */
+Result httpcSetSSLOpt(httpcContext *context, u32 options);
+
+/**
  * @brief Downloads data from the HTTP context into a buffer.
  * The *entire* content must be downloaded before using httpcCloseContext(), otherwise httpcCloseContext() will hang.
  * @param context Context to download data from.
@@ -268,4 +275,12 @@ Result HTTPC_GetResponseStatusCode(Handle handle, Handle contextHandle, u32* out
  * @param certsize Size of the DER cert.
  */
 Result HTTPC_AddTrustedRootCA(Handle handle, Handle contextHandle, u8 *cert, u32 certsize);
+
+/**
+ * @brief Sets SSL options for the context.
+ * @param handle HTTPC service handle to use.
+ * @param contextHandle HTTP context handle to use.
+ * @param options SSL option flags.
+ */
+Result HTTPC_SetSSLOpt(Handle handle, Handle contextHandle, u32 options);
 
