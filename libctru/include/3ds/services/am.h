@@ -4,9 +4,9 @@
  */
 #pragma once
 
-/**
- * @brief Contains basic information about a title.
- */
+#include <3ds/services/fs.h>
+
+/// Contains basic information about a title.
 typedef struct
 {
 	u64 titleID; ///< The title's ID.
@@ -14,6 +14,39 @@ typedef struct
 	u16 version; ///< The title's version.
 	u8 unk[6];   ///< Unknown title data.
 } AM_TitleEntry;
+
+/// Pending title status mask values.
+enum
+{
+	AM_STATUS_MASK_INSTALLING = BIT(0),           ///< Titles currently installing.
+	AM_STATUS_MASK_AWAITING_FINALIZATION = BIT(1) ///< Titles awaiting finalization.
+};
+
+/// Pending title status values.
+typedef enum
+{
+	AM_STATUS_ABORTED = 0x0002,              ///< Install aborted.
+	AM_STATUS_SAVED = 0x0003,                ///< Title saved, but not installed.
+	AM_STATUS_INSTALL_IN_PROGRESS = 0x0802,  ///< Install in progress.
+	AM_STATUS_AWAITING_FINALIZATION = 0x0803 ///< Awaiting finalization.
+} AM_InstallStatus;
+
+// Contains basic information about a pending title.
+typedef struct
+{
+    u64 titleId;   ///< Title ID
+    u16 version;   ///< Version
+    u16 status;    ///< @ref AM_InstallStatus
+    u32 titleType; ///< Title Type
+    u8 unk[0x8];   ///< Unknown
+} AM_PendingTitleEntry;
+
+/// Pending title deletion flags.
+enum
+{
+	AM_DELETE_PENDING_NON_SYSTEM = BIT(0), ///< Non-system titles.
+	AM_DELETE_PENDING_SYSTEM = BIT(1)      ///< System titles.
+};
 
 /// Initializes AM.
 Result amInit(void);
@@ -25,19 +58,71 @@ void amExit(void);
 Handle *amGetSessionHandle(void);
 
 /**
- * @brief Gets the number of titles for a given mediatype.
- * @param mediatype Mediatype to get titles from.
- * @param count Pointer to write the title count to.
+ * @brief Gets the number of titles for a given media type.
+ * @param mediatype Media type to get titles from.
+ * @param[out] count Pointer to write the title count to.
  */
-Result AM_GetTitleCount(u8 mediatype, u32 *count);
+Result AM_GetTitleCount(FS_MediaType mediatype, u32 *count);
 
 /**
  * @brief Gets a list of title IDs present in a mediatype.
- * @param mediatype Mediatype to get titles from.
- * @param count Number of title IDs to get.
- * @param titleIDs Buffer to write retrieved title IDs to.
+ * @param[out] titlesRead Pointer to output the number of read titles to.
+ * @param mediatype Media type to get titles from.
+ * @param titleCount Number of title IDs to get.
+ * @param titleIds Buffer to output the retrieved title IDs to.
  */
-Result AM_GetTitleIdList(u8 mediatype, u32 count, u64 *titleIDs);
+Result AM_GetTitleList(u32* titlesRead, FS_MediaType mediatype, u32 titleCount, u64 *titleIds);
+
+/**
+ * @brief Gets a list of details about installed titles.
+ * @param mediatype Media type to get titles from.
+ * @param titleCount Number of titles to list.
+ * @param titleIds List of title IDs to retrieve details for.
+ * @param titleInfo Buffer to write AM_TitleEntry's to.
+ */
+Result AM_GetTitleInfo(FS_MediaType mediatype, u32 titleCount, u64 *titleIds, AM_TitleEntry *titleInfo);
+
+/**
+ * @brief Gets the number of tickets installed on the system.
+ * @param[out] count Pointer to output the ticket count to.
+ */
+Result AM_GetTicketCount(u32 *count);
+
+/**
+ * @brief Gets a list of tickets installed on the system.
+ * @param[out] ticketsRead Pointer to output the number of read tickets to.
+ * @param ticketCount Number of tickets to read.
+ * @param skip Number of tickets to skip.
+ * @param ticketIds Buffer to output the retrieved ticket IDs to.
+ */
+Result AM_GetTicketList(u32 *ticketsRead, u32 ticketCount, u32 skip, u64 *ticketIds);
+
+/**
+ * @brief Gets the number of pending titles on this system.
+ * @param[out] count Pointer to output the pending title count to.
+ * @param mediatype Media type of pending titles to count.
+ * @param statusMask Bit mask of status values to include.
+ */
+Result AM_GetPendingTitleCount(u32 *count, FS_MediaType mediatype, u32 statusMask);
+
+/**
+ * @brief Gets a list of pending titles on this system.
+ * @param[out] titlesRead Pointer to output the number of read pending titles to.
+ * @param titleCount Number of pending titles to read.
+ * @param mediatype Media type of pending titles to list.
+ * @param statusMask Bit mask of status values to include.
+ * @param titleIds Buffer to output the retrieved pending title IDs to.
+ */
+Result AM_GetPendingTitleList(u32 *titlesRead, u32 titleCount, FS_MediaType mediatype, u32 statusMask, u64 *titleIds);
+
+/**
+ * @brief Gets information about pending titles on this system.
+ * @param titleCount Number of pending titles to read.
+ * @param mediatype Media type of pending titles to get information on.
+ * @param titleIds IDs of the titles to get information about.
+ * @param titleInfo Buffer to output the retrieved pending title info to.
+ */
+Result AM_GetPendingTitleInfo(u32 titleCount, FS_MediaType mediatype, u64 *titleIds, AM_PendingTitleEntry *titleInfo);
 
 /**
  * @brief Gets a 32-bit device-specific ID.
@@ -46,75 +131,102 @@ Result AM_GetTitleIdList(u8 mediatype, u32 count, u64 *titleIDs);
 Result AM_GetDeviceId(u32 *deviceID);
 
 /**
- * @brief Gets a list of details about installed titles.
- * @param mediatype Mediatype to get titles from.
- * @param titleCount Number of titles to list.
- * @param titleIdList List of title IDs to retrieve details for.
- * @param titleList Buffer to write AM_TitleEntry's to.
- */
-Result AM_ListTitles(u8 mediatype, u32 titleCount, u64 *titleIdList, AM_TitleEntry *titleList);
-
-/**
  * @brief Initializes the CIA install process, returning a handle to write CIA data to.
- * @param mediatype Mediatype to install the CIA to.
- * @param ciaHandle Pointer to write the CIA handle to.
+ * @param mediatype Media type to install the CIA to.
+ * @param[out] ciaHandle Pointer to write the CIA handle to.
  */
-Result AM_StartCiaInstall(u8 mediatype, Handle *ciaHandle);
+Result AM_StartCiaInstall(FS_MediaType mediatype, Handle *ciaHandle);
 
 /**
  * @brief Initializes the CIA install process for Download Play CIAs, returning a handle to write CIA data to.
- * @param ciaHandle Pointer to write the CIA handle to.
+ * @param[out] ciaHandle Pointer to write the CIA handle to.
  */
 Result AM_StartDlpChildCiaInstall(Handle *ciaHandle);
 
 /**
  * @brief Aborts the CIA install process.
- * @param ciaHandle Pointer to the CIA handle to cancel.
+ * @param ciaHandle CIA handle to cancel.
  */
-Result AM_CancelCIAInstall(Handle *ciaHandle);
+Result AM_CancelCIAInstall(Handle ciaHandle);
 
 /**
  * @brief Finalizes the CIA install process.
- * @param mediatype Mediatype to install the CIA to.
- * @param ciaHandle Pointer to the CIA handle to finalize.
+ * @param ciaHandle CIA handle to finalize.
  */
-Result AM_FinishCiaInstall(u8 mediatype, Handle *ciaHandle);
+Result AM_FinishCiaInstall(Handle ciaHandle);
 
 /**
  * @brief Deletes a title.
- * @param mediatype Mediatype to delete from.
+ * @param mediatype Media type to delete from.
  * @param titleID ID of the title to delete.
  */
-Result AM_DeleteTitle(u8 mediatype, u64 titleID);
+Result AM_DeleteTitle(FS_MediaType mediatype, u64 titleID);
 
 /**
  * @brief Deletes a title, provided that it is not a system title.
- * @param mediatype Mediatype to delete from.
+ * @param mediatype Media type to delete from.
  * @param titleID ID of the title to delete.
  */
-Result AM_DeleteAppTitle(u8 mediatype, u64 titleID);
+Result AM_DeleteAppTitle(FS_MediaType mediatype, u64 titleID);
+
+/**
+ * @brief Deletes a ticket.
+ * @param titleID ID of the ticket to delete.
+ */
+Result AM_DeleteTicket(u64 ticketId);
+
+/**
+ * @brief Deletes a pending title.
+ * @param mediatype Media type to delete from.
+ * @param titleId ID of the pending title to delete.
+ */
+Result AM_DeletePendingTitle(FS_MediaType mediatype, u64 titleId);
+
+/**
+ * @brief Deletes pending titles.
+ * @param mediatype Media type to delete from.
+ * @param flags Flags used to select pending titles.
+ */
+Result AM_DeletePendingTitles(FS_MediaType mediatype, u32 flags);
+
+/**
+ * @brief Deletes all pending titles.
+ * @param mediatype Media type to delete from.
+ */
+Result AM_DeleteAllPendingTitles(FS_MediaType mediatype);
 
 /// Installs the current NATIVE_FIRM title to NAND (firm0:/ & firm1:/)
 Result AM_InstallNativeFirm(void);
 
-/// Similar to InstallNativeFirm, but doesn't use AMPXI_GetTitleList (NATIVE_FIRM: 0004013800000002 or 0004013820000002 (N3DS))
+/**
+ * @brief Installs a NATIVE_FIRM title to NAND. Accepts 0004013800000002 or 0004013820000002 (N3DS).
+ * @param titleID Title ID of the NATIVE_FIRM to install.
+ */
 Result AM_InstallFirm(u64 titleID);
 
 /**
  * @brief Gets the product code of a title.
- * @param mediatype Mediatype of the title.
+ * @param mediatype Media type of the title.
  * @param titleID ID of the title.
- * @param productCode Buffer to output the product code to. (length = 16)
+ * @param[out] productCode Pointer to output the product code to. (length = 16)
  */
-Result AM_GetTitleProductCode(u8 mediatype, u64 titleID, char* productCode);
+Result AM_GetTitleProductCode(FS_MediaType mediatype, u64 titleId, char *productCode);
+
+/**
+ * @brief Gets the ext data ID of a title.
+ * @param[out] extDataId Pointer to output the ext data ID to.
+ * @param mediatype Media type of the title.
+ * @param titleID ID of the title.
+ */
+Result AM_GetTitleExtDataId(u64 *extDataId, FS_MediaType mediatype, u64 titleId);
 
 /**
  * @brief Gets an AM_TitleEntry instance for a CIA file.
- * @param mediatype Mediatype that this CIA would be installed to.
- * @param titleEntry Pointer to write the AM_TitleEntry instance to.
+ * @param mediatype Media type that this CIA would be installed to.
+ * @param[out] titleEntry Pointer to write the AM_TitleEntry instance to.
  * @param fileHandle Handle of the CIA file to read.
  */
-Result AM_GetCiaFileInfo(u8 mediatype, AM_TitleEntry *titleEntry, Handle fileHandle);
+Result AM_GetCiaFileInfo(FS_MediaType mediatype, AM_TitleEntry *titleEntry, Handle fileHandle);
 
 /**
  * @brief Initializes the external (SD) title database.
