@@ -1407,7 +1407,7 @@ Result FSUSER_SwitchCleanupInvalidSaveData(bool enable)
 	return cmdbuf[1];
 }
 
-Result FSUSER_EnumerateSystemSaveData(u32* idsWritten, u32 idsSize, u64* ids)
+Result FSUSER_EnumerateSystemSaveData(u32* idsWritten, u32 idsSize, u32* ids)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 

@@ -853,7 +853,7 @@ Result FSUSER_SwitchCleanupInvalidSaveData(bool enable);
  * @param idsSize Size of the IDs buffer.
  * @param ids Pointer to output IDs to.
  */
-Result FSUSER_EnumerateSystemSaveData(u32* idsWritten, u32 idsSize, u64* ids);
+Result FSUSER_EnumerateSystemSaveData(u32* idsWritten, u32 idsSize, u32* ids);
 
 /**
  * @brief Initializes a FSUSER session with an SDK version.
