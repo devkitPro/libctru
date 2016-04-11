@@ -59,6 +59,7 @@ typedef enum
 	ARCHIVE_SAVEDATA_AND_CONTENT2    = 0x2345678E, ///< User save data and ExeFS/RomFS archive (only ExeFS for fs:LDR).
 	ARCHIVE_NAND_CTR_FS              = 0x567890AB, ///< NAND CTR FS archive.
 	ARCHIVE_TWL_PHOTO                = 0x567890AC, ///< TWL PHOTO archive.
+	ARCHIVE_TWL_SOUND                = 0x567890AD, ///< TWL SOUND archive.
 	ARCHIVE_NAND_TWL_FS              = 0x567890AE, ///< NAND TWL FS archive.
 	ARCHIVE_NAND_W_FS                = 0x567890AF, ///< NAND W FS archive.
 	ARCHIVE_GAMECARD_SAVEDATA        = 0x567890B1, ///< Game card save data archive.
