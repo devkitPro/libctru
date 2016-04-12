@@ -130,6 +130,13 @@ Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u3
 Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize);
 
 /**
+ * @brief Adds a default RootCA cert to a HTTP context.
+ * @param context Context to use.
+ * @param certID ID of the cert to add, see sslc.h.
+ */
+Result httpcAddDefaultCert(httpcContext *context, SSLC_DefaultRootCert certID);
+
+/**
  * @brief Sets SSL options for the context.
  * The HTTPC SSL option bits are the same as those defined in sslc.h
  * @param context Context to set flags on.

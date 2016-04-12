@@ -6,6 +6,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/synchronization.h>
+#include <3ds/services/sslc.h>
 #include <3ds/services/httpc.h>
 #include <3ds/ipc.h>
 
@@ -411,6 +412,20 @@ Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize)
 	cmdbuf[2]=certsize;
 	cmdbuf[3]=IPC_Desc_Buffer(certsize, IPC_BUFFER_R);
 	cmdbuf[4]=(u32)cert;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcAddDefaultCert(httpcContext *context, SSLC_DefaultRootCert certID)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x25,2,0); // 0x250080
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=certID;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
