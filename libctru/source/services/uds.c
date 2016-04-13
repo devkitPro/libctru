@@ -267,11 +267,9 @@ Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase
 
 	if(connection_type==UDSCONTYPE_Spectator)spectator=true;
 
-	//printf("connecting...\n");//Removing these prints caused connecting to fail.
 	ret = udsipc_ConnectToNetwork(network, passphrase, passphrase_size, connection_type);
-	if(R_FAILED(ret))return ret;
-	//printf("bind...\n");
-	if(context)ret = udsBind(context, recv_NetworkNodeID, spectator, data_channel);
+
+	if(R_SUCCEEDED(ret) && context)ret = udsBind(context, recv_NetworkNodeID, spectator, data_channel);
 
 	if(R_FAILED(ret))udsDisconnectNetwork();
 
