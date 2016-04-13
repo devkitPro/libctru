@@ -130,7 +130,7 @@ typedef struct {
 
 enum {
 	UDSNETATTR_DisableConnectClients = BIT(1), //When set new Clients are (supposedly) not allowed to connect.
-	UDSNETATTR_DisableConnectSpectators = BIT(2), //When set new Spectators are (probably) not allowed to connect.
+	UDSNETATTR_x4 = BIT(2), //Unknown what this bit is for.
 	UDSNETATTR_Default = BIT(15), //Unknown what this bit is for.
 };
 
@@ -320,12 +320,12 @@ Result udsEjectSpectator();
 Result udsUpdateNetworkAttribute(u16 bitmask, bool flag);
 
 /**
- * @brief This uses udsUpdateNetworkAttribute() for (un)blocking new connections to this host with the specified type(s). This is what it was supposed to do, doesn't seem actually to affect new connections though.
- * @param block When true, block the specified connection types. Otherwise allow them.
+ * @brief This uses udsUpdateNetworkAttribute() for (un)blocking new connections to this host.
+ * @param block When true, block the specified connection types(bitmask set). Otherwise allow them(bitmask clear).
  * @param clients When true, (un)block regular clients.
- * @param clients When true, (un)block spectators(?).
+ * @param flag When true, update UDSNETATTR_x4. Normally this should be false.
  */
-Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators);
+Result udsSetNewConnectionsBlocked(bool block, bool clients, bool flag);
 
 /**
  * @brief This loads the current ConnectionStatus struct.

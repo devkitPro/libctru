@@ -354,12 +354,12 @@ Result udsUpdateNetworkAttribute(u16 bitmask, bool flag)
 	return cmdbuf[1];
 }
 
-Result udsSetNewConnectionsBlocked(bool block, bool clients, bool spectators)
+Result udsSetNewConnectionsBlocked(bool block, bool clients, bool flag)
 {
 	u16 bitmask = 0;
 
 	if(clients)bitmask |= UDSNETATTR_DisableConnectClients;
-	if(spectators)bitmask |= UDSNETATTR_DisableConnectSpectators;
+	if(flag)bitmask |= UDSNETATTR_x4;
 
 	return udsUpdateNetworkAttribute(bitmask, block);
 }
