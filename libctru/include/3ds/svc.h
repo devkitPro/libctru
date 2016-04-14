@@ -632,6 +632,31 @@ s32    svcGetProcessorID(void);
 Result svcGetThreadId(u32 *out, Handle handle);
 
 /**
+ * @brief Gets the resource limit set of a process.
+ * @param[out] resourceLimit Pointer to output the resource limit set handle to.
+ * @param process Process to get the resource limits of.
+ */
+Result svcGetResourceLimit(Handle* resourceLimit, Handle process);
+
+/**
+ * @brief Gets the value limits of a resource limit set.
+ * @param[out] values Pointer to output the value limits to.
+ * @param resourceLimit Resource limit set to use.
+ * @param names Resource limit names to get the limits of.
+ * @param nameCount Number of resource limit names.
+ */
+Result svcGetResourceLimitLimitValues(s64* values, Handle resourceLimit, u32* names, s32 nameCount);
+
+/**
+ * @brief Gets the values of a resource limit set.
+ * @param[out] values Pointer to output the values to.
+ * @param resourceLimit Resource limit set to use.
+ * @param names Resource limit names to get the values of.
+ * @param nameCount Number of resource limit names.
+ */
+Result svcGetResourceLimitCurrentValues(s64* values, Handle resourceLimit, u32* names, s32 nameCount);
+
+/**
  * @brief Gets the process ID of a thread.
  * @param[out] out Pointer to output the process ID of the thread @p handle to.
  * @param handle Handle of the thread.
