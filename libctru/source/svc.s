@@ -284,6 +284,21 @@ SVC_BEGIN svcGetThreadId
 	str r1, [r3]
 	bx  lr
 
+SVC_BEGIN svcGetResourceLimit
+	str r0, [sp, #-0x4]!
+	svc 0x38
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
+
+SVC_BEGIN svcGetResourceLimitLimitValues
+	svc 0x39
+	bx  lr
+
+SVC_BEGIN svcGetResourceLimitCurrentValues
+	svc 0x3A
+	bx  lr
+
 SVC_BEGIN svcBreak
 	svc 0x3C
 	bx  lr
