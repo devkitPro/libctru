@@ -940,9 +940,10 @@ sdmc_diropen(struct _reent *r,
   if(R_SUCCEEDED(rc))
   {
     dir->magic = SDMC_DIRITER_MAGIC;
-    dir->fd = fd;
-    memset(&dir->entry_data, 0, sizeof(dir->entry_data));
+    dir->fd    = fd;
     dir->index = -1;
+    dir->size  = 0;
+    memset(&dir->entry_data, 0, sizeof(dir->entry_data));
     return dirState;
   }
 
