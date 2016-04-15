@@ -40,7 +40,8 @@ Result NEWS_AddNotification(const u16* title, u32 titleLength, const u16* messag
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = IPC_MakeHeader(0x1,3,8); // 0x100C8
+	if (useNewsS) cmdbuf[0] = IPC_MakeHeader(0x1,3,6); // 0x100C6
+	else cmdbuf[0] = IPC_MakeHeader(0x1,3,8); // 0x100C8
 	cmdbuf[1] = sizeof(NotificationHeader);
 	cmdbuf[2] = (messageLength + 1) * sizeof(u16);
 	cmdbuf[3] = imageSize;
