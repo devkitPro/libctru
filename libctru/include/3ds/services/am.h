@@ -34,11 +34,11 @@ typedef enum
 // Contains basic information about a pending title.
 typedef struct
 {
-    u64 titleId;   ///< Title ID
-    u16 version;   ///< Version
-    u16 status;    ///< @ref AM_InstallStatus
-    u32 titleType; ///< Title Type
-    u8 unk[0x8];   ///< Unknown
+	u64 titleId;   ///< Title ID
+	u16 version;   ///< Version
+	u16 status;    ///< @ref AM_InstallStatus
+	u32 titleType; ///< Title Type
+	u8 unk[0x8];   ///< Unknown
 } AM_PendingTitleEntry;
 
 /// Pending title deletion flags.
@@ -47,6 +47,14 @@ enum
 	AM_DELETE_PENDING_NON_SYSTEM = BIT(0), ///< Non-system titles.
 	AM_DELETE_PENDING_SYSTEM = BIT(1)      ///< System titles.
 };
+
+/// Information about the TWL NAND partition.
+typedef struct {
+	u64 capacity;        ///< Total capacity.
+	u64 freeSpace;       ///< Total free space.
+	u64 titlesCapacity;  ///< Capacity for titles.
+	u64 titlesFreeSpace; ///< Free space for titles.
+} AM_TWLPartitionInfo;
 
 /// Initializes AM.
 Result amInit(void);
@@ -129,6 +137,12 @@ Result AM_GetPendingTitleInfo(u32 titleCount, FS_MediaType mediatype, u64 *title
  * @param deviceID Pointer to write the device ID to.
  */
 Result AM_GetDeviceId(u32 *deviceID);
+
+/**
+ * @brief Retrieves information about the NAND TWL partition.
+ * @param[out] info Pointer to output the TWL partition info to.
+ */
+Result AM_GetTWLPartitionInfo(AM_TWLPartitionInfo *info);
 
 /**
  * @brief Initializes the CIA install process, returning a handle to write CIA data to.
@@ -224,9 +238,53 @@ Result AM_GetTitleExtDataId(u64 *extDataId, FS_MediaType mediatype, u64 titleId)
  * @brief Gets an AM_TitleEntry instance for a CIA file.
  * @param mediatype Media type that this CIA would be installed to.
  * @param[out] titleEntry Pointer to write the AM_TitleEntry instance to.
- * @param fileHandle Handle of the CIA file to read.
+ * @param fileHandle Handle of the CIA file.
  */
 Result AM_GetCiaFileInfo(FS_MediaType mediatype, AM_TitleEntry *titleEntry, Handle fileHandle);
+
+/**
+ * @brief Gets the SMDH icon data of a CIA file.
+ * @param icon Buffer to store the icon data in. Must be of size 0x36C0 bytes.
+ * @param fileHandle Handle of the CIA file.
+ */
+Result AM_GetCiaIcon(void *icon, Handle fileHandle);
+
+/**
+ * @brief Gets the title ID dependency list of a CIA file.
+ * @param dependencies Buffer to store dependency title IDs in. Must be of size 0x300 bytes.
+ * @param fileHandle Handle of the CIA file.
+ */
+Result AM_GetCiaDependencies(u64 *dependencies, Handle fileHandle);
+
+/**
+ * @brief Gets the meta section offset of a CIA file.
+ * @param[out] metaOffset Pointer to output the meta section offset to.
+ * @param fileHandle Handle of the CIA file.
+ */
+Result AM_GetCiaMetaOffset(u64 *metaOffset, Handle fileHandle);
+
+/**
+ * @brief Gets the core version of a CIA file.
+ * @param[out] coreVersion Pointer to output the core version to.
+ * @param fileHandle Handle of the CIA file.
+ */
+Result AM_GetCiaCoreVersion(u32 *coreVersion, Handle fileHandle);
+
+/**
+ * @brief Gets the free space, in bytes, required to install a CIA file.
+ * @param[out] requiredSpace Pointer to output the required free space to.
+ * @param mediaType Media type to check free space needed to install to.
+ * @param fileHandle Handle of the CIA file.
+ */
+Result AM_GetCiaRequiredSpace(u64 *requiredSpace, FS_MediaType mediaType, Handle fileHandle);
+
+/**
+ * @brief Gets the full meta section of a CIA file.
+ * @param meta Buffer to store the meta section in.
+ * @param size Size of the buffer. Must be greater than or equal to the actual section data's size.
+ * @param fileHandle Handle of the CIA file.
+ */
+Result AM_GetCiaMetaSection(void *meta, u32 size, Handle fileHandle);
 
 /**
  * @brief Initializes the external (SD) title database.
@@ -239,3 +297,98 @@ Result AM_InitializeExternalTitleDatabase(bool overwrite);
  * @param[out] available Pointer to output the availability status to.
  */
 Result AM_QueryAvailableExternalTitleDatabase(bool* available);
+
+/**
+ * @brief Begins installing a ticket.
+ * @param[out] ticketHandle Pointer to output a handle to write ticket data to.
+ */
+Result AM_InstallTicketBegin(Handle *ticketHandle);
+
+/**
+ * @brief Aborts installing a ticket.
+ * @param ticketHandle Handle of the installation to abort.
+ */
+Result AM_InstallTicketAbort(Handle ticketHandle);
+
+/**
+ * @brief Finalizes installing a ticket.
+ * @param ticketHandle Handle of the installation to finalize.
+ */
+Result AM_InstallTicketFinalize(Handle ticketHandle);
+
+/**
+ * @brief Begins installing a title.
+ * @param mediaType Destination to install to.
+ * @param titleId ID of the title to install.
+ */
+Result AM_InstallTitleBegin(FS_MediaType mediaType, u64 titleId);
+
+/// Aborts installing a title.
+Result AM_InstallTitleAbort();
+
+/**
+ * @brief Resumes installing a title.
+ * @param mediaType Destination to install to.
+ * @param titleId ID of the title to install.
+ */
+Result AM_InstallTitleResume(FS_MediaType mediaType, u64 titleId);
+
+/// Aborts installing a title due to a TMD error.
+Result AM_InstallTitleAbortTMD();
+
+/// Finishes installing a title.
+Result AM_InstallTitleFinish();
+
+/**
+ * @brief Begins installing a TMD.
+ * @param[out] tmdHandle Pointer to output a handle to write TMD data to.
+ */
+Result AM_InstallTmdBegin(Handle *tmdHandle);
+
+/**
+ * @brief Aborts installing a TMD.
+ * @param tmdHandle Handle of the installation to abort.
+ */
+Result AM_InstallTmdAbort(Handle tmdHandle);
+
+/**
+ * @brief Finalizes installing a TMD.
+ * @param tmdHandle Handle of the installation to finalize.
+ */
+Result AM_InstallTmdFinalize(Handle tmdHandle);
+
+/**
+ * @brief Begins installing title content.
+ * @param[out] contentHandle Pointer to output a handle to write content data to.
+ * @param index Index of the content to install.
+ */
+Result AM_InstallContentBegin(Handle *contentHandle, u16 index);
+
+/**
+ * @brief Aborts installing title content.
+ * @param contentHandle Handle of the installation to abort.
+ */
+Result AM_InstallContentAbort(Handle contentHandle);
+
+/**
+ * @brief Resumes installing title content.
+ * @param[out] contentHandle Pointer to output a handle to write content data to.
+ * @param[out] resumeOffset Pointer to write the offset to resume content installation at to.
+ * @param index Index of the content to install.
+ */
+Result AM_InstallContentResume(Handle *contentHandle, u64* resumeOffset, u16 index);
+
+/**
+ * @brief Finalizes installing title content.
+ * @param contentHandle Handle of the installation to finalize.
+ */
+Result AM_InstallContentFinalize(Handle contentHandle);
+
+/**
+ * @brief Finalizes the installation of one or more titles.
+ * @param mediaType Location of the titles to finalize.
+ * @param titleCount Number of titles to finalize.
+ * @param temp Whether the titles being finalized are in the temporary database.
+ * @param titleIds Title IDs to finalize.
+ */
+Result AM_InstallTitlesFinish(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);

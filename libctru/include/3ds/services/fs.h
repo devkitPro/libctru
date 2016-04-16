@@ -38,6 +38,15 @@ typedef enum
 	MEDIATYPE_GAME_CARD = 2, ///< Game card.
 } FS_MediaType;
 
+/// System media types.
+typedef enum
+{
+	SYSTEM_MEDIATYPE_CTR_NAND  = 0, ///< CTR NAND.
+	SYSTEM_MEDIATYPE_TWL_NAND  = 1, ///< TWL NAND.
+	SYSTEM_MEDIATYPE_SD        = 2, ///< SD card.
+	SYSTEM_MEDIATYPE_TWL_PHOTO = 3, ///< TWL Photo.
+} FS_SystemMediaType;
+
 /// Archive IDs.
 typedef enum
 {
@@ -690,9 +699,9 @@ Result FSUSER_GetSdmcCtrRootPath(u8* out, u32 length);
 /**
  * @brief Gets an archive's resource information.
  * @param archiveResource Pointer to output the archive resource information to.
- * @param mediaType Media type to check.
+ * @param mediaType System media type to check.
  */
-Result FSUSER_GetArchiveResource(FS_ArchiveResource* archiveResource, FS_MediaType mediaType);
+Result FSUSER_GetArchiveResource(FS_ArchiveResource* archiveResource, FS_SystemMediaType mediaType);
 
 /**
  * @brief Exports the integrity verification seed.
