@@ -1080,7 +1080,7 @@ Result FSUSER_GetSdmcCtrRootPath(u8* out, u32 length)
 	return cmdbuf[1];
 }
 
-Result FSUSER_GetArchiveResource(FS_ArchiveResource* archiveResource, FS_MediaType mediaType)
+Result FSUSER_GetArchiveResource(FS_ArchiveResource* archiveResource, FS_SystemMediaType mediaType)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
