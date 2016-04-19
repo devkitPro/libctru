@@ -1,6 +1,6 @@
 /**
  * @file uds.h
- * @brief UDS(NWMUDS) local-WLAN service. WARNING: This code is not ready to be used by applications yet. https://3dbrew.org/wiki/NWM_Services
+ * @brief UDS(NWMUDS) local-WLAN service. https://3dbrew.org/wiki/NWM_Services
  */
 #pragma once
 
@@ -12,6 +12,12 @@
 
 /// NetworkNodeID for the host(the first node).
 #define UDS_HOST_NETWORKNODEID 0x1
+
+/// Default recv_buffer_size that can be used for udsBind() input / code which uses udsBind() internally.
+#define UDS_DEFAULT_RECVBUFSIZE 0x2E30
+
+/// Max size of user data-frames.
+#define UDS_DATAFRAME_MAXSIZE 0x5C6
 
 /// Node info struct.
 typedef struct {
@@ -51,14 +57,14 @@ typedef struct {
 /// Network struct stored as big-endian.
 typedef struct {
 	u8 host_macaddress[6];
-	u8 channel;//Wifi channel for this network.
+	u8 channel;//Wifi channel for this network. If you want to create a network on a specific channel instead of the system selecting it, you can set this to a non-zero channel value.
 	u8 pad_x7;
 
 	u8 initialized_flag;//Must be non-zero otherwise NWM-module will use zeros internally instead of the actual field data, for most/all(?) of the fields in this struct.
 
 	u8 unk_x9[3];
 
-	u8 oui_value[3];//"This is the OUI value for use with the beacon tags. Normally this is 001F32. "
+	u8 oui_value[3];//"This is the OUI value for use with the beacon tags. Normally this is 001F32."
 	u8 oui_type;//"OUI type (21/0x15)"
 
 	u32 wlancommID;//Unique local-WLAN communications ID for each application.
@@ -129,7 +135,8 @@ typedef struct {
 } udsNetworkScanInfo;
 
 enum {
-	UDSNETATTR_DisableConnectClients = BIT(1), //When set new Clients are (supposedly) not allowed to connect.
+	UDSNETATTR_DisableConnectSpectators = BIT(0), //When set new Spectators are not allowed to connect.
+	UDSNETATTR_DisableConnectClients = BIT(1), //When set new Clients are not allowed to connect.
 	UDSNETATTR_x4 = BIT(2), //Unknown what this bit is for.
 	UDSNETATTR_Default = BIT(15), //Unknown what this bit is for.
 };
@@ -225,8 +232,9 @@ Result udsGetNetworkStructApplicationData(const udsNetworkStruct *network, void 
  * @param NetworkNodeID This is the NetworkNodeID which this bind can receive data from.
  * @param spectator False for a regular bind, true for a spectator.
  * @param data_channel This is an arbitrary value to use for data-frame filtering. This bind will only receive data frames which contain a matching data_channel value, which was specified by udsSendTo(). The data_channel must be non-zero.
+ * @param recv_buffer_size Size of the buffer under sharedmem used for temporarily storing received data-frames which are then loaded by udsPullPacket(). The system requires this to be >=0x5F4. UDS_DEFAULT_RECVBUFSIZE can be used for this.
  */
-Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator, u8 data_channel);
+Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator, u8 data_channel, u32 recv_buffer_size);
 
 /**
  * @brief Remove a bind.
@@ -274,22 +282,24 @@ Result udsGetChannel(u8 *channel);
  * @param network The NetworkStruct, you can use udsGenerateDefaultNetworkStruct() for generating this.
  * @param passphrase Raw input passphrase buffer.
  * @param passphrase_size Size of the passphrase buffer.
- * @param bindcontext Optional output bind context which will be created for this host, with NetworkNodeID=UDS_BROADCAST_NETWORKNODEID.
- * @param data_channel This is the data_channel value which will be passed to udsBind().
+ * @param context Optional output bind context which will be created for this host, with NetworkNodeID=UDS_BROADCAST_NETWORKNODEID.
+ * @param data_channel This is the data_channel value which will be passed to udsBind() internally.
+ * @param recv_buffer_size This is the recv_buffer_size value which will be passed to udsBind() internally.
  */
-Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *bindcontext, u8 data_channel);
+Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u8 data_channel, u32 recv_buffer_size);
 
 /**
  * @brief Connect to a network.
  * @param network The NetworkStruct, you can use udsScanBeacons() for this.
  * @param passphrase Raw input passphrase buffer.
  * @param passphrase_size Size of the passphrase buffer.
- * @param bindcontext Optional output bind context which will be created for this host.
+ * @param context Optional output bind context which will be created for this host.
  * @param recv_NetworkNodeID This is the NetworkNodeID passed to udsBind() internally.
  * @param connection_type Type of connection, see the udsConnectionType enum values.
  * @param data_channel This is the data_channel value which will be passed to udsBind() internally.
+ * @param recv_buffer_size This is the recv_buffer_size value which will be passed to udsBind() internally.
  */
-Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type, u8 data_channel);
+Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type, u8 data_channel, u32 recv_buffer_size);
 
 /**
  * @brief Stop hosting the network.
@@ -308,12 +318,12 @@ Result udsDisconnectNetwork(void);
 Result udsEjectClient(u16 NetworkNodeID);
 
 /**
- * @brief This can be used by the host to force-disconnect the spectator.
+ * @brief This can be used by the host to force-disconnect the spectators. Afterwards new spectators will not be allowed to connect until udsAllowSpectators() is used.
  */
 Result udsEjectSpectator();
 
 /**
- * @brief This can be used by the host to update the network attributes. If bitmask 0x4 is clear in the input bitmask, this clears that bit in the value before actually writing the value into state.
+ * @brief This can be used by the host to update the network attributes. If bitmask 0x4 is clear in the input bitmask, this clears that bit in the value before actually writing the value into state. Normally you should use the below wrapper functions.
  * @param bitmask Bitmask to clear/set in the attributes. See the UDSNETATTR enum values.
  * @param flag When false, bit-clear, otherwise bit-set.
  */
@@ -326,6 +336,11 @@ Result udsUpdateNetworkAttribute(u16 bitmask, bool flag);
  * @param flag When true, update UDSNETATTR_x4. Normally this should be false.
  */
 Result udsSetNewConnectionsBlocked(bool block, bool clients, bool flag);
+
+/**
+ * @brief This uses udsUpdateNetworkAttribute() for unblocking new spectator connections to this host. See udsEjectSpectator() for blocking new spectators.
+ */
+Result udsAllowSpectators(void);
 
 /**
  * @brief This loads the current ConnectionStatus struct.

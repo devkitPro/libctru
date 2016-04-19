@@ -243,35 +243,46 @@ static Result uds_Initialize(u32 sharedmem_size, const char *username)
 	return ret;
 }
 
-Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u8 data_channel)
+Result udsCreateNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u8 data_channel, u32 recv_buffer_size)
 {
 	Result ret=0;
 
-	ret = udsipc_SetProbeResponseParam(0x00210080, 0);
+	if(context)ret = udsBind(context, UDS_BROADCAST_NETWORKNODEID, false, data_channel, recv_buffer_size);
 	if(R_FAILED(ret))return ret;
+
+	ret = udsipc_SetProbeResponseParam(0x00210080, 0);
+	if(R_FAILED(ret))
+	{
+		if(context)udsUnbind(context);
+		return ret;
+	}
 
 	ret = udsipc_BeginHostingNetwork(network, passphrase, passphrase_size);
-	if(R_FAILED(ret))return ret;
-
-	if(context)ret = udsBind(context, UDS_BROADCAST_NETWORKNODEID, false, data_channel);
-
-	if(R_FAILED(ret))udsDestroyNetwork();
+	if(R_FAILED(ret))
+	{
+		if(context)udsUnbind(context);
+		return ret;
+	}
 
 	return ret;
 }
 
-Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type, u8 data_channel)
+Result udsConnectNetwork(const udsNetworkStruct *network, const void *passphrase, size_t passphrase_size, udsBindContext *context, u16 recv_NetworkNodeID, udsConnectionType connection_type, u8 data_channel, u32 recv_buffer_size)
 {
 	Result ret=0;
 	bool spectator=false;
 
 	if(connection_type==UDSCONTYPE_Spectator)spectator=true;
 
+	if(context)ret = udsBind(context, recv_NetworkNodeID, spectator, data_channel, recv_buffer_size);
+	if(R_FAILED(ret))return ret;
+
 	ret = udsipc_ConnectToNetwork(network, passphrase, passphrase_size, connection_type);
-
-	if(R_SUCCEEDED(ret) && context)ret = udsBind(context, recv_NetworkNodeID, spectator, data_channel);
-
-	if(R_FAILED(ret))udsDisconnectNetwork();
+	if(R_FAILED(ret))
+	{
+		udsDisconnectNetwork();
+		if(context)udsUnbind(context);
+	}
 
 	return ret;
 }
@@ -360,6 +371,11 @@ Result udsSetNewConnectionsBlocked(bool block, bool clients, bool flag)
 	if(flag)bitmask |= UDSNETATTR_x4;
 
 	return udsUpdateNetworkAttribute(bitmask, block);
+}
+
+Result udsAllowSpectators(void)
+{
+	return udsUpdateNetworkAttribute(UDSNETATTR_DisableConnectSpectators, false);
 }
 
 Result udsDestroyNetwork(void)
@@ -530,7 +546,7 @@ Result udsScanBeacons(void *buf, size_t maxsize, udsNetworkScanInfo **networks, 
 	return ret;
 }
 
-Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator, u8 data_channel)
+Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator, u8 data_channel, u32 recv_buffer_size)
 {
 	u32 pos;
 
@@ -557,7 +573,7 @@ Result udsBind(udsBindContext *bindcontext, u16 NetworkNodeID, bool spectator, u
 
 	bindcontext->spectator = spectator;
 
-	return udsipc_Bind(bindcontext, 0x2e30, data_channel, NetworkNodeID);
+	return udsipc_Bind(bindcontext, recv_buffer_size, data_channel, NetworkNodeID);
 }
 
 Result udsUnbind(udsBindContext *bindcontext)
