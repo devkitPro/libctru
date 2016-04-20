@@ -272,6 +272,7 @@ Result romfsExit(void)
 	free(fileHashTable);
 	free(dirTable);
 	free(fileTable);
+	romFS_offset = 0;
 
 	return 0;
 }
