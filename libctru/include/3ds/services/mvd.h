@@ -6,6 +6,10 @@
 
 //New3DS-only, see also: http://3dbrew.org/wiki/MVD_Services
 
+///These values are the data returned as "result-codes" by MVDSTD.
+#define MVD_STATUS_OK 0x17000
+#define MVD_STATUS_BUSY 0x17002
+
 /// Processing mode.
 typedef enum {
 	MVDMODE_COLORFORMATCONV, ///< Converting color formats.
@@ -20,7 +24,8 @@ typedef enum {
 
 /// Output format.
 typedef enum {
-	MVD_OUTPUT_RGB565 = 0x00040002 ///< RGB565
+	MVD_OUTPUT_BGR565 = 0x00040002, ///< BGR565
+	MVD_OUTPUT_RGB565 = 0x00040004 ///< RGB565
 } MVDSTD_OutputFormat;
 
 /// Processing configuration.
@@ -43,7 +48,10 @@ typedef struct {
 	u32 outheight1;                  ///< Second output height.
 	u32 physaddr_outdata0;           ///< Physical address of output data.
 	u32 physaddr_outdata1_colorconv; ///< Physical address of color conversion output data.
-	u32 unk_x6c[0xb0>>2];            ///< Unknown.
+	u32 unk_x6c[0xa4>>2];            ///< Unknown.
+	u32 output_width_override;       ///< Used for aligning the output width when larger than the output width. Overrides the output width when smaller than the output width.
+	u32 output_height_override;      ///< Same as output_width_override except for the output height.
+	u32 unk_x118;
 } MVDSTD_Config;
 
 /**
@@ -72,13 +80,19 @@ void mvdstdExit(void);
 void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1_colorconv);
 
 /**
- * @brief Processes a frame.
+ * @brief Run color-format-conversion.
  * @param config Pointer to the configuration to use.
- * @param h264_vaddr_inframe Input H264 frame.
- * @param h264_inframesize Size of the input frame.
- * @param h264_frameid ID of the input frame.
  */
-Result mvdstdProcessFrame(MVDSTD_Config*config, u32 *h264_vaddr_inframe, u32 h264_inframesize, u32 h264_frameid);
+Result mvdstdConvertImage(MVDSTD_Config* config);
+
+/**
+ * @brief Processes a video frame(specifically a NAL-unit).
+ * @param config Pointer to the configuration to use.
+ * @parameter_set Must be true for the initial NAL-unit parameter sets("Sequence Parameter Set" and "Picture Parameter Set"), false otherwise.
+ * @param inbuf_vaddr Input NAL-unit starting with the 3-byte "00 00 01" prefix. Must be located in linearmem.
+ * @param size Size of the input buffer.
+ */
+Result mvdstdProcessVideoFrame(MVDSTD_Config* config, bool parameter_set, void* inbuf_vaddr, size_t size);
 
 /**
  * @brief Sets the current configuration of MVDSTD.

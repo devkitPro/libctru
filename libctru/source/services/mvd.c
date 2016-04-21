@@ -22,6 +22,8 @@ static MVDSTD_OutputFormat mvdstd_output_type;
 static u32 *mvdstd_workbuf;
 static size_t mvdstd_workbufsize;
 
+static u32 mvdstd_videoproc_frameid;
+
 static Result MVDSTD_Initialize(u32* buf, u32 bufsize)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -44,6 +46,64 @@ static Result MVDSTD_Shutdown(void)
 
 	Result ret=0;
 	if((ret = svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result MVDSTD_cmd5(s8 unk0, s8 unk1, s8 unk2, u32 unk3)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x5,4,0); // 0x50100
+	cmdbuf[1] = unk0;
+	cmdbuf[2] = unk1;
+	cmdbuf[3] = unk2;
+	cmdbuf[4] = unk3;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result MVDSTD_cmd7(void)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x7,0,0); // 0x70000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result MVDSTD_ProcessNALUnit(u32 vaddr_buf, u32 physaddr_buf, u32 size, u32 frameid)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x8,5,2); // 0x80142
+	cmdbuf[1] = vaddr_buf;
+	cmdbuf[2] = physaddr_buf;
+	cmdbuf[3] = size;
+	cmdbuf[4] = frameid;
+	cmdbuf[5] = 0;//Unknown
+	cmdbuf[6] = IPC_Desc_SharedHandles(1);
+	cmdbuf[7] = CUR_PROCESS_HANDLE;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result MVDSTD_ControlFrameRendering(s8 type)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x9,1,2); // 0x90042
+	cmdbuf[1] = type;
+	cmdbuf[2] = IPC_Desc_SharedHandles(1);
+	cmdbuf[3] = CUR_PROCESS_HANDLE;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 
 	return cmdbuf[1];
 }
@@ -81,6 +141,29 @@ static Result MVDSTD_cmd1a(void)
 	return cmdbuf[1];
 }
 
+static Result MVDSTD_cmd1b(u8 unk)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x1B,1,0); // 0x1B0040
+	cmdbuf[1] = unk;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result MVDSTD_cmd1c(void)
+{
+	u32* cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x1C,0,0); // 0x1C0000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result MVDSTD_SetConfig(MVDSTD_Config* config)
 {
 	Result ret=0;
@@ -107,25 +190,51 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 	mvdstd_input_type = input_type;
 	mvdstd_output_type = output_type;
 
+	mvdstd_videoproc_frameid = 0;
+
 	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)mvdstd_workbufsize = 1;
-	if(mvdstd_mode!=MVDMODE_COLORFORMATCONV)return -2;//Video processing / H.264 isn't supported atm.
 
 	if (AtomicPostIncrement(&mvdstdRefCount)) return 0;
 
 	if(R_FAILED(ret=srvGetServiceHandle(&mvdstdHandle, "mvd:STD"))) goto cleanup0;
 
 	mvdstd_workbuf = linearAlloc(mvdstd_workbufsize);
-	if(mvdstd_workbuf==NULL) goto cleanup1;
+	if(mvdstd_workbuf==NULL)
+	{
+		ret = -1;
+		goto cleanup1;
+	}
 
 	ret = MVDSTD_Initialize((u32*) osConvertOldLINEARMemToNew(mvdstd_workbuf), mvdstd_workbufsize);
 	if(R_FAILED(ret)) goto cleanup2;
 
-	ret = MVDSTD_cmd18();
-	if(R_FAILED(ret)) goto cleanup3;
+	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
+	{
+		ret = MVDSTD_cmd5(0, 0, 0, 0);
+		if(ret!=MVD_STATUS_OK) goto cleanup3; 
+	}
 
-	return ret;
+	ret = MVDSTD_cmd18();
+	if(ret!=MVD_STATUS_OK) goto cleanup3;
+
+	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
+	{
+		ret = MVDSTD_cmd1b(1);
+		if(ret!=MVD_STATUS_OK) goto cleanup3; 
+	}
+
+	return 0;
 
 cleanup3:
+	ret = MVD_STATUS_BUSY;
+	while(ret==MVD_STATUS_BUSY)ret = MVDSTD_ControlFrameRendering(1);
+
+	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)MVDSTD_cmd1c();
+
+	MVDSTD_cmd19();
+
+	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)MVDSTD_cmd7();
+
 	MVDSTD_Shutdown();
 cleanup2:
 	linearFree(mvdstd_workbuf);
@@ -138,12 +247,18 @@ cleanup0:
 
 void mvdstdExit(void)
 {
+	Result ret=0;
+
 	if (AtomicDecrement(&mvdstdRefCount)) return;
 
-	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)
-	{
-		MVDSTD_cmd19();
-	}
+	ret = MVD_STATUS_BUSY;
+	while(ret==MVD_STATUS_BUSY)ret = MVDSTD_ControlFrameRendering(1);
+
+	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)MVDSTD_cmd1c();
+
+	MVDSTD_cmd19();
+
+	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)MVDSTD_cmd7();
 
 	MVDSTD_Shutdown();
 
@@ -186,21 +301,45 @@ void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 inpu
 	config->unk_x6c[(0x94-0x6c)>>2] = 0x204;
 	config->unk_x6c[(0xa8-0x6c)>>2] = 0x1;
 	config->unk_x6c[(0x104-0x6c)>>2] = 0x1;
-	config->unk_x6c[(0x110-0x6c)>>2] = 0x200;
-	config->unk_x6c[(0x114-0x6c)>>2] = 0x100;
+	config->output_width_override = 0x200;
+	config->output_height_override = 0x100;
 }
 
-Result mvdstdProcessFrame(MVDSTD_Config*config, u32 *h264_vaddr_inframe, u32 h264_inframesize, u32 h264_frameid)
+Result mvdstdConvertImage(MVDSTD_Config* config)
 {
 	Result ret;
 
-	if(mvdstdRefCount==0)return 0;
+	if(mvdstdRefCount==0)return -3;
 	if(config==NULL)return -1;
 	if(mvdstd_mode!=MVDMODE_COLORFORMATCONV)return -2;
 
 	ret = MVDSTD_SetConfig(config);
-	if(R_FAILED(ret))return ret;
+	if(ret!=MVD_STATUS_OK)return ret;
 
 	return MVDSTD_cmd1a();
+}
+
+Result mvdstdProcessVideoFrame(MVDSTD_Config* config, bool parameter_set, void* inbuf_vaddr, size_t size)
+{
+	Result ret;
+
+	if(mvdstdRefCount==0)return -3;
+	if(config==NULL)return -1;
+	if(mvdstd_mode!=MVDMODE_VIDEOPROCESSING)return -2;
+
+	ret = MVDSTD_ProcessNALUnit((u32)inbuf_vaddr, (u32)osConvertVirtToPhys(inbuf_vaddr), size, mvdstd_videoproc_frameid);
+	mvdstd_videoproc_frameid++;
+	if(mvdstd_videoproc_frameid>=0x12)mvdstd_videoproc_frameid = 0;
+	//if(ret!=MVD_STATUS_OK)return ret;
+
+	if(parameter_set)return ret;
+
+	ret = MVDSTD_SetConfig(config);
+	if(ret!=MVD_STATUS_OK)return ret;
+
+	ret = MVD_STATUS_BUSY;
+	while(ret==MVD_STATUS_BUSY)ret = MVDSTD_ControlFrameRendering(0);
+
+	return ret;
 }
 
