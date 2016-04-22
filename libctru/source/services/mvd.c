@@ -319,7 +319,21 @@ Result mvdstdConvertImage(MVDSTD_Config* config)
 	return MVDSTD_cmd1a();
 }
 
-Result mvdstdProcessVideoFrame(MVDSTD_Config* config, bool parameter_set, void* inbuf_vaddr, size_t size)
+Result mvdstdProcessVideoFrame(void* inbuf_vaddr, size_t size)
+{
+	Result ret;
+
+	if(mvdstdRefCount==0)return -3;
+	if(mvdstd_mode!=MVDMODE_VIDEOPROCESSING)return -2;
+
+	ret = MVDSTD_ProcessNALUnit((u32)inbuf_vaddr, (u32)osConvertVirtToPhys(inbuf_vaddr), size, mvdstd_videoproc_frameid);
+	mvdstd_videoproc_frameid++;
+	if(mvdstd_videoproc_frameid>=0x12)mvdstd_videoproc_frameid = 0;
+
+	return ret;
+}
+
+Result mvdstdRenderVideoFrame(MVDSTD_Config* config, bool wait)
 {
 	Result ret;
 
@@ -327,18 +341,18 @@ Result mvdstdProcessVideoFrame(MVDSTD_Config* config, bool parameter_set, void* 
 	if(config==NULL)return -1;
 	if(mvdstd_mode!=MVDMODE_VIDEOPROCESSING)return -2;
 
-	ret = MVDSTD_ProcessNALUnit((u32)inbuf_vaddr, (u32)osConvertVirtToPhys(inbuf_vaddr), size, mvdstd_videoproc_frameid);
-	mvdstd_videoproc_frameid++;
-	if(mvdstd_videoproc_frameid>=0x12)mvdstd_videoproc_frameid = 0;
-	//if(ret!=MVD_STATUS_OK)return ret;
-
-	if(parameter_set)return ret;
-
-	ret = MVDSTD_SetConfig(config);
-	if(ret!=MVD_STATUS_OK)return ret;
+	if(config)
+	{
+		ret = MVDSTD_SetConfig(config);
+		if(ret!=MVD_STATUS_OK)return ret;
+	}
 
 	ret = MVD_STATUS_BUSY;
-	while(ret==MVD_STATUS_BUSY)ret = MVDSTD_ControlFrameRendering(0);
+	while(ret==MVD_STATUS_BUSY)
+	{
+		ret = MVDSTD_ControlFrameRendering(0);
+		if(!wait)break;
+	}
 
 	return ret;
 }

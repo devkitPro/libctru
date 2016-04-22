@@ -36,7 +36,11 @@ typedef struct {
 	u32 inwidth;                     ///< Input width.
 	u32 inheight;                    ///< Input height.
 	u32 physaddr_colorconv_indata;   ///< Physical address of color conversion input data.
-	u32 unk_x18[0x28>>2];            ///< Unknown.
+	u32 physaddr_colorconv_unk0;     ///< Physical address used with color conversion.
+	u32 physaddr_colorconv_unk1;     ///< Physical address used with color conversion.
+	u32 physaddr_colorconv_unk2;     ///< Physical address used with color conversion.
+	u32 physaddr_colorconv_unk3;     ///< Physical address used with color conversion.
+	u32 unk_x28[0x18>>2];            ///< Unknown.
 	u32 flag_x40;                    ///< Unknown. 0x0 for colorconv, 0x1 for H.264
 	u32 unk_x44;                     ///< Unknown.
 	u32 unk_x48;                     ///< Unknown.
@@ -87,12 +91,17 @@ Result mvdstdConvertImage(MVDSTD_Config* config);
 
 /**
  * @brief Processes a video frame(specifically a NAL-unit).
- * @param config Pointer to the configuration to use.
- * @parameter_set Must be true for the initial NAL-unit parameter sets("Sequence Parameter Set" and "Picture Parameter Set"), false otherwise.
  * @param inbuf_vaddr Input NAL-unit starting with the 3-byte "00 00 01" prefix. Must be located in linearmem.
  * @param size Size of the input buffer.
  */
-Result mvdstdProcessVideoFrame(MVDSTD_Config* config, bool parameter_set, void* inbuf_vaddr, size_t size);
+Result mvdstdProcessVideoFrame(void* inbuf_vaddr, size_t size);
+
+/**
+ * @brief Renders the video frame.
+ * @param config Optional pointer to the configuration to use. When NULL, MVDSTD_SetConfig() should have been used previously for this video.
+ * @param wait When true, wait for rendering to finish. When false, you can manually call this function repeatedly until it stops returning MVD_STATUS_BUSY.
+ */
+Result mvdstdRenderVideoFrame(MVDSTD_Config* config, bool wait);
 
 /**
  * @brief Sets the current configuration of MVDSTD.
