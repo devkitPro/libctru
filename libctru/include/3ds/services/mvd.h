@@ -41,18 +41,21 @@ typedef struct {
 	u32 physaddr_colorconv_unk2;     ///< Physical address used with color conversion.
 	u32 physaddr_colorconv_unk3;     ///< Physical address used with color conversion.
 	u32 unk_x28[0x18>>2];            ///< Unknown.
-	u32 flag_x40;                    ///< Unknown. 0x0 for colorconv, 0x1 for H.264
-	u32 unk_x44;                     ///< Unknown.
-	u32 unk_x48;                     ///< Unknown.
-	u32 outheight0;                  ///< First output width. Only set for H.264.
-	u32 outwidth0;                   ///< First output height. Only set for H.264.
+	u32 enable_cropping;             ///< Enables cropping with the input image when non-zero via the following 4 words.
+	u32 input_crop_x_pos;
+	u32 input_crop_y_pos;
+	u32 input_crop_height;
+	u32 input_crop_width;
 	u32 unk_x54;                     ///< Unknown.
 	MVDSTD_OutputFormat output_type;    ///< Output type.
-	u32 outwidth1;                   ///< Second output width.
-	u32 outheight1;                  ///< Second output height.
+	u32 outwidth;                   ///< Output width.
+	u32 outheight;                  ///< Output height.
 	u32 physaddr_outdata0;           ///< Physical address of output data.
 	u32 physaddr_outdata1_colorconv; ///< Physical address of color conversion output data.
-	u32 unk_x6c[0xa4>>2];            ///< Unknown.
+	u32 unk_x6c[0x98>>2];            ///< Unknown.
+	u32 flag_x104;                   ///< This enables using the following 4 words when non-zero.
+	u32 output_x_pos;                ///< Output X position in the output buffer.
+	u32 output_y_pos;                ///< Same as above except for the Y pos.
 	u32 output_width_override;       ///< Used for aligning the output width when larger than the output width. Overrides the output width when smaller than the output width.
 	u32 output_height_override;      ///< Same as output_width_override except for the output height.
 	u32 unk_x118;

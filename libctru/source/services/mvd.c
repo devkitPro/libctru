@@ -278,17 +278,10 @@ void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 inpu
 
 	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)config->physaddr_colorconv_indata = osConvertVirtToPhys(vaddr_colorconv_indata);
 
-	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
-	{
-		config->flag_x40 = 1;
-		config->outheight0 = output_height;
-		config->outwidth0 = output_width;
-	}
-
 	config->output_type = mvdstd_output_type;
 
-	config->outwidth1 = output_width;
-	config->outheight1 = output_height;
+	config->outwidth = output_width;
+	config->outheight = output_height;
 
 	config->physaddr_outdata0 = osConvertVirtToPhys(vaddr_outdata0);
 	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)config->physaddr_outdata1_colorconv = osConvertVirtToPhys(vaddr_outdata1_colorconv);
@@ -300,9 +293,6 @@ void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 inpu
 	config->unk_x6c[(0x90-0x6c)>>2] = 0x64;
 	config->unk_x6c[(0x94-0x6c)>>2] = 0x204;
 	config->unk_x6c[(0xa8-0x6c)>>2] = 0x1;
-	config->unk_x6c[(0x104-0x6c)>>2] = 0x1;
-	config->output_width_override = 0x200;
-	config->output_height_override = 0x100;
 }
 
 Result mvdstdConvertImage(MVDSTD_Config* config)
