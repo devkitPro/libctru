@@ -311,20 +311,21 @@ Result AM_InstallTicketBegin(Handle *ticketHandle);
 Result AM_InstallTicketAbort(Handle ticketHandle);
 
 /**
- * @brief Finalizes installing a ticket.
+ * @brief Finishes installing a ticket.
  * @param ticketHandle Handle of the installation to finalize.
  */
-Result AM_InstallTicketFinalize(Handle ticketHandle);
+Result AM_InstallTicketFinish(Handle ticketHandle);
 
 /**
  * @brief Begins installing a title.
  * @param mediaType Destination to install to.
  * @param titleId ID of the title to install.
+ * @param unk Unknown. (usually false)
  */
-Result AM_InstallTitleBegin(FS_MediaType mediaType, u64 titleId);
+Result AM_InstallTitleBegin(FS_MediaType mediaType, u64 titleId, bool unk);
 
-/// Aborts installing a title.
-Result AM_InstallTitleAbort();
+/// Stops installing a title, generally to be resumed later.
+Result AM_InstallTitleStop();
 
 /**
  * @brief Resumes installing a title.
@@ -333,11 +334,20 @@ Result AM_InstallTitleAbort();
  */
 Result AM_InstallTitleResume(FS_MediaType mediaType, u64 titleId);
 
-/// Aborts installing a title due to a TMD error.
-Result AM_InstallTitleAbortTMD();
+/// Aborts installing a title.
+Result AM_InstallTitleAbort();
 
 /// Finishes installing a title.
 Result AM_InstallTitleFinish();
+
+/**
+ * @brief Commits installed titles.
+ * @param mediaType Location of the titles to finalize.
+ * @param titleCount Number of titles to finalize.
+ * @param temp Whether the titles being finalized are in the temporary database.
+ * @param titleIds Title IDs to finalize.
+ */
+Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);
 
 /**
  * @brief Begins installing a TMD.
@@ -352,10 +362,18 @@ Result AM_InstallTmdBegin(Handle *tmdHandle);
 Result AM_InstallTmdAbort(Handle tmdHandle);
 
 /**
- * @brief Finalizes installing a TMD.
+ * @brief Finishes installing a TMD.
  * @param tmdHandle Handle of the installation to finalize.
+ * @param unk Unknown. (usually true)
  */
-Result AM_InstallTmdFinalize(Handle tmdHandle);
+Result AM_InstallTmdFinish(Handle tmdHandle, bool unk);
+
+/**
+ * @brief Prepares to import title contents.
+ * @param contentCount Number of contents to be imported.
+ * @param contentIndices Indices of the contents to be imported.
+ */
+Result AM_CreateImportContentContexts(u32 contentCount, u16* contentIndices);
 
 /**
  * @brief Begins installing title content.
@@ -365,10 +383,10 @@ Result AM_InstallTmdFinalize(Handle tmdHandle);
 Result AM_InstallContentBegin(Handle *contentHandle, u16 index);
 
 /**
- * @brief Aborts installing title content.
+ * @brief Stops installing title content, generally to be resumed later.
  * @param contentHandle Handle of the installation to abort.
  */
-Result AM_InstallContentAbort(Handle contentHandle);
+Result AM_InstallContentStop(Handle contentHandle);
 
 /**
  * @brief Resumes installing title content.
@@ -379,16 +397,42 @@ Result AM_InstallContentAbort(Handle contentHandle);
 Result AM_InstallContentResume(Handle *contentHandle, u64* resumeOffset, u16 index);
 
 /**
- * @brief Finalizes installing title content.
+ * @brief Cancels installing title content.
  * @param contentHandle Handle of the installation to finalize.
  */
-Result AM_InstallContentFinalize(Handle contentHandle);
+Result AM_InstallContentCancel(Handle contentHandle);
 
 /**
- * @brief Finalizes the installation of one or more titles.
+ * @brief Finishes installing title content.
+ * @param contentHandle Handle of the installation to finalize.
+ */
+Result AM_InstallContentFinish(Handle contentHandle);
+
+/**
+ * @brief Imports up to four certificates into the ticket certificate chain.
+ * @param cert1Size Size of the first certificate.
+ * @param cert1 Data of the first certificate.
+ * @param cert2Size Size of the second certificate.
+ * @param cert2 Data of the second certificate.
+ * @param cert3Size Size of the third certificate.
+ * @param cert3 Data of the third certificate.
+ * @param cert4Size Size of the fourth certificate.
+ * @param cert4 Data of the fourth certificate.
+ */
+Result AM_ImportCertificates(u32 cert1Size, void* cert1, u32 cert2Size, void* cert2, u32 cert3Size, void* cert3, u32 cert4Size, void* cert4);
+
+/**
+ * @brief Imports a certificate into the ticket certificate chain.
+ * @param certSize Size of the certificate.
+ * @param cert Data of the certificate.
+ */
+Result AM_ImportCertificate(u32 certSize, void* cert);
+
+/**
+ * @brief Commits installed titles, and updates FIRM if necessary.
  * @param mediaType Location of the titles to finalize.
  * @param titleCount Number of titles to finalize.
  * @param temp Whether the titles being finalized are in the temporary database.
  * @param titleIds Title IDs to finalize.
  */
-Result AM_InstallTitlesFinish(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);
+Result AM_CommitImportTitlesAndUpdateFirmwareAuto(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);
