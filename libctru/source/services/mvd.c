@@ -76,7 +76,7 @@ static Result MVDSTD_cmd7(void)
 	return cmdbuf[1];
 }
 
-static Result MVDSTD_ProcessNALUnit(u32 vaddr_buf, u32 physaddr_buf, u32 size, u32 frameid)
+static Result MVDSTD_ProcessNALUnit(u32 vaddr_buf, u32 physaddr_buf, u32 size, u32 frameid, u32 flag, MVDSTD_ProcessNALUnitOut *out)
 {
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x8,5,2); // 0x80142
@@ -84,12 +84,14 @@ static Result MVDSTD_ProcessNALUnit(u32 vaddr_buf, u32 physaddr_buf, u32 size, u
 	cmdbuf[2] = physaddr_buf;
 	cmdbuf[3] = size;
 	cmdbuf[4] = frameid;
-	cmdbuf[5] = 0;//Unknown
+	cmdbuf[5] = flag;
 	cmdbuf[6] = IPC_Desc_SharedHandles(1);
 	cmdbuf[7] = CUR_PROCESS_HANDLE;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	if(out)memcpy(out, &cmdbuf[2], sizeof(MVDSTD_ProcessNALUnitOut));
 
 	return cmdbuf[1];
 }
@@ -181,9 +183,41 @@ Result MVDSTD_SetConfig(MVDSTD_Config* config)
 	return cmdbuf[1];
 }
 
-Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_OutputFormat output_type, u32 size)
+Result mvdstdSetupOutputBuffers(MVDSTD_OutputBuffersEntryList *entrylist, u32 bufsize)
 {
 	Result ret=0;
+	u32* cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1F,36,2); // 0x1F0902
+	memcpy(&cmdbuf[1], entrylist, sizeof(MVDSTD_OutputBuffersEntryList));
+	cmdbuf[36] = bufsize;
+	cmdbuf[37] = IPC_Desc_SharedHandles(1);
+	cmdbuf[38] = CUR_PROCESS_HANDLE;
+
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result mvdstdOverrideOutputBuffers(void* cur_outdata0, void* cur_outdata1, void* new_outdata0, void* new_outdata1)
+{
+	Result ret=0;
+	u32* cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x21,4,0); // 0x210100
+	cmdbuf[1] = (u32)cur_outdata0;
+	cmdbuf[2] = (u32)cur_outdata1;
+	cmdbuf[3] = (u32)new_outdata0;
+	cmdbuf[4] = (u32)new_outdata1;
+
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_OutputFormat output_type, u32 size, MVDSTD_InitStruct *initstruct)
+{
+	Result ret=0, ret2=0;
 
 	mvdstd_workbufsize = size;
 	mvdstd_mode = mode;
@@ -192,9 +226,15 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 
 	mvdstd_videoproc_frameid = 0;
 
+	MVDSTD_InitStruct tmpinitstruct;
+
 	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)mvdstd_workbufsize = 1;
 
 	if (AtomicPostIncrement(&mvdstdRefCount)) return 0;
+
+	memset(&tmpinitstruct, 0, sizeof(MVDSTD_InitStruct));
+	tmpinitstruct.cmd1b_inval = 1;
+	if(initstruct)memcpy(&tmpinitstruct, initstruct, sizeof(MVDSTD_InitStruct));
 
 	if(R_FAILED(ret=srvGetServiceHandle(&mvdstdHandle, "mvd:STD"))) goto cleanup0;
 
@@ -204,13 +244,14 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 		ret = -1;
 		goto cleanup1;
 	}
+	memset(mvdstd_workbuf, 0, mvdstd_workbufsize);
 
 	ret = MVDSTD_Initialize((u32*) osConvertOldLINEARMemToNew(mvdstd_workbuf), mvdstd_workbufsize);
 	if(R_FAILED(ret)) goto cleanup2;
 
 	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
 	{
-		ret = MVDSTD_cmd5(0, 0, 0, 0);
+		ret = MVDSTD_cmd5(tmpinitstruct.cmd5_inval0, tmpinitstruct.cmd5_inval1, tmpinitstruct.cmd5_inval2, tmpinitstruct.cmd5_inval3);
 		if(ret!=MVD_STATUS_OK) goto cleanup3; 
 	}
 
@@ -219,15 +260,15 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 
 	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
 	{
-		ret = MVDSTD_cmd1b(1);
+		ret = MVDSTD_cmd1b(tmpinitstruct.cmd1b_inval);
 		if(ret!=MVD_STATUS_OK) goto cleanup3; 
 	}
 
 	return 0;
 
 cleanup3:
-	ret = MVD_STATUS_BUSY;
-	while(ret==MVD_STATUS_BUSY)ret = MVDSTD_ControlFrameRendering(1);
+	ret2 = MVD_STATUS_BUSY;
+	while(ret2==MVD_STATUS_BUSY)ret2 = MVDSTD_ControlFrameRendering(1);
 
 	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)MVDSTD_cmd1c();
 
@@ -267,7 +308,7 @@ void mvdstdExit(void)
 	linearFree(mvdstd_workbuf);
 }
 
-void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1_colorconv)
+void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1)
 {
 	memset(config, 0, sizeof(MVDSTD_Config));
 
@@ -284,7 +325,7 @@ void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 inpu
 	config->outheight = output_height;
 
 	config->physaddr_outdata0 = osConvertVirtToPhys(vaddr_outdata0);
-	if(mvdstd_mode==MVDMODE_COLORFORMATCONV)config->physaddr_outdata1_colorconv = osConvertVirtToPhys(vaddr_outdata1_colorconv);
+	if(config->output_type==0x00020001)config->physaddr_outdata1 = osConvertVirtToPhys(vaddr_outdata1);
 
 	config->unk_x6c[0] = 0x1;
 	config->unk_x6c[(0x84-0x6c)>>2] = 0x12a;
@@ -309,14 +350,14 @@ Result mvdstdConvertImage(MVDSTD_Config* config)
 	return MVDSTD_cmd1a();
 }
 
-Result mvdstdProcessVideoFrame(void* inbuf_vaddr, size_t size)
+Result mvdstdProcessVideoFrame(void* inbuf_vaddr, size_t size, u32 flag, MVDSTD_ProcessNALUnitOut *out)
 {
 	Result ret;
 
 	if(mvdstdRefCount==0)return -3;
 	if(mvdstd_mode!=MVDMODE_VIDEOPROCESSING)return -2;
 
-	ret = MVDSTD_ProcessNALUnit((u32)inbuf_vaddr, (u32)osConvertVirtToPhys(inbuf_vaddr), size, mvdstd_videoproc_frameid);
+	ret = MVDSTD_ProcessNALUnit((u32)inbuf_vaddr, (u32)osConvertVirtToPhys(inbuf_vaddr), size, mvdstd_videoproc_frameid, flag, out);
 	mvdstd_videoproc_frameid++;
 	if(mvdstd_videoproc_frameid>=0x12)mvdstd_videoproc_frameid = 0;
 
