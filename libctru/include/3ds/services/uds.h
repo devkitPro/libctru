@@ -19,6 +19,9 @@
 /// Max size of user data-frames.
 #define UDS_DATAFRAME_MAXSIZE 0x5C6
 
+/// Check whether a fatal udsSendTo error occured(some error(s) from udsSendTo() can be ignored, but the frame won't be sent when that happens).
+#define UDS_CHECK_SENDTO_FATALERROR(x) (R_FAILED(x) && x!=0xC86113F0)
+
 /// Node info struct.
 typedef struct {
 	u64 uds_friendcodeseed;//UDS version of the FriendCodeSeed.
@@ -252,7 +255,7 @@ Result udsUnbind(udsBindContext *bindcontext);
 bool udsWaitDataAvailable(const udsBindContext *bindcontext, bool nextEvent, bool wait);
 
 /**
- * @brief Receives data over the network.
+ * @brief Receives data over the network. This data is loaded from the recv_buffer setup by udsBind(). When a node disconnects, this will still return data from that node until there's no more frames from that node in the recv_buffer.
  * @param bindcontext Bind context.
  * @param buf Output receive buffer.
  * @param size Size of the buffer.
