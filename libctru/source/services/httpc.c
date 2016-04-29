@@ -433,6 +433,67 @@ Result httpcAddDefaultCert(httpcContext *context, SSLC_DefaultRootCert certID)
 	return cmdbuf[1];
 }
 
+Result httpcSelectRootCertChain(httpcContext *context, u32 RootCertChain_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x26,2,0); // 0x260080
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=RootCertChain_contexthandle;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcSetClientCert(httpcContext *context, u8 *cert, u32 certsize, u8 *privk, u32 privk_size)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x27,3,4); // 0x2700C4
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=certsize;
+	cmdbuf[3]=privk_size;
+	cmdbuf[4]=IPC_Desc_Buffer(certsize, IPC_BUFFER_R);
+	cmdbuf[5]=(u32)cert;
+	cmdbuf[6]=IPC_Desc_Buffer(privk_size, IPC_BUFFER_R);
+	cmdbuf[7]=(u32)privk;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcSetClientCertDefault(httpcContext *context, SSLC_DefaultClientCert certID)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x28,2,0); // 0x280080
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=certID;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcSetClientCertContext(httpcContext *context, u32 ClientCert_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x29,2,0); // 0x290080
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=ClientCert_contexthandle;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result httpcSetSSLOpt(httpcContext *context, u32 options)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -443,6 +504,148 @@ Result httpcSetSSLOpt(httpcContext *context, u32 options)
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcSetSSLClearOpt(httpcContext *context, u32 options)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x2C,2,0); // 0x2C0080
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=options;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcCreateRootCertChain(u32 *RootCertChain_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x2D,0,0); // 0x2D0000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret) && RootCertChain_contexthandle)*RootCertChain_contexthandle = cmdbuf[2];
+
+	return ret;
+}
+
+Result httpcDestroyRootCertChain(u32 RootCertChain_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x2E,1,0); // 0x2E0040
+	cmdbuf[1]=RootCertChain_contexthandle;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x2F,2,2); // 0x2F0082
+	cmdbuf[1]=RootCertChain_contexthandle;
+	cmdbuf[2]=certsize;
+	cmdbuf[3]=IPC_Desc_Buffer(certsize, IPC_BUFFER_R);
+	cmdbuf[4]=(u32)cert;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret) && cert_contexthandle)*cert_contexthandle = cmdbuf[2];
+
+	return ret;
+}
+
+Result httpcRootCertChainAddDefaultCert(u32 RootCertChain_contexthandle, SSLC_DefaultRootCert certID, u32 *cert_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x30,2,0); // 0x300080
+	cmdbuf[1]=RootCertChain_contexthandle;
+	cmdbuf[2]=certID;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret) && cert_contexthandle)*cert_contexthandle = cmdbuf[2];
+
+	return ret;
+}
+
+Result httpcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x31,2,0); // 0x310080
+	cmdbuf[1]=RootCertChain_contexthandle;
+	cmdbuf[2]=cert_contexthandle;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcOpenClientCertContext(u8 *cert, u32 certsize, u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x32,2,4); // 0x320084
+	cmdbuf[1]=certsize;
+	cmdbuf[2]=privk_size;
+	cmdbuf[3]=IPC_Desc_Buffer(certsize, IPC_BUFFER_R);
+	cmdbuf[4]=(u32)cert;
+	cmdbuf[5]=IPC_Desc_Buffer(privk_size, IPC_BUFFER_R);
+	cmdbuf[6]=(u32)privk;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret) && ClientCert_contexthandle)*ClientCert_contexthandle = cmdbuf[2];
+
+	return ret;
+}
+
+Result httpcOpenDefaultClientCertContext(SSLC_DefaultClientCert certID, u32 *ClientCert_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x33,1,0); // 0x330040
+	cmdbuf[1]=certID;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+	ret = cmdbuf[1];
+
+	if(R_SUCCEEDED(ret) && ClientCert_contexthandle)*ClientCert_contexthandle = cmdbuf[2];
+
+	return ret;
+}
+
+Result httpcCloseClientCertContext(u32 ClientCert_contexthandle)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x34,1,0); // 0x340040
+	cmdbuf[1]=ClientCert_contexthandle;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
 
 	return cmdbuf[1];
 }

@@ -137,12 +137,110 @@ Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize);
 Result httpcAddDefaultCert(httpcContext *context, SSLC_DefaultRootCert certID);
 
 /**
+ * @brief Sets the RootCertChain for a HTTP context.
+ * @param context Context to use.
+ * @param RootCertChain_contexthandle Contexthandle for the RootCertChain.
+ */
+Result httpcSelectRootCertChain(httpcContext *context, u32 RootCertChain_contexthandle);
+
+/**
+ * @brief Sets the ClientCert for a HTTP context.
+ * @param context Context to use.
+ * @param cert Pointer to DER cert.
+ * @param certsize Size of the DER cert.
+ * @param privk Pointer to the DER private key.
+ * @param privk_size Size of the privk.
+ */
+Result httpcSetClientCert(httpcContext *context, u8 *cert, u32 certsize, u8 *privk, u32 privk_size);
+
+/**
+ * @brief Sets the default clientcert for a HTTP context.
+ * @param context Context to use.
+ * @param certID ID of the cert to add, see sslc.h.
+ */
+Result httpcSetClientCertDefault(httpcContext *context, SSLC_DefaultClientCert certID);
+
+/**
+ * @brief Sets the ClientCert contexthandle for a HTTP context.
+ * @param context Context to use.
+ * @param ClientCert_contexthandle Contexthandle for the ClientCert.
+ */
+Result httpcSetClientCertContext(httpcContext *context, u32 ClientCert_contexthandle);
+
+/**
  * @brief Sets SSL options for the context.
  * The HTTPC SSL option bits are the same as those defined in sslc.h
  * @param context Context to set flags on.
  * @param options SSL option flags.
  */
 Result httpcSetSSLOpt(httpcContext *context, u32 options);
+
+/**
+ * @brief Sets the SSL options which will be cleared for the context.
+ * The HTTPC SSL option bits are the same as those defined in sslc.h
+ * @param context Context to clear flags on.
+ * @param options SSL option flags.
+ */
+Result httpcSetSSLClearOpt(httpcContext *context, u32 options);
+
+/**
+ * @brief Creates a RootCertChain. Up to 2 RootCertChains can be created under this user-process.
+ * @param RootCertChain_contexthandle Output RootCertChain contexthandle.
+ */
+Result httpcCreateRootCertChain(u32 *RootCertChain_contexthandle);
+
+/**
+ * @brief Destroy a RootCertChain.
+ * @param RootCertChain_contexthandle RootCertChain to use.
+ */
+Result httpcDestroyRootCertChain(u32 RootCertChain_contexthandle);
+
+/**
+ * @brief Adds a RootCA cert to a RootCertChain.
+ * @param RootCertChain_contexthandle RootCertChain to use.
+ * @param cert Pointer to DER cert.
+ * @param certsize Size of the DER cert.
+ * @param cert_contexthandle Optional output ptr for the cert contexthandle(this can be NULL).
+ */
+Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle);
+
+/**
+ * @brief Adds a default RootCA cert to a RootCertChain.
+ * @param RootCertChain_contexthandle RootCertChain to use.
+ * @param certID ID of the cert to add, see sslc.h.
+ * @param cert_contexthandle Optional output ptr for the cert contexthandle(this can be NULL).
+ */
+Result httpcRootCertChainAddDefaultCert(u32 RootCertChain_contexthandle, SSLC_DefaultRootCert certID, u32 *cert_contexthandle);
+
+/**
+ * @brief Removes a cert from a RootCertChain.
+ * @param RootCertChain_contexthandle RootCertChain to use.
+ * @param cert_contexthandle Contexthandle of the cert to remove.
+ */
+Result httpcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_contexthandle);
+
+/**
+ * @brief Opens a ClientCert-context. Up to 2 ClientCert-contexts can be open under this user-process.
+ * @param cert Pointer to DER cert.
+ * @param certsize Size of the DER cert.
+ * @param privk Pointer to the DER private key.
+ * @param privk_size Size of the privk.
+ * @param ClientCert_contexthandle Output ClientCert context handle.
+ */
+Result httpcOpenClientCertContext(u8 *cert, u32 certsize, u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle);
+
+/**
+ * @brief Opens a ClientCert-context with a default clientclient. Up to 2 ClientCert-contexts can be open under this user-process.
+ * @param certID ID of the cert to add, see sslc.h.
+ * @param ClientCert_contexthandle Output ClientCert context handle.
+ */
+Result httpcOpenDefaultClientCertContext(SSLC_DefaultClientCert certID, u32 *ClientCert_contexthandle);
+
+/**
+ * @brief Closes a ClientCert context.
+ * @param ClientCert_contexthandle ClientCert context to use.
+ */
+Result httpcCloseClientCertContext(u32 ClientCert_contexthandle);
 
 /**
  * @brief Downloads data from the HTTP context into a buffer.
