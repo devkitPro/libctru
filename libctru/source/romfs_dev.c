@@ -121,7 +121,7 @@ typedef struct
 } _3DSX_Header;
 
 static Result romfsInitCommon(void);
-static void   romfsInitMtime(FS_Archive arch, FS_Path path);
+static void   romfsInitMtime(FS_ArchiveID archId, FS_Path archPath, FS_Path filePath);
 
 __attribute__((weak)) const char* __romfs_path = NULL;
 
@@ -152,13 +152,13 @@ Result romfsInit(void)
 		if (units >= PATH_MAX) return 4;
 		__utf16path[units] = 0;
 
-		FS_Archive arch = { ARCHIVE_SDMC, { PATH_EMPTY, 1, (u8*)"" }, 0 };
-		FS_Path path = { PATH_UTF16, (units+1)*2, (u8*)__utf16path };
+		FS_Path archPath = { PATH_EMPTY, 1, (u8*)"" };
+		FS_Path filePath = { PATH_UTF16, (units+1)*2, (u8*)__utf16path };
 
-		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, 0);
+		Result rc = FSUSER_OpenFileDirectly(&romFS_file, ARCHIVE_SDMC, archPath, filePath, FS_OPEN_READ, 0);
 		if (R_FAILED(rc)) return rc;
 
-		romfsInitMtime(arch, path);
+		romfsInitMtime(ARCHIVE_SDMC, archPath, filePath);
 
 		_3DSX_Header hdr;
 		if (!_romfs_read_chk(0, &hdr, sizeof(hdr))) goto _fail0;
@@ -172,13 +172,13 @@ Result romfsInit(void)
 		u8 zeros[0xC];
 		memset(zeros, 0, sizeof(zeros));
 
-		FS_Archive arch = { ARCHIVE_ROMFS, { PATH_EMPTY, 1, (u8*)"" }, 0 };
-		FS_Path path = { PATH_BINARY, sizeof(zeros), zeros };
+		FS_Path archPath = { PATH_EMPTY, 1, (u8*)"" };
+		FS_Path filePath = { PATH_BINARY, sizeof(zeros), zeros };
 
-		Result rc = FSUSER_OpenFileDirectly(&romFS_file, arch, path, FS_OPEN_READ, 0);
+		Result rc = FSUSER_OpenFileDirectly(&romFS_file, ARCHIVE_ROMFS, archPath, filePath, FS_OPEN_READ, 0);
 		if (R_FAILED(rc)) return rc;
 
-		romfsInitMtime(arch, path);
+		romfsInitMtime(ARCHIVE_ROMFS, archPath, filePath);
 	}
 
 	return romfsInitCommon();
@@ -237,20 +237,21 @@ _fail0:
 	return 10;
 }
 
-static void romfsInitMtime(FS_Archive arch, FS_Path path)
+static void romfsInitMtime(FS_ArchiveID archId, FS_Path archPath, FS_Path filePath)
 {
 	u64 mtime;
+	FS_Archive arch;
 	Result rc;
 
 	romFS_mtime = time(NULL);
-	rc = FSUSER_OpenArchive(&arch);
+	rc = FSUSER_OpenArchive(&arch, archId, archPath);
 	if (R_FAILED(rc))
 		return;
 
 	rc = FSUSER_ControlArchive(arch, ARCHIVE_ACTION_GET_TIMESTAMP,
-	                           (void*)path.data, path.size,
+	                           (void*)filePath.data, filePath.size,
 	                           &mtime, sizeof(mtime));
-	FSUSER_CloseArchive(&arch);
+	FSUSER_CloseArchive(arch);
 	if (R_FAILED(rc))
 		return;
 

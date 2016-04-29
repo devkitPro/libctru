@@ -9,20 +9,30 @@
 #include <3ds/env.h>
 #include "../internal.h"
 
+#define FS_MAX_EXEMPT_ARCHIVE_HANDLES 16
+
 static Handle fsuHandle;
 static int fsuRefCount;
 
-static Handle fsSessionForArchive(FS_ArchiveID arch)
+static FS_Archive fsExemptArchives[FS_MAX_EXEMPT_ARCHIVE_HANDLES];
+
+static Handle fsSession(void)
 {
 	ThreadVars* tv = getThreadVars();
-	if (tv->fs_magic == FS_OVERRIDE_MAGIC && (arch != ARCHIVE_SDMC || tv->fs_sdmc))
+	if (tv->fs_magic == FS_OVERRIDE_MAGIC)
 		return tv->fs_session;
 	return fsuHandle;
 }
 
-static Handle fsSession(void)
+static Handle fsSessionForArchive(FS_Archive archive)
 {
-	return fsSessionForArchive(0);
+	for (int i = 0; i < FS_MAX_EXEMPT_ARCHIVE_HANDLES; i++)
+	{
+		if (fsExemptArchives[i] == archive)
+			return fsuHandle;
+	}
+
+	return fsSession();
 }
 
 Result fsInit(void)
@@ -48,18 +58,45 @@ void fsExit(void)
 	svcCloseHandle(fsuHandle);
 }
 
-void fsUseSession(Handle session, bool sdmc)
+void fsUseSession(Handle session)
 {
 	ThreadVars* tv = getThreadVars();
 	tv->fs_magic   = FS_OVERRIDE_MAGIC;
 	tv->fs_session = session;
-	tv->fs_sdmc    = sdmc;
 }
 
 void fsEndUseSession(void)
 {
 	ThreadVars* tv = getThreadVars();
 	tv->fs_magic   = 0;
+}
+
+void fsExemptFromSession(FS_Archive archive)
+{
+	int freeIndex = -1;
+	for (int i = 0; i < FS_MAX_EXEMPT_ARCHIVE_HANDLES; i++)
+	{
+		if (fsExemptArchives[i] == archive)
+			return;
+
+		if (freeIndex == -1 && fsExemptArchives[i] == 0)
+			freeIndex = i;
+	}
+
+	if (freeIndex != -1)
+		fsExemptArchives[freeIndex] = archive;
+}
+
+void fsUnexemptFromSession(FS_Archive archive)
+{
+	for (int i = 0; i < FS_MAX_EXEMPT_ARCHIVE_HANDLES; i++)
+	{
+		if (fsExemptArchives[i] == archive)
+		{
+			fsExemptArchives[i] = 0;
+			break;
+		}
+	}
 }
 
 FS_Path fsMakePath(FS_PathType type, const void* path)
@@ -129,8 +166,8 @@ Result FSUSER_OpenFile(Handle* out, FS_Archive archive, FS_Path path, u32 openFl
 
 	cmdbuf[0] = IPC_MakeHeader(0x802,7,2); // 0x80201C2
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) archive.handle;
-	cmdbuf[3] = (u32) (archive.handle >> 32);
+	cmdbuf[2] = (u32) archive;
+	cmdbuf[3] = (u32) (archive >> 32);
 	cmdbuf[4] = path.type;
 	cmdbuf[5] = path.size;
 	cmdbuf[6] = openFlags;
@@ -139,33 +176,33 @@ Result FSUSER_OpenFile(Handle* out, FS_Archive archive, FS_Path path, u32 openFl
 	cmdbuf[9] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	if(out) *out = cmdbuf[3];
 
 	return cmdbuf[1];
 }
 
-Result FSUSER_OpenFileDirectly(Handle* out, FS_Archive archive, FS_Path path, u32 openFlags, u32 attributes)
+Result FSUSER_OpenFileDirectly(Handle* out, FS_ArchiveID archiveId, FS_Path archivePath, FS_Path filePath, u32 openFlags, u32 attributes)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x803,8,4); // 0x8030204
 	cmdbuf[1] = 0;
-	cmdbuf[2] = archive.id;
-	cmdbuf[3] = archive.lowPath.type;
-	cmdbuf[4] = archive.lowPath.size;
-	cmdbuf[5] = path.type;
-	cmdbuf[6] = path.size;
+	cmdbuf[2] = archiveId;
+	cmdbuf[3] = archivePath.type;
+	cmdbuf[4] = archivePath.size;
+	cmdbuf[5] = filePath.type;
+	cmdbuf[6] = filePath.size;
 	cmdbuf[7] = openFlags;
 	cmdbuf[8] = attributes;
-	cmdbuf[9] = IPC_Desc_StaticBuffer(archive.lowPath.size, 2);
-	cmdbuf[10] = (u32) archive.lowPath.data;
-	cmdbuf[11] = IPC_Desc_StaticBuffer(path.size, 0);
-	cmdbuf[12] = (u32) path.data;
+	cmdbuf[9] = IPC_Desc_StaticBuffer(archivePath.size, 2);
+	cmdbuf[10] = (u32) archivePath.data;
+	cmdbuf[11] = IPC_Desc_StaticBuffer(filePath.size, 0);
+	cmdbuf[12] = (u32) filePath.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(out) *out = cmdbuf[3];
 
@@ -178,15 +215,15 @@ Result FSUSER_DeleteFile(FS_Archive archive, FS_Path path)
 
 	cmdbuf[0] = IPC_MakeHeader(0x804,5,2); // 0x8040142
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) archive.handle;
-	cmdbuf[3] = (u32) (archive.handle >> 32);
+	cmdbuf[2] = (u32) archive;
+	cmdbuf[3] = (u32) (archive >> 32);
 	cmdbuf[4] = path.type;
 	cmdbuf[5] = path.size;
 	cmdbuf[6] = IPC_Desc_StaticBuffer(path.size, 0);
 	cmdbuf[7] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -197,12 +234,12 @@ Result FSUSER_RenameFile(FS_Archive srcArchive, FS_Path srcPath, FS_Archive dstA
 
 	cmdbuf[0] = IPC_MakeHeader(0x805,9,4); // 0x8050244
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) srcArchive.handle;
-	cmdbuf[3] = (u32) (srcArchive.handle >> 32);
+	cmdbuf[2] = (u32) srcArchive;
+	cmdbuf[3] = (u32) (srcArchive >> 32);
 	cmdbuf[4] = srcPath.type;
 	cmdbuf[5] = srcPath.size;
-	cmdbuf[6] = (u32) dstArchive.handle;
-	cmdbuf[7] = (u32) (dstArchive.handle >> 32);
+	cmdbuf[6] = (u32) dstArchive;
+	cmdbuf[7] = (u32) (dstArchive >> 32);
 	cmdbuf[8] = dstPath.type;
 	cmdbuf[9] = dstPath.size;
 	cmdbuf[10] = IPC_Desc_StaticBuffer(srcPath.size, 1);
@@ -211,7 +248,7 @@ Result FSUSER_RenameFile(FS_Archive srcArchive, FS_Path srcPath, FS_Archive dstA
 	cmdbuf[13] = (u32) dstPath.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(srcArchive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(srcArchive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -222,15 +259,15 @@ Result FSUSER_DeleteDirectory(FS_Archive archive, FS_Path path)
 
 	cmdbuf[0] = IPC_MakeHeader(0x806,5,2); // 0x8060142
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) archive.handle;
-	cmdbuf[3] = (u32) (archive.handle >> 32);
+	cmdbuf[2] = (u32) archive;
+	cmdbuf[3] = (u32) (archive >> 32);
 	cmdbuf[4] = path.type;
 	cmdbuf[5] = path.size;
 	cmdbuf[6] = IPC_Desc_StaticBuffer(path.size, 0);
 	cmdbuf[7] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -241,15 +278,15 @@ Result FSUSER_DeleteDirectoryRecursively(FS_Archive archive, FS_Path path)
 
 	cmdbuf[0] = IPC_MakeHeader(0x807,5,2); // 0x8070142
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) archive.handle;
-	cmdbuf[3] = (u32) (archive.handle >> 32);
+	cmdbuf[2] = (u32) archive;
+	cmdbuf[3] = (u32) (archive >> 32);
 	cmdbuf[4] = path.type;
 	cmdbuf[5] = path.size;
 	cmdbuf[6] = IPC_Desc_StaticBuffer(path.size, 0);
 	cmdbuf[7] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -260,8 +297,8 @@ Result FSUSER_CreateFile(FS_Archive archive, FS_Path path, u32 attributes, u64 f
 
 	cmdbuf[0] = IPC_MakeHeader(0x808,8,2); // 0x8080202
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) archive.handle;
-	cmdbuf[3] = (u32) (archive.handle >> 32);
+	cmdbuf[2] = (u32) archive;
+	cmdbuf[3] = (u32) (archive >> 32);
 	cmdbuf[4] = path.type;
 	cmdbuf[5] = path.size;
 	cmdbuf[6] = attributes;
@@ -271,7 +308,7 @@ Result FSUSER_CreateFile(FS_Archive archive, FS_Path path, u32 attributes, u64 f
 	cmdbuf[10] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -282,8 +319,8 @@ Result FSUSER_CreateDirectory(FS_Archive archive, FS_Path path, u32 attributes)
 
 	cmdbuf[0] = IPC_MakeHeader(0x809,6,2); // 0x8090182
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) archive.handle;
-	cmdbuf[3] = (u32) (archive.handle >> 32);
+	cmdbuf[2] = (u32) archive;
+	cmdbuf[3] = (u32) (archive >> 32);
 	cmdbuf[4] = path.type;
 	cmdbuf[5] = path.size;
 	cmdbuf[6] = attributes;
@@ -291,7 +328,7 @@ Result FSUSER_CreateDirectory(FS_Archive archive, FS_Path path, u32 attributes)
 	cmdbuf[8] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -302,12 +339,12 @@ Result FSUSER_RenameDirectory(FS_Archive srcArchive, FS_Path srcPath, FS_Archive
 
 	cmdbuf[0] = IPC_MakeHeader(0x80A,9,4); // 0x80A0244
 	cmdbuf[1] = 0;
-	cmdbuf[2] = (u32) srcArchive.handle;
-	cmdbuf[3] = (u32) (srcArchive.handle >> 32);
+	cmdbuf[2] = (u32) srcArchive;
+	cmdbuf[3] = (u32) (srcArchive >> 32);
 	cmdbuf[4] = srcPath.type;
 	cmdbuf[5] = srcPath.size;
-	cmdbuf[6] = (u32) dstArchive.handle;
-	cmdbuf[7] = (u32) (dstArchive.handle >> 32);
+	cmdbuf[6] = (u32) dstArchive;
+	cmdbuf[7] = (u32) (dstArchive >> 32);
 	cmdbuf[8] = dstPath.type;
 	cmdbuf[9] = dstPath.size;
 	cmdbuf[10] = IPC_Desc_StaticBuffer(srcPath.size, 1);
@@ -316,7 +353,7 @@ Result FSUSER_RenameDirectory(FS_Archive srcArchive, FS_Path srcPath, FS_Archive
 	cmdbuf[13] = (u32) dstPath.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(srcArchive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(srcArchive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -326,38 +363,38 @@ Result FSUSER_OpenDirectory(Handle* out, FS_Archive archive, FS_Path path)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x80B,4,2); // 0x80B0102
-	cmdbuf[1] = (u32) archive.handle;
-	cmdbuf[2] = (u32) (archive.handle >> 32);
+	cmdbuf[1] = (u32) archive;
+	cmdbuf[2] = (u32) (archive >> 32);
 	cmdbuf[3] = path.type;
 	cmdbuf[4] = path.size;
 	cmdbuf[5] = IPC_Desc_StaticBuffer(path.size, 0);
 	cmdbuf[6] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	if(out) *out = cmdbuf[3];
 
 	return cmdbuf[1];
 }
 
-Result FSUSER_OpenArchive(FS_Archive* archive)
+Result FSUSER_OpenArchive(FS_Archive* archive, FS_ArchiveID id, FS_Path path)
 {
 	if(!archive) return -2;
 
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x80C,3,2); // 0x80C00C2
-	cmdbuf[1] = archive->id;
-	cmdbuf[2] = archive->lowPath.type;
-	cmdbuf[3] = archive->lowPath.size;
-	cmdbuf[4] = IPC_Desc_StaticBuffer(archive->lowPath.size, 0);
-	cmdbuf[5] = (u32) archive->lowPath.data;
+	cmdbuf[1] = id;
+	cmdbuf[2] = path.type;
+	cmdbuf[3] = path.size;
+	cmdbuf[4] = IPC_Desc_StaticBuffer(path.size, 0);
+	cmdbuf[5] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive->id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
-	archive->handle = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
+	if(archive) *archive = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
 	return cmdbuf[1];
 }
@@ -367,8 +404,8 @@ Result FSUSER_ControlArchive(FS_Archive archive, FS_ArchiveAction action, void* 
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x80D,5,4); // 0x80D0144
-	cmdbuf[1] = (u32) archive.handle;
-	cmdbuf[2] = (u32) (archive.handle >> 32);
+	cmdbuf[1] = (u32) archive;
+	cmdbuf[2] = (u32) (archive >> 32);
 	cmdbuf[3] = action;
 	cmdbuf[4] = inputSize;
 	cmdbuf[5] = outputSize;
@@ -378,23 +415,23 @@ Result FSUSER_ControlArchive(FS_Archive archive, FS_ArchiveAction action, void* 
 	cmdbuf[9] = (u32) output;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
 
-Result FSUSER_CloseArchive(FS_Archive* archive)
+Result FSUSER_CloseArchive(FS_Archive archive)
 {
 	if(!archive) return -2;
 
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x80E,2,0); // 0x80E0080
-	cmdbuf[1] = (u32) archive->handle;
-	cmdbuf[2] = (u32) (archive->handle >> 32);
+	cmdbuf[1] = (u32) archive;
+	cmdbuf[2] = (u32) (archive >> 32);
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive->id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -404,11 +441,11 @@ Result FSUSER_GetFreeBytes(u64* freeBytes, FS_Archive archive)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x812,2,0); // 0x8120080
-	cmdbuf[1] = (u32) archive.handle;
-	cmdbuf[2] = (u32) (archive.handle >> 32);
+	cmdbuf[1] = (u32) archive;
+	cmdbuf[2] = (u32) (archive >> 32);
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	if(freeBytes) *freeBytes = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
@@ -436,7 +473,7 @@ Result FSUSER_GetSdmcArchiveResource(FS_ArchiveResource* archiveResource)
 	cmdbuf[0] = IPC_MakeHeader(0x814,0,0); // 0x8140000
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(ARCHIVE_SDMC)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(archiveResource) memcpy(archiveResource, &cmdbuf[2], sizeof(FS_ArchiveResource));
 
@@ -1037,7 +1074,7 @@ Result FSUSER_GetFormatInfo(u32* totalSize, u32* directories, u32* files, bool* 
 	cmdbuf[5] = (u32) path.data;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archiveId)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
 	if(totalSize) *totalSize = cmdbuf[2];
 	if(directories) *directories = cmdbuf[3];
@@ -1353,12 +1390,12 @@ Result FSUSER_SetArchivePriority(FS_Archive archive, u32 priority)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x85A,3,0); // 0x85A00C0
-	cmdbuf[1] = (u32) archive.handle;
-	cmdbuf[2] = (u32) (archive.handle >> 32);
+	cmdbuf[1] = (u32) archive;
+	cmdbuf[2] = (u32) (archive >> 32);
 	cmdbuf[3] = priority;
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	return cmdbuf[1];
 }
@@ -1368,11 +1405,11 @@ Result FSUSER_GetArchivePriority(u32* priority, FS_Archive archive)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x85B,2,0); // 0x85B0080
-	cmdbuf[1] = (u32) archive.handle;
-	cmdbuf[2] = (u32) (archive.handle >> 32);
+	cmdbuf[1] = (u32) archive;
+	cmdbuf[2] = (u32) (archive >> 32);
 
 	Result ret = 0;
-	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive.id)))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSessionForArchive(archive)))) return ret;
 
 	if(priority) *priority = cmdbuf[2];
 

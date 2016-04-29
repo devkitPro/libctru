@@ -91,16 +91,7 @@ sdmc_devoptab =
 };
 
 /*! SDMC archive handle */
-static FS_Archive sdmcArchive =
-{
-  .id = ARCHIVE_SDMC,
-  .lowPath =
-  {
-    .type = PATH_EMPTY,
-    .size = 1,
-    .data = (u8*)"",
-  },
-};
+static FS_Archive sdmcArchive;
 
 /*! @endcond */
 
@@ -216,14 +207,17 @@ Result sdmcInit(void)
   ssize_t  units;
   uint32_t code;
   char     *p;
+  FS_Path sdmcPath = { PATH_EMPTY, 1, (u8*)"" };
   Result   rc = 0;
 
   if(sdmcInitialised)
     return rc;
 
-  rc = FSUSER_OpenArchive(&sdmcArchive);
+
+  rc = FSUSER_OpenArchive(&sdmcArchive, ARCHIVE_SDMC, sdmcPath);
   if(R_SUCCEEDED(rc))
   {
+    fsExemptFromSession(sdmcArchive);
 
     int dev = AddDevice(&sdmc_devoptab);
 
@@ -296,9 +290,10 @@ Result sdmcExit(void)
 
   if(!sdmcInitialised) return rc;
 
-  rc = FSUSER_CloseArchive(&sdmcArchive);
+  rc = FSUSER_CloseArchive(sdmcArchive);
   if(R_SUCCEEDED(rc))
   {
+    fsUnexemptFromSession(sdmcArchive);
     RemoveDevice("sdmc:");
     sdmcInitialised = false;
   }

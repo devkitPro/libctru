@@ -226,7 +226,7 @@ typedef struct
 	u8 encryptParameter[0x10]; ///< Encrypt parameter.
 } FS_DeviceMoveContext;
 
-/// FS path.
+/// Filesystem path data, detailing the specific target of an operation.
 typedef struct
 {
 	FS_PathType type; ///< FS path type.
@@ -234,13 +234,8 @@ typedef struct
 	const void* data; ///< Pointer to FS path data.
 } FS_Path;
 
-/// FS archive.
-typedef struct
-{
-	u32 id;          ///< Archive ID.
-	FS_Path lowPath; ///< FS path.
-	u64 handle;      ///< Handle.
-} FS_Archive;
+/// Filesystem archive handle, providing access to a filesystem's contents.
+typedef u64 FS_Archive;
 
 /// Initializes FS.
 Result fsInit(void);
@@ -251,12 +246,24 @@ void fsExit(void);
 /**
  * @brief Sets the FSUSER session to use in the current thread.
  * @param session The handle of the FSUSER session to use.
- * @param sdmc When true, SDMC archive commands are redirected to this session too. Otherwise the default session is used.
  */
-void fsUseSession(Handle session, bool sdmc);
+void fsUseSession(Handle session);
 
 /// Disables the FSUSER session override in the current thread.
 void fsEndUseSession(void);
+
+/**
+ * @brief Exempts an archive from using alternate FS session handles provided with @ref fsUseSession
+ * Instead, the archive will use the default FS session handle, opened with @ref srvGetSessionHandle
+ * @param archive Archive to exempt.
+ */
+void fsExemptFromSession(FS_Archive archive);
+
+/**
+ * @brief Unexempts an archive from using alternate FS session handles provided with @ref fsUseSession
+ * @param archive Archive to remove from the exemption list.
+ */
+void fsUnexemptFromSession(FS_Archive archive);
 
 /**
  * @brief Creates an FS_Path instance.
@@ -299,14 +306,15 @@ Result FSUSER_Initialize(Handle session);
 Result FSUSER_OpenFile(Handle* out, FS_Archive archive, FS_Path path, u32 openFlags, u32 attributes);
 
 /**
- * @brief Opens a file directly.
+ * @brief Opens a file directly, bypassing the requirement of an opened archive handle.
  * @param out Pointer to output the file handle to.
- * @param archive Archive containing the file.
- * @param path Path of the file.
+ * @param archiveId ID of the archive containing the file.
+ * @param archivePath Path of the archive containing the file.
+ * @param filePath Path of the file.
  * @param openFlags Flags to open the file with.
  * @param attributes Attributes of the file.
  */
-Result FSUSER_OpenFileDirectly(Handle* out, FS_Archive archive, FS_Path path, u32 openFlags, u32 attributes);
+Result FSUSER_OpenFileDirectly(Handle* out, FS_ArchiveID archiveId, FS_Path archivePath, FS_Path filePath, u32 openFlags, u32 attributes);
 
 /**
  * @brief Deletes a file.
@@ -340,7 +348,7 @@ Result FSUSER_DeleteDirectoryRecursively(FS_Archive archive, FS_Path path);
 
 /**
  * @brief Creates a file.
- * @param archive Archive containing the file.
+ * @param archive Archive to create the file in.
  * @param path Path of the file.
  * @param attributes Attributes of the file.
  * @param fileSize Size of the file.
@@ -349,7 +357,7 @@ Result FSUSER_CreateFile(FS_Archive archive, FS_Path path, u32 attributes, u64 f
 
 /**
  * @brief Creates a directory
- * @param archive Archive containing the directory.
+ * @param archive Archive to create the directory in.
  * @param path Path of the directory.
  * @param attributes Attributes of the directory.
  */
@@ -374,9 +382,11 @@ Result FSUSER_OpenDirectory(Handle *out, FS_Archive archive, FS_Path path);
 
 /**
  * @brief Opens an archive.
- * @param archive Archive to open.
+ * @param archive Pointer to output the opened archive to.
+ * @param id ID of the archive.
+ * @param path Path of the archive.
  */
-Result FSUSER_OpenArchive(FS_Archive* archive);
+Result FSUSER_OpenArchive(FS_Archive* archive, FS_ArchiveID id, FS_Path path);
 
 /**
  * @brief Performs a control operation on an archive.
@@ -393,7 +403,7 @@ Result FSUSER_ControlArchive(FS_Archive archive, FS_ArchiveAction action, void* 
  * @brief Closes an archive.
  * @param archive Archive to close.
  */
-Result FSUSER_CloseArchive(FS_Archive* archive);
+Result FSUSER_CloseArchive(FS_Archive archive);
 
 /**
  * @brief Gets the number of free bytes within an archive.
