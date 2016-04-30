@@ -1,13 +1,104 @@
 /**
  * @file nfc.h
- * @brief NFC service.
+ * @brief NFC service. This can only be used with system-version >=9.3.0-X.
  */
 #pragma once
 
+/// This is returned when the current state is invalid for this command.
+#define NFC_ERR_INVALID_STATE 0xC8A17600
+
+/// This is returned by nfcOpenAppData() when the appdata is uninitialized since nfcInitializeWriteAppData() wasn't used previously.
+#define NFC_ERR_APPDATA_UNINITIALIZED 0xC8A17620
+
+/// This is returned by nfcGetAmiiboSettings() when the amiibo wasn't setup by the amiibo Settings applet.
+#define NFC_ERR_AMIIBO_NOTSETUP 0xC8A17628
+
+/// This is returned by nfcOpenAppData() when the input AppID doesn't match the actual amiibo AppID.
+#define NFC_ERR_APPID_MISMATCH 0xC8A17638
+
+/// "Returned for HMAC-hash mismatch(data corruption), with HMAC-calculation input_buffer_size=0x34."
+#define NFC_ERR_DATACORRUPTION0 0xC8C1760C
+
+/// HMAC-hash mismatch with input_buffer_size=0x1DF, see here: https://www.3dbrew.org/wiki/Amiibo
+#define NFC_ERR_DATACORRUPTION1 0xC8A17618
+
+/// This can be used for nfcStartScanning().
+#define NFC_STARTSCAN_DEFAULTINPUT 0
+
+/// NFC operation type.
+typedef enum {
+	NFC_OpType_1 = 1, /// Unknown.
+	NFC_OpType_NFCTag = 2 /// This is the default.
+} NFC_OpType;
+
+typedef enum {
+	NFC_TagState_Uninitialized = 0, /// nfcInit() was not used yet.
+	NFC_TagState_ScanningStopped = 1, /// Not currently scanning for NFC tags. Set by nfcStopScanning() and nfcInit(), when successful.
+	NFC_TagState_Scanning = 2, /// Currently scanning for NFC tags. Set by nfcStartScanning() when successful.
+	NFC_TagState_InRange = 3, /// NFC tag is in range. The state automatically changes to this when the state was previously value 2, without using any NFC service commands.
+	NFC_TagState_OutOfRange = 4, /// NFC tag is now out of range, where the NFC tag was previously in range. This occurs automatically without using any NFC service commands. Once this state is entered, it won't automatically change to anything else when the tag is moved in range again. Hence, if you want to keep doing tag scanning after this, you must stop+start scanning.
+	NFC_TagState_DataReady = 5 /// NFC tag data was successfully loaded. This is set by nfcLoadAmiiboData() when successful.
+} NFC_TagState;
+
+/// Bit4-7 are always clear with nfcGetAmiiboSettings() due to "& 0xF".
+enum {
+	NFC_amiiboFlag_Setup = BIT(4), /// This indicates that the amiibo was setup with amiibo Settings. nfcGetAmiiboSettings() will return an all-zero struct when this is not set.
+	NFC_amiiboFlag_AppDataSetup = BIT(5) /// This indicates that the AppData was previously initialized via nfcInitializeWriteAppData(), that function can't be used again with this flag already set.
+};
+
+typedef struct {
+	u16 id_offset_size;/// "u16 size/offset of the below ID data. Normally this is 0x7. When this is <=10, this field is the size of the below ID data. When this is >10, this is the offset of the 10-byte ID data, relative to structstart+4+<offsetfield-10>. It's unknown in what cases this 10-byte ID data is used."
+	u8 unk_x2;//"Unknown u8, normally 0x0."
+	u8 unk_x3;//"Unknown u8, normally 0x2."
+	u8 id[0x28];//"ID data. When the above size field is 0x7, this is the 7-byte NFC tag UID, followed by all-zeros."
+} NFC_TagInfo;
+
+/// AmiiboSettings structure, see also here: https://3dbrew.org/wiki/NFC:GetAmiiboSettings
+typedef struct {
+	u8 mii[0x60];/// "Owner Mii."
+	u16 nickname[11];/// "UTF-16BE Amiibo nickname."
+	u8 flags;/// "This is plaintext_amiibosettingsdata[0] & 0xF." See also the NFC_amiiboFlag enums.
+	u8 countrycodeid;/// "This is plaintext_amiibosettingsdata[1]." "Country Code ID, from the system which setup this amiibo."
+	u16 setupdate_year;
+	u8 setupdate_month;
+	u8 setupdate_day;
+	u8 unk_x7c[0x2c];//Normally all-zero?
+} NFC_AmiiboSettings;
+
+/// AmiiboConfig structure, see also here: https://3dbrew.org/wiki/NFC:GetAmiiboConfig
+typedef struct {
+	u16 lastwritedate_year;
+	u8 lastwritedate_month;
+	u8 lastwritedate_day;
+	u16 write_counter;
+	u16 val_x6;
+	u8 val_x8;
+	u8 val_x9;
+	u16 val_xa;
+	u8 val_xc;
+	u8 pagex4_byte3;/// "This is byte[3] from NFC page[0x4]."
+	u8 appdata_size;/// "NFC module writes hard-coded u8 value 0xD8 here. This is the size of the Amiibo AppData, apps can use this with the AppData R/W commands. ..."
+	u8 zeros[0x31];/// "Unused / reserved: this is cleared by NFC module but never written after that."
+} NFC_AmiiboConfig;
+
+/// Used by nfcInitializeWriteAppData() internally, see also here: https://3dbrew.org/wiki/NFC:GetAppDataInitStruct
+typedef struct {
+	u8 data_x0[0xC];
+	u8 data_xc[0x30];/// "The data starting at struct offset 0xC is the 0x30-byte struct used by NFC:InitializeWriteAppData, sent by the user-process."
+} NFC_AppDataInitStruct;
+
+/// Used by nfcWriteAppData() internally, see also: https://3dbrew.org/wiki/NFC:WriteAppData
+typedef struct {
+	u8 id[10];//7-byte UID normally.
+	u8 id_size;
+	u8 unused_xb[0x15];
+} NFC_AppDataWriteStruct;
+
 /**
  * @brief Initializes NFC.
+ * @param type See the NFC_OpType enum.
  */
-Result nfcInit(void);
+Result nfcInit(NFC_OpType type);
 
 /**
  * @brief Shuts down NFC.
@@ -21,59 +112,81 @@ void nfcExit(void);
 Handle nfcGetSessionHandle(void);
 
 /**
- * @brief Initialize NFC module.
- * @param type Unknown, can be either value 0x1 or 0x2.
- */
-Result NFC_Initialize(u8 type);
-
-/**
- * @brief Shutdown NFC module.
- * @param type Unknown.
- */
-Result NFC_Shutdown(u8 type);
-
-/**
- * @brief O3DS starts communication with the O3DS NFC hardware. N3DS just checks state for this command.
- */
-Result NFC_StartCommunication(void);
-
-/**
- * @brief O3DS stops communication with the O3DS NFC hardware. N3DS just uses code used internally by NFC:StopTagScanning for this.
- */
-Result NFC_StopCommunication(void);
-
-/**
  * @brief Starts scanning for NFC tags.
- * @param unknown Unknown.
+ * @param inval Unknown. See NFC_STARTSCAN_DEFAULTINPUT.
  */
-Result NFC_StartTagScanning(u16 unknown);
+Result nfcStartScanning(u16 inval);
 
 /**
  * @brief Stops scanning for NFC tags.
  */
-Result NFC_StopTagScanning(void);
+void nfcStopScanning(void);
 
 /**
- * @brief Read Amiibo NFC data and load in memory.
+ * @brief Read amiibo NFC data and load in memory.
  */
-Result NFC_LoadAmiiboData(void);
+Result nfcLoadAmiiboData(void);
 
 /**
- * @brief If the tagstate is valid, it then sets the current tagstate to 3.
+ * @brief If the tagstate is valid(NFC_TagState_DataReady or 6), it then sets the current tagstate to NFC_TagState_InRange.
  */
-Result NFC_ResetTagScanState(void);
+Result nfcResetTagScanState(void);
+
+/**
+ * @brief This writes the amiibo data stored in memory to the actual amiibo data storage(which is normally the NFC data pages). This can only be used if NFC_LoadAmiiboData() was used previously.
+ */
+Result nfcUpdateStoredAmiiboData(void);
 
 /**
  * @brief Returns the current NFC tag state.
  * @param state Pointer to write NFC tag state.
- *
- * Tag state values:
- * - 0: NFC:Initialize was not used yet.
- * - 1: Not currently scanning for NFC tags. Set by NFC:StopTagScanning and NFC:Initialize, when successful.
- * - 2: Currently scanning for NFC tags. Set by NFC:StartTagScanning when successful.
- * - 3: NFC tag is in range. The state automatically changes to this when the state was previous value 3, without using any NFC service commands.
- * - 4: NFC tag is now out of range, where the NFC tag was previously in range. This occurs automatically without using any NFC service commands. Once this state is entered, it won't automatically change to anything else when the tag is moved in range again. Hence, if you want to keep doing tag scanning after this, you must stop+start scanning.
- * - 5: NFC tag data was successfully loaded. This is set by NFC:LoadAmiiboData when successful. 
  */
-Result NFC_GetTagState(u8 *state);
+Result nfcGetTagState(NFC_TagState *state);
+
+/**
+ * @brief Returns the current TagInfo.
+ * @param out Pointer to write the output TagInfo.
+ */
+Result nfcGetTagInfo(NFC_TagInfo *out);
+
+/**
+ * @brief Opens the appdata, when the amiibo appdata was previously initialized. This must be used before reading/writing the appdata. See also: https://3dbrew.org/wiki/NFC:OpenAppData
+ * @param amiibo_appid Amiibo AppID. See here: https://www.3dbrew.org/wiki/Amiibo
+ */
+Result nfcOpenAppData(u32 amiibo_appid);
+
+/**
+ * @brief This initializes the appdata using the specified input, when the appdata previously wasn't initialized. If the appdata is already initialized, you must first use the amiibo Settings applet menu option labeled "Delete amiibo Game Data". This automatically writes the amiibo data into the actual data storage(normally NFC data pages). See also nfcWriteAppData().
+ * @param amiibo_appid amiibo AppID. See also nfcOpenAppData().
+ * @param buf Input buffer.
+ * @param size Buffer size.
+ */
+Result nfcInitializeWriteAppData(u32 amiibo_appid, const void *buf, size_t size);
+
+/**
+ * @brief Reads the appdata. The size must be >=0xD8-bytes, but the actual used size is hard-coded to 0xD8. Note that areas of appdata which were never written to by applications are uninitialized in this output buffer.
+ * @param buf Output buffer.
+ * @param size Buffer size.
+ */
+Result nfcReadAppData(void *buf, size_t size);
+
+/**
+ * @brief Writes the appdata, after nfcOpenAppData() was used successfully. The size should be <=0xD8-bytes. See also: https://3dbrew.org/wiki/NFC:WriteAppData
+ * @param buf Input buffer.
+ * @param size Buffer size.
+ * @param taginfo TagInfo from nfcGetTagInfo().
+ */
+Result nfcWriteAppData(const void *buf, size_t size, NFC_TagInfo *taginfo);
+
+/**
+ * @brief Returns the current AmiiboSettings.
+ * @param out Pointer to write the output AmiiboSettings.
+ */
+Result nfcGetAmiiboSettings(NFC_AmiiboSettings *out);
+
+/**
+ * @brief Returns the current AmiiboConfig.
+ * @param out Pointer to write the output AmiiboConfig.
+ */
+Result nfcGetAmiiboConfig(NFC_AmiiboConfig *out);
 
