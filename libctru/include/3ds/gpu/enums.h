@@ -73,8 +73,9 @@ typedef enum
 	GPU_A8       = 0x8, ///< 8-bit Alpha
 	GPU_LA4      = 0x9, ///< 4-bit Luminance + 4-bit Alpha
 	GPU_L4       = 0xA, ///< 4-bit Luminance
-	GPU_ETC1     = 0xB, ///< ETC1 texture compression
-	GPU_ETC1A4   = 0xC, ///< ETC1 texture compression + 4-bit Alpha
+	GPU_A4       = 0xB, ///< 4-bit Alpha
+	GPU_ETC1     = 0xC, ///< ETC1 texture compression
+	GPU_ETC1A4   = 0xD, ///< ETC1 texture compression + 4-bit Alpha
 } GPU_TEXCOLOR;
 
 /// Procedural texture clamp modes.
