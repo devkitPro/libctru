@@ -36,13 +36,13 @@ static u32 __CVer_tidlow_regionarray[7] = {
 };
 
 
-static Result __read_versionbin(FS_Archive archive, FS_Path fileLowPath, OS_VersionBin *versionbin)
+static Result __read_versionbin(FS_ArchiveID archiveId, FS_Path archivePath, FS_Path fileLowPath, OS_VersionBin *versionbin)
 {
 	Result ret = 0;
 	Handle filehandle = 0;
 	FILE *f = NULL;
 
-	ret = FSUSER_OpenFileDirectly(&filehandle, archive, fileLowPath, FS_OPEN_READ, 0x0);
+	ret = FSUSER_OpenFileDirectly(&filehandle, archiveId, archivePath, fileLowPath, FS_OPEN_READ, 0x0);
 	if(R_FAILED(ret))return ret;
 
 	ret = romfsInitFromFile(filehandle, 0x0);
@@ -72,16 +72,17 @@ Result osGetSystemVersionData(OS_VersionBin *nver_versionbin, OS_VersionBin *cve
 	u32 archive_lowpath_data[0x10>>2];
 	u32 file_lowpath_data[0x14>>2];
 
-	FS_Archive archive;
+	FS_ArchiveID archiveId;
+	FS_Path archivePath;
 	FS_Path fileLowPath;
 
 	memset(archive_lowpath_data, 0, sizeof(archive_lowpath_data));
 	memset(file_lowpath_data,    0, sizeof(file_lowpath_data));
 
-	archive.id = 0x2345678a;
-	archive.lowPath.type = PATH_BINARY;
-	archive.lowPath.size = 0x10;
-	archive.lowPath.data = archive_lowpath_data;
+	archiveId = 0x2345678a;
+	archivePath.type = PATH_BINARY;
+	archivePath.size = 0x10;
+	archivePath.data = archive_lowpath_data;
 
 	fileLowPath.type = PATH_BINARY;
 	fileLowPath.size = 0x14;
@@ -100,11 +101,11 @@ Result osGetSystemVersionData(OS_VersionBin *nver_versionbin, OS_VersionBin *cve
 	cfguExit();
 
 	archive_lowpath_data[0] = __NVer_tidlow_regionarray[region];
-	ret = __read_versionbin(archive, fileLowPath, nver_versionbin);
+	ret = __read_versionbin(archiveId, archivePath, fileLowPath, nver_versionbin);
 	if(R_FAILED(ret))return ret;
 
 	archive_lowpath_data[0] = __CVer_tidlow_regionarray[region];
-	ret = __read_versionbin(archive, fileLowPath, cver_versionbin);
+	ret = __read_versionbin(archiveId, archivePath, fileLowPath, cver_versionbin);
 	return ret;
 }
 

@@ -26,7 +26,6 @@ typedef struct
 	// FS session override
 	u32    fs_magic;
 	Handle fs_session;
-	bool   fs_sdmc;
 } ThreadVars;
 
 static inline ThreadVars* getThreadVars(void)
