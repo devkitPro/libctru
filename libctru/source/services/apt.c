@@ -37,6 +37,7 @@ APT_AppStatus aptStatus = APP_NOTINITIALIZED;
 APT_AppStatus aptStatusBeforeSleep = APP_NOTINITIALIZED;
 u32 aptStatusPower;
 Handle aptSleepSync;
+static bool aptSleepAllowed = true;
 
 u32 aptParameters[0x1000/4]; //TEMP
 
@@ -336,14 +337,22 @@ static void __handle_notification(void) {
 
 	case APTSIGNAL_PREPARESLEEP:
 		// Reply to sleep-request.
-		aptStatusBeforeSleep = aptGetStatus();
-		aptSetStatus(APP_PREPARE_SLEEPMODE);
-		svcWaitSynchronization(aptSleepSync, U64_MAX);
-		svcClearEvent(aptSleepSync);
+		if(aptIsSleepAllowed())
+		{
+			aptStatusBeforeSleep = aptGetStatus();
+			aptSetStatus(APP_PREPARE_SLEEPMODE);
+			svcWaitSynchronization(aptSleepSync, U64_MAX);
+			svcClearEvent(aptSleepSync);
 		
-		aptOpenSession();
-		APT_ReplySleepQuery(currentAppId, 0x1);
-		aptCloseSession();
+			aptOpenSession();
+			APT_ReplySleepQuery(currentAppId, 0x1);
+			aptCloseSession();
+		} else
+		{
+			aptOpenSession();
+			APT_ReplySleepQuery(currentAppId, 0x0);
+			aptCloseSession();
+		}
 		break;
 
 	case APTSIGNAL_ENTERSLEEP:
@@ -708,6 +717,16 @@ void aptCloseSession(void)
 void aptSignalReadyForSleep(void)
 {
 	svcSignalEvent(aptSleepSync);
+}
+
+bool aptIsSleepAllowed()
+{
+	return aptSleepAllowed;
+}
+
+void aptSetSleepAllowed(bool allowed)
+{
+	aptSleepAllowed = allowed;
 }
 
 Result APT_GetLockHandle(u16 flags, Handle* lockHandle)
