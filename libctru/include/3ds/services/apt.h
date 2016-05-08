@@ -136,6 +136,18 @@ void aptWaitStatusEvent(void);
 void aptSignalReadyForSleep(void);
 
 /**
+ * @brief Gets whether to allow the system to enter sleep mode.
+ * @return Whether sleep mode is allowed.
+ */
+bool aptIsSleepAllowed();
+
+/**
+ * @brief Sets whether to allow the system to enter sleep mode.
+ * @param allowed Whether to allow sleep mode.
+ */
+void aptSetSleepAllowed(bool allowed);
+
+/**
  * @brief Gets the menu's app ID.
  * @return The menu's app ID.
  */
