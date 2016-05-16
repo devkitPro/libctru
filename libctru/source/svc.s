@@ -37,6 +37,14 @@ SVC_BEGIN svcExitProcess
 	svc 0x03
 	bx  lr
 
+SVC_BEGIN svcSetProcessAffinityMask
+	svc 0x05
+	bx lr
+
+SVC_BEGIN svcSetProcessIdealProcessor
+	svc 0x07
+	bx lr
+
 SVC_BEGIN svcCreateThread
 	push {r0, r4}
 	ldr  r0, [sp, #0x8]
@@ -87,6 +95,17 @@ SVC_BEGIN svcSetThreadIdealProcessor
 
 SVC_BEGIN svcGetProcessorID
 	svc 0x11
+	bx  lr
+
+SVC_BEGIN svcRun
+	push {r4,r5}
+	ldr r2, [r1, #0x04]
+	ldr r3, [r1, #0x08]
+	ldr r4, [r1, #0x0C]
+	ldr r5, [r1, #0x10]
+	ldr r1, [r1, #0x00]
+	svc 0x12
+	pop {r4,r5}
 	bx  lr
 
 SVC_BEGIN svcCreateMutex

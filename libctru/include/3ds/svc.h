@@ -263,6 +263,16 @@ typedef struct {
 	u64 program_id;       ///< Program ID
 } CodeSetInfo;
 
+/// Information for the main thread of a process.
+typedef struct
+{
+	int priority;   ///< Priority of the main thread.
+	u32 stack_size; ///< Size of the stack of the main thread.
+	int argc;       ///< Unused on retail kernel.
+	u16* argv;      ///< Unused on retail kernel.
+	u16* envp;      ///< Unused on retail kernel.
+} StartupInfo;
+
 ///@}
 
 /**
@@ -529,7 +539,30 @@ Result svcCreateCodeSet(Handle* out, const CodeSetInfo *info, void* code_ptr, vo
  * @param arm11kernelcaps ARM11 Kernel Capabilities from exheader
  * @param arm11kernelcaps_num Number of kernel capabilities
  */
-Result svcCreateProcess(Handle* out, Handle codeset, u32 *arm11kernelcaps, u32 arm11kernelcaps_num);
+Result svcCreateProcess(Handle* out, Handle codeset, const u32 *arm11kernelcaps, u32 arm11kernelcaps_num);
+
+/**
+ * @brief Sets a process's affinity mask.
+ * @param process Handle of the process.
+ * @param affinitymask Pointer to retrieve the affinity masks from.
+ * @param processorcount Number of processors.
+ */
+Result svcSetProcessAffinityMask(Handle process, const u8* affinitymask, s32 processorcount);
+
+/**
+ * Sets a process's ideal processor.
+ * @param process Handle of the process.
+ * @param processorid ID of the thread's ideal processor.
+ */
+Result svcSetProcessIdealProcessor(Handle process, s32 processorid);
+
+/**
+ * Launches the main thread of the process.
+ * @param process Handle of the process.
+ * @param info Pointer to a StartupInfo structure describing information for the main thread.
+ */
+Result svcRun(Handle process, const StartupInfo* info);
+
 ///@}
 
 ///@name Multithreading
@@ -602,7 +635,7 @@ Result svcGetThreadAffinityMask(u8* affinitymask, Handle thread, s32 processorco
  * @param affinitymask Pointer to retrieve the affinity masks from.
  * @param processorcount Number of processors.
  */
-Result svcSetThreadAffinityMask(Handle thread, u8* affinitymask, s32 processorcount);
+Result svcSetThreadAffinityMask(Handle thread, const u8* affinitymask, s32 processorcount);
 
 /**
  * @brief Gets a thread's ideal processor.
