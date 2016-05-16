@@ -3,7 +3,7 @@
 #include <3ds/svc.h>
 #include <3ds/srv.h>
 #include <3ds/synchronization.h>
-#include <3ds/services/hb.h>
+#include <3ds/env.h>
 #include <3ds/ipc.h>
 
 static Handle hbHandle;
@@ -13,7 +13,8 @@ Result hbInit(void)
 {
 	Result res=0;
 	if (AtomicPostIncrement(&hbRefCount)) return 0;
-	res = srvGetServiceHandle(&hbHandle, "hb:HB");
+	Handle temp = envGetHandle("hb:HB");
+	res = temp ? svcDuplicateHandle(&hbHandle, temp) : MAKERESULT(RL_STATUS,RS_NOTFOUND,RM_APPLICATION,RD_NOT_FOUND);
 	if (R_FAILED(res)) AtomicDecrement(&hbRefCount);
 	return res;
 }
