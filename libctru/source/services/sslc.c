@@ -52,7 +52,7 @@ static Result sslcipc_Initialize(void)
 	return cmdbuf[1];
 }
 
-static Result sslcipc_CreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
+static Result sslcipc_CreateContext(sslcContext *context, int sockfd, u32 input_opt, const char *hostname)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	u32 size = strlen(hostname)+1;
@@ -101,7 +101,7 @@ static Result sslcipc_DestroyCertChain(u32 type, u32 contexthandle)
 	return cmdbuf[1];
 }
 
-static Result sslcipc_CertChainAddCert(u32 type, u32 contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+static Result sslcipc_CertChainAddCert(u32 type, u32 contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -151,7 +151,7 @@ static Result sslcipc_CertChainRemoveCert(u32 type, u32 contexthandle, u32 cert_
 	return cmdbuf[1];
 }
 
-Result sslcOpenClientCertContext(u8 *cert, u32 certsize, u8 *key, u32 keysize, u32 *ClientCert_contexthandle)
+Result sslcOpenClientCertContext(const u8 *cert, u32 certsize, const u8 *key, u32 keysize, u32 *ClientCert_contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -275,7 +275,7 @@ static Result sslcipc_StartConnectionGetOut(sslcContext *context, int *internal_
 	return ret;
 }
 
-static Result sslcipc_DataTransfer(sslcContext *context, void *buf, size_t len, u32 type)
+static Result sslcipc_DataTransfer(sslcContext *context, const void *buf, size_t len, u32 type)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -378,7 +378,7 @@ static Result sslcipc_ContextInitSharedmem(sslcContext *context, u32 size)
 	return cmdbuf[1];
 }
 
-Result sslcAddCert(sslcContext *context, u8 *buf, u32 size)
+Result sslcAddCert(sslcContext *context, const u8 *buf, u32 size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -405,7 +405,7 @@ Result sslcDestroyRootCertChain(u32 RootCertChain_contexthandle)
 	return sslcipc_DestroyCertChain(0, RootCertChain_contexthandle);
 }
 
-Result sslcAddTrustedRootCA(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+Result sslcAddTrustedRootCA(u32 RootCertChain_contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle)
 {
 	return sslcipc_CertChainAddCert(0, RootCertChain_contexthandle, cert, certsize, cert_contexthandle);
 }
@@ -430,7 +430,7 @@ Result sslcDestroy8CertChain(u32 PinnedCertChain_contexthandle)
 	return sslcipc_DestroyCertChain(1, PinnedCertChain_contexthandle);
 }
 
-Result sslc8CertChainAddCert(u32 PinnedCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+Result sslc8CertChainAddCert(u32 PinnedCertChain_contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle)
 {
 	return sslcipc_CertChainAddCert(1, PinnedCertChain_contexthandle, cert, certsize, cert_contexthandle);
 }
@@ -445,7 +445,7 @@ Result sslc8CertChainRemoveCert(u32 PinnedCertChain_contexthandle, u32 cert_cont
 	return sslcipc_CertChainRemoveCert(1, PinnedCertChain_contexthandle, cert_contexthandle);
 }
 
-Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname)
+Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, const char *hostname)
 {
 	Result ret=0;
 
@@ -507,7 +507,7 @@ Result sslcRead(sslcContext *context, void *buf, size_t len, bool peek)
 	return sslcipc_DataTransfer(context, buf, len, type);
 }
 
-Result sslcWrite(sslcContext *context, void *buf, size_t len)
+Result sslcWrite(sslcContext *context, const void *buf, size_t len)
 {
 	return sslcipc_DataTransfer(context, buf, len, 2);
 }

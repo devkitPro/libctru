@@ -60,7 +60,7 @@ Result sslcDestroyRootCertChain(u32 RootCertChain_contexthandle);
  * @param cert Pointer to the DER cert.
  * @param certsize Size of the DER cert.
  */
-Result sslcAddTrustedRootCA(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle);
+Result sslcAddTrustedRootCA(u32 RootCertChain_contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle);
 
 /**
  * @brief Adds a default RootCA cert to a RootCertChain.
@@ -95,7 +95,7 @@ Result sslcDestroy8CertChain(u32 CertChain_contexthandle);
  * @param cert Pointer to the cert.
  * @param certsize Size of the cert.
  */
-Result sslc8CertChainAddCert(u32 CertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle);
+Result sslc8CertChainAddCert(u32 CertChain_contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle);
 
 /**
  * @brief Adds a default cert to a CertChain from sslcCreate8CertChain(). Not actually usable since no certIDs are implemented in SSL-module for this.
@@ -120,7 +120,7 @@ Result sslc8CertChainRemoveCert(u32 CertChain_contexthandle, u32 cert_contexthan
  * @param keysize Size of the DER key.
  * @param ClientCert_contexthandle Output contexthandle.
  */
-Result sslcOpenClientCertContext(u8 *cert, u32 certsize, u8 *key, u32 keysize, u32 *ClientCert_contexthandle);
+Result sslcOpenClientCertContext(const u8 *cert, u32 certsize, const u8 *key, u32 keysize, u32 *ClientCert_contexthandle);
 
 /**
  * @brief Opens a ClientCert-context with a default certID.
@@ -154,7 +154,7 @@ Result sslcGenerateRandomData(u8 *buf, u32 size);
  * @param input_opt Input sslc options bitmask.
  * @param hostname Server hostname.
  */
-Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, char *hostname);
+Result sslcCreateContext(sslcContext *context, int sockfd, u32 input_opt, const char *hostname);
 
 /*
  * @brief Destroys a sslc context. The associated sockfd must be closed manually.
@@ -187,7 +187,7 @@ Result sslcRead(sslcContext *context, void *buf, size_t len, bool peek);
  * @param len Size to send.
  * @return When this isn't an error-code, this is the total transferred data size.
  */
-Result sslcWrite(sslcContext *context, void *buf, size_t len);
+Result sslcWrite(sslcContext *context, const void *buf, size_t len);
 
 /*
  * @brief Set the RootCertChain for the specified sslc context.
@@ -247,5 +247,5 @@ Result sslcContextInitSharedmem(sslcContext *context, u8 *buf, u32 size);
  * @param buf Input cert.
  * @param size Cert size.
  */
-Result sslcAddCert(sslcContext *context, u8 *buf, u32 size);
+Result sslcAddCert(sslcContext *context, const u8 *buf, u32 size);
 

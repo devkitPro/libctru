@@ -43,7 +43,7 @@ void httpcExit(void);
  * @param url URL to connect to.
  * @param use_defaultproxy Whether the default proxy should be used (0 for default)
  */
-Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, char* url, u32 use_defaultproxy);
+Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, const char* url, u32 use_defaultproxy);
 
 /**
  * @brief Closes a HTTP context.
@@ -57,7 +57,7 @@ Result httpcCloseContext(httpcContext *context);
  * @param name Name of the field.
  * @param value Value of the field.
  */
-Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value);
+Result httpcAddRequestHeaderField(httpcContext *context, const char* name, const char* value);
 
 /**
  * @brief Adds a POST form field to a HTTP context.
@@ -65,7 +65,7 @@ Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value
  * @param name Name of the field.
  * @param value Value of the field.
  */
-Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value);
+Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char* value);
 
 /**
  * @brief Adds a POST body to a HTTP context.
@@ -73,7 +73,7 @@ Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value);
  * @param data The data to be passed as raw into the body of the post request.
  * @param len Length of data passed by data param.
  */
-Result httpcAddPostDataRaw(httpcContext *context, u32* data, u32 len);
+Result httpcAddPostDataRaw(httpcContext *context, const u32* data, u32 len);
 
 /**
  * @brief Begins a HTTP request.
@@ -119,7 +119,7 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);
  * @param value Pointer to output the value of the field to.
  * @param valuebuf_maxsize Maximum size of the value buffer.
  */
-Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u32 valuebuf_maxsize);
+Result httpcGetResponseHeader(httpcContext *context, const char* name, char* value, u32 valuebuf_maxsize);
 
 /**
  * @brief Adds a trusted RootCA cert to a HTTP context.
@@ -127,7 +127,7 @@ Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u3
  * @param cert Pointer to DER cert.
  * @param certsize Size of the DER cert.
  */
-Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize);
+Result httpcAddTrustedRootCA(httpcContext *context, const u8 *cert, u32 certsize);
 
 /**
  * @brief Adds a default RootCA cert to a HTTP context.
@@ -151,7 +151,7 @@ Result httpcSelectRootCertChain(httpcContext *context, u32 RootCertChain_context
  * @param privk Pointer to the DER private key.
  * @param privk_size Size of the privk.
  */
-Result httpcSetClientCert(httpcContext *context, u8 *cert, u32 certsize, u8 *privk, u32 privk_size);
+Result httpcSetClientCert(httpcContext *context, const u8 *cert, u32 certsize, const u8 *privk, u32 privk_size);
 
 /**
  * @brief Sets the default clientcert for a HTTP context.
@@ -202,7 +202,7 @@ Result httpcDestroyRootCertChain(u32 RootCertChain_contexthandle);
  * @param certsize Size of the DER cert.
  * @param cert_contexthandle Optional output ptr for the cert contexthandle(this can be NULL).
  */
-Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle);
+Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle);
 
 /**
  * @brief Adds a default RootCA cert to a RootCertChain.
@@ -227,7 +227,7 @@ Result httpcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_co
  * @param privk_size Size of the privk.
  * @param ClientCert_contexthandle Output ClientCert context handle.
  */
-Result httpcOpenClientCertContext(u8 *cert, u32 certsize, u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle);
+Result httpcOpenClientCertContext(const u8 *cert, u32 certsize, const u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle);
 
 /**
  * @brief Opens a ClientCert-context with a default clientclient. Up to 2 ClientCert-contexts can be open under this user-process.
