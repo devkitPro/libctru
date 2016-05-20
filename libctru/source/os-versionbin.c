@@ -41,11 +41,12 @@ static Result __read_versionbin(FS_ArchiveID archiveId, FS_Path archivePath, FS_
 	Result ret = 0;
 	Handle filehandle = 0;
 	FILE *f = NULL;
+	struct romfs_mount *mount;
 
 	ret = FSUSER_OpenFileDirectly(&filehandle, archiveId, archivePath, fileLowPath, FS_OPEN_READ, 0x0);
 	if(R_FAILED(ret))return ret;
 
-	ret = romfsInitFromFile(filehandle, 0x0);
+	ret = romfsMountFromFile(filehandle, 0x0, &mount);
 	if(R_FAILED(ret))return ret;
 
 	f = fopen("romfs:/version.bin", "r");
@@ -59,7 +60,7 @@ static Result __read_versionbin(FS_ArchiveID archiveId, FS_Path archivePath, FS_
 		fclose(f);
 	}
 
-	romfsExit();
+	romfsUnmount(mount);
 
 	return ret;
 }
