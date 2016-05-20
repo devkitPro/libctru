@@ -161,7 +161,6 @@ void osSetSpeedupEnable(bool enable);
 
 /**
  * @brief Gets the NAND system-version stored in NVer/CVer.
- * The romfs device must not be already initialized(via romfsInit*()) at the time this function is called, since this code uses the romfs device.
  * @param nver_versionbin Output OS_VersionBin structure for the data read from NVer.
  * @param cver_versionbin Output OS_VersionBin structure for the data read from CVer.
  * @return The result-code. This value can be positive if opening "romfs:/version.bin" fails with stdio, since errno would be returned in that case. In some cases the error can be special negative values as well.
