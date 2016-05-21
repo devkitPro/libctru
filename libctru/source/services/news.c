@@ -90,7 +90,7 @@ Result NEWS_SetNotificationHeader(u32 news_id, const NotificationHeader* header)
 	cmdbuf[4] = (u32)header;
 	
 	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
-	return (Result)cmdbuf[1];	
+	return (Result)cmdbuf[1];
 }
 
 Result NEWS_GetNotificationHeader(u32 news_id, NotificationHeader* header)
@@ -108,7 +108,22 @@ Result NEWS_GetNotificationHeader(u32 news_id, NotificationHeader* header)
 	return (Result)cmdbuf[1];
 }
 
-Result NEWS_GetNotificationMessage(u32 news_id, u16* message)
+Result NEWS_SetNotificationMessage(u32 news_id, const u16* message, u32 size)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x8,2,2);
+	cmdbuf[1] = news_id;
+	cmdbuf[2] = size;
+	cmdbuf[3] = IPC_Desc_Buffer((size_t)0x1780,IPC_BUFFER_R);
+	cmdbuf[4] = (u32)message;
+	
+	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
+	return (Result)cmdbuf[1];
+}
+
+Result NEWS_GetNotificationMessage(u32 news_id, u16* message, u32* size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -118,6 +133,22 @@ Result NEWS_GetNotificationMessage(u32 news_id, u16* message)
 	cmdbuf[2] = 0x1780; // Default size used by Notifications Applet
 	cmdbuf[3] = IPC_Desc_Buffer((size_t)0x1780,IPC_BUFFER_W);
 	cmdbuf[4] = (u32)message;
+	
+	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
+    if(size) *size = cmdbuf[2];
+	return (Result)cmdbuf[1];
+}
+
+Result NEWS_SetNotificationImage(u32 news_id, const void* buffer, u32 size)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x9,2,2);
+	cmdbuf[1] = news_id;
+	cmdbuf[2] = size;
+	cmdbuf[3] = IPC_Desc_Buffer((size_t)0x10000,IPC_BUFFER_R);
+	cmdbuf[4] = (u32)buffer;
 	
 	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
 	return (Result)cmdbuf[1];
@@ -135,6 +166,6 @@ Result NEWS_GetNotificationImage(u32 news_id, void* buffer, u32* size)
 	cmdbuf[4] = (u32)buffer;
 	
 	if(R_FAILED(ret = svcSendSyncRequest(newsHandle))) return ret;
-	*size = cmdbuf[2];
-	return (Result)cmdbuf[1];	
+	if(size) *size = cmdbuf[2];
+	return (Result)cmdbuf[1];
 }
