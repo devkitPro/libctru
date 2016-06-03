@@ -49,6 +49,7 @@ extern "C" {
 #include <3ds/services/ps.h>
 #include <3ds/services/ptmu.h>
 #include <3ds/services/ptmsysm.h>
+#include <3ds/services/pxidev.h>
 #include <3ds/services/soc.h>
 #include <3ds/services/mic.h>
 #include <3ds/services/mvd.h>
