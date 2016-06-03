@@ -20,6 +20,18 @@ Result amInit(void)
 	ret = srvGetServiceHandle(&amHandle, "am:net");
 	if (R_FAILED(ret)) ret = srvGetServiceHandle(&amHandle, "am:u");
 	if (R_FAILED(ret)) ret = srvGetServiceHandle(&amHandle, "am:sys");
+	if (R_FAILED(ret)) AtomicDecrement(&amRefCount);
+
+	return ret;
+}
+
+Result amAppInit(void)
+{
+	Result ret;
+
+	if (AtomicPostIncrement(&amRefCount)) return 0;
+
+	ret = srvGetServiceHandle(&amHandle, "am:sys");
 	if (R_FAILED(ret)) ret = srvGetServiceHandle(&amHandle, "am:app");
 	if (R_FAILED(ret)) AtomicDecrement(&amRefCount);
 
