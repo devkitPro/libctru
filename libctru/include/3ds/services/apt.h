@@ -139,7 +139,7 @@ void aptSignalReadyForSleep(void);
  * @brief Gets whether to allow the system to enter sleep mode.
  * @return Whether sleep mode is allowed.
  */
-bool aptIsSleepAllowed();
+bool aptIsSleepAllowed(void);
 
 /**
  * @brief Sets whether to allow the system to enter sleep mode.

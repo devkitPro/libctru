@@ -719,7 +719,7 @@ void aptSignalReadyForSleep(void)
 	svcSignalEvent(aptSleepSync);
 }
 
-bool aptIsSleepAllowed()
+bool aptIsSleepAllowed(void)
 {
 	return aptSleepAllowed;
 }
