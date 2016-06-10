@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/svc.h>
@@ -34,10 +35,7 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, PS_AESAlgorithm aes_algo,
 
 	cmdbuf[0] = IPC_MakeHeader(0x4,7,4); // 0x401C4
 	cmdbuf[1] = size;
-	cmdbuf[2] = _iv[0];
-	cmdbuf[3] = _iv[1];
-	cmdbuf[4] = _iv[2];
-	cmdbuf[5] = _iv[3];
+	memcpy(&cmdbuf[2], _iv, 16);
 	cmdbuf[6] = aes_algo;
 	cmdbuf[7] = key_type;
 	cmdbuf[8] = IPC_Desc_PXIBuffer(size,0,false);
@@ -47,10 +45,7 @@ Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, PS_AESAlgorithm aes_algo,
 
 	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
 
-	_iv[0] = cmdbuf[2] & 0xFF;
-	_iv[1] = cmdbuf[3] & 0xFF;
-	_iv[2] = cmdbuf[4] & 0xFF;
-	_iv[3] = cmdbuf[5] & 0xFF;
+	memcpy(_iv, &cmdbuf[2], 16);
 
 	return (Result)cmdbuf[1];
 }
@@ -68,9 +63,7 @@ Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_s
 	cmdbuf[3] = mac_data_len;
 	cmdbuf[4] = data_len;
 	cmdbuf[5] = mac_len;
-	cmdbuf[6] = _nonce[0];
-	cmdbuf[7] = _nonce[1];
-	cmdbuf[8] = _nonce[2];
+	memcpy(&cmdbuf[6], _nonce, 12);
 	cmdbuf[9] = aes_algo;
 	cmdbuf[10] = key_type;
 	cmdbuf[8] = IPC_Desc_PXIBuffer(in_size,0,false);

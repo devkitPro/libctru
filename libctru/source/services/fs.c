@@ -1137,8 +1137,8 @@ Result FSUSER_ExportIntegrityVerificationSeed(FS_IntegrityVerificationSeed* seed
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x84A,0,2); // 0x84A0002
-	cmdbuf[2] = IPC_Desc_Buffer(sizeof(FS_IntegrityVerificationSeed), IPC_BUFFER_W);
-	cmdbuf[3] = (u32) seed;
+	cmdbuf[1] = IPC_Desc_Buffer(sizeof(FS_IntegrityVerificationSeed), IPC_BUFFER_W);
+	cmdbuf[2] = (u32) seed;
 
 	Result ret = 0;
 	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
@@ -1151,8 +1151,8 @@ Result FSUSER_ImportIntegrityVerificationSeed(FS_IntegrityVerificationSeed* seed
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x84B,0,2); // 0x84B0002
-	cmdbuf[2] = IPC_Desc_Buffer(sizeof(FS_IntegrityVerificationSeed), IPC_BUFFER_R);
-	cmdbuf[3] = (u32) seed;
+	cmdbuf[1] = IPC_Desc_Buffer(sizeof(FS_IntegrityVerificationSeed), IPC_BUFFER_R);
+	cmdbuf[2] = (u32) seed;
 
 	Result ret = 0;
 	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
