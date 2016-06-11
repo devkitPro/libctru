@@ -31,7 +31,7 @@ static int hidRefCount;
 
 Result hidInit(void)
 {
-	u8 val=0;
+	bool val=false;
 	Result ret=0;
 
 	if (AtomicPostIncrement(&hidRefCount)) return 0;
@@ -84,7 +84,7 @@ void hidExit(void)
 	if (AtomicDecrement(&hidRefCount)) return;
 
 	// Unmap HID sharedmem and close handles.
-	u8 val=0;
+	bool val=false;
 	int i; for(i=0; i<5; i++)svcCloseHandle(hidEvents[i]);
 	svcUnmapMemoryBlock(hidMemHandle, (u32)hidSharedMem);
 	svcCloseHandle(hidMemHandle);

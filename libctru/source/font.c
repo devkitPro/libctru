@@ -16,9 +16,7 @@ Result fontEnsureMapped(void)
 	Result res = 0;
 	Handle hSharedFont = 0;
 
-	aptOpenSession();
 	res = APT_GetSharedFont(&hSharedFont, &sharedFontAddr);
-	aptCloseSession();
 	if (R_FAILED(res)) return res;
 
 	// Map the shared font if it's not already mapped.

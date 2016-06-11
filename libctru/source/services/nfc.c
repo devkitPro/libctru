@@ -60,12 +60,12 @@ Handle nfcGetSessionHandle(void)
 Result nfcStartScanning(u16 inval)
 {
 	Result ret, ret2;
-	u8 new3ds_flag = 0;
+	bool new3ds_flag = false;
 	u8 status;
 
 	APT_CheckNew3DS(&new3ds_flag);
 
-	if(new3ds_flag==0)
+	if(!new3ds_flag)
 	{
 		ret = NFC_StartCommunication();
 		if(R_FAILED(ret))return ret;
@@ -102,13 +102,13 @@ Result nfcStartScanning(u16 inval)
 
 void nfcStopScanning(void)
 {
-	u8 new3ds_flag = 0;
+	bool new3ds_flag = false;
 
 	APT_CheckNew3DS(&new3ds_flag);
 
 	NFC_StopTagScanning();
 
-	if(new3ds_flag==0)
+	if(!new3ds_flag)
 	{
 		NFC_StopCommunication();
 	}
