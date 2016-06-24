@@ -352,6 +352,14 @@ SVC_BEGIN svcReplyAndReceive
 	add sp, sp, #4
 	bx  lr
 
+SVC_BEGIN svcBindInterrupt
+	svc 0x50
+	bx lr
+
+SVC_BEGIN svcUnbindInterrupt
+	svc 0x51
+	bx lr
+
 SVC_BEGIN svcInvalidateProcessDataCache
 	svc 0x52
 	bx  lr
