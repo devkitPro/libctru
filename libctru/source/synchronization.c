@@ -127,3 +127,92 @@ void RecursiveLock_Unlock(RecursiveLock* lock)
 		LightLock_Unlock(&lock->lock);
 	}
 }
+
+static inline void LightEvent_SetState(LightEvent* event, int state)
+{
+	do
+		__ldrex(&event->state);
+	while (__strex(&event->state, state));
+}
+
+static inline int LightEvent_TryReset(LightEvent* event)
+{
+	do
+	{
+		if (__ldrex(&event->state))
+		{
+			__clrex();
+			return 0;
+		}
+	} while (__strex(&event->state, -1));
+	return 1;
+}
+
+void LightEvent_Init(LightEvent* event, ResetType reset_type)
+{
+	LightLock_Init(&event->lock);
+	LightEvent_SetState(event, reset_type == RESET_STICKY ? -2 : -1);
+}
+
+void LightEvent_Clear(LightEvent* event)
+{
+	if (event->state == 1)
+	{
+		LightLock_Lock(&event->lock);
+		LightEvent_SetState(event, -2);
+		LightLock_Unlock(&event->lock);
+	} else if (event->state == 0)
+		LightEvent_SetState(event, -1);
+}
+
+void LightEvent_Pulse(LightEvent* event)
+{
+	if (event->state == -2)
+		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, -1, 0);
+	else if (event->state == -1)
+		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, 1, 0);
+	else
+		LightEvent_Clear(event);
+}
+
+void LightEvent_Signal(LightEvent* event)
+{
+	if (event->state == -1)
+	{
+		LightEvent_SetState(event, 0);
+		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, 1, 0);
+	} else if (event->state == -2)
+	{
+		LightLock_Lock(&event->lock);
+		LightEvent_SetState(event, 1);
+		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, -1, 0);
+		LightLock_Unlock(&event->lock);
+	}
+}
+
+int LightEvent_TryWait(LightEvent* event)
+{
+	if (event->state == 1)
+		return 1;
+	return LightEvent_TryReset(event);
+}
+
+void LightEvent_Wait(LightEvent* event)
+{
+	for (;;)
+	{
+		if (event->state == -2)
+		{
+			svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+			return;
+		}
+		if (event->state != -1)
+		{
+			if (event->state == 1)
+				return;
+			if (event->state == 0 && LightEvent_TryReset(event))
+				return;
+		}
+		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+	}
+}

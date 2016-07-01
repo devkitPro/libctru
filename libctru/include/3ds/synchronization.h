@@ -11,6 +11,13 @@ typedef _LOCK_T LightLock;
 /// A recursive lock.
 typedef _LOCK_RECURSIVE_T RecursiveLock;
 
+/// A light event.
+typedef struct
+{
+	s32 state;      ///< State of the event: -2=cleared sticky, -1=cleared oneshot, 0=signaled oneshot, 1=signaled sticky
+	LightLock lock; ///< Lock used for sticky timer operation
+} LightEvent;
+
 /// Performs a Data Synchronization Barrier operation.
 static inline void __dsb(void)
 {
@@ -114,3 +121,41 @@ int RecursiveLock_TryLock(RecursiveLock* lock);
  * @param lock Pointer to the lock.
  */
 void RecursiveLock_Unlock(RecursiveLock* lock);
+
+/**
+ * @brief Initializes a light event.
+ * @param event Pointer to the event.
+ * @param reset_type Type of reset the event uses (RESET_ONESHOT/RESET_STICKY).
+ */
+void LightEvent_Init(LightEvent* event, ResetType reset_type);
+
+/**
+ * @brief Clears a light event.
+ * @param event Pointer to the event.
+ */
+void LightEvent_Clear(LightEvent* event);
+
+/**
+ * @brief Wakes up threads waiting on a sticky light event without signaling it. If the event had been signaled before, it is cleared instead.
+ * @param event Pointer to the event.
+ */
+void LightEvent_Pulse(LightEvent* event);
+
+/**
+ * @brief Signals a light event, waking up threads waiting on it.
+ * @param event Pointer to the event.
+ */
+void LightEvent_Signal(LightEvent* event);
+
+/**
+ * @brief Attempts to wait on a light event.
+ * @param event Pointer to the event.
+ * @return Non-zero if the event was signaled, zero otherwise.
+ */
+int LightEvent_TryWait(LightEvent* event);
+
+/**
+ * @brief Waits on a light event.
+ * @param event Pointer to the event.
+ */
+void LightEvent_Wait(LightEvent* event);
