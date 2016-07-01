@@ -10,6 +10,7 @@
  * Retrieved from http://3dbrew.org/wiki/NS_and_APT_Services#AppIDs
  */
 typedef enum {
+	APPID_NONE = 0,
 	APPID_HOMEMENU = 0x101,           ///< Home Menu
 	APPID_CAMERA = 0x110,             ///< Camera applet
 	APPID_FRIENDS_LIST = 0x112,       ///< Friends List applet
@@ -31,19 +32,6 @@ typedef enum {
 	APPID_EXTRAPAD = 0x408,           ///< extrapad
 	APPID_MEMOLIB = 0x409,            ///< memolib
 } NS_APPID;
-
-/// App status values.
-typedef enum {
-	APP_NOTINITIALIZED,    ///< App not initialized.
-	APP_RUNNING,           ///< App running.
-	APP_SUSPENDED,         ///< App suspended.
-	APP_EXITING,           ///< App exiting.
-	APP_SUSPENDING,        ///< App suspending.
-	APP_SLEEPMODE,         ///< App in sleep mode.
-	APP_PREPARE_SLEEPMODE, ///< App preparing to enter sleep mode.
-	APP_APPLETSTARTED,     ///< Applet started.
-	APP_APPLETCLOSED       ///< Applet closed.
-} APT_AppStatus;
 
 /// APT applet position.
 typedef enum {
@@ -143,8 +131,8 @@ typedef struct tag_aptHookCookie
 	void* param;                    ///< Callback parameter.
 } aptHookCookie;
 
-/// APT events.
-extern Handle aptEvents[3];
+/// APT message callback.
+typedef void (*aptMessageCb)(void* user, NS_APPID sender, void* msg, size_t msgsize);
 
 /// Initializes APT.
 Result aptInit(void);
@@ -159,44 +147,6 @@ void aptExit(void);
 Result aptSendCommand(u32* aptcmdbuf);
 
 /**
- * @brief Sets the app's status.
- * @param status Status to set.
- */
-void aptSetStatus(APT_AppStatus status);
-
-/**
- * @brief Gets the app's status.
- * @return The app's status.
- */
-APT_AppStatus aptGetStatus(void);
-
-/**
- * @brief Gets the app's power status.
- * When the status is APT_SUSPEND, this can be used to check what triggered a return-to-menu.
- * @return The app's power status. (0 = normal, 1 = power button pressed)
- */
-u32 aptGetStatusPower(void);
-
-/**
- * @brief Sets the app's power status.
- * @param status Power status to set.
- */
-void aptSetStatusPower(u32 status);
-
-/**
- * @brief Triggers a return to the home menu.
- *
- * This should be called by the user application when aptGetStatus() returns APP_SUSPENDING, not calling this will result in return-to-menu being disabled with the status left at APP_SUSPENDING. This function will not return until the system returns to the application, or when the status was changed to APP_EXITING.
- */
-void aptReturnToMenu(void);
-
-/// Waits for an APT status event.
-void aptWaitStatusEvent(void);
-
-/// Signals that the app is ready to sleep.
-void aptSignalReadyForSleep(void);
-
-/**
  * @brief Gets whether to allow the system to enter sleep mode.
  * @return Whether sleep mode is allowed.
  */
@@ -209,14 +159,8 @@ bool aptIsSleepAllowed(void);
 void aptSetSleepAllowed(bool allowed);
 
 /**
- * @brief Gets the menu's app ID.
- * @return The menu's app ID.
- */
-NS_APPID aptGetMenuAppID(void);
-
-/**
  * @brief Processes the current APT status. Generally used within a main loop.
- * @return Whether the application is closing.
+ * @return Whether the application should continue running.
  */
 bool aptMainLoop(void);
 
@@ -233,6 +177,23 @@ void aptHook(aptHookCookie* cookie, aptHookFn callback, void* param);
  * @param cookie Hook cookie to remove.
  */
 void aptUnhook(aptHookCookie* cookie);
+
+/**
+ * @brief Sets the function to be called when an APT message from another applet is received.
+ * @param callback Callback function.
+ * @param user User-defined data to be passed to the callback.
+ */
+void aptSetMessageCallback(aptMessageCb callback, void* user);
+
+/**
+ * @brief Launches a library applet.
+ * @param appId ID of the applet to launch.
+ * @param buf Input/output buffer that contains launch parameters on entry and result data on exit.
+ * @param bufsize Size of the buffer.
+ * @param handle Handle to pass to the library applet.
+ * @return Whether the application should continue running after the library applet launch.
+ */
+bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
 
 /**
  * @brief Gets an APT lock handle.
@@ -274,6 +235,17 @@ Result APT_Enable(APT_AppletAttr attr);
  * @param active_appid Pointer to output the AppID of the currently active applet to.
  */
 Result APT_GetAppletManInfo(APT_AppletPos inpos, APT_AppletPos* outpos, NS_APPID* req_appid, NS_APPID* menu_appid, NS_APPID* active_appid);
+
+/**
+ * @brief Gets the menu's app ID.
+ * @return The menu's app ID.
+ */
+static inline NS_APPID aptGetMenuAppID(void)
+{
+	NS_APPID menu_appid = APPID_NONE;
+	APT_GetAppletManInfo(APTPOS_NONE, NULL, NULL, &menu_appid, NULL);
+	return menu_appid;
+}
 
 /**
  * @brief Gets an applet's information.
@@ -381,36 +353,46 @@ Result APT_UnlockTransition(u32 transition);
 
 /**
  * @brief Glances at a receieved parameter without removing it from the queue.
- * @param appID ID of the application.
+ * @param appID AppID of the application.
  * @param buffer Buffer to receive to.
  * @param bufferSize Size of the buffer.
+ * @param sender Pointer to output the sender's AppID to.
  * @param command Pointer to output the command ID to.
  * @param actualSize Pointer to output the actual received data size to.
  * @param parameter Pointer to output the parameter handle to.
  */
-Result APT_GlanceParameter(NS_APPID appID, void* buffer, size_t bufferSize, APT_Command* command, size_t* actualSize, Handle* parameter);
+Result APT_GlanceParameter(NS_APPID appID, void* buffer, size_t bufferSize, NS_APPID* sender, APT_Command* command, size_t* actualSize, Handle* parameter);
 
 /**
  * @brief Receives a parameter.
- * @param appID ID of the application.
+ * @param appID AppID of the application.
  * @param buffer Buffer to receive to.
  * @param bufferSize Size of the buffer.
+ * @param sender Pointer to output the sender's AppID to.
  * @param command Pointer to output the command ID to.
  * @param actualSize Pointer to output the actual received data size to.
  * @param parameter Pointer to output the parameter handle to.
  */
-Result APT_ReceiveParameter(NS_APPID appID, void* buffer, size_t bufferSize, APT_Command* command, size_t* actualSize, Handle* parameter);
+Result APT_ReceiveParameter(NS_APPID appID, void* buffer, size_t bufferSize, NS_APPID* sender, APT_Command* command, size_t* actualSize, Handle* parameter);
 
 /**
  * @brief Sends a parameter.
- * @param source ID of the source application.
- * @param dest ID of the destination application.
+ * @param source AppID of the source application.
+ * @param dest AppID of the destination application.
  * @param command Command to send.
  * @param buffer Buffer to send.
  * @param bufferSize Size of the buffer.
  * @param parameter Parameter handle to pass.
  */
 Result APT_SendParameter(NS_APPID source, NS_APPID dest, APT_Command command, const void* buffer, u32 bufferSize, Handle parameter);
+
+/**
+ * @brief Cancels a parameter which matches the specified source and dest AppIDs.
+ * @param source AppID of the source application (use APPID_NONE to disable the check).
+ * @param dest AppID of the destination application (use APPID_NONE to disable the check).
+ * @param success Pointer to output true if a parameter was cancelled, or false otherwise.
+ */
+Result APT_CancelParameter(NS_APPID source, NS_APPID dest, bool* success);
 
 /**
  * @brief Sends capture buffer information.
@@ -493,16 +475,6 @@ Result APT_PrepareToStartLibraryApplet(NS_APPID appID);
  * @param handle Handle to pass to the applet.
  */
 Result APT_StartLibraryApplet(NS_APPID appID, const void* param, size_t paramSize, Handle handle);
-
-/**
- * @brief Launches a library applet.
- * Note: This is not usable from the homebrew launcher. This is broken: when the applet does get launched at all, the applet process doesn't actually get terminated when the applet gets closed.
- * @param appID ID of the applet to launch.
- * @param inhandle Handle to pass to the applet.
- * @param parambuf Buffer containing applet parameters.
- * @param parambufsize Size of parambuf.
- */
-Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
 
 /**
  * @brief Prepares to start a system applet.
