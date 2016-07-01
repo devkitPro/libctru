@@ -57,7 +57,7 @@ Result gspInitEventHandler(Handle _gspEvent, vu8* _gspSharedMem, u8 gspThreadId)
 	int i;
 	for (i = 0; i < GSPGPU_EVENT_MAX; i ++)
 	{
-		Result rc = svcCreateEvent(&gspEvents[i], 0);
+		Result rc = svcCreateEvent(&gspEvents[i], RESET_STICKY);
 		if (rc != 0)
 		{
 			// Destroy already created events due to failure

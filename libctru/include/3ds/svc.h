@@ -90,6 +90,13 @@ typedef enum {
 ///@name Multithreading
 ///@{
 
+/// Reset types (for use with events and timers)
+typedef enum {
+	RESET_ONESHOT = 0, ///< When the primitive is signaled, it will wake up exactly one thread and will clear itself automatically.
+	RESET_STICKY  = 1, ///< When the primitive is signaled, it will wake up all threads and it won't clear itself automatically.
+	RESET_PULSE   = 2, ///< Only meaningful for timers: same as ONESHOT but it will periodically signal the timer instead of just once.
+} ResetType;
+
 /// Types of thread info.
 typedef enum {
 	THREADINFO_TYPE_UNKNOWN ///< Unknown.
@@ -741,9 +748,9 @@ Result svcReleaseSemaphore(s32* count, Handle semaphore, s32 release_count);
 /**
  * @brief Creates an event handle.
  * @param[out] event Pointer to output the created event handle to.
- * @param reset_type Type of reset the event uses.
+ * @param reset_type Type of reset the event uses (RESET_ONESHOT/RESET_STICKY).
  */
-Result svcCreateEvent(Handle* event, u8 reset_type);
+Result svcCreateEvent(Handle* event, ResetType reset_type);
 
 /**
  * @brief Signals an event.
@@ -846,7 +853,7 @@ Result svcUnbindInterrupt(u32 interruptId, Handle event);
  * @param[out] timer Pointer to output the handle of the created timer to.
  * @param reset_type Type of reset to perform on the timer.
  */
-Result svcCreateTimer(Handle* timer, u8 reset_type);
+Result svcCreateTimer(Handle* timer, ResetType reset_type);
 
 /**
  * @brief Sets a timer.

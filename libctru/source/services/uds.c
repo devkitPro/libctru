@@ -481,7 +481,7 @@ Result udsScanBeacons(void *buf, size_t maxsize, udsNetworkScanInfo **networks, 
 
 	if(maxsize < sizeof(nwmBeaconDataReplyHeader))return -2;
 
-	ret = svcCreateEvent(&event, 0);
+	ret = svcCreateEvent(&event, RESET_ONESHOT);
 	if(R_FAILED(ret))return ret;
 
 	if(!connected)ret = udsipc_RecvBeaconBroadcastData(outbuf, maxsize, &scaninput, wlancommID, id8, event);

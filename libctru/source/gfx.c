@@ -129,7 +129,7 @@ void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bott
 	GSPGPU_AcquireRight(0x0);
 
 	//setup our gsp shared mem section
-	svcCreateEvent(&gspEvent, 0x0);
+	svcCreateEvent(&gspEvent, RESET_ONESHOT);
 	GSPGPU_RegisterInterruptRelayQueue(gspEvent, 0x1, &gspSharedMemHandle, &gfxThreadID);
 	svcMapMemoryBlock(gspSharedMemHandle, (u32)gfxSharedMemory, 0x3, 0x10000000);
 

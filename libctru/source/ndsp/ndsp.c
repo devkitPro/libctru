@@ -211,7 +211,7 @@ static Result ndspInitialize(bool resume)
 	rc = ndspLoadComponent();
 	if (R_FAILED(rc)) return rc;
 
-	rc = svcCreateEvent(&irqEvent, 1);
+	rc = svcCreateEvent(&irqEvent, RESET_STICKY);
 	if (R_FAILED(rc)) goto _fail1;
 
 	rc = DSP_RegisterInterruptEvents(irqEvent, 2, 2);
@@ -479,7 +479,7 @@ Result ndspInit(void)
 	rc = ndspInitialize(false);
 	if (R_FAILED(rc)) goto _fail1;
 
-	rc = svcCreateEvent(&sleepEvent, 0);
+	rc = svcCreateEvent(&sleepEvent, RESET_STICKY);
 	if (R_FAILED(rc)) goto _fail2;
 
 	ndspThread = threadCreate(ndspThreadMain, 0x0, NDSP_THREAD_STACK_SIZE, 0x18, -2, true);
