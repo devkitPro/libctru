@@ -28,6 +28,7 @@ extern "C" {
 
 #include <3ds/services/ac.h>
 #include <3ds/services/am.h>
+#include <3ds/services/ampxi.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/cam.h>
 #include <3ds/services/cfgnor.h>
@@ -60,8 +61,6 @@ extern "C" {
 #include <3ds/services/y2r.h>
 #include <3ds/services/hb.h>
 
-#include <3ds/services/ampxi.h>
-
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
 #include <3ds/gpu/gpu-old.h>
@@ -70,6 +69,8 @@ extern "C" {
 
 #include <3ds/ndsp/ndsp.h>
 #include <3ds/ndsp/channel.h>
+
+#include <3ds/applets/swkbd.h>
 
 #include <3ds/sdmc.h>
 #include <3ds/romfs.h>
