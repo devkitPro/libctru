@@ -14,18 +14,21 @@
 Handle gspGpuHandle;
 static int gspRefCount;
 
-Handle gspEvents[GSPGPU_EVENT_MAX];
-vu32 gspEventCounts[GSPGPU_EVENT_MAX];
-ThreadFunc gspEventCb[GSPGPU_EVENT_MAX];
-void* gspEventCbData[GSPGPU_EVENT_MAX];
-bool gspEventCbOneShot[GSPGPU_EVENT_MAX];
-volatile bool gspRunEvents;
-Thread gspEventThread;
+static s32 gspLastEvent = -1;
+static LightEvent gspEvents[GSPGPU_EVENT_MAX];
+static vu32 gspEventCounts[GSPGPU_EVENT_MAX];
+static ThreadFunc gspEventCb[GSPGPU_EVENT_MAX];
+static void* gspEventCbData[GSPGPU_EVENT_MAX];
+static bool gspEventCbOneShot[GSPGPU_EVENT_MAX];
+static volatile bool gspRunEvents;
+static Thread gspEventThread;
 
 static Handle gspEvent;
 static vu8* gspEventData;
 
 static void gspEventThreadMain(void *arg);
+
+Handle __sync_get_arbiter(void);
 
 Result gspInit(void)
 {
@@ -53,20 +56,10 @@ void gspSetEventCallback(GSPGPU_Event id, ThreadFunc cb, void* data, bool oneSho
 
 Result gspInitEventHandler(Handle _gspEvent, vu8* _gspSharedMem, u8 gspThreadId)
 {
-	// Create events
+	// Initialize events
 	int i;
 	for (i = 0; i < GSPGPU_EVENT_MAX; i ++)
-	{
-		Result rc = svcCreateEvent(&gspEvents[i], RESET_STICKY);
-		if (rc != 0)
-		{
-			// Destroy already created events due to failure
-			int j;
-			for (j = 0; j < i; j ++)
-				svcCloseHandle(gspEvents[j]);
-			return rc;
-		}
-	}
+		LightEvent_Init(&gspEvents[i], RESET_STICKY);
 
 	// Start event thread
 	gspEvent = _gspEvent;
@@ -82,11 +75,6 @@ void gspExitEventHandler(void)
 	gspRunEvents = false;
 	svcSignalEvent(gspEvent);
 	threadJoin(gspEventThread, U64_MAX);
-
-	// Free events
-	int i;
-	for (i = 0; i < GSPGPU_EVENT_MAX; i ++)
-		svcCloseHandle(gspEvents[i]);
 }
 
 void gspWaitForEvent(GSPGPU_Event id, bool nextEvent)
@@ -94,19 +82,30 @@ void gspWaitForEvent(GSPGPU_Event id, bool nextEvent)
 	if(id>= GSPGPU_EVENT_MAX)return;
 
 	if (nextEvent)
-		svcClearEvent(gspEvents[id]);
-	svcWaitSynchronization(gspEvents[id], U64_MAX);
+		LightEvent_Clear(&gspEvents[id]);
+	LightEvent_Wait(&gspEvents[id]);
 	if (!nextEvent)
-		svcClearEvent(gspEvents[id]);
+		LightEvent_Clear(&gspEvents[id]);
 }
 
 GSPGPU_Event gspWaitForAnyEvent(void)
 {
-	s32 which = 0;
-	Result rc = svcWaitSynchronizationN(&which, gspEvents, GSPGPU_EVENT_MAX, false, U64_MAX);
-	if (R_FAILED(rc)) return -1;
-	svcClearEvent(gspEvents[which]);
-	return which;
+	s32 x;
+	do
+	{
+		do
+		{
+			x = __ldrex(&gspLastEvent);
+			if (x < 0)
+			{
+				__clrex();
+				break;
+			}
+		} while (__strex(&gspLastEvent, -1));
+		if (x < 0)
+			svcArbitrateAddress(__sync_get_arbiter(), (u32)&gspLastEvent, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+	} while (x < 0);
+	return (GSPGPU_Event)x;
 }
 
 static int popInterrupt()
@@ -168,7 +167,11 @@ void gspEventThreadMain(void *arg)
 						gspEventCb[curEvt] = NULL;
 					func(gspEventCbData[curEvt]);
 				}
-				svcSignalEvent(gspEvents[curEvt]);
+				LightEvent_Signal(&gspEvents[curEvt]);
+				do
+					__ldrex(&gspLastEvent);
+				while (__strex(&gspLastEvent, curEvt));
+				svcArbitrateAddress(__sync_get_arbiter(), (u32)&gspLastEvent, ARBITRATION_SIGNAL, 1, 0);
 				gspEventCounts[curEvt]++;
 			}
 		}
