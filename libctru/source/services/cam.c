@@ -457,7 +457,7 @@ Result CAMU_SetLensCorrection(u32 select, CAMU_LensCorrection lensCorrection) {
 Result CAMU_SetOutputFormat(u32 select, CAMU_OutputFormat format, CAMU_Context context) {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
-	cmdbuf[0] = IPC_MakeHeader(0x25,2,0); // 0x2500C0
+	cmdbuf[0] = IPC_MakeHeader(0x25,3,0); // 0x2500C0
 	cmdbuf[1] = select;
 	cmdbuf[2] = format;
 	cmdbuf[3] = context;
