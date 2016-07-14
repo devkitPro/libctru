@@ -14,6 +14,7 @@ extern "C" {
 #include <3ds/ipc.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/errf.h>
 #include <3ds/os.h>
 #include <3ds/synchronization.h>
 #include <3ds/thread.h>
@@ -106,4 +107,4 @@ extern "C" {
  * @example threads/event/source/main.c
  * @example time/rtc/source/main.c
  */
- 
+
