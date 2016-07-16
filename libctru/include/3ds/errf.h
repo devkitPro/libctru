@@ -14,10 +14,12 @@ typedef struct {
 
 /// Types of errors that can be thrown by err:f.
 typedef enum {
-	ERRF_ERRTYPE_GENERIC    = 0, ///< For generic errors. Shows miscellaneous info.
-	ERRF_ERRTYPE_EXCEPTION  = 3, ///< For exceptions, or more specifically 'crashes'. union data should be exception_data.
-	ERRF_ERRTYPE_FAILURE    = 4, ///< For general failure. Shows a message. union data should have a string set in failure_mesg
-	ERRF_ERRTYPE_LOGGED     = 5  ///< Outputs logs to NAND in some cases.
+	ERRF_ERRTYPE_GENERIC      = 0, ///< For generic errors. Shows miscellaneous info.
+	ERRF_ERRTYPE_MEM_CORRUPT  = 1, ///< Same output as generic, but informs the user that "the System Memory has been damaged".
+	ERRF_ERRTYPE_CARD_REMOVED = 2, ///< Displays the "The Game Card was removed." message.
+	ERRF_ERRTYPE_EXCEPTION    = 3, ///< For exceptions, or more specifically 'crashes'. union data should be exception_data.
+	ERRF_ERRTYPE_FAILURE      = 4, ///< For general failure. Shows a message. union data should have a string set in failure_mesg
+	ERRF_ERRTYPE_LOGGED       = 5  ///< Outputs logs to NAND in some cases.
 } ERRF_ErrType;
 
 /// Types of 'Exceptions' thrown for ERRF_ERRTYPE_EXCEPTION
@@ -59,10 +61,10 @@ typedef struct {
 	} data;                                ///< The different types of data for errors.
 } ERRF_FatalErrInfo;
 
-/// Initializes ERR:f.
+/// Initializes ERR:f. Unless you plan to call ERRF_Throw yourself, do not use this.
 Result errfInit(void);
 
-/// Exits ERR:f.
+/// Exits ERR:f. Unless you plan to call ERRF_Throw yourself, do not use this.
 void errfExit(void);
 
 /**
@@ -72,9 +74,45 @@ void errfExit(void);
 Handle *errfGetSessionHandle(void);
 
 /**
- * @brief Throws a system error and possibly results in ErrDisp triggering. After performing this,
- * the system may panic and need to be rebooted. Extra information will be displayed on the
+ * @brief Throws a system error and possibly results in ErrDisp triggering.
+ * @param[in] error Error to throw.
+ *
+ * After performing this, the system may panic and need to be rebooted. Extra information will be displayed on the
  * top screen with a developer console or the proper patches in a CFW applied.
- * @param error Error to throw.
+ *
+ * The error may not be shown and execution aborted until errfExit(void) is called.
+ *
+ * You may wish to use ERRF_ThrowResult() or ERRF_ThrowResultWithMessage() instead of
+ * constructing the ERRF_FatalErrInfo struct yourself.
  */
-Result ERRF_Throw(ERRF_FatalErrInfo *error);
+Result ERRF_Throw(const ERRF_FatalErrInfo* error);
+
+/**
+ * @brief Throws a system error with the given Result code.
+ * @param[in] failure Result code to throw.
+ *
+ * This calls ERRF_Throw() with error type ERRF_ERRTYPE_GENERIC and fills in the required data.
+ *
+ * This function \em does fill in the address where this function was called from.
+ *
+ * See https://3dbrew.org/wiki/ERR:Throw#Generic for expected top screen output
+ * on development units/patched ErrDisp.
+ */
+Result ERRF_ThrowResult(Result failure);
+
+/**
+ * @brief Throws a system error with the given Result code and message.
+ * @param[in] failure Result code to throw.
+ * @param[in] message The message to display.
+ *
+ * This calls ERRF_Throw() with error type ERRF_ERRTYPE_FAILURE and fills in the required data.
+ *
+ * This function does \em not fill in the address where this function was called from because it
+ * would not be displayed.
+ *
+ * The message is only displayed on development units/patched ErrDisp.
+ *
+ * See https://3dbrew.org/wiki/ERR:Throw#Result_Failure for expected top screen output
+ * on development units/patched ErrDisp.
+ */
+Result ERRF_ThrowResultWithMessage(Result failure, const char* message);
