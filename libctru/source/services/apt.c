@@ -129,6 +129,20 @@ Result aptSendCommand(u32* aptcmdbuf)
 	return res;
 }
 
+static void aptClearParamQueue(void)
+{
+	// Check for parameters?
+	for (;;)
+	{
+		APT_Command cmd;
+		Result res = APT_GlanceParameter(envGetAptAppId(), aptParameters, sizeof(aptParameters), NULL, &cmd, NULL, NULL);
+		if (R_FAILED(res) || cmd==APTCMD_NONE) break;
+		_aptDebug(2, cmd);
+		svcClearEvent(aptEvents[2]);
+		APT_CancelParameter(APPID_NONE, envGetAptAppId(), NULL);
+	}
+}
+
 static void aptInitCaptureInfo(aptCaptureBufInfo* capinfo)
 {
 	GSPGPU_CaptureInfo gspcapinfo;
@@ -265,7 +279,10 @@ void aptExit(void)
 			closeAptLock = false;
 			srvInit(); // Keep srv initialized
 		} else
+		{
 			APT_Finalize(envGetAptAppId());
+			aptClearParamQueue();
+		}
 
 		svcSignalEvent(aptEvents[0]);
 		threadJoin(aptEventHandlerThread, U64_MAX);
@@ -398,20 +415,6 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 	}
 
 	return cmd;
-}
-
-static void aptClearParamQueue(void)
-{
-	// Check for parameters?
-	for (;;)
-	{
-		APT_Command cmd;
-		Result res = APT_GlanceParameter(envGetAptAppId(), aptParameters, sizeof(aptParameters), NULL, &cmd, NULL, NULL);
-		if (R_FAILED(res) || cmd==APTCMD_NONE) break;
-		_aptDebug(2, cmd);
-		svcClearEvent(aptEvents[2]);
-		APT_CancelParameter(APPID_NONE, envGetAptAppId(), NULL);
-	}
 }
 
 static void aptScreenTransfer(NS_APPID appId, bool sysApplet)
