@@ -41,7 +41,7 @@ void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset);
  * @param cmd Buffer containing commands to add.
  * @param size Size of the buffer.
  */
-void GPUCMD_AddRawCommands(u32* cmd, u32 size);
+void GPUCMD_AddRawCommands(const u32* cmd, u32 size);
 
 /// Executes the GPU command buffer.
 void GPUCMD_Run(void);
@@ -55,7 +55,7 @@ void GPUCMD_FlushAndRun(void);
  * @param param Parameters of the command.
  * @param paramlength Size of the parameter buffer.
  */
-void GPUCMD_Add(u32 header, u32* param, u32 paramlength);
+void GPUCMD_Add(u32 header, const u32* param, u32 paramlength);
 
 /// Finalizes the GPU command buffer.
 void GPUCMD_Finalize(void);

@@ -32,7 +32,7 @@ void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset)
 	if(offset)*offset=gpuCmdBufOffset;
 }
 
-void GPUCMD_AddRawCommands(u32* cmd, u32 size)
+void GPUCMD_AddRawCommands(const u32* cmd, u32 size)
 {
 	if(!cmd || !size)return;
 
@@ -55,7 +55,7 @@ void GPUCMD_FlushAndRun(void)
 	GX_ProcessCommandList(gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
 }
 
-void GPUCMD_Add(u32 header, u32* param, u32 paramlength)
+void GPUCMD_Add(u32 header, const u32* param, u32 paramlength)
 {
 	u32 zero=0x0;
 
