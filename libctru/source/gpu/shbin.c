@@ -38,8 +38,17 @@ DVLB_s* DVLB_ParseFile(u32* shbinData, u32 shbinSize)
 		dvle->dvlp=&ret->DVLP;
 
 		dvle->type=(dvleData[1]>>16)&0xFF;
+		dvle->mergeOutmaps=(dvleData[1]>>24)&1;
 		dvle->mainOffset=dvleData[2];
 		dvle->endmainOffset=dvleData[3];
+
+		if(dvle->type==GEOMETRY_SHDR)
+		{
+			dvle->gshMode=dvleData[5]&0xFF;
+			dvle->gshFixedVtxStart=(dvleData[5]>>8)&0xFF;
+			dvle->gshVariableVtxNum=(dvleData[5]>>16)&0xFF;
+			dvle->gshFixedVtxNum=(dvleData[5]>>24)&0xFF;
+		}
 
 		dvle->constTableSize=dvleData[7];
 		dvle->constTableData=(DVLE_constEntry_s*)&dvleData[dvleData[6]/4];
@@ -89,80 +98,53 @@ s8 DVLE_GetUniformRegister(DVLE_s* dvle, const char* name)
 
 void DVLE_GenerateOutmap(DVLE_s* dvle)
 {
-	if(!dvle)return;
+	if (!dvle) return;
 
+	// Initialize outmap data
 	memset(dvle->outmapData, 0x1F, sizeof(dvle->outmapData));
+	dvle->outmapData[0] = 0;
+	dvle->outmapMask    = 0;
+	dvle->outmapMode    = 0;
+	dvle->outmapClock   = 0;
 
-	int i;
-	u8 numAttr=0;
-	u8 maxAttr=0;
-	u8 attrMask=0;
-	u32 attrMode=0;
-	u32 attrClock=0;
-
-	for(i=0;i<dvle->outTableSize;i++)
+	int i, j, k;
+	for (i = 0; i < dvle->outTableSize; i ++)
 	{
-		u32* out=&dvle->outmapData[dvle->outTableData[i].regID+1];
-		u32 mask=0x00000000;
-		u8 tmpmask=dvle->outTableData[i].mask;
-		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
-		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
-		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
-		mask=(mask<<8)|((tmpmask&8)?0xFF:0x00);tmpmask<<=1;
+		int type = dvle->outTableData[i].type;
+		int mask = dvle->outTableData[i].mask;
+		int regID = dvle->outTableData[i].regID;
+		u32* out = &dvle->outmapData[regID+1];
 		
-		if(*out==0x1F1F1F1F)numAttr++;
-
-		u32 val=0x1F1F1F1F;
-		switch(dvle->outTableData[i].type)
+		if (!(dvle->outmapMask & BIT(regID)))
 		{
-			case RESULT_POSITION: val=0x03020100; break;
-			case RESULT_NORMALQUAT: val=0x07060504; break;
-			case RESULT_COLOR: val=0x0B0A0908; break;
-			case RESULT_TEXCOORD0: val=0x1F1F0D0C; break;
-			case RESULT_TEXCOORD0W: val=0x10101010; break;
-			case RESULT_TEXCOORD1: val=0x1F1F0F0E; break;
-			case RESULT_TEXCOORD2: val=0x1F1F1716; break;
-			case RESULT_VIEW: val=0x1F141312; break;
-		}
-		*out=((*out)&~mask)|(val&mask);
-
-		switch(dvle->outTableData[i].type)
-		{
-			case RESULT_POSITION:
-				if ((*out & 0xFF0000)==0x020000)
-					attrClock |= BIT(0);
-				break;
-			case RESULT_COLOR:
-				attrClock |= BIT(1);
-				break;
-			case RESULT_TEXCOORD0:
-				attrMode = 1;
-				attrClock |= BIT(8);
-				break;
-			case RESULT_TEXCOORD1:
-				attrMode = 1;
-				attrClock |= BIT(9);
-				break;
-			case RESULT_TEXCOORD2:
-				attrMode = 1;
-				attrClock |= BIT(10);
-				break;
-			case RESULT_TEXCOORD0W:
-				attrMode = 1;
-				attrClock |= BIT(16);
-				break;
-			case RESULT_NORMALQUAT:
-			case RESULT_VIEW:
-				attrClock |= BIT(24);
-				break;
+			dvle->outmapMask |= BIT(regID);
+			dvle->outmapData[0] ++;
 		}
 
-		attrMask|=1<<dvle->outTableData[i].regID;
-		if(dvle->outTableData[i].regID+1>maxAttr)maxAttr=dvle->outTableData[i].regID+1;
+		int sem = 0x1F, num = 0;
+		switch (type)
+		{
+			case RESULT_POSITION:   sem = 0x00; num = 4;                                                     break;
+			case RESULT_NORMALQUAT: sem = 0x04; num = 4; dvle->outmapClock |= BIT(24);                       break;
+			case RESULT_COLOR:      sem = 0x08; num = 4; dvle->outmapClock |= BIT(1);                        break;
+			case RESULT_TEXCOORD0:  sem = 0x0C; num = 2; dvle->outmapClock |= BIT(8);  dvle->outmapMode = 1; break;
+			case RESULT_TEXCOORD0W: sem = 0x10; num = 1; dvle->outmapClock |= BIT(16); dvle->outmapMode = 1; break;
+			case RESULT_TEXCOORD1:  sem = 0x0E; num = 2; dvle->outmapClock |= BIT(9);  dvle->outmapMode = 1; break;
+			case RESULT_TEXCOORD2:  sem = 0x16; num = 2; dvle->outmapClock |= BIT(10); dvle->outmapMode = 1; break;
+			case RESULT_VIEW:       sem = 0x12; num = 3; dvle->outmapClock |= BIT(24);                       break;
+			default: continue;
+		}
+
+		for (j = 0, k = 0; j < 4 && k < num; j ++)
+		{
+			if (mask & BIT(j))
+			{
+				*out &= ~(0xFF << (j*8));
+				*out |= (sem++) << (j*8);
+				k ++;
+				if (type==RESULT_POSITION && k==3)
+					dvle->outmapClock |= BIT(0);
+			}
+		}
 	}
-
-	dvle->outmapData[0]=numAttr;
-	dvle->outmapMask=attrMask;
-	dvle->outmapMode=attrMode;
-	dvle->outmapClock=attrClock;
 }

@@ -33,17 +33,7 @@ typedef struct
 	shaderInstance_s* geometryShader; ///< Geometry shader.
 	u32 geoShaderInputPermutation[2]; ///< Geometry shader input permutation.
 	u8 geoShaderInputStride;          ///< Geometry shader input stride.
-	u8 geoShaderMode;                 ///< Geometry shader operation mode.
 }shaderProgram_s;
-
-/// Geometry shader operation modes.
-typedef enum
-{
-	GSH_NORMAL                    = 0, ///< Normal operation.
-	GSH_PARTICLE                  = 1, ///< Particle system.
-	GSH_SUBDIVISION_LOOP          = 2, ///< Loop subdivision surface.
-	GSH_SUBDIVISION_CATMULL_CLARK = 3, ///< Catmull-Clark subdivision surface.
-} geoShaderMode;
 
 /**
  * @brief Initializes a shader instance.
@@ -104,7 +94,7 @@ Result shaderProgramSetVsh(shaderProgram_s* sp, DVLE_s* dvle);
  * @brief Sets the geometry shader of a shader program.
  * @param sp Shader program to use.
  * @param dvle Geometry shader to set.
- * @param stride Stride of the geometry shader.
+ * @param stride Input stride of the shader (pass 0 to match the number of outputs of the vertex shader).
  */
 Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride);
 
@@ -114,13 +104,6 @@ Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride);
  * @param permutation Attribute permutation to use.
  */
 Result shaderProgramSetGshInputPermutation(shaderProgram_s* sp, u64 permutation);
-
-/**
- * @brief Configures the operation mode of the geometry shader of a shader program.
- * @param sp Shader program to use.
- * @param mode Operation mode to use.
- */
-Result shaderProgramSetGshMode(shaderProgram_s* sp, geoShaderMode mode);
 
 /**
  * @brief Configures the shader units to use the specified shader program.
