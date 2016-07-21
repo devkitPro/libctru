@@ -66,10 +66,10 @@ Result PS_EncryptSignDecryptVerifyAesCcm(u8* in, u32 in_size, u8* out, u32 out_s
 	memcpy(&cmdbuf[6], _nonce, 12);
 	cmdbuf[9] = aes_algo;
 	cmdbuf[10] = key_type;
-	cmdbuf[8] = IPC_Desc_PXIBuffer(in_size,0,false);
-	cmdbuf[9] = (u32)in;
-	cmdbuf[10] = IPC_Desc_PXIBuffer(out_size,1,false);
-	cmdbuf[11] = (u32)out;
+	cmdbuf[11] = IPC_Desc_PXIBuffer(in_size,0,false);
+	cmdbuf[12] = (u32)in;
+	cmdbuf[13] = IPC_Desc_PXIBuffer(out_size,1,false);
+	cmdbuf[14] = (u32)out;
 
 	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
 
