@@ -103,3 +103,18 @@ Result PS_GetDeviceId(u32* device_id)
 
 	return (Result)cmdbuf[1];
 }
+
+Result PS_GenerateRandomBytes(void* out, size_t len)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xD,1,2); // 0xD0042
+	cmdbuf[1] = len;
+	cmdbuf[2] = IPC_Desc_Buffer(len, IPC_BUFFER_W);
+	cmdbuf[3] = (u32)out;
+
+	if(R_FAILED(ret = svcSendSyncRequest(psHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
