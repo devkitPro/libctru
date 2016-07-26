@@ -252,3 +252,10 @@ Result httpcCloseClientCertContext(u32 ClientCert_contexthandle);
  */
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize);
 
+/**
+ * @brief Sets Keep-Alive for the context.
+ * @param context Context to set flags on.
+ * @param options Keep-Alive option flags.
+ */
+Result httpcSetKeepAlive(httpcContext *context, u32 options);
+
