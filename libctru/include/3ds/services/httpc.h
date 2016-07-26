@@ -25,6 +25,12 @@ typedef enum {
 	HTTPC_STATUS_DOWNLOAD_READY = 0x7       ///< Download ready.
 } HTTPC_RequestStatus;
 
+/// HTTP KeepAlive option.
+typedef enum {
+	HTTPC_KEEPALIVE_DISABLED = 0x0,
+	HTTPC_KEEPALIVE_ENABLED = 0x1
+} HTTPC_KeepAlive;
+
 /// Result code returned when a download is pending.
 #define HTTPC_RESULTCODE_DOWNLOADPENDING 0xd840a02b
 
@@ -254,8 +260,8 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
 
 /**
  * @brief Sets Keep-Alive for the context.
- * @param context Context to set flags on.
- * @param options Keep-Alive option flags.
+ * @param context Context to set the KeepAlive flag on.
+ * @param option HTTPC_KeepAlive option.
  */
-Result httpcSetKeepAlive(httpcContext *context, u32 options);
+Result httpcSetKeepAlive(httpcContext *context, HTTPC_KeepAlive option);
 

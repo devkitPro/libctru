@@ -650,13 +650,13 @@ Result httpcCloseClientCertContext(u32 ClientCert_contexthandle)
 	return cmdbuf[1];
 }
 
-Result httpcSetKeepAlive(httpcContext *context, u32 options)
+Result httpcSetKeepAlive(httpcContext *context, HTTPC_KeepAlive option)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x37,2,0); // 0x370080
 	cmdbuf[1]=context->httphandle;
-	cmdbuf[2]=options;
+	cmdbuf[2]=option;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
