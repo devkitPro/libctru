@@ -973,7 +973,7 @@ static Result APT_CheckNew3DS_System(bool* out)
 	
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
-		*out = cmdbuf[2];
+		*out = cmdbuf[2]&0xFF;
 
 	return ret;
 }
