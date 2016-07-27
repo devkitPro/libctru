@@ -560,7 +560,7 @@ Result AM_QueryAvailableExternalTitleDatabase(bool* available)
 	if(R_FAILED(ret = (Result)cmdbuf[1])) return ret;
 
 	// Only accept this if the command was a success
-	if(available) *available = cmdbuf[2];
+	if(available) *available = cmdbuf[2] & 0xFF;
 
 	return ret;
 }

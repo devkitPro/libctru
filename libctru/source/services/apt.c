@@ -635,8 +635,8 @@ Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, bool* 
 	{
 		if (pProgramID)  *pProgramID =(u64)cmdbuf[2]|((u64)cmdbuf[3]<<32);
 		if (pMediaType)  *pMediaType =cmdbuf[4];
-		if (pRegistered) *pRegistered=cmdbuf[5];
-		if (pLoadState)  *pLoadState =cmdbuf[6];
+		if (pRegistered) *pRegistered=cmdbuf[5] & 0xFF;
+		if (pLoadState)  *pLoadState =cmdbuf[6] & 0xFF;
 		if (pAttributes) *pAttributes=cmdbuf[7];
 	}
 
@@ -678,7 +678,7 @@ Result APT_IsRegistered(NS_APPID appID, bool* out)
 	
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
-		*out=cmdbuf[2];
+		*out=cmdbuf[2] & 0xFF;
 
 	return ret;
 }
@@ -884,7 +884,7 @@ Result APT_CancelParameter(NS_APPID source, NS_APPID dest, bool* success)
 
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret) && success)
-		*success = cmdbuf[2]&0xFF;
+		*success = cmdbuf[2] & 0xFF;
 
 	return ret;
 }
@@ -973,7 +973,7 @@ static Result APT_CheckNew3DS_System(bool* out)
 	
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
-		*out = cmdbuf[2]&0xFF;
+		*out = cmdbuf[2] & 0xFF;
 
 	return ret;
 }
