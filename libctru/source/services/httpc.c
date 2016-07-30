@@ -129,6 +129,19 @@ Result httpcCloseContext(httpcContext *context)
 	return ret;
 }
 
+Result httpcCancelConnection(httpcContext *context)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x4,1,0); // 0x40040
+	cmdbuf[1]=context->httphandle;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize)
 {
 	Result ret=0;
@@ -337,6 +350,24 @@ Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size)
 	return cmdbuf[1];
 }
 
+Result httpcReceiveDataTimeout(httpcContext *context, u8* buffer, u32 size, u64 timeout)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0xC,4,2); // 0xC0102
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=size;
+	cmdbuf[3]=timeout & 0xffffffff;
+	cmdbuf[4]=(timeout >> 32) & 0xffffffff;
+	cmdbuf[5]=IPC_Desc_Buffer(size,IPC_BUFFER_W);
+	cmdbuf[6]=(u32)buffer;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result httpcGetRequestState(httpcContext *context, HTTPC_RequestStatus* out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -388,12 +419,30 @@ Result httpcGetResponseHeader(httpcContext *context, const char* name, char* val
 	return cmdbuf[1];
 }
 
-Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay)
+Result httpcGetResponseStatusCode(httpcContext *context, u32* out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x22,1,0); // 0x220040
 	cmdbuf[1]=context->httphandle;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	*out = cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+
+Result httpcGetResponseStatusCodeTimeout(httpcContext *context, u32* out, u64 timeout)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x23,3,0); // 0x2300C0
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=timeout & 0xffffffff;
+	cmdbuf[3]=(timeout >> 32) & 0xffffffff;
 	
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
