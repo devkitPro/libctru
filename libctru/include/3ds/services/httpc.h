@@ -34,8 +34,11 @@ typedef enum {
 /// Result code returned when a download is pending.
 #define HTTPC_RESULTCODE_DOWNLOADPENDING 0xd840a02b
 
-// Result code returned when asked about a non-existing header
+// Result code returned when asked about a non-existing header.
 #define HTTPC_RESULTCODE_NOTFOUND 0xd840a028
+
+// Result code returned when any timeout function times out.
+#define HTTPC_RESULTCODE_TIMEDOUT 0xd820a069
 
 /// Initializes HTTPC. For HTTP GET the sharedmem_size can be zero. The sharedmem contains data which will be later uploaded for HTTP POST. sharedmem_size should be aligned to 0x1000-bytes.
 Result httpcInit(u32 sharedmem_size);
@@ -56,6 +59,12 @@ Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, const
  * @param context Context to close.
  */
 Result httpcCloseContext(httpcContext *context);
+
+/**
+ * @brief Cancels a HTTP connection.
+ * @param context Context to close.
+ */
+Result httpcCancelConnection(httpcContext *context);
 
 /**
  * @brief Adds a request header field to a HTTP context.
@@ -96,6 +105,15 @@ Result httpcBeginRequest(httpcContext *context);
 Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size);
 
 /**
+ * @brief Receives data from a HTTP context with a timeout value.
+ * @param context Context to use.
+ * @param buffer Buffer to receive data to.
+ * @param size Size of the buffer.
+ * @param timeout Maximum time in nanoseconds to wait for a reply.
+ */
+Result httpcReceiveDataTimeout(httpcContext *context, u8* buffer, u32 size, u64 timeout);
+
+/**
  * @brief Gets the request state of a HTTP context.
  * @param context Context to use.
  * @param out Pointer to output the HTTP request state to.
@@ -114,9 +132,16 @@ Result httpcGetDownloadSizeState(httpcContext *context, u32* downloadedsize, u32
  * @brief Gets the response code of the HTTP context.
  * @param context Context to get the response code of.
  * @param out Pointer to write the response code to.
- * @param delay Delay to wait for the status code. Not used yet.
  */
-Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);
+Result httpcGetResponseStatusCode(httpcContext *context, u32* out);
+
+/**
+ * @brief Gets the response code of the HTTP context with a timeout value.
+ * @param context Context to get the response code of.
+ * @param out Pointer to write the response code to.
+ * @param timeout Maximum time in nanoseconds to wait for a reply.
+ */
+Result httpcGetResponseStatusCodeTimeout(httpcContext *context, u32* out, u64 timeout);
 
 /**
  * @brief Gets a response header field from a HTTP context.
