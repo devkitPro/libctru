@@ -25,11 +25,20 @@ typedef enum {
 	HTTPC_STATUS_DOWNLOAD_READY = 0x7       ///< Download ready.
 } HTTPC_RequestStatus;
 
+/// HTTP KeepAlive option.
+typedef enum {
+	HTTPC_KEEPALIVE_DISABLED = 0x0,
+	HTTPC_KEEPALIVE_ENABLED = 0x1
+} HTTPC_KeepAlive;
+
 /// Result code returned when a download is pending.
 #define HTTPC_RESULTCODE_DOWNLOADPENDING 0xd840a02b
 
-// Result code returned when asked about a non-existing header
+// Result code returned when asked about a non-existing header.
 #define HTTPC_RESULTCODE_NOTFOUND 0xd840a028
+
+// Result code returned when any timeout function times out.
+#define HTTPC_RESULTCODE_TIMEDOUT 0xd820a069
 
 /// Initializes HTTPC. For HTTP GET the sharedmem_size can be zero. The sharedmem contains data which will be later uploaded for HTTP POST. sharedmem_size should be aligned to 0x1000-bytes.
 Result httpcInit(u32 sharedmem_size);
@@ -43,7 +52,7 @@ void httpcExit(void);
  * @param url URL to connect to.
  * @param use_defaultproxy Whether the default proxy should be used (0 for default)
  */
-Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, char* url, u32 use_defaultproxy);
+Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, const char* url, u32 use_defaultproxy);
 
 /**
  * @brief Closes a HTTP context.
@@ -52,12 +61,18 @@ Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, char*
 Result httpcCloseContext(httpcContext *context);
 
 /**
+ * @brief Cancels a HTTP connection.
+ * @param context Context to close.
+ */
+Result httpcCancelConnection(httpcContext *context);
+
+/**
  * @brief Adds a request header field to a HTTP context.
  * @param context Context to use.
  * @param name Name of the field.
  * @param value Value of the field.
  */
-Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value);
+Result httpcAddRequestHeaderField(httpcContext *context, const char* name, const char* value);
 
 /**
  * @brief Adds a POST form field to a HTTP context.
@@ -65,7 +80,7 @@ Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value
  * @param name Name of the field.
  * @param value Value of the field.
  */
-Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value);
+Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char* value);
 
 /**
  * @brief Adds a POST body to a HTTP context.
@@ -73,7 +88,7 @@ Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value);
  * @param data The data to be passed as raw into the body of the post request.
  * @param len Length of data passed by data param.
  */
-Result httpcAddPostDataRaw(httpcContext *context, u32* data, u32 len);
+Result httpcAddPostDataRaw(httpcContext *context, const u32* data, u32 len);
 
 /**
  * @brief Begins a HTTP request.
@@ -88,6 +103,15 @@ Result httpcBeginRequest(httpcContext *context);
  * @param size Size of the buffer.
  */
 Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size);
+
+/**
+ * @brief Receives data from a HTTP context with a timeout value.
+ * @param context Context to use.
+ * @param buffer Buffer to receive data to.
+ * @param size Size of the buffer.
+ * @param timeout Maximum time in nanoseconds to wait for a reply.
+ */
+Result httpcReceiveDataTimeout(httpcContext *context, u8* buffer, u32 size, u64 timeout);
 
 /**
  * @brief Gets the request state of a HTTP context.
@@ -108,9 +132,16 @@ Result httpcGetDownloadSizeState(httpcContext *context, u32* downloadedsize, u32
  * @brief Gets the response code of the HTTP context.
  * @param context Context to get the response code of.
  * @param out Pointer to write the response code to.
- * @param delay Delay to wait for the status code. Not used yet.
  */
-Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);
+Result httpcGetResponseStatusCode(httpcContext *context, u32* out);
+
+/**
+ * @brief Gets the response code of the HTTP context with a timeout value.
+ * @param context Context to get the response code of.
+ * @param out Pointer to write the response code to.
+ * @param timeout Maximum time in nanoseconds to wait for a reply.
+ */
+Result httpcGetResponseStatusCodeTimeout(httpcContext *context, u32* out, u64 timeout);
 
 /**
  * @brief Gets a response header field from a HTTP context.
@@ -119,7 +150,7 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay);
  * @param value Pointer to output the value of the field to.
  * @param valuebuf_maxsize Maximum size of the value buffer.
  */
-Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u32 valuebuf_maxsize);
+Result httpcGetResponseHeader(httpcContext *context, const char* name, char* value, u32 valuebuf_maxsize);
 
 /**
  * @brief Adds a trusted RootCA cert to a HTTP context.
@@ -127,7 +158,7 @@ Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u3
  * @param cert Pointer to DER cert.
  * @param certsize Size of the DER cert.
  */
-Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize);
+Result httpcAddTrustedRootCA(httpcContext *context, const u8 *cert, u32 certsize);
 
 /**
  * @brief Adds a default RootCA cert to a HTTP context.
@@ -151,7 +182,7 @@ Result httpcSelectRootCertChain(httpcContext *context, u32 RootCertChain_context
  * @param privk Pointer to the DER private key.
  * @param privk_size Size of the privk.
  */
-Result httpcSetClientCert(httpcContext *context, u8 *cert, u32 certsize, u8 *privk, u32 privk_size);
+Result httpcSetClientCert(httpcContext *context, const u8 *cert, u32 certsize, const u8 *privk, u32 privk_size);
 
 /**
  * @brief Sets the default clientcert for a HTTP context.
@@ -202,7 +233,7 @@ Result httpcDestroyRootCertChain(u32 RootCertChain_contexthandle);
  * @param certsize Size of the DER cert.
  * @param cert_contexthandle Optional output ptr for the cert contexthandle(this can be NULL).
  */
-Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle);
+Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle);
 
 /**
  * @brief Adds a default RootCA cert to a RootCertChain.
@@ -227,7 +258,7 @@ Result httpcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_co
  * @param privk_size Size of the privk.
  * @param ClientCert_contexthandle Output ClientCert context handle.
  */
-Result httpcOpenClientCertContext(u8 *cert, u32 certsize, u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle);
+Result httpcOpenClientCertContext(const u8 *cert, u32 certsize, const u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle);
 
 /**
  * @brief Opens a ClientCert-context with a default clientclient. Up to 2 ClientCert-contexts can be open under this user-process.
@@ -251,4 +282,11 @@ Result httpcCloseClientCertContext(u32 ClientCert_contexthandle);
  * @param downloadedsize Pointer to write the size of the downloaded data to.
  */
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize);
+
+/**
+ * @brief Sets Keep-Alive for the context.
+ * @param context Context to set the KeepAlive flag on.
+ * @param option HTTPC_KeepAlive option.
+ */
+Result httpcSetKeepAlive(httpcContext *context, HTTPC_KeepAlive option);
 

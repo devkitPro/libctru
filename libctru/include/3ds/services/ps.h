@@ -74,3 +74,10 @@ Result PS_GetLocalFriendCodeSeed(u64* seed);
  * @param device_id Pointer to write the device ID to.
  */
 Result PS_GetDeviceId(u32* device_id);
+
+/**
+ * @brief Generates cryptographically secure random bytes.
+ * @param out Pointer to the buffer to write the bytes to.
+ * @param len Number of bytes to write.
+ */
+Result PS_GenerateRandomBytes(void* out, size_t len);

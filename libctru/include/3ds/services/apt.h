@@ -10,6 +10,7 @@
  * Retrieved from http://3dbrew.org/wiki/NS_and_APT_Services#AppIDs
  */
 typedef enum {
+	APPID_NONE = 0,
 	APPID_HOMEMENU = 0x101,           ///< Home Menu
 	APPID_CAMERA = 0x110,             ///< Camera applet
 	APPID_FRIENDS_LIST = 0x112,       ///< Friends List applet
@@ -32,33 +33,81 @@ typedef enum {
 	APPID_MEMOLIB = 0x409,            ///< memolib
 } NS_APPID;
 
-/// App status values.
+/// APT applet position.
 typedef enum {
-	APP_NOTINITIALIZED,    ///< App not initialized.
-	APP_RUNNING,           ///< App running.
-	APP_SUSPENDED,         ///< App suspended.
-	APP_EXITING,           ///< App exiting.
-	APP_SUSPENDING,        ///< App suspending.
-	APP_SLEEPMODE,         ///< App in sleep mode.
-	APP_PREPARE_SLEEPMODE, ///< App preparing to enter sleep mode.
-	APP_APPLETSTARTED,     ///< Applet started.
-	APP_APPLETCLOSED       ///< Applet closed.
-} APT_AppStatus;
+	APTPOS_NONE     = -1, ///< No position specified.
+	APTPOS_APP      = 0,  ///< Application.
+	APTPOS_APPLIB   = 1,  ///< Application library (?).
+	APTPOS_SYS      = 2,  ///< System applet.
+	APTPOS_SYSLIB   = 3,  ///< System library (?).
+	APTPOS_RESIDENT = 4,  ///< Resident applet.
+} APT_AppletPos;
+
+typedef u8 APT_AppletAttr;
+
+/// Create an APT_AppletAttr bitfield from its components.
+static inline APT_AppletAttr aptMakeAppletAttr(APT_AppletPos pos, bool manualGpuRights, bool manualDspRights)
+{
+	return (pos&7) | (manualGpuRights ? BIT(3) : 0) | (manualDspRights ? BIT(4) : 0);
+}
+
+/// APT query reply.
+typedef enum {
+	APTREPLY_REJECT = 0,
+	APTREPLY_ACCEPT = 1,
+	APTREPLY_LATER  = 2,
+} APT_QueryReply;
 
 /// APT signals.
 typedef enum {
-	APTSIGNAL_HOMEBUTTON   = 1,  ///< Home button pressed.
-	// 2: sleep-mode related?
-	APTSIGNAL_PREPARESLEEP = 3,  ///< Prepare to enter sleep mode.
-	// 4: triggered when ptm:s GetShellStatus() returns 5.
-	APTSIGNAL_ENTERSLEEP   = 5,  ///< Enter sleep mode.
-	APTSIGNAL_WAKEUP       = 6,  ///< Wake from sleep mode.
-	APTSIGNAL_ENABLE       = 7,  ///< Enable.
-	APTSIGNAL_POWERBUTTON  = 8,  ///< Power button pressed.
-	APTSIGNAL_UTILITY      = 9,  ///< Utility called.
-	APTSIGNAL_SLEEPSYSTEM  = 10, ///< System sleeping.
-	APTSIGNAL_ERROR        = 11  ///< Error occurred.
+	APTSIGNAL_NONE         = 0,  ///< No signal received.
+	APTSIGNAL_HOMEBUTTON   = 1,  ///< HOME button pressed.
+	APTSIGNAL_HOMEBUTTON2  = 2,  ///< HOME button pressed (again?).
+	APTSIGNAL_SLEEP_QUERY  = 3,  ///< Prepare to enter sleep mode.
+	APTSIGNAL_SLEEP_CANCEL = 4,  ///< Triggered when ptm:s GetShellStatus() returns 5.
+	APTSIGNAL_SLEEP_ENTER  = 5,  ///< Enter sleep mode.
+	APTSIGNAL_SLEEP_WAKEUP = 6,  ///< Wake from sleep mode.
+	APTSIGNAL_SHUTDOWN     = 7,  ///< Shutdown.
+	APTSIGNAL_POWERBUTTON  = 8,  ///< POWER button pressed.
+	APTSIGNAL_POWERBUTTON2 = 9,  ///< POWER button cleared (?).
+	APTSIGNAL_TRY_SLEEP    = 10, ///< System sleeping (?).
+	APTSIGNAL_ORDERTOCLOSE = 11, ///< Order to close (such as when an error happens?).
 } APT_Signal;
+
+/// APT commands.
+typedef enum {
+	APTCMD_NONE               = 0,  ///< No command received.
+	APTCMD_WAKEUP             = 1,  ///< Applet should wake up.
+	APTCMD_REQUEST            = 2,  ///< Source applet sent us a parameter.
+	APTCMD_RESPONSE           = 3,  ///< Target applet replied to our parameter.
+	APTCMD_EXIT               = 4,  ///< Exit (??)
+	APTCMD_MESSAGE            = 5,  ///< Message (??)
+	APTCMD_HOMEBUTTON_ONCE    = 6,  ///< HOME button pressed once.
+	APTCMD_HOMEBUTTON_TWICE   = 7,  ///< HOME button pressed twice (double-pressed).
+	APTCMD_DSP_SLEEP          = 8,  ///< DSP should sleep (manual DSP rights related?).
+	APTCMD_DSP_WAKEUP         = 9,  ///< DSP should wake up (manual DSP rights related?).
+	APTCMD_WAKEUP_EXIT        = 10, ///< Applet wakes up due to a different applet exiting.
+	APTCMD_WAKEUP_PAUSE       = 11, ///< Applet wakes up after being paused through HOME menu.
+	APTCMD_WAKEUP_CANCEL      = 12, ///< Applet wakes up due to being cancelled.
+	APTCMD_WAKEUP_CANCELALL   = 13, ///< Applet wakes up due to all applets being cancelled.
+	APTCMD_WAKEUP_POWERBUTTON = 14, ///< Applet wakes up due to POWER button being pressed (?).
+	APTCMD_WAKEUP_JUMPTOHOME  = 15, ///< Applet wakes up and is instructed to jump to HOME menu (?).
+	APTCMD_SYSAPPLET_REQUEST  = 16, ///< Request for sysapplet (?).
+	APTCMD_WAKEUP_LAUNCHAPP   = 17, ///< Applet wakes up and is instructed to launch another applet (?).
+} APT_Command;
+
+/// APT capture buffer information.
+typedef struct
+{
+	u32 size;
+	u32 is3D;
+	struct
+	{
+		u32 leftOffset;
+		u32 rightOffset;
+		u32 format;
+	} top, bottom;
+} aptCaptureBufInfo;
 
 /// APT hook types.
 typedef enum {
@@ -82,8 +131,8 @@ typedef struct tag_aptHookCookie
 	void* param;                    ///< Callback parameter.
 } aptHookCookie;
 
-/// APT events.
-extern Handle aptEvents[3];
+/// APT message callback.
+typedef void (*aptMessageCb)(void* user, NS_APPID sender, void* msg, size_t msgsize);
 
 /// Initializes APT.
 Result aptInit(void);
@@ -91,55 +140,17 @@ Result aptInit(void);
 /// Exits APT.
 void aptExit(void);
 
-/// Opens an APT session.
-void aptOpenSession(void);
-
-/// Closes an APT session.
-void aptCloseSession(void);
-
 /**
- * @brief Sets the app's status.
- * @param status Status to set.
+ * @brief Sends an APT command through IPC, taking care of locking, opening and closing an APT session.
+ * @param aptcmdbuf Pointer to command buffer (should have capacity for at least 16 words).
  */
-void aptSetStatus(APT_AppStatus status);
-
-/**
- * @brief Gets the app's status.
- * @return The app's status.
- */
-APT_AppStatus aptGetStatus(void);
-
-/**
- * @brief Gets the app's power status.
- * When the status is APT_SUSPEND, this can be used to check what triggered a return-to-menu.
- * @return The app's power status. (0 = normal, 1 = power button pressed)
- */
-u32 aptGetStatusPower(void);
-
-/**
- * @brief Sets the app's power status.
- * @param status Power status to set.
- */
-void aptSetStatusPower(u32 status);
-
-/**
- * @brief Triggers a return to the home menu.
- *
- * This should be called by the user application when aptGetStatus() returns APP_SUSPENDING, not calling this will result in return-to-menu being disabled with the status left at APP_SUSPENDING. This function will not return until the system returns to the application, or when the status was changed to APP_EXITING.
- */
-void aptReturnToMenu(void);
-
-/// Waits for an APT status event.
-void aptWaitStatusEvent(void);
-
-/// Signals that the app is ready to sleep.
-void aptSignalReadyForSleep(void);
+Result aptSendCommand(u32* aptcmdbuf);
 
 /**
  * @brief Gets whether to allow the system to enter sleep mode.
  * @return Whether sleep mode is allowed.
  */
-bool aptIsSleepAllowed();
+bool aptIsSleepAllowed(void);
 
 /**
  * @brief Sets whether to allow the system to enter sleep mode.
@@ -148,14 +159,8 @@ bool aptIsSleepAllowed();
 void aptSetSleepAllowed(bool allowed);
 
 /**
- * @brief Gets the menu's app ID.
- * @return The menu's app ID.
- */
-NS_APPID aptGetMenuAppID(void);
-
-/**
  * @brief Processes the current APT status. Generally used within a main loop.
- * @return Whether the application is closing.
+ * @return Whether the application should continue running.
  */
 bool aptMainLoop(void);
 
@@ -174,6 +179,23 @@ void aptHook(aptHookCookie* cookie, aptHookFn callback, void* param);
 void aptUnhook(aptHookCookie* cookie);
 
 /**
+ * @brief Sets the function to be called when an APT message from another applet is received.
+ * @param callback Callback function.
+ * @param user User-defined data to be passed to the callback.
+ */
+void aptSetMessageCallback(aptMessageCb callback, void* user);
+
+/**
+ * @brief Launches a library applet.
+ * @param appId ID of the applet to launch.
+ * @param buf Input/output buffer that contains launch parameters on entry and result data on exit.
+ * @param bufsize Size of the buffer.
+ * @param handle Handle to pass to the library applet.
+ * @return Whether the application should continue running after the library applet launch.
+ */
+bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
+
+/**
  * @brief Gets an APT lock handle.
  * @param flags Flags to use.
  * @param lockHandle Pointer to output the lock handle to.
@@ -183,10 +205,11 @@ Result APT_GetLockHandle(u16 flags, Handle* lockHandle);
 /**
  * @brief Initializes an application's registration with APT.
  * @param appId ID of the application.
- * @param eventHandle1 Pointer to output the signal event handle to.
- * @param eventHandle2 Pointer to output the launch and exit event handle to.
+ * @param attr Attributes of the application.
+ * @param signalEvent Pointer to output the signal event handle to.
+ * @param resumeEvent Pointer to output the resume event handle to.
  */
-Result APT_Initialize(NS_APPID appId, Handle* eventHandle1, Handle* eventHandle2);
+Result APT_Initialize(NS_APPID appId, APT_AppletAttr attr, Handle* signalEvent, Handle* resumeEvent);
 
 /**
  * @brief Terminates an application's registration with APT.
@@ -199,31 +222,41 @@ Result APT_HardwareResetAsync(void);
 
 /**
  * @brief Enables APT.
- * @param a Parameter to enable with.
+ * @param attr Attributes of the application.
  */
-Result APT_Enable(u32 a);
+Result APT_Enable(APT_AppletAttr attr);
 
 /**
  * @brief Gets applet management info.
- * @param inval Requested applet type.
- * @param outval8 Pointer to output the current applet type to.
- * @param outval32 Pointer to output the requested app ID to.
- * @param menu_appid Pointer to output the home menu app ID to.
- * @param active_appid Pointer to output the currently active app ID to.
- * @param pAttributes Pointer to output the atrributes to.
+ * @param inpos Requested applet position.
+ * @param outpos Pointer to output the position of the current applet to.
+ * @param req_appid Pointer to output the AppID of the applet at the requested position to.
+ * @param menu_appid Pointer to output the HOME menu AppID to.
+ * @param active_appid Pointer to output the AppID of the currently active applet to.
  */
-Result APT_GetAppletManInfo(u8 inval, u8 *outval8, u32 *outval32, NS_APPID *menu_appid, NS_APPID *active_appid);
+Result APT_GetAppletManInfo(APT_AppletPos inpos, APT_AppletPos* outpos, NS_APPID* req_appid, NS_APPID* menu_appid, NS_APPID* active_appid);
+
+/**
+ * @brief Gets the menu's app ID.
+ * @return The menu's app ID.
+ */
+static inline NS_APPID aptGetMenuAppID(void)
+{
+	NS_APPID menu_appid = APPID_NONE;
+	APT_GetAppletManInfo(APTPOS_NONE, NULL, NULL, &menu_appid, NULL);
+	return menu_appid;
+}
 
 /**
  * @brief Gets an applet's information.
- * @param appID ID of the applet.
+ * @param appID AppID of the applet.
  * @param pProgramID Pointer to output the program ID to.
  * @param pMediaType Pointer to output the media type to.
  * @param pRegistered Pointer to output the registration status to.
  * @param pLoadState Pointer to output the load state to.
- * @param pAttributes Pointer to output the atrributes to.
+ * @param pAttributes Pointer to output the applet atrributes to.
  */
-Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, u8* pRegistered, u8* pLoadState, u32* pAttributes);
+Result APT_GetAppletInfo(NS_APPID appID, u64* pProgramID, u8* pMediaType, bool* pRegistered, bool* pLoadState, APT_AppletAttr* pAttributes);
 
 /**
  * @brief Gets an applet's program information.
@@ -256,13 +289,13 @@ Result APT_PrepareToJumpToHomeMenu(void);
  * @param Size of the parameter buffer.
  * @param handle Handle to pass.
  */
-Result APT_JumpToHomeMenu(const u8 *param, size_t paramSize, Handle handle);
+Result APT_JumpToHomeMenu(const void* param, size_t paramSize, Handle handle);
 
 /**
  * @brief Prepares to jump to an application.
- * @param a Application to jump to.
+ * @param exiting Specifies whether the applet is exiting.
  */
-Result APT_PrepareToJumpToApplication(u32 a);
+Result APT_PrepareToJumpToApplication(bool exiting);
 
 /**
  * @brief Jumps to an application.
@@ -270,14 +303,14 @@ Result APT_PrepareToJumpToApplication(u32 a);
  * @param Size of the parameter buffer.
  * @param handle Handle to pass.
  */
-Result APT_JumpToApplication(const u8 *param, size_t paramSize, Handle handle);
+Result APT_JumpToApplication(const void* param, size_t paramSize, Handle handle);
 
 /**
  * @brief Gets whether an application is registered.
  * @param appID ID of the application.
  * @param out Pointer to output the registration state to.
  */
-Result APT_IsRegistered(NS_APPID appID, u8* out);
+Result APT_IsRegistered(NS_APPID appID, bool* out);
 
 /**
  * @brief Inquires as to whether a signal has been received.
@@ -294,59 +327,85 @@ Result APT_NotifyToWait(NS_APPID appID);
 
 /**
  * @brief Calls an applet utility function.
+ * @param id Utility function to call.
  * @param out Pointer to write output data to.
- * @param a Utility function to call.
- * @param size1 Size of the first buffer.
- * @param buf1 First buffer.
- * @param size2 Size of the second buffer.
- * @param buf2 Second buffer.
+ * @param outSize Size of the output buffer.
+ * @param in Pointer to the input data.
+ * @param inSize Size of the input buffer.
  */
-Result APT_AppletUtility(u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2);
+Result APT_AppletUtility(int id, void* out, size_t outSize, const void* in, size_t inSize);
+
+/// Sleeps if shell is closed (?).
+Result APT_SleepIfShellClosed(void);
+
+/**
+ * @brief Tries to lock a transition (?).
+ * @param transition Transition ID.
+ * @param succeeded Pointer to output whether the lock was successfully applied.
+ */
+Result APT_TryLockTransition(u32 transition, bool* succeeded);
+
+/**
+ * @brief Unlocks a transition (?).
+ * @param transition Transition ID.
+ */
+Result APT_UnlockTransition(u32 transition);
 
 /**
  * @brief Glances at a receieved parameter without removing it from the queue.
- * @param appID ID of the application.
- * @param bufferSize Size of the buffer.
+ * @param appID AppID of the application.
  * @param buffer Buffer to receive to.
+ * @param bufferSize Size of the buffer.
+ * @param sender Pointer to output the sender's AppID to.
+ * @param command Pointer to output the command ID to.
  * @param actualSize Pointer to output the actual received data size to.
- * @param signalType Pointer to output the signal type to.
+ * @param parameter Pointer to output the parameter handle to.
  */
-Result APT_GlanceParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType);
+Result APT_GlanceParameter(NS_APPID appID, void* buffer, size_t bufferSize, NS_APPID* sender, APT_Command* command, size_t* actualSize, Handle* parameter);
 
 /**
  * @brief Receives a parameter.
- * @param appID ID of the application.
- * @param bufferSize Size of the buffer.
+ * @param appID AppID of the application.
  * @param buffer Buffer to receive to.
+ * @param bufferSize Size of the buffer.
+ * @param sender Pointer to output the sender's AppID to.
+ * @param command Pointer to output the command ID to.
  * @param actualSize Pointer to output the actual received data size to.
- * @param signalType Pointer to output the signal type to.
+ * @param parameter Pointer to output the parameter handle to.
  */
-Result APT_ReceiveParameter(NS_APPID appID, u32 bufferSize, u32* buffer, u32* actualSize, u8* signalType);
+Result APT_ReceiveParameter(NS_APPID appID, void* buffer, size_t bufferSize, NS_APPID* sender, APT_Command* command, size_t* actualSize, Handle* parameter);
 
 /**
  * @brief Sends a parameter.
- * @param src_appID ID of the source application.
- * @param dst_appID ID of the destination application.
- * @param bufferSize Size of the buffer.
+ * @param source AppID of the source application.
+ * @param dest AppID of the destination application.
+ * @param command Command to send.
  * @param buffer Buffer to send.
- * @param paramhandle Handle to pass.
- * @param signalType Signal type to send.
+ * @param bufferSize Size of the buffer.
+ * @param parameter Parameter handle to pass.
  */
-Result APT_SendParameter(NS_APPID src_appID, NS_APPID dst_appID, u32 bufferSize, u32* buffer, Handle paramhandle, u8 signalType);
+Result APT_SendParameter(NS_APPID source, NS_APPID dest, APT_Command command, const void* buffer, u32 bufferSize, Handle parameter);
+
+/**
+ * @brief Cancels a parameter which matches the specified source and dest AppIDs.
+ * @param source AppID of the source application (use APPID_NONE to disable the check).
+ * @param dest AppID of the destination application (use APPID_NONE to disable the check).
+ * @param success Pointer to output true if a parameter was cancelled, or false otherwise.
+ */
+Result APT_CancelParameter(NS_APPID source, NS_APPID dest, bool* success);
 
 /**
  * @brief Sends capture buffer information.
- * @param bufferSize Size of the buffer to send.
- * @param buffer Buffer to send.
+ * @param captureBuf Capture buffer information to send.
  */
-Result APT_SendCaptureBufferInfo(u32 bufferSize, u32* buffer);
+Result APT_SendCaptureBufferInfo(const aptCaptureBufInfo* captureBuf);
 
 /**
  * @brief Replies to a sleep query.
  * @param appID ID of the application.
- * @param a Parameter to reply with.
+ * @param reply Query reply value.
  */
-Result APT_ReplySleepQuery(NS_APPID appID, u32 a);
+Result APT_ReplySleepQuery(NS_APPID appID, APT_QueryReply reply);
 
 /**
  * @brief Replies that a sleep notification has been completed.
@@ -356,9 +415,9 @@ Result APT_ReplySleepNotificationComplete(NS_APPID appID);
 
 /**
  * @brief Prepares to close the application.
- * @param a Whether the jump is to the home menu.
+ * @param cancelPreload Whether applet preloads should be cancelled.
  */
-Result APT_PrepareToCloseApplication(u8 a);
+Result APT_PrepareToCloseApplication(bool cancelPreload);
 
 /**
  * @brief Closes the application.
@@ -366,7 +425,7 @@ Result APT_PrepareToCloseApplication(u8 a);
  * @param paramSize Size of param.
  * @param handle Handle to pass.
  */
-Result APT_CloseApplication(const u8 *param, size_t paramSize, Handle handle);
+Result APT_CloseApplication(const void* param, size_t paramSize, Handle handle);
 
 /**
  * @brief Sets the application's CPU time limit.
@@ -382,22 +441,9 @@ Result APT_GetAppCpuTimeLimit(u32 *percent);
 
 /**
  * @brief Checks whether the system is a New 3DS.
- * Note: this function is unreliable, see: http://3dbrew.org/wiki/APT:PrepareToStartApplication
  * @param out Pointer to write the New 3DS flag to.
  */
-Result APT_CheckNew3DS_Application(u8 *out);
-
-/**
- * @brief Checks whether the system is a New 3DS.
- * @param out Pointer to write the New 3DS flag to.
- */
-Result APT_CheckNew3DS_System(u8 *out);
-
-/**
- * @brief Checks whether the system is a New 3DS.
- * @param out Pointer to write the New 3DS flag to.
- */
-Result APT_CheckNew3DS(u8 *out);
+Result APT_CheckNew3DS(bool* out);
 
 /**
  * @brief Prepares for an applicaton jump.
@@ -405,56 +451,45 @@ Result APT_CheckNew3DS(u8 *out);
  * @param programID ID of the program to jump to.
  * @param mediatype Media type of the program to jump to.
  */
-Result APT_PrepareToDoAppJump(u8 flags, u64 programID, u8 mediatype);
+Result APT_PrepareToDoApplicationJump(u8 flags, u64 programID, u8 mediatype);
 
 /**
  * @brief Performs an application jump.
- * @param NSbuf0Size Size of NSbuf0Ptr.
- * @param NSbuf1Size Size of NSbuf1Ptr.
- * @param NSbuf0Ptr Launch buffer 0.
- * @param NSbuf1Ptr Launch buffer 1.
+ * @param param Parameter buffer.
+ * @param paramSize Size of parameter buffer.
+ * @param hmac HMAC buffer (should be 0x20 bytes long).
  */
-Result APT_DoAppJump(u32 NSbuf0Size, u32 NSbuf1Size, u8 *NSbuf0Ptr, u8 *NSbuf1Ptr);
+Result APT_DoApplicationJump(const void* param, size_t paramSize, const void* hmac);
 
 /**
  * @brief Prepares to start a library applet.
- * @param appID ID of the applet to start.
+ * @param appID AppID of the applet to start.
  */
 Result APT_PrepareToStartLibraryApplet(NS_APPID appID);
 
 /**
  * @brief Starts a library applet.
- * @param appID ID of the applet to launch.
- * @param inhandle Handle to pass to the applet.
- * @param parambuf Buffer containing applet parameters.
- * @param parambufsize Size of parambuf.
+ * @param appID AppID of the applet to launch.
+ * @param param Buffer containing applet parameters.
+ * @param paramsize Size of the buffer.
+ * @param handle Handle to pass to the applet.
  */
-Result APT_StartLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
-
-/**
- * @brief Launches a library applet.
- * Note: This is not usable from the homebrew launcher. This is broken: when the applet does get launched at all, the applet process doesn't actually get terminated when the applet gets closed.
- * @param appID ID of the applet to launch.
- * @param inhandle Handle to pass to the applet.
- * @param parambuf Buffer containing applet parameters.
- * @param parambufsize Size of parambuf.
- */
-Result APT_LaunchLibraryApplet(NS_APPID appID, Handle inhandle, u32 *parambuf, u32 parambufsize);
+Result APT_StartLibraryApplet(NS_APPID appID, const void* param, size_t paramSize, Handle handle);
 
 /**
  * @brief Prepares to start a system applet.
- * @param appID ID of the applet to start.
+ * @param appID AppID of the applet to start.
  */
 Result APT_PrepareToStartSystemApplet(NS_APPID appID);
 
 /**
  * @brief Starts a system applet.
- * @param appID ID of the applet to launch.
- * @param bufSize Size of the parameter buffer.
- * @param applHandle Handle to pass to the applet.
- * @param buf Buffer containing applet parameters.
+ * @param appID AppID of the applet to launch.
+ * @param param Buffer containing applet parameters.
+ * @param paramSize Size of the parameter buffer.
+ * @param handle Handle to pass to the applet.
  */
-Result APT_StartSystemApplet(NS_APPID appID, u32 bufSize, Handle applHandle, u8 *buf);
+Result APT_StartSystemApplet(NS_APPID appID, const void* param, size_t paramSize, Handle handle);
 
 /**
  * @brief Retrieves the shared system font.

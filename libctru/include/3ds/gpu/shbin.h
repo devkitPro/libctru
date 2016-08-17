@@ -28,8 +28,17 @@ typedef enum{
 	RESULT_TEXCOORD0W = 0x4, ///< Texture coordinate 0 W.
 	RESULT_TEXCOORD1 = 0x5,  ///< Texture coordinate 1.
 	RESULT_TEXCOORD2 = 0x6,  ///< Texture coordinate 2.
-	RESULT_VIEW = 0x8        ///< View.
+	RESULT_VIEW = 0x8,       ///< View.
+	RESULT_DUMMY = 0x9,      ///< Dummy attribute (used as passthrough for geometry shader input).
 }DVLE_outputAttribute_t;
+
+/// Geometry shader operation modes.
+typedef enum
+{
+	GSH_POINT         = 0, ///< Point processing mode.
+	GSH_VARIABLE_PRIM = 1, ///< Variable-size primitive processing mode.
+	GSH_FIXED_PRIM    = 2, ///< Fixed-size primitive processing mode.
+} DVLE_geoShaderMode;
 
 /// DVLP data.
 typedef struct{
@@ -64,6 +73,11 @@ typedef struct{
 /// DVLE data.
 typedef struct{
 	DVLE_type type;                        ///< DVLE type.
+	bool mergeOutmaps;                     ///< true = merge vertex/geometry shader outmaps ('dummy' output attribute is present).
+	DVLE_geoShaderMode gshMode;            ///< Geometry shader operation mode.
+	u8 gshFixedVtxStart;                   ///< Starting float uniform register number for storing the fixed-size primitive vertex array.
+	u8 gshVariableVtxNum;                  ///< Number of fully-defined vertices in the variable-size primitive vertex array.
+	u8 gshFixedVtxNum;                     ///< Number of vertices in the fixed-size primitive vertex array.
 	DVLP_s* dvlp;                          ///< Contained DVLPs.
 	u32 mainOffset;                        ///< Offset of the start of the main function.
 	u32 endmainOffset;                     ///< Offset of the end of the main function.

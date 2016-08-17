@@ -14,6 +14,7 @@ extern "C" {
 #include <3ds/ipc.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
+#include <3ds/errf.h>
 #include <3ds/os.h>
 #include <3ds/synchronization.h>
 #include <3ds/thread.h>
@@ -28,6 +29,7 @@ extern "C" {
 
 #include <3ds/services/ac.h>
 #include <3ds/services/am.h>
+#include <3ds/services/ampxi.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/cam.h>
 #include <3ds/services/cfgnor.h>
@@ -49,6 +51,7 @@ extern "C" {
 #include <3ds/services/ps.h>
 #include <3ds/services/ptmu.h>
 #include <3ds/services/ptmsysm.h>
+#include <3ds/services/pxidev.h>
 #include <3ds/services/soc.h>
 #include <3ds/services/mic.h>
 #include <3ds/services/mvd.h>
@@ -59,16 +62,15 @@ extern "C" {
 #include <3ds/services/y2r.h>
 #include <3ds/services/hb.h>
 
-#include <3ds/services/ampxi.h>
-
 #include <3ds/gpu/gx.h>
 #include <3ds/gpu/gpu.h>
-#include <3ds/gpu/gpu-old.h>
 #include <3ds/gpu/shbin.h>
 #include <3ds/gpu/shaderProgram.h>
 
 #include <3ds/ndsp/ndsp.h>
 #include <3ds/ndsp/channel.h>
+
+#include <3ds/applets/swkbd.h>
 
 #include <3ds/sdmc.h>
 #include <3ds/romfs.h>
@@ -104,4 +106,4 @@ extern "C" {
  * @example threads/event/source/main.c
  * @example time/rtc/source/main.c
  */
- 
+

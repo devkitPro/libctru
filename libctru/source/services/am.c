@@ -20,6 +20,18 @@ Result amInit(void)
 	ret = srvGetServiceHandle(&amHandle, "am:net");
 	if (R_FAILED(ret)) ret = srvGetServiceHandle(&amHandle, "am:u");
 	if (R_FAILED(ret)) ret = srvGetServiceHandle(&amHandle, "am:sys");
+	if (R_FAILED(ret)) AtomicDecrement(&amRefCount);
+
+	return ret;
+}
+
+Result amAppInit(void)
+{
+	Result ret;
+
+	if (AtomicPostIncrement(&amRefCount)) return 0;
+
+	ret = srvGetServiceHandle(&amHandle, "am:sys");
 	if (R_FAILED(ret)) ret = srvGetServiceHandle(&amHandle, "am:app");
 	if (R_FAILED(ret)) AtomicDecrement(&amRefCount);
 
@@ -548,7 +560,7 @@ Result AM_QueryAvailableExternalTitleDatabase(bool* available)
 	if(R_FAILED(ret = (Result)cmdbuf[1])) return ret;
 
 	// Only accept this if the command was a success
-	if(available) *available = cmdbuf[2];
+	if(available) *available = cmdbuf[2] & 0xFF;
 
 	return ret;
 }

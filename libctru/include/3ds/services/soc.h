@@ -14,16 +14,17 @@
 /// Options to be used with @ref SOCU_GetNetworkOpt
 typedef enum
 {
-	NETOPT_MAC_ADDRESS   = 0x1004, ///< The mac address of the interface (u32 mac[6])
-	NETOPT_ARP_TABLE     = 0x3002, ///< The ARP table @see SOCU_ARPTableEntry
-	NETOPT_IP_INFO       = 0x4003, ///< The cureent IP setup @see SOCU_IPInfo
-	NETOPT_IP_MTU        = 0x4004, ///< The value of the IP MTU (u32)
-	NETOPT_ROUTING_TABLE = 0x4006, ///< The routing table @see SOCU_RoutingTableEntry
-	NETOPT_UDP_NUMBER    = 0x8002, ///< The number of sockets in the UDP table (u32)
-	NETOPT_UDP_TABLE     = 0x8003, ///< The table of opened UDP sockets @see SOCU_UDPTableEntry
-	NETOPT_TCP_NUMBER    = 0x9002, ///< The number of sockets in the TCP table (u32)
-	NETOPT_TCP_TABLE     = 0x9003, ///< The table of opened TCP sockets @see SOCU_TCPTableEntry
-	NETOPT_DNS_TABLE     = 0xB003, ///< The table of the DNS servers @see SOCU_DNSTableEntry -- Returns a buffer of size 336 but only 2 entries are set ?
+	NETOPT_MAC_ADDRESS     = 0x1004, ///< The mac address of the interface (u32 mac[6])
+	NETOPT_ARP_TABLE       = 0x3002, ///< The ARP table @see SOCU_ARPTableEntry
+	NETOPT_IP_INFO         = 0x4003, ///< The cureent IP setup @see SOCU_IPInfo
+	NETOPT_IP_MTU          = 0x4004, ///< The value of the IP MTU (u32)
+	NETOPT_ROUTING_TABLE   = 0x4006, ///< The routing table @see SOCU_RoutingTableEntry
+	NETOPT_UDP_NUMBER      = 0x8002, ///< The number of sockets in the UDP table (u32)
+	NETOPT_UDP_TABLE       = 0x8003, ///< The table of opened UDP sockets @see SOCU_UDPTableEntry
+	NETOPT_TCP_NUMBER      = 0x9002, ///< The number of sockets in the TCP table (u32)
+	NETOPT_TCP_TABLE       = 0x9003, ///< The table of opened TCP sockets @see SOCU_TCPTableEntry
+	NETOPT_DNS_TABLE       = 0xB003, ///< The table of the DNS servers @see SOCU_DNSTableEntry -- Returns a buffer of size 336 but only 2 entries are set ?
+	NETOPT_DHCP_LEASE_TIME = 0xC001, ///< The DHCP lease time remaining, in seconds
 } NetworkOpt;
 
 /// One entry of the ARP table retrieved by using @ref SOCU_GetNetworkOpt and @ref NETOPT_ARP_TABLE

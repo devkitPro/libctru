@@ -20,7 +20,7 @@ static Handle __httpc_sharedmem_handle;
 static Result HTTPC_Initialize(Handle handle, u32 sharedmem_size, Handle sharedmem_handle);
 static Result HTTPC_Finalize(Handle handle);
 
-static Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, char* url, Handle* contextHandle);
+static Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, const char* url, Handle* contextHandle);
 static Result HTTPC_CloseContext(Handle handle, Handle contextHandle);
 
 static Result HTTPC_InitializeConnectionSession(Handle handle, Handle contextHandle);
@@ -87,7 +87,7 @@ void httpcExit(void)
 	}
 }
 
-Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, char* url, u32 use_defaultproxy)
+Result httpcOpenContext(httpcContext *context, HTTPC_RequestMethod method, const char* url, u32 use_defaultproxy)
 {
 	Result ret=0;
 
@@ -127,6 +127,19 @@ Result httpcCloseContext(httpcContext *context)
 	ret = HTTPC_CloseContext(__httpc_servhandle, context->httphandle);
 
 	return ret;
+}
+
+Result httpcCancelConnection(httpcContext *context)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x4,1,0); // 0x40040
+	cmdbuf[1]=context->httphandle;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+
+	return cmdbuf[1];
 }
 
 Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downloadedsize)
@@ -187,7 +200,7 @@ static Result HTTPC_Finalize(Handle handle)
 	return cmdbuf[1];
 }
 
-static Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, char* url, Handle* contextHandle)
+static Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, const char* url, Handle* contextHandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	u32 l=strlen(url)+1;
@@ -246,7 +259,7 @@ static Result HTTPC_CloseContext(Handle handle, Handle contextHandle)
 	return cmdbuf[1];
 }
 
-Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value)
+Result httpcAddRequestHeaderField(httpcContext *context, const char* name, const char* value)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -268,7 +281,7 @@ Result httpcAddRequestHeaderField(httpcContext *context, char* name, char* value
 	return cmdbuf[1];
 }
 
-Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value)
+Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char* value)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -290,7 +303,7 @@ Result httpcAddPostDataAscii(httpcContext *context, char* name, char* value)
 	return cmdbuf[1];
 }
 
-Result httpcAddPostDataRaw(httpcContext *context, u32* data, u32 len)
+Result httpcAddPostDataRaw(httpcContext *context, const u32* data, u32 len)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -337,6 +350,24 @@ Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size)
 	return cmdbuf[1];
 }
 
+Result httpcReceiveDataTimeout(httpcContext *context, u8* buffer, u32 size, u64 timeout)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0xC,4,2); // 0xC0102
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=size;
+	cmdbuf[3]=timeout & 0xffffffff;
+	cmdbuf[4]=(timeout >> 32) & 0xffffffff;
+	cmdbuf[5]=IPC_Desc_Buffer(size,IPC_BUFFER_W);
+	cmdbuf[6]=(u32)buffer;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result httpcGetRequestState(httpcContext *context, HTTPC_RequestStatus* out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -367,7 +398,7 @@ Result httpcGetDownloadSizeState(httpcContext *context, u32* downloadedsize, u32
 
 	return cmdbuf[1];
 }
-Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u32 valuebuf_maxsize)
+Result httpcGetResponseHeader(httpcContext *context, const char* name, char* value, u32 valuebuf_maxsize)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -388,7 +419,7 @@ Result httpcGetResponseHeader(httpcContext *context, char* name, char* value, u3
 	return cmdbuf[1];
 }
 
-Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay)
+Result httpcGetResponseStatusCode(httpcContext *context, u32* out)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -403,7 +434,25 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out, u64 delay)
 	return cmdbuf[1];
 }
 
-Result httpcAddTrustedRootCA(httpcContext *context, u8 *cert, u32 certsize)
+
+Result httpcGetResponseStatusCodeTimeout(httpcContext *context, u32* out, u64 timeout)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x23,3,0); // 0x2300C0
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=timeout & 0xffffffff;
+	cmdbuf[3]=(timeout >> 32) & 0xffffffff;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	*out = cmdbuf[2];
+
+	return cmdbuf[1];
+}
+
+Result httpcAddTrustedRootCA(httpcContext *context, const u8 *cert, u32 certsize)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -447,7 +496,7 @@ Result httpcSelectRootCertChain(httpcContext *context, u32 RootCertChain_context
 	return cmdbuf[1];
 }
 
-Result httpcSetClientCert(httpcContext *context, u8 *cert, u32 certsize, u8 *privk, u32 privk_size)
+Result httpcSetClientCert(httpcContext *context, const u8 *cert, u32 certsize, const u8 *privk, u32 privk_size)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -550,7 +599,7 @@ Result httpcDestroyRootCertChain(u32 RootCertChain_contexthandle)
 	return cmdbuf[1];
 }
 
-Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, u8 *cert, u32 certsize, u32 *cert_contexthandle)
+Result httpcRootCertChainAddCert(u32 RootCertChain_contexthandle, const u8 *cert, u32 certsize, u32 *cert_contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -600,7 +649,7 @@ Result httpcRootCertChainRemoveCert(u32 RootCertChain_contexthandle, u32 cert_co
 	return cmdbuf[1];
 }
 
-Result httpcOpenClientCertContext(u8 *cert, u32 certsize, u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle)
+Result httpcOpenClientCertContext(const u8 *cert, u32 certsize, const u8 *privk, u32 privk_size, u32 *ClientCert_contexthandle)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -646,6 +695,20 @@ Result httpcCloseClientCertContext(u32 ClientCert_contexthandle)
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result httpcSetKeepAlive(httpcContext *context, HTTPC_KeepAlive option)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x37,2,0); // 0x370080
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=option;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
 	return cmdbuf[1];
 }

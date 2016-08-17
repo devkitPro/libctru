@@ -56,7 +56,7 @@ void gfxSetDoubleBuffering(gfxScreen_t screen, bool doubleBuffering) {
 	doubleBuf[screen] = doubleBuffering ? 1 : 0; // make sure they're the integer values '1' and '0'
 }
 
-static u32 __get_bytes_per_pixel(GSPGPU_FramebufferFormats format) {
+u32 __get_bytes_per_pixel(GSPGPU_FramebufferFormats format) {
     switch(format) {
     case GSP_RGBA8_OES:
         return 4;
@@ -129,7 +129,7 @@ void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bott
 	GSPGPU_AcquireRight(0x0);
 
 	//setup our gsp shared mem section
-	svcCreateEvent(&gspEvent, 0x0);
+	svcCreateEvent(&gspEvent, RESET_ONESHOT);
 	GSPGPU_RegisterInterruptRelayQueue(gspEvent, 0x1, &gspSharedMemHandle, &gfxThreadID);
 	svcMapMemoryBlock(gspSharedMemHandle, (u32)gfxSharedMemory, 0x3, 0x10000000);
 

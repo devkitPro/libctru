@@ -30,6 +30,7 @@ SOURCES		:=	source \
 			source/ndsp \
 			source/services \
 			source/services/soc \
+			source/applets \
 			source/util/rbtree \
 			source/util/utf \
 			source/system

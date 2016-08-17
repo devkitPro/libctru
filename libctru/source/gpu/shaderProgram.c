@@ -5,7 +5,7 @@
 #include <3ds/gpu/registers.h>
 #include <3ds/gpu/shaderProgram.h>
 
-static void GPU_SetShaderOutmap(u32 outmapData[8]);
+static void GPU_SetShaderOutmap(const u32 outmapData[8]);
 static void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
 static void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
 
@@ -168,7 +168,6 @@ Result shaderProgramSetGsh(shaderProgram_s* sp, DVLE_s* dvle, u8 stride)
 	sp->geoShaderInputPermutation[0] = 0x76543210;
 	sp->geoShaderInputPermutation[1] = 0xFEDCBA98;
 	sp->geoShaderInputStride = stride;
-	sp->geoShaderMode = GSH_NORMAL;
 
 	return shaderInstanceInit(sp->geometryShader, dvle);
 }
@@ -182,82 +181,149 @@ Result shaderProgramSetGshInputPermutation(shaderProgram_s* sp, u64 permutation)
 	return 0;
 }
 
-Result shaderProgramSetGshMode(shaderProgram_s* sp, geoShaderMode mode)
+static inline void shaderProgramUploadDvle(const DVLE_s* dvle)
 {
-	if(!sp || !sp->geometryShader)return -1;
+	const DVLP_s* dvlp = dvle->dvlp;
+	// Limit vertex shader code size to the first 512 instructions
+	int codeSize = dvle->type == GEOMETRY_SHDR ? dvlp->codeSize : (dvlp->codeSize < 512 ? dvlp->codeSize : 512);
+	GPU_SendShaderCode(dvle->type, dvlp->codeData, 0, codeSize);
+	GPU_SendOperandDescriptors(dvle->type, dvlp->opcdescData, 0, dvlp->opdescSize);
+}
 
-	sp->geoShaderMode = mode & 3;
-	return 0;
+static inline void shaderProgramMergeOutmaps(u32* outmapData, const u32* vshOutmap, const u32* gshOutmap)
+{
+	int i, j;
+
+	// Find and copy attributes common to both vertex and geometry shader
+	u32 vsh_common = 0, gsh_common = 0;
+	for (i = 1; i < 8; i ++)
+	{
+		u32 mask = gshOutmap[i];
+		if (mask == 0x1F1F1F1F)
+			break;
+		for (j = 1; j < 8; j ++)
+		{
+			if (vshOutmap[j] == mask)
+			{
+				outmapData[++outmapData[0]] = mask;
+				vsh_common |= BIT(j);
+				gsh_common |= BIT(i);
+				break;
+			}
+		}
+	}
+
+	// Find and copy attributes that are exclusive to the geometry shader
+	for (i = 1; i < 8; i ++)
+	{
+		u32 mask = gshOutmap[i];
+		if (mask == 0x1F1F1F1F)
+			break;
+		if (!(gsh_common & BIT(i)))
+			outmapData[++outmapData[0]] = mask;
+	}
+
+	// Find and copy attributes that are exclusive to the vertex shader
+	for (i = 1; i < 8; i ++)
+	{
+		u32 mask = vshOutmap[i];
+		if (mask == 0x1F1F1F1F)
+			break;
+		if (!(vsh_common & BIT(i)))
+			outmapData[++outmapData[0]] = mask;
+	}
 }
 
 Result shaderProgramConfigure(shaderProgram_s* sp, bool sendVshCode, bool sendGshCode)
 {
-	if(!sp)return -1;
+	if (!sp || !sp->vertexShader) return -1;
 
-	if(!sp->vertexShader)return -2;
-
-	// configure geostage
-	// has to be done first or else VSH registers might only reconfigure 3 of the 4 shader units !
-	if(!sp->geometryShader)
-	{
-		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000000);
-		GPUCMD_AddMaskedWrite(GPUREG_VSH_COM_MODE, 0x1, 0x00000000);
-	}else{
-		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x1, 0x00000002);
-		GPUCMD_AddMaskedWrite(GPUREG_VSH_COM_MODE, 0x1, 0x00000001);
-	}
-
-	// setup vertex shader stuff no matter what
+	// Get pointers to relevant structures
 	const DVLE_s* vshDvle = sp->vertexShader->dvle;
-	const DVLP_s* vshDvlp = vshDvle->dvlp;
+	const DVLE_s* gshDvle = sp->geometryShader ? sp->geometryShader->dvle : NULL;
+	const DVLE_s* mainDvle = gshDvle ? gshDvle : vshDvle;
+
+	// Variables for working with the outmap
+	u32 outmapData[8];
+	u32 outmapMode = mainDvle->outmapMode;
+	u32 outmapClock = mainDvle->outmapClock;
+
+	// Initialize geometry engine - do this early in order to ensure all 4 units are correctly initialized
+	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x3, gshDvle ? 2 : 0);
+	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG2, 0x3, 0);
+	GPUCMD_AddMaskedWrite(GPUREG_VSH_COM_MODE, 0x1, gshDvle ? 1 : 0);
+
+	// Set up vertex shader code blob (if necessary)
 	if (sendVshCode)
-	{
-		GPU_SendShaderCode(vshDvle->type, vshDvlp->codeData, 0, vshDvlp->codeSize);
-		GPU_SendOperandDescriptors(vshDvle->type, vshDvlp->opcdescData, 0, vshDvlp->opdescSize);
-	}
+		shaderProgramUploadDvle(vshDvle);
+
+	// Set up vertex shader entrypoint & outmap mask
 	GPUCMD_AddWrite(GPUREG_VSH_ENTRYPOINT, 0x7FFF0000|(vshDvle->mainOffset&0xFFFF));
 	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_MASK, vshDvle->outmapMask);
+	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL1, vshDvle->outmapData[0]-1);
+	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL2, vshDvle->outmapData[0]-1);
 
-	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL1, vshDvle->outmapData[0]-1); // ?
-	GPUCMD_AddWrite(GPUREG_VSH_OUTMAP_TOTAL2, vshDvle->outmapData[0]-1); // ?
-
-	bool subdivision = sp->geoShaderMode >= GSH_SUBDIVISION_LOOP;
-	GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0x8, subdivision ? 0x80000000 : 0); // Enable or disable subdivision
-	u32 gshMisc = 0;
-	if (subdivision)
-		gshMisc = 1;
-	else if (sp->geoShaderMode == GSH_PARTICLE)
-		gshMisc = 0x01004302;
-	GPUCMD_AddWrite(GPUREG_GSH_MISC0, gshMisc);
-	GPUCMD_AddWrite(GPUREG_GSH_MISC1, sp->geoShaderMode);
-
-	if(!sp->geometryShader)
+	// Set up geometry shader (if present)
+	if (gshDvle)
 	{
-		// finish setting up vertex shader alone
-		GPU_SetShaderOutmap((u32*)vshDvle->outmapData);
-
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, vshDvle->outmapMode);
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, vshDvle->outmapClock);
-	}else{
-		// setup both vertex and geometry shader
-		const DVLE_s* gshDvle = sp->geometryShader->dvle;
-		const DVLP_s* gshDvlp = gshDvle->dvlp;
+		// Set up geometry shader code blob (if necessary)
 		if (sendGshCode)
-		{
-			GPU_SendShaderCode(gshDvle->type, gshDvlp->codeData, 0, gshDvlp->codeSize);
-			GPU_SendOperandDescriptors(gshDvle->type, gshDvlp->opcdescData, 0, gshDvlp->opdescSize);
-		}
+			shaderProgramUploadDvle(gshDvle);
+
+		// Set up geometry shader entrypoint & outmap mask
 		GPUCMD_AddWrite(GPUREG_GSH_ENTRYPOINT, 0x7FFF0000|(gshDvle->mainOffset&0xFFFF));
 		GPUCMD_AddWrite(GPUREG_GSH_OUTMAP_MASK, gshDvle->outmapMask);
+	}
 
-		GPU_SetShaderOutmap((u32*)gshDvle->outmapData);
+	// Merge vertex shader & geometry shader outmaps if requested
+	if (gshDvle && gshDvle->mergeOutmaps)
+	{
+		// Clear outmap
+		memset(outmapData, 0x1F, sizeof(outmapData));
+		outmapData[0] = 0;
 
-		//GSH input attributes stuff
-		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000|(sp->geoShaderInputStride-1)|(subdivision?0x100:0));
+		// Merge outmaps
+		shaderProgramMergeOutmaps(outmapData, vshDvle->outmapData, gshDvle->outmapData);
+		outmapMode  |= vshDvle->outmapMode;
+		outmapClock |= vshDvle->outmapClock;
+	} else
+		memcpy(outmapData, mainDvle->outmapData, sizeof(outmapData));
+
+	// Upload and configure outmap
+	GPU_SetShaderOutmap(outmapData);
+	GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, outmapMode);
+	GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, outmapClock);
+
+	// Configure geostage
+	if (gshDvle)
+	{
+		// Input stride: use value if specified, otherwise use number of outputs in vertex shader
+		int stride = sp->geoShaderInputStride ? sp->geoShaderInputStride : vshDvle->outmapData[0];
+
+		// Enable or disable variable-size primitive processing
+		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0xA, gshDvle->gshMode == GSH_VARIABLE_PRIM ? 0x80000000 : 0);
+
+		// Set up geoshader processing mode
+		u32 misc = gshDvle->gshMode;
+		if (misc == GSH_FIXED_PRIM)
+			misc |= 0x01000000 | ((u32)gshDvle->gshFixedVtxStart<<16) | ((stride-1)<<12) | ((u32)(gshDvle->gshFixedVtxNum-1)<<8);
+		GPUCMD_AddWrite(GPUREG_GSH_MISC0, misc);
+
+		// Set up variable-size primitive mode parameters
+		GPUCMD_AddWrite(GPUREG_GSH_MISC1, gshDvle->gshMode == GSH_VARIABLE_PRIM ? (gshDvle->gshVariableVtxNum-1) : 0);
+
+		// Set up geoshader input
+		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0x08000000 | (gshDvle->gshMode ? 0x0100 : 0) | (stride-1));
+
+		// Set up geoshader permutation
 		GPUCMD_AddIncrementalWrites(GPUREG_GSH_ATTRIBUTES_PERMUTATION_LOW, sp->geoShaderInputPermutation, 2);
-
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_MODE, gshDvle->outmapMode);
-		GPUCMD_AddWrite(GPUREG_SH_OUTATTR_CLOCK, gshDvle->outmapClock);
+	} else
+	{
+		// Defaults for when geostage is disabled
+		GPUCMD_AddMaskedWrite(GPUREG_GEOSTAGE_CONFIG, 0xA, 0);
+		GPUCMD_AddWrite(GPUREG_GSH_MISC0, 0);
+		GPUCMD_AddWrite(GPUREG_GSH_MISC1, 0);
+		GPUCMD_AddWrite(GPUREG_GSH_INPUTBUFFER_CONFIG, 0xA0000000);
 	}
 
 	return 0;
@@ -271,12 +337,12 @@ Result shaderProgramUse(shaderProgram_s* sp)
 	int i;
 
 	// Set up uniforms
-	GPUCMD_AddWrite(GPUREG_VSH_BOOLUNIFORM, 0x7FFF0000|~sp->vertexShader->boolUniforms);
+	GPUCMD_AddWrite(GPUREG_VSH_BOOLUNIFORM, 0x7FFF0000|sp->vertexShader->boolUniforms);
 	GPUCMD_AddIncrementalWrites(GPUREG_VSH_INTUNIFORM_I0, sp->vertexShader->intUniforms, 4);
 	for(i=0; i<sp->vertexShader->numFloat24Uniforms; i++) GPUCMD_AddIncrementalWrites(GPUREG_VSH_FLOATUNIFORM_CONFIG, (u32*)&sp->vertexShader->float24Uniforms[i], 4);
 	if (sp->geometryShader)
 	{
-		GPUCMD_AddWrite(GPUREG_GSH_BOOLUNIFORM, 0x7FFF0000|~sp->geometryShader->boolUniforms);
+		GPUCMD_AddWrite(GPUREG_GSH_BOOLUNIFORM, 0x7FFF0000|sp->geometryShader->boolUniforms);
 		GPUCMD_AddIncrementalWrites(GPUREG_GSH_INTUNIFORM_I0, sp->geometryShader->intUniforms, 4);
 		for(i=0; i<sp->geometryShader->numFloat24Uniforms; i++) GPUCMD_AddIncrementalWrites(GPUREG_GSH_FLOATUNIFORM_CONFIG, (u32*)&sp->geometryShader->float24Uniforms[i], 4);
 	}
@@ -284,7 +350,7 @@ Result shaderProgramUse(shaderProgram_s* sp)
 	return 0;
 }
 
-void GPU_SetShaderOutmap(u32 outmapData[8])
+void GPU_SetShaderOutmap(const u32 outmapData[8])
 {
 	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x1, outmapData[0]-1);
 	GPUCMD_AddIncrementalWrites(GPUREG_SH_OUTMAP_TOTAL, outmapData, 8);

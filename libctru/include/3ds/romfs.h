@@ -45,15 +45,36 @@ typedef struct
 	u16 name[];   ///< Name. (UTF-16)
 } romfs_file;
 
-/// Initializes the RomFS driver.
-Result romfsInit(void);
+struct romfs_mount;
 
 /**
- * @brief Initializes the RomFS driver from a RomFS file.
+ * @brief Mounts the Application's RomFS.
+ * @param mount Output mount handle
+ */
+Result romfsMount(struct romfs_mount **mount);
+static inline Result romfsInit(void)
+{
+	return romfsMount(NULL);
+}
+
+/**
+ * @brief Mounts RomFS from an open file.
  * @param file Handle of the RomFS file.
  * @param offset Offset of the RomFS within the file.
+ * @param mount Output mount handle
  */
-Result romfsInitFromFile(Handle file, u32 offset);
+Result romfsMountFromFile(Handle file, u32 offset, struct romfs_mount **mount);
+static inline Result romfsInitFromFile(Handle file, u32 offset)
+{
+	return romfsMountFromFile(file, offset, NULL);
+}
 
-/// Exits the RomFS driver.
-Result romfsExit(void);
+/// Bind the RomFS mount
+Result romfsBind(struct romfs_mount *mount);
+
+/// Unmounts the RomFS device.
+Result romfsUnmount(struct romfs_mount *mount);
+static inline Result romfsExit(void)
+{
+	return romfsUnmount(NULL);
+}

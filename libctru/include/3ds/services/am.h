@@ -56,8 +56,11 @@ typedef struct {
 	u64 titlesFreeSpace; ///< Free space for titles.
 } AM_TWLPartitionInfo;
 
-/// Initializes AM.
+/// Initializes AM. This doesn't initialize with "am:app", see amAppInit().
 Result amInit(void);
+
+/// Initializes AM with a service which has access to the amapp-commands. This should only be used when using the amapp commands, not non-amapp AM commands.
+Result amAppInit(void);
 
 /// Exits AM.
 void amExit(void);
