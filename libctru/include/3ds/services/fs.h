@@ -748,6 +748,14 @@ Result FSUSER_FormatSaveData(FS_ArchiveID archiveId, FS_Path path, u32 blocks, u
 Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64 programId, u8* banner);
 
 /**
+ * @brief Hashes the given data and outputs a SHA256 hash.
+ * @param data Pointer to the data to be hashed.
+ * @param inputSize The size of the data.
+ * @param hash Hash output pointer.
+ */
+Result FSUSER_UpdateSha256Context(const void* data, u32 inputSize, u8* hash);
+
+/**
  * @brief Reads from a special file.
  * @param bytesRead Pointer to output the number of bytes read to.
  * @param fileOffset Offset of the file.

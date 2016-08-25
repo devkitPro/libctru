@@ -1201,6 +1201,27 @@ Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64
 	return cmdbuf[1];
 }
 
+Result FSUSER_UpdateSha256Context(const void* data, u32 inputSize, u8* hash)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x84E, 13, 2); // 0x84E0342
+	cmdbuf[9] = inputSize;
+	cmdbuf[10] = 0;
+	cmdbuf[11] = 0;
+	cmdbuf[12] = 0;
+	cmdbuf[13] = 1;
+	cmdbuf[14] = IPC_Desc_Buffer(inputSize, IPC_BUFFER_R);
+	cmdbuf[15] = (u32)data;
+
+	Result ret = 0;
+	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
+
+	if(hash) memcpy(hash, &cmdbuf[2], 0x20);
+
+	return cmdbuf[1];
+}
+
 Result FSUSER_ReadSpecialFile(u32* bytesRead, u64 fileOffset, u32 size, u8* data)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
