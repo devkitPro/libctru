@@ -1203,6 +1203,30 @@ Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64
 
 Result FSUSER_UpdateSha256Context(const void* data, u32 inputSize, u8* hash)
 {
+	if(!inputSize)
+	{
+		// For some reason a zero-size input outputs a garbage hash,
+		// so bypass the service call and just output it here.
+		if(hash)
+		{
+			static const u8 sha256_empty[32] =
+			{
+				0xE3, 0xB0, 0xC4, 0x42,
+				0x98, 0xFC, 0x1C, 0x14,
+				0x9A, 0xFB, 0xF4, 0xC8,
+				0x99, 0x6F, 0xB9, 0x24,
+				0x27, 0xAE, 0x41, 0xE4,
+				0x64, 0x9B, 0x93, 0x4C,
+				0xA4, 0x95, 0x99, 0x1B,
+				0x78, 0x52, 0xB8, 0x55,
+			};
+
+			memcpy(hash, sha256_empty, 0x20);
+		}
+
+		return 0;
+	}
+
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x84E, 13, 2); // 0x84E0342
