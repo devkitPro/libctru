@@ -151,6 +151,82 @@ Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
 	return (Result)cmdbuf[1];
 }
 
+Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, u8* outData)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x401,2,2); // 0x4010082
+	cmdbuf[1] = size;
+	cmdbuf[2] = blkID;
+	cmdbuf[3] = IPC_Desc_Buffer(size,IPC_BUFFER_W);
+	cmdbuf[4] = (u32)outData;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1]
+}
+
+Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, u8* outData)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x801,2,2); // 0x8010082
+	cmdbuf[1] = size;
+	cmdbuf[2] = blkID;
+	cmdbuf[3] = IPC_Desc_Buffer(size,IPC_BUFFER_W);
+	cmdbuf[4] = (u32)outData;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1]
+}
+
+Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, u8* inData)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x402,2,2); // 0x4020082
+	cmdbuf[1] = blkID;
+	cmdbuf[2] = size;
+	cmdbuf[3] = IPC_Desc_Buffer(size,IPC_BUFFER_R);
+	cmdbuf[4] = (u32)inData;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, u8* inData)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x802,2,2); // 0x8020082
+	cmdbuf[1] = blkID;
+	cmdbuf[2] = size;
+	cmdbuf[3] = IPC_Desc_Buffer(size,IPC_BUFFER_R);
+	cmdbuf[4] = (u32)inData;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFG_UpdateConfigNANDSavegame(void)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x803,0,0); // 0x8030000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result CFGU_GetSystemLanguage(u8* language)
 {
 	return CFGU_GetConfigInfoBlk2(1, 0xA0002, language);
