@@ -85,12 +85,50 @@ Result CFGU_GetCountryCodeString(u16 code, u16* string);
 Result CFGU_GetCountryCodeID(u16 string, u16* code);
 
 /**
- * @brief Gets a config info block.
+ * @brief Gets a config info block with flags = 2.
  * @param size Size of the data to retrieve.
  * @param blkID ID of the block to retrieve.
  * @param outData Pointer to write the block data to.
  */
 Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData);
+
+/**
+ * @brief Gets a config info block with flags = 4.
+ * @param size Size of the data to retrieve.
+ * @param blkID ID of the block to retrieve.
+ * @param outData Pointer to write the block data to.
+ */
+Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, u8* outData);
+
+/**
+ * @brief Gets a config info block with flags = 8.
+ * @param size Size of the data to retrieve.
+ * @param blkID ID of the block to retrieve.
+ * @param outData Pointer to write the block data to.
+ */
+Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, u8* outData);
+
+/**
+ * @brief Sets a config info block with flags = 4.
+ * @param size Size of the data to retrieve.
+ * @param blkID ID of the block to retrieve.
+ * @param inData Pointer to block data to write.
+ */
+Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, u8* inData);
+
+/**
+ * @brief Sets a config info block with flags = 8.
+ * @param size Size of the data to retrieve.
+ * @param blkID ID of the block to retrieve.
+ * @param inData Pointer to block data to write.
+ */
+Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, u8* inData);
+
+
+/**
+ * @brief Writes the CFG buffer in memory to the savegame in NAND.
+ */
+Result CFG_UpdateConfigNANDSavegame(void);
 
 /**
  * @brief Gets the system's language.
