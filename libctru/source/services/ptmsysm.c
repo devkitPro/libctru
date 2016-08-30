@@ -24,6 +24,17 @@ void ptmSysmExit(void)
 	svcCloseHandle(ptmSysmHandle);
 }
 
+Result PTMSYSM_CheckNew3DS(void)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x040A,0,0); // 0x040A0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return 0;
+
+	return (Result)cmdbuf[1];
+}
+
 Result PTMSYSM_ConfigureNew3DSCPU(u8 value)
 {
 	Result ret;
@@ -37,3 +48,29 @@ Result PTMSYSM_ConfigureNew3DSCPU(u8 value)
 	return (Result)cmdbuf[1];
 }
 
+Result PTMSYSM_ShutdownAsync(u64 timeout)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x407,3,0); // 0x040700C0
+	cmdbuf[1] = 0;
+	cmdbuf[2] = timeout & 0xffffffff;
+	cmdbuf[3] = (timeout >> 32) & 0xffffffff;
+
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result PTMSYSM_RebootAsync(u64 timeout)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x409,2,0); // 0x04090080
+	cmdbuf[1] = timeout & 0xffffffff;
+	cmdbuf[2] = (timeout >> 32) & 0xffffffff;
+
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
