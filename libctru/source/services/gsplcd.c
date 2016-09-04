@@ -52,7 +52,7 @@ Result GSPLCD_PowerOffBacklight(u32 screen)
 	return cmdbuf[1];
 }
 
-Result GSPLCD_GetVendor(void)
+Result GSPLCD_GetVendors(u8 *vendors)
 {
     u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -60,7 +60,9 @@ Result GSPLCD_GetVendor(void)
 
 	Result ret=0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
+    
+    if(vendors) *vendors = cmdbuf[2] & 0xFF;
 
-	return cmdbuf[2];
+	return cmdbuf[1];
 }
 

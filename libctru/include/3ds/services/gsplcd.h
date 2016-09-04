@@ -33,5 +33,6 @@ Result GSPLCD_PowerOffBacklight(u32 screen);
 
 /**
  * @brief Gets the LCD screens' vendors. Stubbed on old 3ds.
+ * @param vendor Pointer to output the screen vendors to.
  */
-Result GSPLCD_GetVendor(void);
+Result GSPLCD_GetVendors(u8 *vendors);
