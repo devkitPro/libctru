@@ -60,8 +60,8 @@ Result GSPLCD_GetVendors(u8 *vendors)
 
 	Result ret=0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
-    
-    if(vendors) *vendors = cmdbuf[2] & 0xFF;
+	
+	if(vendors) *vendors = cmdbuf[2] & 0xFF;
 
 	return cmdbuf[1];
 }
