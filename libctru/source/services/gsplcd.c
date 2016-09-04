@@ -52,3 +52,17 @@ Result GSPLCD_PowerOffBacklight(u32 screen)
 	return cmdbuf[1];
 }
 
+Result GSPLCD_GetVendors(u8 *vendors)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x14,0,0); // 0x140000
+
+	Result ret=0;
+	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
+	
+	if(vendors) *vendors = cmdbuf[2] & 0xFF;
+
+	return cmdbuf[1];
+}
+
