@@ -54,7 +54,7 @@ Result GSPLCD_PowerOffBacklight(u32 screen)
 
 Result GSPLCD_GetVendors(u8 *vendors)
 {
-    u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x14,0,0); // 0x140000
 
