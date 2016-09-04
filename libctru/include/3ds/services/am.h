@@ -439,3 +439,6 @@ Result AM_ImportCertificate(u32 certSize, void* cert);
  * @param titleIds Title IDs to finalize.
  */
 Result AM_CommitImportTitlesAndUpdateFirmwareAuto(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);
+
+/// Resets play count of all installed demos by deleting their launch info.
+Result AM_DeleteAllDemoLaunchInfos(void);
