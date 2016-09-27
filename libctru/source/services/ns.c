@@ -25,6 +25,20 @@ void nsExit(void)
 	svcCloseHandle(nsHandle);
 }
 
+Result NS_LaunchFIRM(u64 titleid)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1,3,0); // 0x100C0
+	cmdbuf[1] = titleid & 0xffffffff;
+	cmdbuf[2] = (titleid >> 32) & 0xffffffff;
+	
+	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
+	
+	return (Result)cmdbuf[1];
+}
+
 Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid)
 {
 	Result ret = 0;
@@ -38,6 +52,21 @@ Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid)
 	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
 
 	if(procid != NULL) *procid = cmdbuf[2];
+	
+	return (Result)cmdbuf[1];
+}
+
+Result NS_LaunchApplicationFIRM(u64 titleid, u32 flags)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x5,3,0); // 0x500C0
+	cmdbuf[1] = titleid & 0xffffffff;
+	cmdbuf[2] = (titleid >> 32) & 0xffffffff;
+	cmdbuf[3] = flags;
+	
+	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
 	
 	return (Result)cmdbuf[1];
 }
