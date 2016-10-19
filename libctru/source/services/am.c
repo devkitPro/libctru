@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/svc.h>
@@ -7,6 +8,7 @@
 #include <3ds/synchronization.h>
 #include <3ds/services/am.h>
 #include <3ds/ipc.h>
+#include <3ds/util/utf.h>
 
 static Handle amHandle;
 static int amRefCount;
@@ -196,6 +198,77 @@ Result AM_GetDeviceId(u32 *deviceID)
 
 	if(deviceID) *deviceID = cmdbuf[3];
 	
+	return (Result)cmdbuf[1];
+}
+
+Result AM_ExportTwlBackup(u64 titleID, u8 operation, void* workbuf, u32 workbuf_size, const char *filepath)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	size_t len=255;
+	ssize_t units=0;
+	uint16_t filepath16[256];
+
+	memset(filepath16, 0, sizeof(filepath16));
+	units = utf8_to_utf16(filepath16, (uint8_t*)filepath, len);
+	if(units < 0 || units > len)return -2;
+	len = (units+1)*2;
+
+	cmdbuf[0] = IPC_MakeHeader(0x1B,5,4); // 0x001B0144
+	cmdbuf[1] = titleID & 0xffffffff;
+	cmdbuf[2] = (u32)(titleID >> 32);
+	cmdbuf[3] = len;
+	cmdbuf[4] = workbuf_size;
+	cmdbuf[5] = operation;
+	cmdbuf[6] = IPC_Desc_Buffer(len,IPC_BUFFER_R);
+	cmdbuf[7] = (u32)filepath16;
+	cmdbuf[8] = IPC_Desc_Buffer(workbuf_size,IPC_BUFFER_W);
+	cmdbuf[9] = (u32)workbuf;
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result AM_ImportTwlBackup(Handle filehandle, u8 operation, void* buffer, u32 size)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1C,2,4); // 0x001C0084
+	cmdbuf[1] = size;
+	cmdbuf[2] = operation;
+	cmdbuf[3] = IPC_Desc_MoveHandles(1);
+	cmdbuf[4] = filehandle;
+	cmdbuf[5] = IPC_Desc_Buffer(size,IPC_BUFFER_W);
+	cmdbuf[6] = (u32)buffer;
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result AM_ReadTwlBackupInfo(Handle filehandle, void* outinfo, u32 outinfo_size, void* workbuf, u32 workbuf_size, void* banner, u32 banner_size)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1E,3,8); // 0x001E00C8
+	cmdbuf[1] = outinfo_size;
+	cmdbuf[2] = workbuf_size;
+	cmdbuf[3] = banner_size;
+	cmdbuf[4] = IPC_Desc_MoveHandles(1);
+	cmdbuf[5] = filehandle;
+	cmdbuf[6] = IPC_Desc_Buffer(outinfo_size,IPC_BUFFER_W);
+	cmdbuf[7] = (u32)outinfo;
+	cmdbuf[8] = IPC_Desc_Buffer(workbuf_size,IPC_BUFFER_W);
+	cmdbuf[9] = (u32)workbuf;
+	cmdbuf[10] = IPC_Desc_Buffer(banner_size,IPC_BUFFER_W);
+	cmdbuf[11] = (u32)banner;
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
 	return (Result)cmdbuf[1];
 }
 
