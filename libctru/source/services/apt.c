@@ -152,7 +152,7 @@ static void aptInitCaptureInfo(aptCaptureBufInfo* capinfo)
 	GSPGPU_ImportDisplayCaptureInfo(&gspcapinfo);
 
 	// Fill in display-capture info for NS.
-	capinfo->is3D = gspcapinfo.screencapture[0].framebuf0_vaddr != gspcapinfo.screencapture[0].framebuf1_vaddr;
+	capinfo->is3D = (gspcapinfo.screencapture[0].format & 0x20) != 0;
 	
 	capinfo->top.format    = gspcapinfo.screencapture[0].format & 0x7;
 	capinfo->bottom.format = gspcapinfo.screencapture[1].format & 0x7;
