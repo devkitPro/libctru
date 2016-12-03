@@ -337,7 +337,7 @@ ssize_t con_write(struct _reent *r,int fd,const char *ptr, size_t len) {
 							parameter = 0;
 							if (escapelen == 1) {
 								consumed = 1;
-							} else if (strchr(escapeseq,';')) {
+							} else if (memchr(escapeseq,';',escapelen)) {
 								sscanf(escapeseq,"%d;%n", &parameter, &consumed);
 							} else {
 								sscanf(escapeseq,"%dm%n", &parameter, &consumed);
