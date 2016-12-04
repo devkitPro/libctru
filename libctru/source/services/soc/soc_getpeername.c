@@ -29,10 +29,10 @@ int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	staticbufs[1] = (u32)tmpaddr;
 
 	ret = svcSendSyncRequest(SOCU_handle);
-	
+
 	staticbufs[0] = saved_threadstorage[0];
 	staticbufs[1] = saved_threadstorage[1];
-	
+
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;

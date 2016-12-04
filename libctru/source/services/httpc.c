@@ -135,7 +135,7 @@ Result httpcCancelConnection(httpcContext *context)
 
 	cmdbuf[0]=IPC_MakeHeader(0x4,1,0); // 0x40040
 	cmdbuf[1]=context->httphandle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__httpc_servhandle)))return ret;
 
@@ -181,7 +181,7 @@ static Result HTTPC_Initialize(Handle handle, u32 sharedmem_size, Handle sharedm
 	cmdbuf[2]=IPC_Desc_CurProcessHandle();
 	cmdbuf[4]=IPC_Desc_SharedHandles(1);
 	cmdbuf[5]=sharedmem_handle;// POST buffer memory block handle
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
@@ -210,10 +210,10 @@ static Result HTTPC_CreateContext(Handle handle, HTTPC_RequestMethod method, con
 	cmdbuf[2]=method;
 	cmdbuf[3]=IPC_Desc_Buffer(l,IPC_BUFFER_R);
 	cmdbuf[4]=(u32)url;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
-	
+
 	if(contextHandle)*contextHandle=cmdbuf[2];
 
 	return cmdbuf[1];
@@ -226,7 +226,7 @@ static Result HTTPC_InitializeConnectionSession(Handle handle, Handle contextHan
 	cmdbuf[0]=IPC_MakeHeader(0x8,1,2); // 0x80042
 	cmdbuf[1]=contextHandle;
 	cmdbuf[2]=IPC_Desc_CurProcessHandle();
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
@@ -239,7 +239,7 @@ static Result HTTPC_SetProxyDefault(Handle handle, Handle contextHandle)
 
 	cmdbuf[0]=IPC_MakeHeader(0xE,1,0); // 0xE0040
 	cmdbuf[1]=contextHandle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
@@ -252,7 +252,7 @@ static Result HTTPC_CloseContext(Handle handle, Handle contextHandle)
 
 	cmdbuf[0]=IPC_MakeHeader(0x3,1,0); // 0x30040
 	cmdbuf[1]=contextHandle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
 
@@ -274,7 +274,7 @@ Result httpcAddRequestHeaderField(httpcContext *context, const char* name, const
 	cmdbuf[5]=(u32)name;
 	cmdbuf[6]=IPC_Desc_Buffer(value_len,IPC_BUFFER_R);
 	cmdbuf[7]=(u32)value;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -296,7 +296,7 @@ Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char
 	cmdbuf[5]=(u32)name;
 	cmdbuf[6]=IPC_Desc_Buffer(value_len,IPC_BUFFER_R);
 	cmdbuf[7]=(u32)value;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -327,7 +327,7 @@ Result httpcBeginRequest(httpcContext *context)
 
 	cmdbuf[0]=IPC_MakeHeader(0x9,1,0); // 0x90040
 	cmdbuf[1]=context->httphandle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -343,7 +343,7 @@ Result httpcReceiveData(httpcContext *context, u8* buffer, u32 size)
 	cmdbuf[2]=size;
 	cmdbuf[3]=IPC_Desc_Buffer(size,IPC_BUFFER_W);
 	cmdbuf[4]=(u32)buffer;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -361,7 +361,7 @@ Result httpcReceiveDataTimeout(httpcContext *context, u8* buffer, u32 size, u64 
 	cmdbuf[4]=(timeout >> 32) & 0xffffffff;
 	cmdbuf[5]=IPC_Desc_Buffer(size,IPC_BUFFER_W);
 	cmdbuf[6]=(u32)buffer;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -374,7 +374,7 @@ Result httpcGetRequestState(httpcContext *context, HTTPC_RequestStatus* out)
 
 	cmdbuf[0]=IPC_MakeHeader(0x5,1,0); // 0x50040
 	cmdbuf[1]=context->httphandle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -389,7 +389,7 @@ Result httpcGetDownloadSizeState(httpcContext *context, u32* downloadedsize, u32
 
 	cmdbuf[0]=IPC_MakeHeader(0x6,1,0); // 0x60040
 	cmdbuf[1]=context->httphandle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -425,7 +425,7 @@ Result httpcGetResponseStatusCode(httpcContext *context, u32* out)
 
 	cmdbuf[0]=IPC_MakeHeader(0x22,1,0); // 0x220040
 	cmdbuf[1]=context->httphandle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -443,7 +443,7 @@ Result httpcGetResponseStatusCodeTimeout(httpcContext *context, u32* out, u64 ti
 	cmdbuf[1]=context->httphandle;
 	cmdbuf[2]=timeout & 0xffffffff;
 	cmdbuf[3]=(timeout >> 32) & 0xffffffff;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 

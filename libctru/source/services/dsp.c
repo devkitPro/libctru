@@ -152,9 +152,9 @@ Result DSP_ReadPipeIfPossible(u32 channel, u32 peer, void* buffer, u16 length, u
 
 	staticbufs[0] = saved1;
 	staticbufs[1] = saved2;
-	
+
 	if (R_FAILED(ret)) return ret;
-	
+
 	if (length_read)
 		*length_read = cmdbuf[2] & 0xFFFF;
 	return cmdbuf[1];

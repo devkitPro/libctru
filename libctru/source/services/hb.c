@@ -36,7 +36,7 @@ Result HB_FlushInvalidateCache(void)
 	cmdbuf[3] = CUR_PROCESS_HANDLE;
 
 	if(R_FAILED(ret = svcSendSyncRequest(hbHandle))) return ret;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -51,7 +51,7 @@ Result HB_GetBootloaderAddresses(void** load3dsx, void** setArgv)
 
 	if(load3dsx)*load3dsx=(void*)cmdbuf[2];
 	if(setArgv)*setArgv=(void*)cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -72,6 +72,6 @@ Result HB_ReprotectMemory(u32* addr, u32 pages, u32 mode, u32* reprotectedPages)
 		if(R_SUCCEEDED(ret))*reprotectedPages=(u32)cmdbuf[2];
 		else *reprotectedPages=0;
 	}
-	
+
 	return (Result)cmdbuf[1];
 }

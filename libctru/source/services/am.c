@@ -62,7 +62,7 @@ Result AM_GetTitleCount(FS_MediaType mediatype, u32 *count)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(count) *count = cmdbuf[2];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -78,7 +78,7 @@ Result AM_GetTitleList(u32* titlesRead, FS_MediaType mediatype, u32 titleCount, 
 	cmdbuf[4] = (u32)titleIds;
 
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
-	
+
 	if(titlesRead) *titlesRead = cmdbuf[2];
 
 	return (Result)cmdbuf[1];
@@ -112,7 +112,7 @@ Result AM_GetTicketCount(u32 *count)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(count) *count = cmdbuf[2];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -128,7 +128,7 @@ Result AM_GetTicketList(u32 *ticketsRead, u32 ticketCount, u32 skip, u64 *ticket
 	cmdbuf[4] = (u32)ticketIds;
 
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
-	
+
 	if(ticketsRead) *ticketsRead = cmdbuf[2];
 
 	return (Result)cmdbuf[1];
@@ -146,7 +146,7 @@ Result AM_GetPendingTitleCount(u32 *count, FS_MediaType mediatype, u32 statusMas
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(count) *count = cmdbuf[2];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -163,7 +163,7 @@ Result AM_GetPendingTitleList(u32 *titlesRead, u32 titleCount, FS_MediaType medi
 	cmdbuf[5] = (u32)titleIds;
 
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
-	
+
 	if(titlesRead) *titlesRead = cmdbuf[2];
 
 	return (Result)cmdbuf[1];
@@ -197,7 +197,7 @@ Result AM_GetDeviceId(u32 *deviceID)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(deviceID) *deviceID = cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -297,7 +297,7 @@ Result AM_StartCiaInstall(FS_MediaType mediatype, Handle *ciaHandle)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(ciaHandle) *ciaHandle = cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -311,7 +311,7 @@ Result AM_StartDlpChildCiaInstall(Handle *ciaHandle)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(ciaHandle) *ciaHandle = cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -458,12 +458,12 @@ Result AM_GetTitleProductCode(FS_MediaType mediatype, u64 titleId, char *product
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x5,3,0); // 0x000500C0
 	cmdbuf[1] = mediatype;
 	cmdbuf[2] = titleId & 0xffffffff;
 	cmdbuf[3] = (u32)(titleId >> 32);
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	// The product code string can use the full 16 bytes without NULL terminator
@@ -476,12 +476,12 @@ Result AM_GetTitleExtDataId(u64 *extDataId, FS_MediaType mediatype, u64 titleId)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x6,3,0); // 0x000600C0
 	cmdbuf[1] = mediatype;
 	cmdbuf[2] = titleId & 0xffffffff;
 	cmdbuf[3] = (u32)(titleId >> 32);
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(extDataId) *extDataId = (u64)cmdbuf[2] | ((u64)cmdbuf[3] << 32);
@@ -493,7 +493,7 @@ Result AM_GetCiaFileInfo(FS_MediaType mediatype, AM_TitleEntry *titleEntry, Hand
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x408,1,2); // 0x04080042
 	cmdbuf[1] = mediatype;
 	cmdbuf[2] = IPC_Desc_SharedHandles(1);
@@ -594,7 +594,7 @@ Result AM_GetCiaMetaSection(void *meta, u32 size, Handle fileHandle)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x414,1,4); // 0x04140044
 	cmdbuf[1] = size;
 	cmdbuf[2] = IPC_Desc_SharedHandles(1);
@@ -648,7 +648,7 @@ Result AM_InstallTicketBegin(Handle *ticketHandle)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(ticketHandle) *ticketHandle = cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -775,7 +775,7 @@ Result AM_InstallTmdBegin(Handle *tmdHandle)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(tmdHandle) *tmdHandle = cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -834,7 +834,7 @@ Result AM_InstallContentBegin(Handle *contentHandle, u16 index)
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
 	if(contentHandle) *contentHandle = cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -864,7 +864,7 @@ Result AM_InstallContentResume(Handle *contentHandle, u64* resumeOffset, u16 ind
 
 	if(contentHandle) *contentHandle = cmdbuf[5];
 	if(resumeOffset) *resumeOffset = cmdbuf[2] | ((u64)cmdbuf[3] << 32);
-	
+
 	return (Result)cmdbuf[1];
 }
 

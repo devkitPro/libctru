@@ -45,7 +45,7 @@ static Result sslcipc_Initialize(void)
 
 	cmdbuf[0]=IPC_MakeHeader(0x1,0,2); // 0x10002
 	cmdbuf[1]=IPC_Desc_CurProcessHandle();
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(__sslc_servhandle)))return ret;
 
@@ -235,7 +235,7 @@ static Result sslcipc_InitializeConnectionSession(sslcContext *context)
 	cmdbuf[0]=IPC_MakeHeader(0x12,1,2); // 0x120042
 	cmdbuf[1]=context->sslchandle;
 	cmdbuf[2]=IPC_Desc_CurProcessHandle();
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 
@@ -371,7 +371,7 @@ static Result sslcipc_ContextInitSharedmem(sslcContext *context, u32 size)
 	cmdbuf[2]=size;
 	cmdbuf[3]=IPC_Desc_SharedHandles(1);
 	cmdbuf[4]=context->sharedmem_handle;
-	
+
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
 

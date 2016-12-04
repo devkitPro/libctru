@@ -33,10 +33,10 @@ ssize_t socuipc_cmd7(int sockfd, void *buf, size_t len, int flags, struct sockad
 	staticbufs[1] = (u32)tmpaddr;
 
 	ret = svcSendSyncRequest(SOCU_handle);
-	
+
 	staticbufs[0] = saved_threadstorage[0];
 	staticbufs[1] = saved_threadstorage[1];
-	
+
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return -1;
@@ -64,7 +64,7 @@ ssize_t socuipc_cmd7(int sockfd, void *buf, size_t len, int flags, struct sockad
 ssize_t socuipc_cmd8(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)
 {
 	int ret = 0;
-	u32 *cmdbuf = getThreadCommandBuffer();	
+	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 tmp_addrlen = 0;
 	u8 tmpaddr[0x1c];
 	u32 saved_threadstorage[4];
@@ -85,7 +85,7 @@ ssize_t socuipc_cmd8(int sockfd, void *buf, size_t len, int flags, struct sockad
 	saved_threadstorage[1] = cmdbuf[0x104>>2];
 	saved_threadstorage[2] = cmdbuf[0x108>>2];
 	saved_threadstorage[3] = cmdbuf[0x10c>>2];
-	
+
 	cmdbuf[0x100>>2] = (((u32)len)<<14) | 2;
 	cmdbuf[0x104>>2] = (u32)buf;
 	cmdbuf[0x108>>2] = (tmp_addrlen<<14) | 2;

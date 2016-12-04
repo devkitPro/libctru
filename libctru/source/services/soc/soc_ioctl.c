@@ -29,7 +29,7 @@ int ioctl(int sockfd, int request, ...)
 		}
 
 		flags = fcntl(sockfd, F_GETFL, 0);
-		if(flags == -1)	
+		if(flags == -1)
 			return -1;
 
 		if(*value)

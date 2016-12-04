@@ -121,7 +121,7 @@ static Result NFC_Initialize(NFC_OpType type)
 
 	cmdbuf[0]=IPC_MakeHeader(0x1,1,0); // 0x10040
 	cmdbuf[1]=type & 0xff;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -135,7 +135,7 @@ static Result NFC_Shutdown(NFC_OpType type)
 
 	cmdbuf[0]=IPC_MakeHeader(0x2,1,0); // 0x20040
 	cmdbuf[1]=type & 0xff;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -148,7 +148,7 @@ static Result NFC_StartCommunication(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x3,0,0); // 0x30000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -161,7 +161,7 @@ static Result NFC_StopCommunication(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x4,0,0); // 0x40000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -175,7 +175,7 @@ static Result NFC_StartTagScanning(u16 unknown)
 
 	cmdbuf[0]=IPC_MakeHeader(0x5,1,0); // 0x50040
 	cmdbuf[1]=unknown;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -188,7 +188,7 @@ static Result NFC_StopTagScanning(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x6,0,0); // 0x60000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -201,7 +201,7 @@ Result nfcLoadAmiiboData(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x7,0,0); // 0x70000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -214,7 +214,7 @@ Result nfcResetTagScanState(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x8,0,0); // 0x80000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -228,7 +228,7 @@ Result nfcUpdateStoredAmiiboData(void)
 
 	cmdbuf[0]=IPC_MakeHeader(0x9,0,2); // 0x90002
 	cmdbuf[1]=IPC_Desc_CurProcessHandle();
-	
+
 	if(R_FAILED(ret=svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -241,7 +241,7 @@ Result nfcGetTagState(NFC_TagState *state)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0xD,0,0); // 0xD0000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -256,7 +256,7 @@ static Result NFC_CommunicationGetStatus(u8 *out)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0xF,0,0); // 0xF0000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -271,7 +271,7 @@ Result nfcGetTagInfo(NFC_TagInfo *out)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x11,0,0); // 0x110000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -286,7 +286,7 @@ static Result NFC_CommunicationGetResult(Result *out)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x12,0,0); // 0x120000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -302,7 +302,7 @@ Result nfcOpenAppData(u32 amiibo_appid)
 
 	cmdbuf[0]=IPC_MakeHeader(0x13,1,0); // 0x130040
 	cmdbuf[1]=amiibo_appid;
-	
+
 	if(R_FAILED(ret=svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -397,7 +397,7 @@ Result nfcGetAmiiboSettings(NFC_AmiiboSettings *out)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x17,0,0); // 0x170000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -412,7 +412,7 @@ Result nfcGetAmiiboConfig(NFC_AmiiboConfig *out)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x18,0,0); // 0x180000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 
@@ -427,7 +427,7 @@ static Result NFC_GetAppDataInitStruct(NFC_AppDataInitStruct *out)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x19,0,0); // 0x190000
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
 

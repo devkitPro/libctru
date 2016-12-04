@@ -109,7 +109,7 @@ u32 irrstCheckSectionUpdateTime(vu32 *sharedmem_section, u32 id)
 void irrstScanInput(void)
 {
 	if(irrstRefCount==0)return;
-	
+
 	u32 Id=0;
 	kHeld = 0;
 	memset(&csPos, 0, sizeof(circlePosition));

@@ -38,9 +38,9 @@ int SOCU_GetNetworkOpt(int level, NetworkOpt optname, void * optval, socklen_t *
 	{
 		errno = SYNC_ERROR;
 		return ret;
-	
+
 	}
-	
+
 	ret = _net_convert_error(cmdbuf[2]);
 
 	if(ret < 0) {

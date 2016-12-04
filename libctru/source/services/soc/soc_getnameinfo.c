@@ -57,7 +57,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host, socklen_
 	if(R_FAILED(ret)) {
 		errno = SYNC_ERROR;
 		return ret;
-	}	
+	}
 
 	ret = cmdbuf[1];
 	if(R_FAILED(ret)) {

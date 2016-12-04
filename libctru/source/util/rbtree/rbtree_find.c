@@ -25,6 +25,6 @@ rbtree_find(const rbtree_t      *tree,
       tmp = tmp->child[LEFT];
     }
   }
- 
+
   return save;
 }

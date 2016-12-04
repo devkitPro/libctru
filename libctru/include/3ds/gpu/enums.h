@@ -202,7 +202,7 @@ typedef enum
 	GPU_WRITE_BLUE  = 0x04, ///< Write blue.
 	GPU_WRITE_ALPHA = 0x08, ///< Write alpha.
 	GPU_WRITE_DEPTH = 0x10, ///< Write depth.
-	
+
 	GPU_WRITE_COLOR = 0x0F, ///< Write all color components.
 	GPU_WRITE_ALL   = 0x1F, ///< Write all components.
 } GPU_WRITEMASK;

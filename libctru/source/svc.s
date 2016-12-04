@@ -69,11 +69,11 @@ SVC_BEGIN svcGetThreadPriority
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
-	
+
 SVC_BEGIN svcSetThreadPriority
 	svc 0x0C
 	bx  lr
-	
+
 SVC_BEGIN svcGetThreadAffinityMask
 	svc 0x0D
 	bx  lr
@@ -81,14 +81,14 @@ SVC_BEGIN svcGetThreadAffinityMask
 SVC_BEGIN svcSetThreadAffinityMask
 	svc 0x0E
 	bx  lr
-	
+
 SVC_BEGIN svcGetThreadIdealProcessor
 	str r0, [sp, #-0x4]!
 	svc 0x0F
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
-	
+
 SVC_BEGIN svcSetThreadIdealProcessor
 	svc 0x10
 	bx  lr
@@ -281,7 +281,7 @@ SVC_BEGIN svcOpenThread
 	pop {r2}
 	str r1, [r2]
 	bx  lr
-	
+
 SVC_BEGIN svcGetProcessId
 	str r0, [sp, #-0x4]!
 	svc 0x35
@@ -295,7 +295,7 @@ SVC_BEGIN svcGetProcessIdOfThread
 	ldr r3, [sp], #4
 	str r1, [r3]
 	bx  lr
-	
+
 SVC_BEGIN svcGetThreadId
 	str r0, [sp, #-0x4]!
 	svc 0x37
@@ -407,7 +407,7 @@ SVC_BEGIN svcTerminateDebugProcess
 SVC_BEGIN svcGetProcessDebugEvent
 	svc 0x63
 	bx  lr
-	
+
 SVC_BEGIN svcContinueDebugEvent
 	svc 0x64
 	bx  lr

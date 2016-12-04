@@ -548,7 +548,7 @@ sdmc_write_safe(struct _reent *r,
     memcpy(tmp_buffer, ptr, toWrite);
 
     /* write the data */
-    rc = FSFILE_Write(file->fd, &bytes, file->offset, 
+    rc = FSFILE_Write(file->fd, &bytes, file->offset,
                       (u32*)tmp_buffer, (u32)toWrite, sync);
     if(R_FAILED(rc))
     {

@@ -29,7 +29,7 @@ typedef enum
 	OUTPUT_RGB_32     = 0x0, ///< 32-bit RGBA8888. The alpha component is the 8-bit value set by @ref Y2RU_SetAlpha
 	OUTPUT_RGB_24     = 0x1, ///< 24-bit RGB888.
 	OUTPUT_RGB_16_555 = 0x2, ///< 16-bit RGBA5551. The alpha bit is the 7th bit of the alpha value set by @ref Y2RU_SetAlpha
-	OUTPUT_RGB_16_565 = 0x3, ///< 16-bit RGB565. 
+	OUTPUT_RGB_16_565 = 0x3, ///< 16-bit RGB565.
 } Y2RU_OutputFormat;
 
 /// Rotation to be applied to the output.

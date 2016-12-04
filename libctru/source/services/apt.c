@@ -153,7 +153,7 @@ static void aptInitCaptureInfo(aptCaptureBufInfo* capinfo)
 
 	// Fill in display-capture info for NS.
 	capinfo->is3D = (gspcapinfo.screencapture[0].format & 0x20) != 0;
-	
+
 	capinfo->top.format    = gspcapinfo.screencapture[0].format & 0x7;
 	capinfo->bottom.format = gspcapinfo.screencapture[1].format & 0x7;
 
@@ -555,7 +555,7 @@ Result APT_GetLockHandle(u16 flags, Handle* lockHandle)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x1,1,0); // 0x10040
 	cmdbuf[1]=flags;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 		*lockHandle = cmdbuf[5];
@@ -569,7 +569,7 @@ Result APT_Initialize(NS_APPID appId, APT_AppletAttr attr, Handle* signalEvent, 
 	cmdbuf[0]=IPC_MakeHeader(0x2,2,0); // 0x20080
 	cmdbuf[1]=appId;
 	cmdbuf[2]=attr;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 	{
@@ -585,7 +585,7 @@ Result APT_Finalize(NS_APPID appId)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x4,1,0); // 0x40040
 	cmdbuf[1]=appId;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -593,7 +593,7 @@ Result APT_HardwareResetAsync(void)
 {
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x4E,0,0); // 0x4E0000
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -602,7 +602,7 @@ Result APT_Enable(APT_AppletAttr attr)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x3,1,0); // 0x30040
 	cmdbuf[1]=attr;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -611,7 +611,7 @@ Result APT_GetAppletManInfo(APT_AppletPos inpos, APT_AppletPos* outpos, NS_APPID
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x5,1,0); // 0x50040
 	cmdbuf[1]=inpos;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 	{
@@ -620,7 +620,7 @@ Result APT_GetAppletManInfo(APT_AppletPos inpos, APT_AppletPos* outpos, NS_APPID
 		if (menu_appid)   *menu_appid  =cmdbuf[4];
 		if (active_appid) *active_appid=cmdbuf[5];
 	}
-	
+
 	return ret;
 }
 
@@ -662,7 +662,7 @@ Result APT_GetProgramID(u64* pProgramID)
 	u32 cmdbuf[16];
 	cmdbuf[0] = IPC_MakeHeader(0x58,0,2); // 0x580002
 	cmdbuf[1] = IPC_Desc_CurProcessHandle();
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 		*pProgramID=((u64)cmdbuf[3]<<32)|cmdbuf[2];
@@ -675,7 +675,7 @@ Result APT_IsRegistered(NS_APPID appID, bool* out)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x9,1,0); // 0x90040
 	cmdbuf[1]=appID;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 		*out=cmdbuf[2] & 0xFF;
@@ -688,7 +688,7 @@ Result APT_InquireNotification(u32 appID, APT_Signal* signalType)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0xB,1,0); // 0xB0040
 	cmdbuf[1]=appID;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 	{
@@ -703,7 +703,7 @@ Result APT_PrepareToJumpToHomeMenu(void)
 {
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x2B,0,0); // 0x2B0000
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -738,7 +738,7 @@ Result APT_JumpToApplication(const void* param, size_t paramSize, Handle handle)
 	cmdbuf[3]=handle;
 	cmdbuf[4]=IPC_Desc_StaticBuffer(cmdbuf[1],0);
 	cmdbuf[5]= (u32) param;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -747,7 +747,7 @@ Result APT_NotifyToWait(NS_APPID appID)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x43,1,0); // 0x430040
 	cmdbuf[1]=appID;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -767,7 +767,7 @@ Result APT_AppletUtility(int id, void* out, size_t outSize, const void* in, size
 	saved_threadstorage[1]=staticbufs[1];
 	staticbufs[0]=IPC_Desc_StaticBuffer(cmdbuf[3],0);
 	staticbufs[1]=(u32)out;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	staticbufs[0]=saved_threadstorage[0];
 	staticbufs[1]=saved_threadstorage[1];
@@ -805,7 +805,7 @@ Result APT_GlanceParameter(NS_APPID appID, void* buffer, size_t bufferSize, NS_A
 	saved_threadstorage[1]=staticbufs[1];
 	staticbufs[0]=IPC_Desc_StaticBuffer(cmdbuf[2],0);
 	staticbufs[1]=(u32)buffer;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	staticbufs[0]=saved_threadstorage[0];
 	staticbufs[1]=saved_threadstorage[1];
@@ -835,7 +835,7 @@ Result APT_ReceiveParameter(NS_APPID appID, void* buffer, size_t bufferSize, NS_
 	saved_threadstorage[1]=staticbufs[1];
 	staticbufs[0]=IPC_Desc_StaticBuffer(cmdbuf[2],0);
 	staticbufs[1]=(u32)buffer;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	staticbufs[0]=saved_threadstorage[0];
 	staticbufs[1]=saved_threadstorage[1];
@@ -865,10 +865,10 @@ Result APT_SendParameter(NS_APPID source, NS_APPID dest, APT_Command command, co
 
 	cmdbuf[5] = IPC_Desc_SharedHandles(1);
 	cmdbuf[6] = parameter;
-	
+
 	cmdbuf[7] = IPC_Desc_StaticBuffer(cmdbuf[4],0);
 	cmdbuf[8] = (u32)buffer;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -897,7 +897,7 @@ Result APT_SendCaptureBufferInfo(const aptCaptureBufInfo* captureBuf)
 	cmdbuf[1] = sizeof(*captureBuf);
 	cmdbuf[2] = IPC_Desc_StaticBuffer(cmdbuf[1],0);
 	cmdbuf[3] = (u32)captureBuf;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -907,7 +907,7 @@ Result APT_ReplySleepQuery(NS_APPID appID, APT_QueryReply reply)
 	cmdbuf[0]=IPC_MakeHeader(0x3E,2,0); // 0x3E0080
 	cmdbuf[1]=appID;
 	cmdbuf[2]=reply;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -916,7 +916,7 @@ Result APT_ReplySleepNotificationComplete(NS_APPID appID)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x3F,1,0); // 0x3F0040
 	cmdbuf[1]=appID;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -925,7 +925,7 @@ Result APT_PrepareToCloseApplication(bool cancelPreload)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x22,1,0); // 0x220040
 	cmdbuf[1]=cancelPreload;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -938,7 +938,7 @@ Result APT_CloseApplication(const void* param, size_t paramSize, Handle handle)
 	cmdbuf[3]=handle;
 	cmdbuf[4]=IPC_Desc_StaticBuffer(cmdbuf[1],0);
 	cmdbuf[5]= (u32) param;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -949,7 +949,7 @@ Result APT_SetAppCpuTimeLimit(u32 percent)
 	cmdbuf[0]=IPC_MakeHeader(0x4F,2,0); // 0x4F0080
 	cmdbuf[1]=1;
 	cmdbuf[2]=percent;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -958,7 +958,7 @@ Result APT_GetAppCpuTimeLimit(u32 *percent)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x50,1,0); // 0x500040
 	cmdbuf[1]=1;
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 		*percent=cmdbuf[2];
@@ -970,7 +970,7 @@ static Result APT_CheckNew3DS_System(bool* out)
 {
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x102,0,0); // 0x1020000
-	
+
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
 		*out = cmdbuf[2] & 0xFF;
@@ -1001,7 +1001,7 @@ Result APT_PrepareToDoApplicationJump(u8 flags, u64 programID, u8 mediatype)
 	cmdbuf[2]=(u32)programID;
 	cmdbuf[3]=(u32)(programID>>32);
 	cmdbuf[4]=mediatype;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -1015,7 +1015,7 @@ Result APT_DoApplicationJump(const void* param, size_t paramSize, const void* hm
 	cmdbuf[4]=(u32)param;
 	cmdbuf[5]=IPC_Desc_StaticBuffer(cmdbuf[2],2);
 	cmdbuf[6]=(u32)hmac;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -1024,7 +1024,7 @@ Result APT_PrepareToStartLibraryApplet(NS_APPID appID)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x18,1,0); // 0x180040
 	cmdbuf[1]=appID;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -1038,7 +1038,7 @@ Result APT_StartLibraryApplet(NS_APPID appID, const void* param, size_t paramSiz
 	cmdbuf[4]=handle;
 	cmdbuf[5]=IPC_Desc_StaticBuffer(cmdbuf[2],0);
 	cmdbuf[6]=(u32)param;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -1047,7 +1047,7 @@ Result APT_PrepareToStartSystemApplet(NS_APPID appID)
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x19,1,0); // 0x190040
 	cmdbuf[1]=appID;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 
@@ -1061,7 +1061,7 @@ Result APT_StartSystemApplet(NS_APPID appID, const void* param, size_t paramSize
 	cmdbuf[4] = handle;
 	cmdbuf[5] = IPC_Desc_StaticBuffer(cmdbuf[2],0);
 	cmdbuf[6] = (u32)param;
-	
+
 	return aptSendCommand(cmdbuf);
 }
 

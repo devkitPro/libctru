@@ -37,9 +37,9 @@ Result PM_LaunchTitle(u8 mediatype, u64 titleid, u32 launch_flags)
 	cmdbuf[3] = mediatype;
 	cmdbuf[4] = 0x0;
 	cmdbuf[5] = launch_flags;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(pmHandle)))return ret;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -53,11 +53,11 @@ Result PM_GetTitleExheaderFlags(u8 mediatype, u64 titleid, u8* out)
 	cmdbuf[2] = (titleid >> 32) & 0xffffffff;
 	cmdbuf[3] = mediatype;
 	cmdbuf[4] = 0x0;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(pmHandle)))return ret;
-	
+
 	memcpy(out, (u8*)(&cmdbuf[2]), 8);
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -70,9 +70,9 @@ Result PM_SetFIRMLaunchParams(u32 size, u8* in)
 	cmdbuf[1] = size;
 	cmdbuf[2] = IPC_Desc_Buffer(size,IPC_BUFFER_R);
 	cmdbuf[3] = (u32)in;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(pmHandle)))return ret;
-		
+
 	return (Result)cmdbuf[1];
 }
 
@@ -85,9 +85,9 @@ Result PM_GetFIRMLaunchParams(u32 size, u8* out)
 	cmdbuf[1] = size;
 	cmdbuf[2] = IPC_Desc_Buffer(size,IPC_BUFFER_W);
 	cmdbuf[3] = (u32)out;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(pmHandle)))return ret;
-		
+
 	return (Result)cmdbuf[1];
 }
 
@@ -101,8 +101,8 @@ Result PM_LaunchFIRMSetParams(u32 firm_titleid_low, u32 size, u8* in)
 	cmdbuf[2] = size;
 	cmdbuf[3] = IPC_Desc_Buffer(size,IPC_BUFFER_R);
 	cmdbuf[4] = (u32)in;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(pmHandle)))return ret;
-		
+
 	return (Result)cmdbuf[1];
 }

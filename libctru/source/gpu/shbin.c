@@ -114,7 +114,7 @@ void DVLE_GenerateOutmap(DVLE_s* dvle)
 		int mask = dvle->outTableData[i].mask;
 		int regID = dvle->outTableData[i].regID;
 		u32* out = &dvle->outmapData[regID+1];
-		
+
 		if (!(dvle->outmapMask & BIT(regID)))
 		{
 			dvle->outmapMask |= BIT(regID);

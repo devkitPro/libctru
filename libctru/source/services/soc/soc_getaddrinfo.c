@@ -140,7 +140,7 @@ int getaddrinfo(const char *node, const char *service, const struct addrinfo *hi
 	Result ret;
 	addrinfo_3ds_t *info = NULL, *tmp;
 	s32            count = DEFAULT_NUM_ADDRINFO, info_count;
-	
+
 	if(node == NULL && service == NULL)
 	{
 		return EAI_NONAME;

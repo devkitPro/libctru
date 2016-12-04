@@ -252,7 +252,7 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
 	{
 		ret = MVDSTD_cmd5(tmpinitstruct.cmd5_inval0, tmpinitstruct.cmd5_inval1, tmpinitstruct.cmd5_inval2, tmpinitstruct.cmd5_inval3);
-		if(ret!=MVD_STATUS_OK) goto cleanup3; 
+		if(ret!=MVD_STATUS_OK) goto cleanup3;
 	}
 
 	ret = MVDSTD_cmd18();
@@ -261,7 +261,7 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 	if(mvdstd_mode==MVDMODE_VIDEOPROCESSING)
 	{
 		ret = MVDSTD_cmd1b(tmpinitstruct.cmd1b_inval);
-		if(ret!=MVD_STATUS_OK) goto cleanup3; 
+		if(ret!=MVD_STATUS_OK) goto cleanup3;
 	}
 
 	return 0;

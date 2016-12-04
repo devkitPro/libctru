@@ -122,7 +122,7 @@ Result socExit(void)
 {
 	Result ret = 0;
 	int dev;
-	
+
 	svcCloseHandle(socMemhandle);
 	socMemhandle = 0;
 
@@ -154,7 +154,7 @@ soc_close(struct _reent *r,
           int           fd)
 {
 	Handle sockfd = *(Handle*)fd;
-	
+
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
