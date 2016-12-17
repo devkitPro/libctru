@@ -7,12 +7,12 @@
 /// PS AES algorithms.
 typedef enum
 {
-	PS_ALGORITHM_CBC_ENC, ///< CBC encoding.
-	PS_ALGORITHM_CBC_DEC, ///< CBC decoding.
-	PS_ALGORITHM_CTR_ENC, ///< CTR encoding.
-	PS_ALGORITHM_CTR_DEC, ///< CTR decoding.
-	PS_ALGORITHM_CCM_ENC, ///< CCM encoding.
-	PS_ALGORITHM_CCM_DEC, ///< CCM decoding.
+	PS_ALGORITHM_CBC_ENC, ///< CBC encryption.
+	PS_ALGORITHM_CBC_DEC, ///< CBC decryption.
+	PS_ALGORITHM_CTR_ENC, ///< CTR encryption.
+	PS_ALGORITHM_CTR_DEC, ///< CTR decryption(same as PS_ALGORITHM_CTR_ENC).
+	PS_ALGORITHM_CCM_ENC, ///< CCM encryption.
+	PS_ALGORITHM_CCM_DEC, ///< CCM decryption.
 } PS_AESAlgorithm;
 
 /// PS key slots.
@@ -30,11 +30,44 @@ typedef enum
 	PS_KEYSLOT_39_NFC   ///< Key slot 0x39. (NFC)
 } PS_AESKeyType;
 
+/// RSA context.
+typedef struct {
+	u8 modulo[0x100];
+	u8 exponent[0x100];
+	u32 rsa_bitsize;//The signature byte size is rsa_bitsize>>3.
+	u32 unk;//Normally zero?
+} psRSAContext;
+
 /// Initializes PS.
 Result psInit(void);
 
+/**
+ * @brief Initializes PS with the specified session handle.
+ * @param handle Session handle.
+ */
+Result psInitHandle(Handle handle);
+
 /// Exits PS.
 void psExit(void);
+
+/// Returns the PS session handle.
+Handle psGetSessionHandle();
+
+/**
+ * @brief Signs a RSA signature.
+ * @param hash SHA256 hash to sign.
+ * @param ctx RSA context.
+ * @param signature RSA signature.
+ */
+Result PS_SignRsaSha256(u8 *hash, psRSAContext *ctx, u8 *signature);
+
+/**
+ * @brief Verifies a RSA signature.
+ * @param hash SHA256 hash to compare with.
+ * @param ctx RSA context.
+ * @param signature RSA signature.
+ */
+Result PS_VerifyRsaSha256(u8 *hash, psRSAContext *ctx, u8 *signature);
 
 /**
  * @brief Encrypts/Decrypts AES data. Does not support AES CCM.
@@ -43,7 +76,7 @@ void psExit(void);
  * @param out Output buffer.
  * @param aes_algo AES algorithm to use.
  * @param key_type Key type to use.
- * @param iv Pointer to the CTR/IV.
+ * @param iv Pointer to the CTR/IV. The output CTR/IV is also written here.
  */
 Result PS_EncryptDecryptAes(u32 size, u8* in, u8* out, PS_AESAlgorithm aes_algo, PS_AESKeyType key_type, u8* iv);
 
