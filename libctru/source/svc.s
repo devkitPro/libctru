@@ -233,6 +233,14 @@ SVC_BEGIN svcGetSystemTick
 	svc 0x28
 	bx  lr
 
+SVC_BEGIN svcGetHandleInfo
+	str r0, [sp, #-0x4]!
+	svc 0x29
+	ldr r3, [sp], #4
+	str r1, [r3]
+	str r2, [r3,#4]
+	bx lr
+
 SVC_BEGIN svcGetSystemInfo
 	str r0, [sp, #-0x4]!
 	svc 0x2A
