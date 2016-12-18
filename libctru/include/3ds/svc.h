@@ -898,6 +898,14 @@ Result svcCloseHandle(Handle handle);
 Result svcDuplicateHandle(Handle* out, Handle original);
 
 /**
+ * @brief Gets a handle info.
+ * @param[out] out Pointer to output the handle info to.
+ * @param handle Handle to get the info for.
+ * @param param Parameter clarifying the handle info type.
+ */
+Result svcGetHandleInfo(s64* out, Handle handle, u32 param);
+
+/**
  * @brief Gets the system info.
  * @param[out] out Pointer to output the system info to.
  * @param type Type of system info to retrieve.
@@ -969,5 +977,3 @@ Result svcContinueDebugEvent(Handle debug, u32 flags);
  * @param callback Function to execute.
  */
 Result svcBackdoor(s32 (*callback)(void));
-
-
