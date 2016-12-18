@@ -58,10 +58,10 @@ static bool _romfs_read_chk(romfs_mount *mount, u64 offset, void* buffer, u32 si
 //-----------------------------------------------------------------------------
 
 static int       romfs_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
-static int       romfs_close(struct _reent *r, int fd);
-static ssize_t   romfs_read(struct _reent *r, int fd, char *ptr, size_t len);
-static off_t     romfs_seek(struct _reent *r, int fd, off_t pos, int dir);
-static int       romfs_fstat(struct _reent *r, int fd, struct stat *st);
+static int       romfs_close(struct _reent *r, void *fd);
+static ssize_t   romfs_read(struct _reent *r, void *fd, char *ptr, size_t len);
+static off_t     romfs_seek(struct _reent *r, void *fd, off_t pos, int dir);
+static int       romfs_fstat(struct _reent *r, void *fd, struct stat *st);
 static int       romfs_stat(struct _reent *r, const char *path, struct stat *st);
 static int       romfs_chdir(struct _reent *r, const char *path);
 static DIR_ITER* romfs_diropen(struct _reent *r, DIR_ITER *dirState, const char *path);
@@ -101,7 +101,7 @@ static devoptab_t romFS_devoptab =
 	.dirreset_r   = romfs_dirreset,
 	.dirnext_r    = romfs_dirnext,
 	.dirclose_r   = romfs_dirclose,
-	.deviceData   = NULL,
+	.deviceData   = 0,
 };
 
 //-----------------------------------------------------------------------------
@@ -594,12 +594,12 @@ int romfs_open(struct _reent *r, void *fileStruct, const char *path, int flags, 
 	return 0;
 }
 
-int romfs_close(struct _reent *r, int fd)
+int romfs_close(struct _reent *r, void *fd)
 {
 	return 0;
 }
 
-ssize_t romfs_read(struct _reent *r, int fd, char *ptr, size_t len)
+ssize_t romfs_read(struct _reent *r, void *fd, char *ptr, size_t len)
 {
 	romfs_fileobj* file = (romfs_fileobj*)fd;
 	u64 endPos = file->pos + len;
@@ -624,7 +624,7 @@ ssize_t romfs_read(struct _reent *r, int fd, char *ptr, size_t len)
 	return -1;
 }
 
-off_t romfs_seek(struct _reent *r, int fd, off_t pos, int dir)
+off_t romfs_seek(struct _reent *r, void *fd, off_t pos, int dir)
 {
 	romfs_fileobj* file = (romfs_fileobj*)fd;
 	off_t          start;
@@ -667,7 +667,7 @@ off_t romfs_seek(struct _reent *r, int fd, off_t pos, int dir)
 	return file->pos;
 }
 
-int romfs_fstat(struct _reent *r, int fd, struct stat *st)
+int romfs_fstat(struct _reent *r, void *fd, struct stat *st)
 {
 	romfs_fileobj* file = (romfs_fileobj*)fd;
 	memset(st, 0, sizeof(struct stat));

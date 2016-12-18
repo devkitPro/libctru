@@ -11,10 +11,6 @@
 
 #define SYNC_ERROR ENODEV
 
-int __alloc_handle(size_t size);
-__handle *__get_handle(int fd);
-void __release_handle(int fd);
-
 extern Handle	SOCU_handle;
 extern Handle	socMemhandle;
 

@@ -4,9 +4,9 @@
 #include <3ds/ipc.h>
 
 static int     soc_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
-static int     soc_close(struct _reent *r, int fd);
-static ssize_t soc_write(struct _reent *r, int fd, const char *ptr, size_t len);
-static ssize_t soc_read(struct _reent *r, int fd, char *ptr, size_t len);
+static int     soc_close(struct _reent *r, void *fd);
+static ssize_t soc_write(struct _reent *r, void *fd, const char *ptr, size_t len);
+static ssize_t soc_read(struct _reent *r, void *fd, char *ptr, size_t len);
 
 static devoptab_t
 soc_devoptab =
@@ -33,7 +33,7 @@ soc_devoptab =
   .statvfs_r    = NULL,
   .ftruncate_r  = NULL,
   .fsync_r      = NULL,
-  .deviceData   = NULL,
+  .deviceData   = 0,
   .chmod_r      = NULL,
   .fchmod_r     = NULL,
 };
@@ -151,7 +151,7 @@ soc_open(struct _reent *r,
 
 static int
 soc_close(struct _reent *r,
-          int           fd)
+          void           *fd)
 {
 	Handle sockfd = *(Handle*)fd;
 
@@ -182,7 +182,7 @@ soc_close(struct _reent *r,
 
 static ssize_t
 soc_write(struct _reent *r,
-          int           fd,
+          void          *fd,
           const char    *ptr,
           size_t        len)
 {
@@ -192,7 +192,7 @@ soc_write(struct _reent *r,
 
 static ssize_t
 soc_read(struct _reent *r,
-         int           fd,
+         void          *fd,
          char          *ptr,
          size_t        len)
 {
