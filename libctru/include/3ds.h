@@ -31,6 +31,7 @@ extern "C" {
 #include <3ds/services/am.h>
 #include <3ds/services/ampxi.h>
 #include <3ds/services/apt.h>
+#include <3ds/services/boss.h>
 #include <3ds/services/cam.h>
 #include <3ds/services/cfgnor.h>
 #include <3ds/services/cfgu.h>
