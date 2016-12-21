@@ -7,11 +7,6 @@
 
 #include <3ds/types.h>
 
-/// Used for register dumps.
-typedef struct {
-	u32 r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, cpsr;
-} ERRF_ExceptionContext;
-
 /// Types of errors that can be thrown by err:f.
 typedef enum {
 	ERRF_ERRTYPE_GENERIC      = 0, ///< For generic errors. Shows miscellaneous info.
@@ -19,7 +14,7 @@ typedef enum {
 	ERRF_ERRTYPE_CARD_REMOVED = 2, ///< Displays the "The Game Card was removed." message.
 	ERRF_ERRTYPE_EXCEPTION    = 3, ///< For exceptions, or more specifically 'crashes'. union data should be exception_data.
 	ERRF_ERRTYPE_FAILURE      = 4, ///< For general failure. Shows a message. union data should have a string set in failure_mesg
-	ERRF_ERRTYPE_LOGGED       = 5  ///< Outputs logs to NAND in some cases.
+	ERRF_ERRTYPE_LOGGED       = 5, ///< Outputs logs to NAND in some cases.
 } ERRF_ErrType;
 
 /// Types of 'Exceptions' thrown for ERRF_ERRTYPE_EXCEPTION
@@ -27,7 +22,7 @@ typedef enum {
 	ERRF_EXCEPTION_PREFETCH_ABORT = 0, ///< Prefetch Abort
 	ERRF_EXCEPTION_DATA_ABORT     = 1, ///< Data abort
 	ERRF_EXCEPTION_UNDEFINED      = 2, ///< Undefined instruction
-	ERRF_EXCEPTION_VFP            = 3  ///< VFP (floating point) exception.
+	ERRF_EXCEPTION_VFP            = 3, ///< VFP (floating point) exception.
 } ERRF_ExceptionType;
 
 typedef struct {
@@ -42,7 +37,7 @@ typedef struct {
 
 typedef struct {
 	ERRF_ExceptionInfo excep;   ///< Exception info struct
-	ERRF_ExceptionContext regs; ///< Register dump.
+	CpuRegisters regs;          ///< CPU register dump.
 	u8 pad[4];
 } ERRF_ExceptionData;
 
