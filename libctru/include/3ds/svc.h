@@ -878,20 +878,20 @@ Result svcAcceptSession(Handle* session, Handle port);
 Result svcReplyAndReceive(s32* index, Handle* handles, s32 handleCount, Handle replyTarget);
 
 /**
- * @brief Binds an event handle to an ARM11 interrupt.
+ * @brief Binds an event or semaphore handle to an ARM11 interrupt.
  * @param interruptId Interrupt identfier (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
- * @param event Event handle to bind to the given interrupt.
+ * @param eventOrSemaphore Event or semaphore handle to bind to the given interrupt.
  * @param priority Priority of the interrupt for the current process.
- * @param isManualClear Indicates whether the interrupt has to be manually cleared or not.
+ * @param isManualClear Indicates whether the interrupt has to be manually cleared or not (= level-high active).
  */
-Result svcBindInterrupt(u32 interruptId, Handle event, s32 priority, bool isManualClear);
+Result svcBindInterrupt(u32 interruptId, Handle eventOrSemaphore, s32 priority, bool isManualClear);
 
 /**
- * @brief Unbinds an event handle from an ARM11 interrupt.
+ * @brief Unbinds an event or semaphore handle from an ARM11 interrupt.
  * @param interruptId Interrupt identfier, see (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
- * @param event Event handle to unbind from the given interrupt.
+ * @param eventOrSemaphore Event or semaphore handle to unbind from the given interrupt.
  */
-Result svcUnbindInterrupt(u32 interruptId, Handle event);
+Result svcUnbindInterrupt(u32 interruptId, Handle eventOrSemaphore);
 ///@}
 
 ///@name Time
