@@ -170,6 +170,31 @@ Result bossDeleteTask(char *taskID, u32 unk)
 	return ret;
 }
 
+Result bossGetTaskState(char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 size = strlen(taskID)+1;
+
+	cmdbuf[0] = IPC_MakeHeader(0x20,2,2); // 0x200082
+	cmdbuf[1] = size;
+	cmdbuf[2] = inval;
+	cmdbuf[3] = IPC_Desc_Buffer(size, IPC_BUFFER_R);
+	cmdbuf[4] = (u32)taskID;
+
+	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+
+	if(R_SUCCEEDED(ret))
+	{
+		if(out0)*out0 = cmdbuf[2];
+		if(out1)*out1 = cmdbuf[3];
+		if(out2)*out2 = cmdbuf[4];
+	}
+
+	return ret;
+}
+
 Result bossStartBgImmediate(char *taskID)
 {
 	Result ret = 0;
@@ -186,7 +211,7 @@ Result bossStartBgImmediate(char *taskID)
 	return (Result)cmdbuf[1];
 }
 
-Result bossCmd34(char *taskID)
+Result bossCmd34(char *taskID, u8 *out)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -198,7 +223,10 @@ Result bossCmd34(char *taskID)
 	cmdbuf[3] = (u32)taskID;
 
 	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
+	ret = (Result)cmdbuf[1];
 
-	return (Result)cmdbuf[1];
+	if(R_SUCCEEDED(ret) && out)*out = cmdbuf[2];
+
+	return ret;
 }
 

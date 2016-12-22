@@ -52,8 +52,18 @@ Result bossStartBgImmediate(char *taskID);
 Result bossDeleteTask(char *taskID, u32 unk);
 
 /**
- * @brief ?
+ * @brief Returns task state.
+ * @param taskID BOSS taskID.
+ * @param inval Unknown, normally 0?
+ * @param out0 Output field.
+ * @param out1 Output field.
+ * @param out2 Output field.
+ */
+Result bossGetTaskState(char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2);
+
+/**
+ * @brief Returns task state info.
  * @param taskID BOSS taskID.
  */
-Result bossCmd34(char *taskID);
+Result bossCmd34(char *taskID, u8 *out);
 
