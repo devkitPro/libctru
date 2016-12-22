@@ -421,13 +421,10 @@ SVC_BEGIN svcContinueDebugEvent
 	bx  lr
 
 SVC_BEGIN svcGetProcessList
-	push {r0, r1}
+	str r0, [sp, #-0x4]!
 	svc 0x65
-	ldr r3, [sp, #0]
+	ldr r3, [sp], #4
 	str r1, [r3]
-	ldr r3, [sp, #4]
-	str r2, [r3]
-	add sp, sp, #8
 	bx  lr
 
 SVC_BEGIN svcGetDebugThreadContext
