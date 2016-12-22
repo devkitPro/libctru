@@ -54,7 +54,7 @@ void bossExit(void)
 	bossHandle = 0;
 }
 
-Handle bossGetSessionHandle()
+Handle bossGetSessionHandle(void)
 {
 	return bossHandle;
 }
@@ -75,7 +75,7 @@ static Result bossipc_InitializeSession(u64 programID)
 	return (Result)cmdbuf[1];
 }
 
-Result bossRegisterTask(char *taskID, u8 unk0, u8 unk1)
+Result bossRegisterTask(const char *taskID, u8 unk0, u8 unk1)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -93,7 +93,7 @@ Result bossRegisterTask(char *taskID, u8 unk0, u8 unk1)
 	return (Result)cmdbuf[1];
 }
 
-static Result bossipc_UnregisterTask(char *taskID, u32 unk)
+static Result bossipc_UnregisterTask(const char *taskID, u32 unk)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -110,7 +110,7 @@ static Result bossipc_UnregisterTask(char *taskID, u32 unk)
 	return (Result)cmdbuf[1];
 }
 
-Result bossSendProperty(u16 PropertyID, void* buf, u32 size)
+Result bossSendProperty(u16 PropertyID, const void* buf, u32 size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -126,7 +126,7 @@ Result bossSendProperty(u16 PropertyID, void* buf, u32 size)
 	return (Result)cmdbuf[1];
 }
 
-Result bossStartTaskImmediate(char *taskID)
+Result bossStartTaskImmediate(const char *taskID)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -142,7 +142,7 @@ Result bossStartTaskImmediate(char *taskID)
 	return (Result)cmdbuf[1];
 }
 
-Result bossipc_CancelTask(char *taskID)
+Result bossipc_CancelTask(const char *taskID)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -158,7 +158,7 @@ Result bossipc_CancelTask(char *taskID)
 	return (Result)cmdbuf[1];
 }
 
-Result bossDeleteTask(char *taskID, u32 unk)
+Result bossDeleteTask(const char *taskID, u32 unk)
 {
 	Result ret=0;
 
@@ -170,7 +170,7 @@ Result bossDeleteTask(char *taskID, u32 unk)
 	return ret;
 }
 
-Result bossGetTaskState(char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2)
+Result bossGetTaskState(const char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -195,7 +195,7 @@ Result bossGetTaskState(char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2)
 	return ret;
 }
 
-Result bossStartBgImmediate(char *taskID)
+Result bossStartBgImmediate(const char *taskID)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -211,7 +211,7 @@ Result bossStartBgImmediate(char *taskID)
 	return (Result)cmdbuf[1];
 }
 
-Result bossCmd34(char *taskID, u8 *out)
+Result bossGetTaskProperty0(const char *taskID, u8 *out)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();

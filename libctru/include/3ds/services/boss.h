@@ -14,7 +14,7 @@ Result bossInit(u64 programID);
 void bossExit(void);
 
 /// Returns the BOSS session handle.
-Handle bossGetSessionHandle();
+Handle bossGetSessionHandle(void);
 
 /**
  * @brief Register a task.
@@ -22,7 +22,7 @@ Handle bossGetSessionHandle();
  * @param unk0 Unknown, usually zero.
  * @param unk1 Unknown, usually zero.
  */
-Result bossRegisterTask(char *taskID, u8 unk0, u8 unk1);
+Result bossRegisterTask(const char *taskID, u8 unk0, u8 unk1);
 
 /**
  * @brief Send a property.
@@ -30,26 +30,26 @@ Result bossRegisterTask(char *taskID, u8 unk0, u8 unk1);
  * @param buf Input buffer data.
  * @param size Buffer size.
  */
-Result bossSendProperty(u16 PropertyID, void* buf, u32 size);
+Result bossSendProperty(u16 PropertyID, const void* buf, u32 size);
 
 /**
  * @brief ?
  * @param taskID BOSS taskID.
  */
-Result bossStartTaskImmediate(char *taskID);
+Result bossStartTaskImmediate(const char *taskID);
 
 /**
  * @brief ?
  * @param taskID BOSS taskID.
  */
-Result bossStartBgImmediate(char *taskID);
+Result bossStartBgImmediate(const char *taskID);
 
 /**
  * @brief Deletes a task by using CancelTask and UnregisterTask internally.
  * @param taskID BOSS taskID.
  * @param unk Unknown, usually zero?
  */
-Result bossDeleteTask(char *taskID, u32 unk);
+Result bossDeleteTask(const char *taskID, u32 unk);
 
 /**
  * @brief Returns task state.
@@ -59,11 +59,11 @@ Result bossDeleteTask(char *taskID, u32 unk);
  * @param out1 Output field.
  * @param out2 Output field.
  */
-Result bossGetTaskState(char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2);
+Result bossGetTaskState(const char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2);
 
 /**
- * @brief Returns task state info.
+ * @brief This loads the current state of PropertyID 0x0 for the specified task.
  * @param taskID BOSS taskID.
  */
-Result bossCmd34(char *taskID, u8 *out);
+Result bossGetTaskProperty0(const char *taskID, u8 *out);
 
