@@ -4,6 +4,37 @@
  */
 #pragma once
 
+/// BOSS context.
+typedef struct
+{
+	u32 property[0x7];
+
+	char url[0x200];
+
+	u32 property_x8;
+	u8 property_x9;
+
+	u8 property_xa[0x100];
+
+	char property_xd[0x360];//Additonal optional HTTP request headers.
+
+	u32 property_xe;
+
+	u32 property_xf[0xc>>2];
+
+	u8 property_x10;
+	u8 property_x11;
+	u8 property_x12;
+	u32 property_x13;
+	u32 property_x14;
+
+	u8 property_x15[0x40];
+
+	u32 property_x16;
+
+	u32 property_x3b;
+} bossContext;
+
 /**
  * @brief Initializes BOSS.
  * @param programID programID to use, 0 for the current process. Not used internally unless BOSSP is available.
@@ -66,4 +97,18 @@ Result bossGetTaskState(const char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *o
  * @param taskID BOSS taskID.
  */
 Result bossGetTaskProperty0(const char *taskID, u8 *out);
+
+/**
+ * @brief Setup a BOSS context with the default config.
+ * @param bossContext BOSS context.
+ * @param seconds_interval Interval in seconds for running the task automatically.
+ * @param url Task URL.
+ */
+void bossSetupContextDefault(bossContext *ctx, u32 seconds_interval, char *url);
+
+/**
+ * @brief Sends the config stored in the context. Used before registering a task.
+ * @param bossContext BOSS context.
+ */
+Result bossSendContextConfig(bossContext *ctx);
 

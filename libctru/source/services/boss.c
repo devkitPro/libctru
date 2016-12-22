@@ -230,3 +230,120 @@ Result bossGetTaskProperty0(const char *taskID, u8 *out)
 	return ret;
 }
 
+void bossSetupContextDefault(bossContext *ctx, u32 seconds_interval, const char *url)
+{
+	memset(ctx, 0, sizeof(bossContext));
+
+	ctx->property[0x0] = 0xaa;
+	ctx->property[0x1] = 0x01;
+	ctx->property[0x2] = 0x00;
+	ctx->property[0x3] = seconds_interval;
+	ctx->property[0x4] = 0x64;
+	ctx->property[0x5] = 0x02;
+	ctx->property[0x6] = 0x02;
+
+	memset(ctx->url, 0, sizeof(ctx->url));
+	strncpy(ctx->url, url, sizeof(ctx->url)-1);
+
+	ctx->property_x8 = 0x00;
+
+	ctx->property_x9 = 0x00;
+
+	memset(ctx->property_xa, 0, sizeof(ctx->property_xa));
+	memset(ctx->property_xd, 0, sizeof(ctx->property_xd));
+
+	ctx->property_xe = 0x00;
+
+	memset(ctx->property_xf, 0, sizeof(ctx->property_xf));
+	ctx->property_xf[0] = 0x07;
+	ctx->property_xf[1] = 0x03;
+
+	ctx->property_x10 = 0x00;
+
+	ctx->property_x11 = 0x00;
+
+	ctx->property_x12 = 0x00;
+
+	ctx->property_x13 = 0x02;
+
+	ctx->property_x14 = 0x01;
+
+	memset(ctx->property_x15, 0, sizeof(ctx->property_x15));
+
+	ctx->property_x16 = 0x00;
+
+	ctx->property_x3b = 0x00;
+}
+
+Result bossSendContextConfig(bossContext *ctx)
+{
+	Result ret=0;
+
+	ret = bossSendProperty(0x0, &ctx->property[0x0], 0x1);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x1, &ctx->property[0x1], 0x1);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x2, &ctx->property[0x2], 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x3, &ctx->property[0x3], 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x4, &ctx->property[0x4], 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x5, &ctx->property[0x5], 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x6, &ctx->property[0x6], 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x7, ctx->url, 0x200);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x8, &ctx->property_x8, 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x9, &ctx->property_x9, 0x1);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0xa, &ctx->property_xa, 0x100);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0xd, ctx->property_xd, 0x360);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0xe, &ctx->property_xe, 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0xf, ctx->property_xf, 0xc);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x10, &ctx->property_x10, 0x1);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x11, &ctx->property_x11, 0x1);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x12, &ctx->property_x12, 0x1);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x13, &ctx->property_x13, 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x14, &ctx->property_x14, 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x15, ctx->property_x15, 0x40);
+
+	ret = bossSendProperty(0x16, &ctx->property_x16, 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x3b, &ctx->property_x3b, 0x4);
+	if(R_FAILED(ret))return ret;
+
+	return ret;
+}
+
