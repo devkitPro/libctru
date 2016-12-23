@@ -980,9 +980,9 @@ void svcBreak(UserBreakType breakReason);
 /**
  * @brief Outputs a debug string.
  * @param str String to output.
- * @param length Length of the string to output.
+ * @param length Length of the string to output, needs to be positive.
  */
-Result svcOutputDebugString(const char* str, int length);
+Result svcOutputDebugString(const char* str, s32 length);
 /**
  * @brief Creates a debug handle for an active process.
  * @param[out] debug Pointer to output the created debug handle to.
