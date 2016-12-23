@@ -978,6 +978,14 @@ Result svcKernelSetState(u32 type, ...);
 void svcBreak(UserBreakType breakReason);
 
 /**
+ * @brief Breaks execution (LOAD_RO and UNLOAD_RO).
+ * @param breakReason Debug reason for breaking.
+ * @param croInfo Library information.
+ * @param croInfoSize Size of the above structure.
+ */
+void svcBreakRO(UserBreakType breakReason, const void* croInfo, u32 croInfoSize) __asm__("svcBreak");
+
+/**
  * @brief Outputs a debug string.
  * @param str String to output.
  * @param length Length of the string to output, needs to be positive.
