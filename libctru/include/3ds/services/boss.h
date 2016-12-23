@@ -104,7 +104,7 @@ Result bossGetTaskProperty0(const char *taskID, u8 *out);
  * @param seconds_interval Interval in seconds for running the task automatically.
  * @param url Task URL.
  */
-void bossSetupContextDefault(bossContext *ctx, u32 seconds_interval, char *url);
+void bossSetupContextDefault(bossContext *ctx, u32 seconds_interval, const char *url);
 
 /**
  * @brief Sends the config stored in the context. Used before registering a task.
