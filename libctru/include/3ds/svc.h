@@ -1082,7 +1082,7 @@ Result svcGetDebugThreadParam(s64* unused, u32* out, Handle debug, u32 threadId,
 ///@}
 
 /**
- * @brief Executes a function in kernel mode.
+ * @brief Executes a function in supervisor mode.
  * @param callback Function to execute.
  */
 Result svcBackdoor(s32 (*callback)(void));
