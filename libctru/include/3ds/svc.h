@@ -562,6 +562,15 @@ Result svcGetProcessId(u32 *out, Handle handle);
 Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCount);
 
 /**
+ * @brief Gets a list of the threads of a process.
+ * @param[out] threadCount Pointer to output the thread count to.
+ * @param[out] threadIds Pointer to output the thread IDs to.
+ * @param threadIdMaxCount Maximum number of thread IDs.
+ * @param process Process handle to list the threads of.
+ */
+Result svcGetThreadList(s32* threadCount, u32* threadIds, s32 threadIdMaxCount, Handle process);
+
+/**
  * @brief Creates a port.
  * @param[out] portServer Pointer to output the port server handle to.
  * @param[out] portClient Pointer to output the port client handle to.

@@ -427,6 +427,13 @@ SVC_BEGIN svcGetProcessList
 	str r1, [r3]
 	bx  lr
 
+SVC_BEGIN svcGetThreadList
+	str r0, [sp, #-0x4]!
+	svc 0x66
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
+
 SVC_BEGIN svcGetDebugThreadContext
 	svc 0x67
 	bx lr
