@@ -58,3 +58,22 @@ typedef void (*voidfn)(void);
 /// Flags a function as deprecated.
 #define DEPRECATED
 #endif
+
+/// Structure representing CPU registers
+typedef struct {
+	u32 r[13]; ///< r0-r12.
+	u32 sp;    ///< sp.
+	u32 lr;    ///< lr.
+	u32 pc;    ///< pc. May need to be adjusted.
+	u32 cpsr;  ///< cpsr.
+} CpuRegisters;
+
+/// Structure representing FPU registers
+typedef struct {
+	union{
+		double d[16]; ///< d0-d15.
+		float  f[32]; ///< f0-f31.
+	};
+	u32 fpscr;        ///< fpscr.
+	u32 fpexc;        ///< fpexc.
+} FpuRegisters;

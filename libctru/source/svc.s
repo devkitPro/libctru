@@ -421,13 +421,36 @@ SVC_BEGIN svcContinueDebugEvent
 	bx  lr
 
 SVC_BEGIN svcGetProcessList
-	push {r0, r1}
+	str r0, [sp, #-0x4]!
 	svc 0x65
-	ldr r3, [sp, #0]
+	ldr r3, [sp], #4
 	str r1, [r3]
-	ldr r3, [sp, #4]
-	str r2, [r3]
+	bx  lr
+
+SVC_BEGIN svcGetThreadList
+	str r0, [sp, #-0x4]!
+	svc 0x66
+	ldr r3, [sp], #4
+	str r1, [r3]
+	bx  lr
+
+SVC_BEGIN svcGetDebugThreadContext
+	svc 0x67
+	bx lr
+
+SVC_BEGIN svcSetDebugThreadContext
+	svc 0x68
+	bx lr
+
+SVC_BEGIN svcQueryDebugProcessMemory
+	push {r0, r1, r4-r6}
+	svc 0x69
+	ldr r6, [sp]
+	stm r6, {r1-r4}
+	ldr r6, [sp, #4]
+	str r5, [r6]
 	add sp, sp, #8
+	pop {r4-r6}
 	bx  lr
 
 SVC_BEGIN svcReadProcessMemory
@@ -437,6 +460,20 @@ SVC_BEGIN svcReadProcessMemory
 SVC_BEGIN svcWriteProcessMemory
 	svc 0x6B
 	bx  lr
+
+SVC_BEGIN svcSetHardwareBreakPoint
+	svc 0x6C
+	bx  lr
+
+SVC_BEGIN svcGetDebugThreadParam
+	push {r0, r1, r4, r5}
+	ldr r0, [sp, #16]
+	svc 0x6D
+	pop {r4, r5}
+	stm r4, {r1, r2}
+	str r3, [r5]
+	pop {r4, r5}
+	bx lr
 
 SVC_BEGIN svcControlProcessMemory
 	push {r4-r5}

@@ -49,15 +49,15 @@ typedef enum {
 	MEMSTATE_ALIASED    = 8,  ///< Aliased memory
 	MEMSTATE_ALIAS      = 9,  ///< Alias memory
 	MEMSTATE_ALIASCODE  = 10, ///< Aliased code memory
-	MEMSTATE_LOCKED     = 11  ///< Locked memory
+	MEMSTATE_LOCKED     = 11, ///< Locked memory
 } MemState;
 
 /// Memory permission flags
 typedef enum {
-	MEMPERM_READ     = 1,         ///< Readable
-	MEMPERM_WRITE    = 2,         ///< Writable
-	MEMPERM_EXECUTE  = 4,         ///< Executable
-	MEMPERM_DONTCARE = 0x10000000 ///< Don't care
+	MEMPERM_READ     = 1,          ///< Readable
+	MEMPERM_WRITE    = 2,          ///< Writable
+	MEMPERM_EXECUTE  = 4,          ///< Executable
+	MEMPERM_DONTCARE = 0x10000000, ///< Don't care
 } MemPerm;
 
 /// Memory information.
@@ -103,7 +103,7 @@ typedef enum {
 } ThreadInfoType;
 
 /// Pseudo handle for the current thread
-#define CUR_THREAD_HANDLE 0xFFFF8000
+#define CUR_THREAD_HANDLE  0xFFFF8000
 
 ///@}
 
@@ -111,83 +111,114 @@ typedef enum {
 ///@name Debugging
 ///@{
 
-/// Reasons for a process event.
-typedef enum {
-	REASON_CREATE = 1, ///< Process created.
-	REASON_ATTACH = 2  ///< Process attached.
-} ProcessEventReason;
-
-/// Event relating to a process.
+/// Event relating to the attachment of a process.
 typedef struct {
-	u64 program_id;      ///< ID of the program.
-	u8  process_name[8]; ///< Name of the process.
-	u32 process_id;      ///< ID of the process.
-	u32 reason;          ///< Reason for the event. See @ref ProcessEventReason
-} ProcessEvent;
+	u64 program_id;       ///< ID of the program.
+	char process_name[8]; ///< Name of the process.
+	u32 process_id;       ///< ID of the process.
+	u32 other_flags;      ///< Always 0
+} AttachProcessEvent;
 
 /// Reasons for an exit process event.
 typedef enum {
 	EXITPROCESS_EVENT_NONE                = 0, ///< No reason.
 	EXITPROCESS_EVENT_TERMINATE           = 1, ///< Process terminated.
-	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2  ///< Unhandled exception occurred.
+	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2, ///< Unhandled exception occurred.
 } ExitProcessEventReason;
 
 /// Event relating to the exiting of a process.
 typedef struct {
-	u32 reason; ///< Reason for exiting. See @ref ExitProcessEventReason
+	ExitProcessEventReason reason; ///< Reason for exiting. See @ref ExitProcessEventReason
 } ExitProcessEvent;
 
-/// Event relating to the creation of a thread.
+/// Event relating to the attachment of a thread.
 typedef struct {
-	u32 creator_thread_id; ///< ID of the creating thread.
-	u32 base_addr;         ///< Base address.
-	u32 entry_point;       ///< Entry point of the thread.
-} CreateThreadEvent;
+	u32 creator_thread_id;    ///< ID of the creating thread.
+	u32 thread_local_storage; ///< Thread local storage.
+	u32 entry_point;          ///< Entry point of the thread.
+} AttachThreadEvent;
 
 /// Reasons for an exit thread event.
 typedef enum {
 	EXITTHREAD_EVENT_NONE              = 0, ///< No reason.
 	EXITTHREAD_EVENT_TERMINATE         = 1, ///< Thread terminated.
 	EXITTHREAD_EVENT_UNHANDLED_EXC     = 2, ///< Unhandled exception occurred.
-	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3  ///< Process terminated.
+	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3, ///< Process terminated.
 } ExitThreadEventReason;
 
 /// Event relating to the exiting of a thread.
 typedef struct {
-	u32 reason; ///< Reason for exiting. See @ref ExitThreadEventReason
+	ExitThreadEventReason reason; ///< Reason for exiting. See @ref ExitThreadEventReason
 } ExitThreadEvent;
 
 /// Reasons for a user break.
 typedef enum {
-	USERBREAK_PANIC  = 0, ///< Panic.
-	USERBREAK_ASSERT = 1, ///< Assertion failed.
-	USERBREAK_USER   = 2  ///< User related.
+	USERBREAK_PANIC         = 0, ///< Panic.
+	USERBREAK_ASSERT        = 1, ///< Assertion failed.
+	USERBREAK_USER          = 2, ///< User related.
+	USERBREAK_LOAD_RO       = 3, ///< Load RO.
+	USERBREAK_UNLOAD_RO     = 4, ///< Unload RO.
 } UserBreakType;
 
 /// Reasons for an exception event.
 typedef enum {
-	EXC_EVENT_UNDEFINED_INSTRUCTION = 0, ///< Undefined instruction.   arg: (None)
-	EXC_EVENT_UNKNOWN1              = 1, ///< Unknown.                 arg: (None)
-	EXC_EVENT_UNKNOWN2              = 2, ///< Unknown.                 arg: address
-	EXC_EVENT_UNKNOWN3              = 3, ///< Unknown.                 arg: address
-	EXC_EVENT_ATTACH_BREAK          = 4, ///< Attached break.          arg: (None)
-	EXC_EVENT_BREAKPOINT            = 5, ///< Breakpoint reached.      arg: (None)
-	EXC_EVENT_USER_BREAK            = 6, ///< User break occurred.     arg: @ref UserBreakType
-	EXC_EVENT_DEBUGGER_BREAK        = 7, ///< Debugger break occurred. arg: (None)
-	EXC_EVENT_UNDEFINED_SYSCALL     = 8  ///< Undefined syscall.       arg: attempted syscall
+	EXCEVENT_UNDEFINED_INSTRUCTION = 0, ///< Undefined instruction.
+	EXCEVENT_PREFETCH_ABORT        = 1, ///< Prefetch abort.
+	EXCEVENT_DATA_ABORT            = 2, ///< Data abort (other than the below kind).
+	EXCEVENT_UNALIGNED_DATA_ACCESS = 3, ///< Unaligned data access.
+	EXCEVENT_ATTACH_BREAK          = 4, ///< Attached break.
+	EXCEVENT_STOP_POINT            = 5, ///< Stop point reached.
+	EXCEVENT_USER_BREAK            = 6, ///< User break occurred.
+	EXCEVENT_DEBUGGER_BREAK        = 7, ///< Debugger break occurred.
+	EXCEVENT_UNDEFINED_SYSCALL     = 8, ///< Undefined syscall.
 } ExceptionEventType;
+
+/// Event relating to fault exceptions (CPU exceptions other than stop points and undefined syscalls).
+typedef struct {
+	u32 fault_information; ///< FAR (for DATA ABORT / UNALIGNED DATA ACCESS), attempted syscall or 0
+} FaultExceptionEvent;
+
+/// Stop point types
+typedef enum {
+	STOPPOINT_SVC_FF        = 0, ///< See @ref SVC_STOP_POINT.
+	STOPPOINT_BREAKPOINT    = 1, ///< Breakpoint.
+	STOPPOINT_WATCHPOINT    = 2, ///< Watchpoint.
+} StopPointType;
+
+/// Event relating to stop points
+typedef struct {
+	StopPointType type;    ///< Stop point type, see @ref StopPointType.
+	u32 fault_information; ///< FAR for Watchpoints, otherwise 0.
+} StopPointExceptionEvent;
+
+/// Event relating to @ref svcBreak
+typedef struct {
+	UserBreakType type;   ///< User break type, see @ref UserBreakType.
+	u32 croInfo;          ///< For LOAD_RO and UNLOAD_RO.
+	u32 croInfoSize;      ///< For LOAD_RO and UNLOAD_RO.
+} UserBreakExceptionEvent;
+
+/// Event relating to @ref svcBreakDebugProcess
+typedef struct {
+	void *threads[4]; ///< KThread instances of the attached process's that were running on each at the time of the function call (only the first 2 values are meaningful on O3DS).
+} DebuggerBreakExceptionEvent;
 
 /// Event relating to exceptions.
 typedef struct {
-	u32 type;     ///< Type of event. See @ref ExceptionEventType
-	u32 address;  ///< Address of the exception.
-	u32 argument; ///< Event argument. See @ref ExceptionEventType
+	ExceptionEventType type; ///< Type of event. See @ref ExceptionEventType.
+	u32 address;             ///< Address of the exception.
+	union {
+		FaultExceptionEvent fault;                  ///< Fault exception event data.
+		StopPointExceptionEvent stop_point;         ///< Stop point exception event data.
+		UserBreakExceptionEvent user_break;         ///< User break exception event data.
+		DebuggerBreakExceptionEvent debugger_break; ///< Debugger break exception event data
+	};
 } ExceptionEvent;
 
 /// Event relating to the scheduler.
 typedef struct {
 	u64 clock_tick; ///< Clock tick that the event occurred.
-} SchedulerInOutEvent;
+} ScheduleInOutEvent;
 
 /// Event relating to syscalls.
 typedef struct {
@@ -203,48 +234,83 @@ typedef struct {
 
 /// Event relating to the mapping of memory.
 typedef struct {
-	u32 mapped_addr; ///< Mapped address.
-	u32 mapped_size; ///< Mapped size.
-	u32 memperm;     ///< Memory permissions. See @ref MemPerm
-	u32 memstate;    ///< Memory state. See @ref MemState
+	u32 mapped_addr;   ///< Mapped address.
+	u32 mapped_size;   ///< Mapped size.
+	MemPerm memperm;   ///< Memory permissions. See @ref MemPerm.
+	MemState memstate; ///< Memory state. See @ref MemState.
 } MapEvent;
 
 /// Debug event type.
 typedef enum {
-	DBG_EVENT_PROCESS        = 0,  ///< Process event.
-	DBG_EVENT_CREATE_THREAD  = 1,  ///< Thread creation event.
-	DBG_EVENT_EXIT_THREAD    = 2,  ///< Thread exit event.
-	DBG_EVENT_EXIT_PROCESS   = 3,  ///< Process exit event.
-	DBG_EVENT_EXCEPTION      = 4,  ///< Exception event.
-	DBG_EVENT_DLL_LOAD       = 5,  ///< DLL load event.
-	DBG_EVENT_DLL_UNLOAD     = 6,  ///< DLL unload event.
-	DBG_EVENT_SCHEDULE_IN    = 7,  ///< Schedule in event.
-	DBG_EVENT_SCHEDULE_OUT   = 8,  ///< Schedule out event.
-	DBG_EVENT_SYSCALL_IN     = 9,  ///< Syscall in event.
-	DBG_EVENT_SYSCALL_OUT    = 10, ///< Syscall out event.
-	DBG_EVENT_OUTPUT_STRING  = 11, ///< Output string event.
-	DBG_EVENT_MAP            = 12  ///< Map event.
+	DBGEVENT_ATTACH_PROCESS = 0,  ///< Process attached event.
+	DBGEVENT_ATTACH_THREAD  = 1,  ///< Thread attached event.
+	DBGEVENT_EXIT_THREAD    = 2,  ///< Thread exit event.
+	DBGEVENT_EXIT_PROCESS   = 3,  ///< Process exit event.
+	DBGEVENT_EXCEPTION      = 4,  ///< Exception event.
+	DBGEVENT_DLL_LOAD       = 5,  ///< DLL load event.
+	DBGEVENT_DLL_UNLOAD     = 6,  ///< DLL unload event.
+	DBGEVENT_SCHEDULE_IN    = 7,  ///< Schedule in event.
+	DBGEVENT_SCHEDULE_OUT   = 8,  ///< Schedule out event.
+	DBGEVENT_SYSCALL_IN     = 9,  ///< Syscall in event.
+	DBGEVENT_SYSCALL_OUT    = 10, ///< Syscall out event.
+	DBGEVENT_OUTPUT_STRING  = 11, ///< Output string event.
+	DBGEVENT_MAP            = 12, ///< Map event.
 } DebugEventType;
 
 /// Information about a debug event.
 typedef struct {
-	u32 type;       ///< Type of event. See @ref DebugEventType
-	u32 thread_id;  ///< ID of the thread.
-	u32 unknown[2]; ///< Unknown data.
+	DebugEventType type; ///< Type of event. See @ref DebugEventType
+	u32 thread_id;       ///< ID of the thread.
+	u32 flags;           ///< Flags. Bit0 means that @ref svcContinueDebugEvent needs to be called for this event (except for EXIT PROCESS events, where this flag is disregarded).
+	u8 remnants[4];      ///< Always 0.
 	union {
-		ProcessEvent process;            ///< Process event data.
-		CreateThreadEvent create_thread; ///< Thread creation event data.
-		ExitThreadEvent exit_thread;     ///< Thread exit event data.
-		ExitProcessEvent exit_process;   ///< Process exit event data.
-		ExceptionEvent exception;        ///< Exception event data.
-		/* TODO: DLL_LOAD */
-		/* TODO: DLL_UNLOAD */
-		SchedulerInOutEvent scheduler;   ///< Schedule in/out event data.
-		SyscallInOutEvent syscall;       ///< Syscall in/out event data.
-		OutputStringEvent output_string; ///< Output string event data.
-		MapEvent map;                    ///< Map event data.
+		AttachProcessEvent attach_process; ///< Process attachment event data.
+		AttachThreadEvent attach_thread;   ///< Thread attachment event data.
+		ExitThreadEvent exit_thread;       ///< Thread exit event data.
+		ExitProcessEvent exit_process;     ///< Process exit event data.
+		ExceptionEvent exception;          ///< Exception event data.
+		/* DLL_LOAD and DLL_UNLOAD do not seem to possess any event data */
+		ScheduleInOutEvent scheduler;      ///< Schedule in/out event data.
+		SyscallInOutEvent syscall;         ///< Syscall in/out event data.
+		OutputStringEvent output_string;   ///< Output string event data.
+		MapEvent map;                      ///< Map event data.
 	};
 } DebugEventInfo;
+
+/// Debug flags for an attached process, set by @ref svcContinueDebugEvent
+typedef enum {
+	DBG_NO_ERRF_CPU_EXCEPTION_DUMPS   = BIT(0), ///< Don't produce err:f-format dumps for CPU exceptions (including watchpoints and breakpoints, regardless of any @ref svcKernelSetState call).
+	DBG_SIGNAL_FAULT_EXCEPTION_EVENTS = BIT(1), ///< Signal fault exception events. See @ref FaultExceptionEvent.
+	DBG_SIGNAL_SCHEDULE_EVENTS        = BIT(2), ///< Signal schedule in/out events. See @ref ScheduleInOutEvent.
+	DBG_SIGNAL_SYSCALL_EVENTS         = BIT(3), ///< Signal syscall in/out events. See @ref SyscallInOutEvent.
+	DBG_SIGNAL_MAP_EVENTS             = BIT(4), ///< Signal map events. See @ref MapEvent.
+} DebugFlags;
+
+typedef struct {
+	CpuRegisters cpu_registers; ///< CPU registers.
+	FpuRegisters fpu_registers; ///< FPU registers.
+} ThreadContext;
+
+/// Control flags for @ref svcGetDebugThreadContext and @ref svcSetDebugThreadContext
+typedef enum {
+	THREADCONTEXT_CONTROL_CPU_GPRS  = BIT(0), ///< Control r0-r12.
+	THREADCONTEXT_CONTROL_CPU_SPRS  = BIT(1), ///< Control sp, lr, pc, cpsr.
+	THREADCONTEXT_CONTROL_FPU_GPRS  = BIT(2), ///< Control d0-d15 (or f0-f31).
+	THREADCONTEXT_CONTROL_FPU_SPRS  = BIT(3), ///< Control fpscr, fpexc.
+
+	THREADCONTEXT_CONTROL_CPU_REGS  = BIT(0) | BIT(1), ///< Control r0-r12, sp, lr, pc, cpsr.
+	THREADCONTEXT_CONTROL_FPU_REGS  = BIT(2) | BIT(3), ///< Control d0-d15, fpscr, fpexc.
+
+	THREADCONTEXT_CONTROL_ALL       = BIT(0) | BIT(1) | BIT(2) | BIT(3), ///< Control all of the above.
+} ThreadContextControlFlags;
+
+/// Thread parameter field for @ref svcGetDebugThreadParameter
+typedef enum {
+	DBGTHREAD_PARAMETER_PRIORITY            = 0, ///< Thread priority.
+	DBGTHREAD_PARAMETER_SCHEDULING_MASK_LOW = 1, ///< Low scheduling mask.
+	DBGTHREAD_PARAMETER_CPU_IDEAL           = 2, ///< Ideal processor.
+	DBGTHREAD_PARAMETER_CPU_CREATOR         = 3, ///< Processor that created the threod.
+} DebugThreadParameter;
 
 ///@}
 
@@ -451,24 +517,6 @@ Result svcInvalidateProcessDataCache(Handle process, void* addr, u32 size);
  * @param size Size of the memory to flush.
  */
 Result svcFlushProcessDataCache(Handle process, void const* addr, u32 size);
-
-/**
- * @brief Reads from a process's memory.
- * @param buffer Buffer to read data to.
- * @param debug Debug handle of the process.
- * @param addr Address to read from.
- * @param size Size of the memory to read.
- */
-Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
-
-/**
- * @brief Writes to a process's memory.
- * @param debug Debug handle of the process.
- * @param buffer Buffer to write data from.
- * @param addr Address to write to.
- * @param size Size of the memory to write.
- */
-Result svcWriteProcessMemory(Handle debug, const void* buffer, u32 addr, u32 size);
 ///@}
 
 
@@ -512,6 +560,15 @@ Result svcGetProcessId(u32 *out, Handle handle);
  * @param processIdMaxCount Maximum number of process IDs.
  */
 Result svcGetProcessList(s32* processCount, u32* processIds, s32 processIdMaxCount);
+
+/**
+ * @brief Gets a list of the threads of a process.
+ * @param[out] threadCount Pointer to output the thread count to.
+ * @param[out] threadIds Pointer to output the thread IDs to.
+ * @param threadIdMaxCount Maximum number of thread IDs.
+ * @param process Process handle to list the threads of.
+ */
+Result svcGetThreadList(s32* threadCount, u32* threadIds, s32 threadIdMaxCount, Handle process);
 
 /**
  * @brief Creates a port.
@@ -830,20 +887,20 @@ Result svcAcceptSession(Handle* session, Handle port);
 Result svcReplyAndReceive(s32* index, Handle* handles, s32 handleCount, Handle replyTarget);
 
 /**
- * @brief Binds an event handle to an ARM11 interrupt.
+ * @brief Binds an event or semaphore handle to an ARM11 interrupt.
  * @param interruptId Interrupt identfier (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
- * @param event Event handle to bind to the given interrupt.
+ * @param eventOrSemaphore Event or semaphore handle to bind to the given interrupt.
  * @param priority Priority of the interrupt for the current process.
- * @param isManualClear Indicates whether the interrupt has to be manually cleared or not.
+ * @param isManualClear Indicates whether the interrupt has to be manually cleared or not (= level-high active).
  */
-Result svcBindInterrupt(u32 interruptId, Handle event, s32 priority, bool isManualClear);
+Result svcBindInterrupt(u32 interruptId, Handle eventOrSemaphore, s32 priority, bool isManualClear);
 
 /**
- * @brief Unbinds an event handle from an ARM11 interrupt.
+ * @brief Unbinds an event or semaphore handle from an ARM11 interrupt.
  * @param interruptId Interrupt identfier, see (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
- * @param event Event handle to unbind from the given interrupt.
+ * @param eventOrSemaphore Event or semaphore handle to unbind from the given interrupt.
  */
-Result svcUnbindInterrupt(u32 interruptId, Handle event);
+Result svcUnbindInterrupt(u32 interruptId, Handle eventOrSemaphore);
 ///@}
 
 ///@name Time
@@ -930,11 +987,19 @@ Result svcKernelSetState(u32 type, ...);
 void svcBreak(UserBreakType breakReason);
 
 /**
+ * @brief Breaks execution (LOAD_RO and UNLOAD_RO).
+ * @param breakReason Debug reason for breaking.
+ * @param croInfo Library information.
+ * @param croInfoSize Size of the above structure.
+ */
+void svcBreakRO(UserBreakType breakReason, const void* croInfo, u32 croInfoSize) __asm__("svcBreak");
+
+/**
  * @brief Outputs a debug string.
  * @param str String to output.
- * @param length Length of the string to output.
+ * @param length Length of the string to output, needs to be positive.
  */
-Result svcOutputDebugString(const char* str, int length);
+Result svcOutputDebugString(const char* str, s32 length);
 /**
  * @brief Creates a debug handle for an active process.
  * @param[out] debug Pointer to output the created debug handle to.
@@ -962,15 +1027,82 @@ Result svcTerminateDebugProcess(Handle debug);
 Result svcGetProcessDebugEvent(DebugEventInfo* info, Handle debug);
 
 /**
- * @brief Continues the current debug event of a debugged process.
+ * @brief Continues the current debug event of a debugged process (not necessarily the same as @ref svcGetProcessDebugEvent).
  * @param debug Debug handle of the process.
- * @param flags Flags to continue with.
+ * @param flags Flags to continue with, see @ref DebugFlags.
  */
-Result svcContinueDebugEvent(Handle debug, u32 flags);
+Result svcContinueDebugEvent(Handle debug, DebugFlags flags);
+
+/**
+ * @brief Fetches the saved registers of a thread, either inactive or awaiting @ref svcContinueDebugEvent, belonging to a debugged process.
+ * @param[out] context Values of the registers to fetch, see @ref ThreadContext.
+ * @param debug Debug handle of the parent process.
+ * @param threadId ID of the thread to fetch the saved registers of.
+ * @param controlFlags Which registers to fetch, see @ref ThreadContextControlFlags.
+ */
+Result svcGetDebugThreadContext(ThreadContext* context, Handle debug, u32 threadId, ThreadContextControlFlags controlFlags);
+
+/**
+ * @brief Updates the saved registers of a thread, either inactive or awaiting @ref svcContinueDebugEvent, belonging to a debugged process.
+ * @param debug Debug handle of the parent process.
+ * @param threadId ID of the thread to update the saved registers of.
+ * @param context Values of the registers to update, see @ref ThreadContext.
+ * @param controlFlags Which registers to update, see @ref ThreadContextControlFlags.
+ */
+Result svcSetDebugThreadContext(Handle debug, u32 threadId, ThreadContext* context, ThreadContextControlFlags controlFlags);
+
+/**
+ * @brief Queries memory information of a debugged process.
+ * @param[out] info Pointer to output memory info to.
+ * @param[out] out Pointer to output page info to.
+ * @param debug Debug handle of the process to query memory from.
+ * @param addr Virtual memory address to query.
+ */
+Result svcQueryDebugProcessMemory(MemInfo* info, PageInfo* out, Handle debug, u32 addr);
+
+/**
+ * @brief Reads from a debugged process's memory.
+ * @param buffer Buffer to read data to.
+ * @param debug Debug handle of the process.
+ * @param addr Address to read from.
+ * @param size Size of the memory to read.
+ */
+Result svcReadProcessMemory(void* buffer, Handle debug, u32 addr, u32 size);
+
+/**
+ * @brief Writes to a debugged process's memory.
+ * @param debug Debug handle of the process.
+ * @param buffer Buffer to write data from.
+ * @param addr Address to write to.
+ * @param size Size of the memory to write.
+ */
+Result svcWriteProcessMemory(Handle debug, const void* buffer, u32 addr, u32 size);
+
+/**
+ * @brief Sets an hardware breakpoint or watchpoint. This is an interface to the BRP/WRP registers, see http://infocenter.arm.com/help/topic/com.arm.doc.ddi0360f/CEGEBGFC.html .
+ * @param registerId range 0..5 = breakpoints (BRP0-5), 0x100..0x101 = watchpoints (WRP0-1). The previous stop point for the register is disabled.
+ * @param control Value of the control regiser.
+ * @param value Value of the value register: either and address (if bit21 of control is clear) or the debug handle of a process to fetch the context ID of.
+ */
+Result svcSetHardwareBreakPoint(s32 registerId, u32 control, u32 value);
+
+/**
+ * @brief Gets a debugged thread's parameter.
+ * @param[out] unused Unused.
+ * @param[out] out Output value.
+ * @param debug Debug handle of the process.
+ * @param threadId ID of the thread
+ * @param parameter Parameter to fetch, see @ref DebugThreadParameter.
+ */
+Result svcGetDebugThreadParam(s64* unused, u32* out, Handle debug, u32 threadId, DebugThreadParameter parameter);
+
 ///@}
 
 /**
- * @brief Executes a function in kernel mode.
+ * @brief Executes a function in supervisor mode.
  * @param callback Function to execute.
  */
 Result svcBackdoor(s32 (*callback)(void));
+
+/// Stop point, does nothing if the process is not attached (as opposed to 'bkpt' instructions)
+#define SVC_STOP_POINT __asm__ volatile("svc 0xFF");
