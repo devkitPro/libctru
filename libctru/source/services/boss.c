@@ -195,6 +195,43 @@ Result bossGetTaskState(const char *taskID, s8 inval, u8 *status, u32 *out1, u8 
 	return ret;
 }
 
+Result bossDeleteNsData(u32 NsDataId)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x26,1,0); // 0x260040
+	cmdbuf[1] = NsDataId;
+
+	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result bossReadNsData(u32 NsDataId, u64 offset, void* buffer, u32 size, u32 *transfer_total, u32 *unk_out)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x28,4,2); // 0x280102
+	cmdbuf[1] = NsDataId;
+	cmdbuf[2] = (u32) offset;
+	cmdbuf[3] = (u32) (offset >> 32);
+	cmdbuf[4] = size;
+	cmdbuf[5] = IPC_Desc_Buffer(size, IPC_BUFFER_W);
+	cmdbuf[6] = (u32)buffer;
+
+	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
+
+	if(R_SUCCEEDED(ret))
+	{
+		if(transfer_total)*transfer_total = cmdbuf[2];
+		if(unk_out)*unk_out = cmdbuf[3];
+	}
+
+	return (Result)cmdbuf[1];
+}
+
 Result bossStartBgImmediate(const char *taskID)
 {
 	Result ret = 0;

@@ -73,13 +73,30 @@ Result bossRegisterTask(const char *taskID, u8 unk0, u8 unk1);
 Result bossSendProperty(u16 PropertyID, const void* buf, u32 size);
 
 /**
- * @brief ?
+ * @brief Deletes the content file for the specified NsDataId.
+ * @param NsDataId NsDataId
+ */
+Result bossDeleteNsData(u32 NsDataId);
+
+/**
+ * @brief Reads data from the content for the specified NsDataId.
+ * @param NsDataId NsDataId
+ * @param offset Offset in the content.
+ * @param buffer Output buffer.
+ * @param size Output buffer size.
+ * @param transfer_total Optional output actual read size, can be NULL.
+ * @param unk_out Optional unknown output, can be NULL.
+ */
+Result bossReadNsData(u32 NsDataId, u64 offset, void* buffer, u32 size, u32 *transfer_total, u32 *unk_out);
+
+/**
+ * @brief Starts a task soon after running this command.
  * @param taskID BOSS taskID.
  */
 Result bossStartTaskImmediate(const char *taskID);
 
 /**
- * @brief ?
+ * @brief Similar to bossStartTaskImmediate?
  * @param taskID BOSS taskID.
  */
 Result bossStartBgImmediate(const char *taskID);
