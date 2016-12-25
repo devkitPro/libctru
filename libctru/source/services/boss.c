@@ -170,7 +170,7 @@ Result bossDeleteTask(const char *taskID, u32 unk)
 	return ret;
 }
 
-Result bossGetTaskState(const char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2)
+Result bossGetTaskState(const char *taskID, s8 inval, u8 *status, u32 *out1, u8 *out2)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -187,7 +187,7 @@ Result bossGetTaskState(const char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *o
 
 	if(R_SUCCEEDED(ret))
 	{
-		if(out0)*out0 = cmdbuf[2];
+		if(status)*status = cmdbuf[2];
 		if(out1)*out1 = cmdbuf[3];
 		if(out2)*out2 = cmdbuf[4];
 	}

@@ -39,6 +39,11 @@ typedef struct
 	u8 property_x3e[0x200];
 } bossContext;
 
+typedef enum {
+	BOSSTASKSTATUS_STARTED = 0x2,
+	BOSSTASKSTATUS_ERROR = 0x7,
+} bossTaskStatus;
+
 /**
  * @brief Initializes BOSS.
  * @param programID programID to use, 0 for the current process. Not used internally unless BOSSP is available.
@@ -90,11 +95,11 @@ Result bossDeleteTask(const char *taskID, u32 unk);
  * @brief Returns task state.
  * @param taskID BOSS taskID.
  * @param inval Unknown, normally 0?
- * @param out0 Output field.
+ * @param status Output status, see bossTaskStatus.
  * @param out1 Output field.
  * @param out2 Output field.
  */
-Result bossGetTaskState(const char *taskID, s8 inval, u8 *out0, u32 *out1, u8 *out2);
+Result bossGetTaskState(const char *taskID, s8 inval, u8 *status, u32 *out1, u8 *out2);
 
 /**
  * @brief This loads the current state of PropertyID 0x0 for the specified task.
