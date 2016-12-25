@@ -16,6 +16,8 @@ typedef struct
 
 	u8 property_xa[0x100];
 
+	u8 property_xb[0x200];
+
 	char property_xd[0x360];//Additonal optional HTTP request headers.
 
 	u32 property_xe;
@@ -33,6 +35,8 @@ typedef struct
 	u32 property_x16;
 
 	u32 property_x3b;
+
+	u8 property_x3e[0x200];
 } bossContext;
 
 /**

@@ -312,6 +312,9 @@ Result bossSendContextConfig(bossContext *ctx)
 	ret = bossSendProperty(0xa, &ctx->property_xa, 0x100);
 	if(R_FAILED(ret))return ret;
 
+	ret = bossSendProperty(0xb, &ctx->property_xb, 0x200);
+	if(R_FAILED(ret))return ret;
+
 	ret = bossSendProperty(0xd, ctx->property_xd, 0x360);
 	if(R_FAILED(ret))return ret;
 
@@ -342,6 +345,9 @@ Result bossSendContextConfig(bossContext *ctx)
 	if(R_FAILED(ret))return ret;
 
 	ret = bossSendProperty(0x3b, &ctx->property_x3b, 0x4);
+	if(R_FAILED(ret))return ret;
+
+	ret = bossSendProperty(0x3e, &ctx->property_x3e, 0x200);
 	if(R_FAILED(ret))return ret;
 
 	return ret;
