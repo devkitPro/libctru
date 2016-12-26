@@ -58,6 +58,14 @@ void bossExit(void);
 Handle bossGetSessionHandle(void);
 
 /**
+ * @brief Set the content data storage location.
+ * @param extdataID u64 extdataID, must have the high word set to the shared-extdata value when it's for NAND.
+ * @param boss_size Probably the max size in the extdata which BOSS can use.
+ * @param mediaType Roughly the same as FS mediatype.
+ */
+Result bossSetStorageInfo(u64 extdataID, u32 boss_size, u8 mediaType);
+
+/**
  * @brief Register a task.
  * @param taskID BOSS taskID.
  * @param unk0 Unknown, usually zero.

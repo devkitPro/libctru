@@ -81,6 +81,22 @@ static Result bossipc_InitializeSession(u64 programID)
 	return (Result)cmdbuf[1];
 }
 
+Result bossSetStorageInfo(u64 extdataID, u32 boss_size, u8 mediaType)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x2,4,0); // 0x20100
+	cmdbuf[1] = (u32) extdataID;
+	cmdbuf[2] = (u32) (extdataID >> 32);
+	cmdbuf[3] = boss_size;
+	cmdbuf[4] = mediaType;
+
+	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result bossRegisterTask(const char *taskID, u8 unk0, u8 unk1)
 {
 	Result ret = 0;
