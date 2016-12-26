@@ -47,8 +47,9 @@ typedef enum {
 /**
  * @brief Initializes BOSS.
  * @param programID programID to use, 0 for the current process. Not used internally unless BOSSP is available.
+ * @param force_user When true, just use bossU instead of trying to initialize with bossP first.
  */
-Result bossInit(u64 programID);
+Result bossInit(u64 programID, bool force_user);
 
 /// Exits BOSS.
 void bossExit(void);

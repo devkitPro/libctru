@@ -15,7 +15,7 @@ static u32 bossPriv = 0;
 
 static Result bossipc_InitializeSession(u64 programID);
 
-Result bossInit(u64 programID)
+Result bossInit(u64 programID, bool force_user)
 {
 	Result res=0;
 	Handle envhandle=0;
@@ -23,9 +23,15 @@ Result bossInit(u64 programID)
 
 	if (AtomicPostIncrement(&bossRefCount)) return 0;
 
-	res = srvGetServiceHandle(&handle, "boss:P");
-	envhandle = envGetHandle("boss:P");
-	bossPriv = 1;
+	res = -1;
+
+	if(!force_user)
+	{
+		res = srvGetServiceHandle(&handle, "boss:P");
+		envhandle = envGetHandle("boss:P");
+		bossPriv = 1;
+	}
+
 	if (R_FAILED(res))
 	{
 		bossPriv = 0;
