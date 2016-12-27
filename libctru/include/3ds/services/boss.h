@@ -46,10 +46,16 @@ typedef enum {
 
 /**
  * @brief Initializes BOSS.
- * @param programID programID to use, 0 for the current process. Not used internally unless BOSSP is available.
+ * @param programID programID to use, 0 for the current process. Only used when BOSSP is available without *hax payload.
  * @param force_user When true, just use bossU instead of trying to initialize with bossP first.
  */
 Result bossInit(u64 programID, bool force_user);
+
+/**
+ * @brief Run the InitializeSession service cmd. This is mainly for changing the programID associated with the current BOSS session.
+ * @param programID programID to use, 0 for the current process.
+ */
+Result bossReinit(u64 programID);
 
 /// Exits BOSS.
 void bossExit(void);
@@ -64,6 +70,11 @@ Handle bossGetSessionHandle(void);
  * @param mediaType Roughly the same as FS mediatype.
  */
 Result bossSetStorageInfo(u64 extdataID, u32 boss_size, u8 mediaType);
+
+/**
+ * @brief Unregister the content data storage location, which includes unregistering the BOSS-session programID with BOSS.
+ */
+Result bossUnregisterStorage(void);
 
 /**
  * @brief Register a task.

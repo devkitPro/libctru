@@ -53,6 +53,11 @@ Result bossInit(u64 programID, bool force_user)
 	return res;
 }
 
+Result bossReinit(u64 programID)
+{
+	return bossipc_InitializeSession(programID);
+}
+
 void bossExit(void)
 {
 	if (AtomicDecrement(&bossRefCount)) return;
@@ -91,6 +96,18 @@ Result bossSetStorageInfo(u64 extdataID, u32 boss_size, u8 mediaType)
 	cmdbuf[2] = (u32) (extdataID >> 32);
 	cmdbuf[3] = boss_size;
 	cmdbuf[4] = mediaType;
+
+	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result bossUnregisterStorage(void)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x3,0,0); // 0x30000
 
 	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
 
