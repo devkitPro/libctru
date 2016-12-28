@@ -6,7 +6,7 @@
 
 static int inet_pton4(const char *restrict src, void *restrict dst)
 {
-	u8 ip[4];
+	u8 ip[4] ALIGN(4);
 	if(sscanf(src,"%hhu.%hhu.%hhu.%hhu",&ip[0], &ip[1], &ip[2], &ip[3]) != 4) return 0;
 
 	memcpy(dst,ip,4);
