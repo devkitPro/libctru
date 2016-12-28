@@ -37,11 +37,8 @@ int socket(int domain, int type, int protocol)
 		return -1;
 	}
 
-	fd = __alloc_handle(sizeof(__handle) + sizeof(Handle));
-	if(fd < 0) {
-		errno = ENOMEM;
-		return -1;
-	}
+	fd = __alloc_handle(dev);
+	if(fd < 0) return fd;
 
 	handle = __get_handle(fd);
 	handle->device = dev;
