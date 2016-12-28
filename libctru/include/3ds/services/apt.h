@@ -497,3 +497,13 @@ Result APT_StartSystemApplet(NS_APPID appID, const void* param, size_t paramSize
  * @brief mapAddr Pointer to write the mapping address of the system font memory block to.
  */
 Result APT_GetSharedFont(Handle* fontHandle, u32* mapAddr);
+
+/**
+ * @brief Receives the deliver (launch) argument
+ * @param param Parameter buffer.
+ * @param paramSize Size of parameter buffer.
+ * @param hmac HMAC buffer (should be 0x20 bytes long).
+ * @param sender Pointer to output the sender's AppID to.
+ * @param received Pointer to output whether an argument was received to.
+ */
+Result APT_ReceiveDeliverArg(const void* param, size_t paramSize, const void* hmac, u64* sender, bool* received);

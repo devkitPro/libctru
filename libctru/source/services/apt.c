@@ -1079,3 +1079,36 @@ Result APT_GetSharedFont(Handle* fontHandle, u32* mapAddr)
 
 	return ret;
 }
+
+Result APT_ReceiveDeliverArg(const void* param, size_t paramSize, const void* hmac, u64* sender, bool* received)
+{
+	u32 cmdbuf[16];
+	cmdbuf[0]=IPC_MakeHeader(0x35,2,0); // 0x350080
+	cmdbuf[1]=paramSize;
+	cmdbuf[2]=hmac ? 0x20 : 0;
+
+	u32 saved_threadstorage[4];
+	u32* staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0]=staticbufs[0];
+	saved_threadstorage[1]=staticbufs[1];
+	saved_threadstorage[2]=staticbufs[2];
+	saved_threadstorage[3]=staticbufs[3];
+	staticbufs[0]=IPC_Desc_StaticBuffer(cmdbuf[1],0);
+	staticbufs[1]=(u32)param;
+	staticbufs[2]=IPC_Desc_StaticBuffer(cmdbuf[2],2);
+	staticbufs[3]=(u32)hmac;
+
+	Result ret = aptSendCommand(cmdbuf);
+	staticbufs[0]=saved_threadstorage[0];
+	staticbufs[1]=saved_threadstorage[1];
+	staticbufs[2]=saved_threadstorage[2];
+	staticbufs[3]=saved_threadstorage[3];
+
+	if (R_SUCCEEDED(ret))
+	{
+		if (sender)     *sender    =cmdbuf[2] | ((u64)cmdbuf[3]<<32);
+		if (received)   *received  =cmdbuf[4] & 0xFF;
+	}
+
+	return ret;
+}
