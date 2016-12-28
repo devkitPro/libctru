@@ -1,13 +1,15 @@
 #include "soc_common.h"
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <string.h>
 
 
 static int inet_pton4(const char *restrict src, void *restrict dst)
 {
 	u8 ip[4];
 	if(sscanf(src,"%hhu.%hhu.%hhu.%hhu",&ip[0], &ip[1], &ip[2], &ip[3]) != 4) return 0;
-	*(u32*)dst = *(u32*)ip;
+
+	memcpy(dst,ip,4);
 	return 1;
 }
 
