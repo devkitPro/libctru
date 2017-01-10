@@ -39,10 +39,21 @@ typedef struct
 	u8 property_x3e[0x200];
 } bossContext;
 
+/// BOSS task status.
 typedef enum {
 	BOSSTASKSTATUS_STARTED = 0x2,
 	BOSSTASKSTATUS_ERROR = 0x7,
 } bossTaskStatus;
+
+/// Type values for bossGetNsDataHeaderInfo().
+typedef enum {
+	bossNsDataHeaderInfoType_ContentSize = 0x3 /// Size of the content.
+} bossNsDataHeaderInfoTypes;
+
+/// Size of the output data for bossGetNsDataHeaderInfo().
+typedef enum {
+	bossNsDataHeaderInfoTypeSize_ContentSize = 0x4 ///Type2
+} bossNsDataHeaderInfoTypeSizes;
 
 /**
  * @brief Initializes BOSS.
@@ -97,6 +108,15 @@ Result bossSendProperty(u16 PropertyID, const void* buf, u32 size);
  * @param NsDataId NsDataId
  */
 Result bossDeleteNsData(u32 NsDataId);
+
+/**
+ * @brief Gets header info for the specified NsDataId.
+ * @param NsDataId NsDataId
+ * @param type Type of data to load.
+ * @param buffer Output buffer.
+ * @param size Output buffer size.
+ */
+Result bossGetNsDataHeaderInfo(u32 NsDataId, u8 type, void* buffer, u32 size);
 
 /**
  * @brief Reads data from the content for the specified NsDataId.

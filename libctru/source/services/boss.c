@@ -247,6 +247,23 @@ Result bossDeleteNsData(u32 NsDataId)
 	return (Result)cmdbuf[1];
 }
 
+Result bossGetNsDataHeaderInfo(u32 NsDataId, u8 type, void* buffer, u32 size)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x27,3,2); // 0x2700C2
+	cmdbuf[1] = NsDataId;
+	cmdbuf[2] = type;
+	cmdbuf[3] = size;
+	cmdbuf[4] = IPC_Desc_Buffer(size, IPC_BUFFER_W);
+	cmdbuf[5] = (u32)buffer;
+
+	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result bossReadNsData(u32 NsDataId, u64 offset, void* buffer, u32 size, u32 *transfer_total, u32 *unk_out)
 {
 	Result ret = 0;
