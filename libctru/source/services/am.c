@@ -357,7 +357,7 @@ Result AM_FinishCiaInstallWithoutCommit(Handle ciaHandle)
 	return (Result)cmdbuf[1];
 }
 
-Result AM_CommitImportPrograms(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds)
+Result AM_CommitImportPrograms(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -779,7 +779,7 @@ Result AM_InstallTitleFinish()
 	return (Result)cmdbuf[1];
 }
 
-Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds)
+Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
