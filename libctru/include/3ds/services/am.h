@@ -216,7 +216,7 @@ Result AM_FinishCiaInstallWithoutCommit(Handle ciaHandle);
  * @param temp Whether the titles being finalized are in the temporary database.
  * @param titleIds Title IDs to finalize.
  */
-Result AM_CommitImportPrograms(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);
+Result AM_CommitImportPrograms(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds);
 
 /**
  * @brief Deletes a title.
@@ -396,7 +396,7 @@ Result AM_InstallTitleFinish();
  * @param temp Whether the titles being finalized are in the temporary database.
  * @param titleIds Title IDs to finalize.
  */
-Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);
+Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds);
 
 /**
  * @brief Begins installing a TMD.
