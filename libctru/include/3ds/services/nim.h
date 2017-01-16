@@ -20,7 +20,7 @@ typedef enum
 	IM_DEFAULT = 0, ///< Initial installation
 	IM_UNKNOWN1,    ///< Unknown
 	IM_UNKNOWN2,    ///< Unknown
-	IM_REINSTALL    ///< Reinstall currently installed title; use this if the title is already installed (including updates)
+	IM_REINSTALL,   ///< Reinstall currently installed title; use this if the title is already installed (including updates)
 } NIM_InstallationMode;
 
 /// Current state of a NIM download/installation.
@@ -37,7 +37,7 @@ typedef enum
 	DS_VERSION_ERROR,       ///< (unknown error regarding title version)
 	DS_CREATE_CONTEXT,      ///< Creating the .ctx file?
 	DS_CANNOT_RECOVER,      ///< Irrecoverable error encountered (e.g. out of space)
-	DS_INVALID              ///< Invalid state
+	DS_INVALID,             ///< Invalid state
 } NIM_DownloadState;
 
 /// Input configuration for NIM download/installation tasks.
@@ -61,14 +61,33 @@ typedef struct
 	u64 totalSize;      ///< Amount of bytes that need to be downloaded in total
 } NIM_TitleProgress;
 
-/// Initializes nim:s. This uses networking and is blocking.
-Result nimsInit(void);
+/**
+ * @brief Initializes nim:s. This uses networking and is blocking.
+ * @param buffer A buffer for internal use. It must be at least 0x20000 bytes long.
+ * @param buffer_len Length of the passed buffer.
+ */
+Result nimsInit(void *buffer, size_t buffer_len);
+
+/**
+ * @brief Initializes nim:s with the given TIN. This uses networking and is blocking.
+ * @param buffer A buffer for internal use. It must be at least 0x20000 bytes long.
+ * @param buffer_len Length of the passed buffer.
+ * @param TIN The TIN to initialize nim:s with. If you do not know what a TIN is or why you would want to change it, use @ref nimsInit instead.
+ */
+Result nimsInitWithTIN(void *buffer, size_t buffer_len, const char *TIN);
 
 /// Exits nim:s.
 void nimsExit(void);
 
 /// Gets the current nim:s session handle.
 Handle *nimsGetSessionHandle(void);
+
+/**
+ * @brief Sets an attribute.
+ * @param attr Name of the attribute.
+ * @param val Value of the attribute.
+ */
+Result NIMS_SetAttribute(const char *attr, const char *val);
 
 /**
  * @brief Checks if nim wants a system update.
