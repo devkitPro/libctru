@@ -31,7 +31,7 @@ install:
   
 env:
   global:
-    - secure: "BkEGbVRearmBLntY9WSuFkaiO2qAMMN43qocbkCL18dGbIDJA7vlUXXCKkahdsS5TU9j7xdcybCokmPBuvMCNRvQcDVwDcYbuh+ASmqG8Br1hphUScWPZNkcVSgTcHqNHh2k+05NP6d3vm3utOLgGZt/V5p+XcdGHti86KMeY34="
+    - secure: "flMuk/VTG6xhMfazYKyIi+0yHceJkPRLg5igm3zuUDPeMhFxYCtwJe44Uu9YrTj5VqXmfbIC27q/I68lia6Q+A/WvlIRYo1BO/Gh8sTT65hYe9KHODdel01tODHe2jmf80fskdowREj60etrwHYdP75O4ntn9A/PI9hZ5s/yrEQ="
   
 script:
   - cd $TRAVIS_BUILD_DIR/libctru
@@ -43,5 +43,5 @@ after_success:
   - #Build the doxygen files and upload to GH pages
   - git config --global user.email "travis@travis-ci.org"
   - git config --global user.name "TravisCI-DocBuilder"
-  # Build the doxygen documentation and push it to gh-pages if current branch is great-refactor
+  # Build the doxygen documentation and push it to gh-pages if this is a tagged release
   - sh exportdoc.sh
