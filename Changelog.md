@@ -1,5 +1,79 @@
 # Changelog
 
+## Version 1.2.0
+
+* New features:
+  - Added support for the nfc:m/nfc:u service.
+  - Added support for the ssl:C service.
+  - Added support for the nwm::UDS service (Local wireless).
+  - Added support for the boss:P/boss:U service (SpotPass).
+  - Added support for using the err:f global port.
+  - Added support for using and parsing the shared system font.
+  - Added support for using the 3DS' built-in software keyboard applet.
+  - Added support for using Light Events, a lightweight alternative to normal events that doesn't consume handles.
+  - Added NDSP commands for setting up per-channel monopole & biquad filters.
+
+* Major breaking changes:
+  - Major revamp of the APT code; some old deprecated functions were completely removed, homebrew code abiding by recent standards shouldn't be affected though.
+  - Major revamp of the HTTPC code, including both additions and bugfixes.
+  - Major revamp of the AM code, with some enhancements.
+  - Major revamp of FSUSER code, archive handle handling has been refactored. fs(End)UseSession replaced with fsExemptFromSession.
+  - Major revamp of MVD code to support video processing.
+  - Major revamp of the GPU shader code to fully support geometry shaders.
+  - The old deprecated GPU wrapper commands have been removed. Use direct GPU register writes or a separate GPU wrapper library (such as citro3d) instead.
+  - Major revamp and update of the SVC debugger API.
+  - Heap size management has been simplified and made more flexible. All applications now default to 32MB of linear heap and all remaining APPLICATION memory is allocated as the application heap, regardless of entrypoint or application format.
+
+* Miscellaneous additions:
+  - Several enhancements to SOC:u support:
+    - Added getaddrinfo, getnameinfo, gethostname, gai_strerror.
+    - Added SOCU_ShutdownSockets, SOCU_CloseSockets, SOCU_GetIPInfo, SOCU_GetNetworkOpt, SOCU_AddGlobalSocket.
+    - Added several missing flags.
+  - Minor am:net corrections and additions.
+  - Added sdmcWriteSafe to disable copying data to temporary RW buffers before calling FSFILE_Write.
+  - Added sdmc_getmtime to retrieve the modification time for a file.
+  - Added opendir/readdir/rewinddir/closedir/stat support to romfs.
+  - Added support for multiple RomFS mounts.
+  - Added macros for console color codes (ANSI escape sequences).
+  - Added support for specifying a fallback RomFS path for when argv isn't available.
+  - Added aptIsSleepAllowed/aptSetSleepAllowed.
+  - Added ResetType enum for use with svcCreateEvent and svcCreateTimer.
+  - Added psInitHandle and psGetSessionHandle.
+  - Added AM commands: AM_ExportTwlBackup, AM_ImportTwlBackup, AM_ReadTwlBackupInfo, AM_DeleteAllDemoLaunchInfos, AM_FinishCiaInstallWithoutCommit, AM_CommitImportPrograms.
+  - Added AMPXI commands: AMPXI_WriteTWLSavedata, AMPXI_InstallTitlesFinish.
+  - Added APT commands: APT_ReceiveDeliverArg.
+  - Added CFG commands: CFG_GetConfigInfoBlk4, CFG_GetConfigInfoBlk8, CFG_SetConfigInfoBlk4, CFG_SetConfigInfoBlk8, CFG_UpdateConfigNANDSavegame.
+  - Added GSPLCD commands: GSPLCD_GetVendors
+  - Added FSUSER commands: FSUSER_UpdateSha256Context.
+  - Added NEWS commands: NEWS_GetTotalNotifications, NEWS_SetNotificationHeader, NEWS_GetNotificationHeader, NEWS_GetNotificationMessage, NEWS_GetNotificationImage, NEWS_SetNotificationMessage, NEWS_SetNotificationImage.
+  - Added NS commands: NS_TerminateProcessTID, NS_LaunchFIRM, NS_LaunchApplicationFIRM.
+  - Added PS commands: PS_SignRsaSha256, PS_VerifyRsaSha256.
+  - Added PTMSYSM commands: PTMSYSM_CheckNew3DS, PTMSYSM_ShutdownAsync, PTMSYSM_RebootAsync.
+  - Added PXIDEV commands: PXIDEV_SPIMultiWriteRead, PXIDEV_SPIWriteRead.
+  - Added system calls: svcCreateCodeSet, svcCreateProcess, svcGetResourceLimit, svcGetResourceLimitValues, svcGetResourceLimitCurrentValues, svcSetProcessAffinityMask, svcSetProcessIdealProcessor, svcRun, svcBindInterrupt, svcUnbindInterrupt, svcGetHandleInfo, svcBreakRO, svcGetThreadList.
+  - Added result module codes.
+  - Added GPU A4 texture format enum.
+
+* Miscellaneous changes and bug fixes:
+  - Optimized sdmc's readdir to batch directory entries.
+  - APT, GSPGPU and NDSP code was tuned to take advantage of Light Events.
+  - Moved am:app init to a separate function.
+  - Several issues concerning IPC static buffer saving/restoring were fixed.
+  - Several issues concerning sdmc/RomFS devoptabs were fixed.
+  - Several issues concerning SOC:u were fixed.
+  - An issue concerning cam:u was fixed.
+  - An issue concerning HID was fixed.
+  - An issue concerning news:u was fixed.
+  - The GPU ETC1 texture format enums were fixed.
+  - usleep was fixed.
+  - Fixed incorrect bool return values from services.
+  - Fixed buffer overflow after gfxSetScreenFormat.
+  - Fixed home menu display of suspended 2D applications.
+  - Fixed buffer overrun in console code.
+  - Fixed PS_EncryptDecryptAes and PS_EncryptSignDecryptVerifyAesCcm.
+  - Fixed the implementation of svcGetProcessList.
+  - Corrected svcKernelSetState function signature.
+
 ## Version 1.1.0
 
 * Additions:
@@ -13,7 +87,7 @@
   - Added support for usleep.
 
 * Changes:
-  - NDSP thread priority has been increasing, therefore mitigating potential sound issues due to high CPU usage on the main thread.
+  - NDSP thread priority has been increased, therefore mitigating potential sound issues due to high CPU usage on the main thread.
   - RomFS initialization no longer makes romfs:/ the default device.
 
 * Bug fixes:
