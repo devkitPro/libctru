@@ -204,6 +204,21 @@ Result AM_CancelCIAInstall(Handle ciaHandle);
 Result AM_FinishCiaInstall(Handle ciaHandle);
 
 /**
+ * @brief Finalizes the CIA install process without committing the title to title.db or tmp*.db.
+ * @param ciaHandle CIA handle to finalize.
+ */
+Result AM_FinishCiaInstallWithoutCommit(Handle ciaHandle);
+
+/**
+ * @brief Commits installed CIAs.
+ * @param mediaType Location of the titles to finalize.
+ * @param titleCount Number of titles to finalize.
+ * @param temp Whether the titles being finalized are in the temporary database.
+ * @param titleIds Title IDs to finalize.
+ */
+Result AM_CommitImportPrograms(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds);
+
+/**
  * @brief Deletes a title.
  * @param mediatype Media type to delete from.
  * @param titleID ID of the title to delete.
@@ -381,7 +396,7 @@ Result AM_InstallTitleFinish();
  * @param temp Whether the titles being finalized are in the temporary database.
  * @param titleIds Title IDs to finalize.
  */
-Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds);
+Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds);
 
 /**
  * @brief Begins installing a TMD.

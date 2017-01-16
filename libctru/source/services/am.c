@@ -343,6 +343,37 @@ Result AM_FinishCiaInstall(Handle ciaHandle)
 	return (Result)cmdbuf[1];
 }
 
+Result AM_FinishCiaInstallWithoutCommit(Handle ciaHandle)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x406,0,2); // 0x04060002
+	cmdbuf[1] = IPC_Desc_MoveHandles(1);
+	cmdbuf[2] = ciaHandle;
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result AM_CommitImportPrograms(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x407,3,2); // 0x040700C2
+	cmdbuf[1] = mediaType;
+	cmdbuf[2] = titleCount;
+	cmdbuf[3] = temp ? 1 : 0;
+	cmdbuf[4] = IPC_Desc_Buffer(titleCount * 8, IPC_BUFFER_R);
+	cmdbuf[5] = (u32)titleIds;
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result AM_DeleteTitle(FS_MediaType mediatype, u64 titleID)
 {
 	Result ret = 0;
@@ -748,7 +779,7 @@ Result AM_InstallTitleFinish()
 	return (Result)cmdbuf[1];
 }
 
-Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, u64* titleIds)
+Result AM_CommitImportTitles(FS_MediaType mediaType, u32 titleCount, bool temp, const u64* titleIds)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
