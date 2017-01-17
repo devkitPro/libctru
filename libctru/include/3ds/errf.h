@@ -38,7 +38,6 @@ typedef struct {
 typedef struct {
 	ERRF_ExceptionInfo excep;   ///< Exception info struct
 	CpuRegisters regs;          ///< CPU register dump.
-	u8 pad[4];
 } ERRF_ExceptionData;
 
 typedef struct {
