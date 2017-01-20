@@ -71,10 +71,10 @@ typedef struct {
 	u8 lastwritedate_month;
 	u8 lastwritedate_day;
 	u16 write_counter;
-	u16 val_x6;
-	u8 val_x8;
-	u8 val_x9;
-	u16 val_xa;
+	u8 characterID[3];
+	u8 serie;///ID of the serie
+	u8 amiiboID;///ID shared by all exact same amiibo. Some amiibo are only distinguished by this one like regular SMB Series Mario and the gold one
+	u16 type;/// Type of amiibo 0 = figure, 1 = card, 2 = Plush
 	u8 val_xc;
 	u8 pagex4_byte3;/// "This is byte[3] from NFC page[0x4]."
 	u8 appdata_size;/// "NFC module writes hard-coded u8 value 0xD8 here. This is the size of the Amiibo AppData, apps can use this with the AppData R/W commands. ..."
