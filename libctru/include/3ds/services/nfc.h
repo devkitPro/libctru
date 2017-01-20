@@ -71,14 +71,13 @@ typedef struct {
 	u8 lastwritedate_month;
 	u8 lastwritedate_day;
 	u16 write_counter;
-	u16 val_x6;
-	u8 val_x8;
-	u8 val_x9;
-	u16 val_xa;
-	u8 val_xc;
-	u8 pagex4_byte3;/// "This is byte[3] from NFC page[0x4]."
-	u8 appdata_size;/// "NFC module writes hard-coded u8 value 0xD8 here. This is the size of the Amiibo AppData, apps can use this with the AppData R/W commands. ..."
-	u8 zeros[0x31];/// "Unused / reserved: this is cleared by NFC module but never written after that."
+	u8 characterID[3];/// the first element is the collection ID, the second the character in this collection, the third the variant
+	u8 series;/// ID of the series
+	u16 amiiboID;/// ID shared by all exact same amiibo. Some amiibo are only distinguished by this one like regular SMB Series Mario and the gold one
+	u8 type;/// Type of amiibo 0 = figure, 1 = card, 2 = plush
+	u8 pagex4_byte3;
+	u16 appdata_size;/// "NFC module writes hard-coded u8 value 0xD8 here. This is the size of the Amiibo AppData, apps can use this with the AppData R/W commands. ..."
+	u8 zeros[0x30];/// "Unused / reserved: this is cleared by NFC module but never written after that."
 } NFC_AmiiboConfig;
 
 /// Used by nfcInitializeWriteAppData() internally, see also here: https://3dbrew.org/wiki/NFC:GetAppDataInitStruct
