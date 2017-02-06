@@ -6,9 +6,9 @@
 
 typedef enum
 {
-	VRAM_A  = 0x00;
-	VRAM_B  = 0x01;
-	VRAM_AB = 0x02;
+	VRAM_A  = 0x00,
+	VRAM_B  = 0x01,
+	VRAM_AB = 0x02
 } VRAM_ALLOCATOR;
 
 /**

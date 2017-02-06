@@ -20,7 +20,7 @@ static bool vramInit()
 		if(blkB)
 		{
 			sVramPoolA.AddBlock(blkA);
-			sVramPoolB.Addblock(blkB);
+			sVramPoolB.AddBlock(blkB);
 			rbtree_init(&sAddrMap, addrMapNodeComparator);
 			return true;
 		}
@@ -68,7 +68,7 @@ void* vramBankMemAlign(VRAM_ALLOCATOR bank, size_t size, size_t alignment)
 			}
 		}
 		else
-			bankset = 0;
+			bankSet = 0;
 	}
 	else
 	{
@@ -94,7 +94,7 @@ void* vramBankMemAlign(VRAM_ALLOCATOR bank, size_t size, size_t alignment)
 
 void* vramMemAlign(size_t size, size_t alignment)
 {
-	return vramBankMemAlign(VRMA_AB, size, alignment);
+	return vramBankMemAlign(VRAM_AB, size, alignment);
 }
 
 void* vramBankAlloc(VRAM_ALLOCATOR bank, size_t size)
@@ -128,7 +128,7 @@ void vramFree(void* mem)
 	delNode(node);
 }
 
-u32 vramBankSpaceFree(VRAM_ALLOCATOR bank);
+u32 vramBankSpaceFree(VRAM_ALLOCATOR bank)
 {
 	if(bank != VRAM_B)
 	{
