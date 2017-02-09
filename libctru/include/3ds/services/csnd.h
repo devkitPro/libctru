@@ -20,12 +20,12 @@
  */
 static inline u32 CSND_VOL(float vol, float pan)
 {
-	if (vol < 0.0) vol = 0.0;
-	else if (vol > 1.0) vol = 1.0;
+	if (vol < 0.0f) vol = 0.0f;
+	else if (vol > 1.0f) vol = 1.0f;
 
 	float rpan = (pan+1) / 2;
-	if (rpan < 0.0) rpan = 0.0;
-	else if (rpan > 1.0) rpan = 1.0;
+	if (rpan < 0.0f) rpan = 0.0f;
+	else if (rpan > 1.0f) rpan = 1.0f;
 
 	u32 lvol = vol*(1-rpan) * 0x8000;
 	u32 rvol = vol*rpan * 0x8000;
