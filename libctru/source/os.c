@@ -8,8 +8,8 @@
 #include <reent.h>
 #include <unistd.h>
 
-#define TICKS_PER_USEC 268.123480
-#define TICKS_PER_MSEC 268123.480
+#define TICKS_PER_USEC 268.111856
+#define TICKS_PER_MSEC 268111.856
 
 // Work around the VFP not supporting 64-bit integer <--> floating point conversion
 static inline double u64_to_double(u64 value) {
