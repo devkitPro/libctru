@@ -57,23 +57,20 @@ void GPUCMD_FlushAndRun(void)
 
 void GPUCMD_Add(u32 header, const u32* param, u32 paramlength)
 {
-	u32 zero=0x0;
-
-	if(!param || !paramlength)
-	{
-		paramlength=1;
-		param=&zero;
-	}
-
+	if(!paramlength)paramlength=1;
 	if(!gpuCmdBuf || gpuCmdBufOffset+paramlength+1>gpuCmdBufSize)return;
 
 	paramlength--;
 	header|=(paramlength&0x7ff)<<20;
 
-	gpuCmdBuf[gpuCmdBufOffset]=param[0];
+	gpuCmdBuf[gpuCmdBufOffset]=param ? param[0] : 0;
 	gpuCmdBuf[gpuCmdBufOffset+1]=header;
 
-	if(paramlength)memcpy(&gpuCmdBuf[gpuCmdBufOffset+2], &param[1], paramlength*4);
+	if(paramlength)
+	{
+		if(param)memcpy(&gpuCmdBuf[gpuCmdBufOffset+2], &param[1], paramlength*4);
+		else     memset(&gpuCmdBuf[gpuCmdBufOffset+2], 0, paramlength*4);
+	}
 
 	gpuCmdBufOffset+=paramlength+2;
 
