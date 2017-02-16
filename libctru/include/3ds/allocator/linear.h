@@ -29,6 +29,12 @@ void* linearMemAlign(size_t size, size_t alignment);
 void* linearRealloc(void* mem, size_t size);
 
 /**
+ * @brief Retrieves the allocated size of a buffer.
+ * @return The size of the buffer.
+ */
+size_t linearGetSize(void* mem);
+
+/**
  * @brief Frees a buffer.
  * @param mem Buffer to free.
  */

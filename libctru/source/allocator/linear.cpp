@@ -71,6 +71,12 @@ void* linearRealloc(void* mem, size_t size)
 	return NULL;
 }
 
+size_t linearGetSize(void* mem)
+{
+	auto node = getNode(mem);
+	return node ? node->chunk.size : 0;
+}
+
 void linearFree(void* mem)
 {
 	auto node = getNode(mem);

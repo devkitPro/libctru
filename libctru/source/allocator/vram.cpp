@@ -68,6 +68,12 @@ void* vramRealloc(void* mem, size_t size)
 	return NULL;
 }
 
+size_t vramGetSize(void* mem)
+{
+	auto node = getNode(mem);
+	return node ? node->chunk.size : 0;
+}
+
 void vramFree(void* mem)
 {
 	auto node = getNode(mem);

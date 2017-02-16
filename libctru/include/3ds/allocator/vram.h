@@ -29,6 +29,12 @@ void* vramMemAlign(size_t size, size_t alignment);
 void* vramRealloc(void* mem, size_t size);
 
 /**
+ * @brief Retrieves the allocated size of a buffer.
+ * @return The size of the buffer.
+ */
+size_t vramGetSize(void* mem);
+
+/**
  * @brief Frees a buffer.
  * @param mem Buffer to free.
  */

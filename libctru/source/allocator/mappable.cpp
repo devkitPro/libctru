@@ -43,6 +43,12 @@ void* mappableAlloc(size_t size)
 	return chunk.addr;
 }
 
+size_t mappableGetSize(void* mem)
+{
+	auto node = getNode(mem);
+	return node ? node->chunk.size : 0;
+}
+
 void mappableFree(void* mem)
 {
 	auto node = getNode(mem);
