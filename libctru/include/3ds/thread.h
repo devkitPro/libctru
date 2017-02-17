@@ -54,6 +54,7 @@ int threadGetExitCode(Thread thread);
 /**
  * @brief Frees a finished libctru thread.
  * @param thread libctru thread handle
+ * @remarks This function should not be called if the thread is detached, as it is freed automatically when it finishes.
  */
 void threadFree(Thread thread);
 
