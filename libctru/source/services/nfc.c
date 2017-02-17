@@ -436,3 +436,78 @@ static Result NFC_GetAppDataInitStruct(NFC_AppDataInitStruct *out)
 	return ret;
 }
 
+Result nfcStartOtherTagScanning(u16 unk0, u32 unk1)
+{
+	Result ret=0;
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x1F,2,0); // 0x1F0080
+	cmdbuf[1] = unk0;
+	cmdbuf[2] = unk1;
+
+	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
+	ret = cmdbuf[1];
+
+	return ret;
+}
+
+Result nfcSendTagCommand(const void *inbuf, size_t insize, void *outbuf, size_t outsize, size_t *actual_transfer_size, u64 microseconds)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	u32 saved_threadstorage[2];
+
+	cmdbuf[0]=IPC_MakeHeader(0x20,4,2); // 0x200102
+	cmdbuf[1]=insize;
+	cmdbuf[2]=outsize;
+	cmdbuf[3]=(u32)(microseconds);
+	cmdbuf[4]=(u32)(microseconds>>32);
+	cmdbuf[5]=IPC_Desc_StaticBuffer(insize,0);
+	cmdbuf[6]=(u32)inbuf;
+
+	u32 * staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
+
+	staticbufs[0] = IPC_Desc_StaticBuffer(outsize,0);
+	staticbufs[1] = (u32)outbuf;
+
+	Result ret=0;
+	ret=svcSendSyncRequest(nfcHandle);
+
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
+
+	if(R_FAILED(ret))return ret;
+
+	ret = cmdbuf[1];
+	if(actual_transfer_size)*actual_transfer_size = cmdbuf[2];
+
+	return ret;
+}
+
+Result nfcCmd21(void)
+{
+	Result ret=0;
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x21,0,0); // 0x210000
+
+	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
+	ret = cmdbuf[1];
+
+	return ret;
+}
+
+Result nfcCmd22(void)
+{
+	Result ret=0;
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x22,0,0); // 0x220000
+
+	if(R_FAILED(ret = svcSendSyncRequest(nfcHandle)))return ret;
+	ret = cmdbuf[1];
+
+	return ret;
+}
+

@@ -28,7 +28,8 @@
 /// NFC operation type.
 typedef enum {
 	NFC_OpType_1 = 1, /// Unknown.
-	NFC_OpType_NFCTag = 2 /// This is the default.
+	NFC_OpType_NFCTag = 2, /// This is the default.
+	NFC_OpType_RawNFC = 3  /// Use Raw NFC tag commands. Only available with >=10.0.0-X.
 } NFC_OpType;
 
 typedef enum {
@@ -188,4 +189,32 @@ Result nfcGetAmiiboSettings(NFC_AmiiboSettings *out);
  * @param out Pointer to write the output AmiiboConfig.
  */
 Result nfcGetAmiiboConfig(NFC_AmiiboConfig *out);
+
+/**
+ * @brief Starts scanning for NFC tags when initialized with NFC_OpType_RawNFC. See also: https://www.3dbrew.org/wiki/NFC:StartOtherTagScanning
+ * @param unk0 Same as nfcStartScanning() input.
+ * @param unk1 Unknown.
+ */
+Result nfcStartOtherTagScanning(u16 unk0, u32 unk1);
+
+/**
+ * @brief This sends a raw NFC command to the tag. This can only be used when initialized with NFC_OpType_RawNFC, and when the TagState is NFC_TagState_InRange. See also: https://www.3dbrew.org/wiki/NFC:SendTagCommand
+ * @param inbuf Input buffer.
+ * @param insize Size of the input buffer.
+ * @param outbuf Output buffer.
+ * @param outsize Size of the output buffer.
+ * @param actual_transfer_size Optional output ptr to write the actual output-size to, can be NULL.
+ * @param microseconds Timing-related field in microseconds.
+ */
+Result nfcSendTagCommand(const void *inbuf, size_t insize, void *outbuf, size_t outsize, size_t *actual_transfer_size, u64 microseconds);
+
+/**
+ * @brief Unknown. This can only be used when initialized with NFC_OpType_RawNFC, and when the TagState is NFC_TagState_InRange.
+ */
+Result nfcCmd21(void);
+
+/**
+ * @brief Unknown. This can only be used when initialized with NFC_OpType_RawNFC, and when the TagState is NFC_TagState_InRange.
+ */
+Result nfcCmd22(void);
 
