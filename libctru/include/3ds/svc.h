@@ -200,7 +200,7 @@ typedef struct {
 
 /// Event relating to @ref svcBreakDebugProcess
 typedef struct {
-	void *threads[4]; ///< KThread instances of the attached process's that were running on each at the time of the function call (only the first 2 values are meaningful on O3DS).
+	s32 threadIds[4]; ///< IDs of the attached process's threads that were running on each core at the time of the @ref svcBreakDebugProcess call, or -1 (only the first 2 values are meaningful on O3DS).
 } DebuggerBreakExceptionEvent;
 
 /// Event relating to exceptions.
