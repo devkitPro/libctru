@@ -1,5 +1,18 @@
 # Changelog
 
+## Version 1.2.1
+
+  - Added NFC support
+  - Update and renamed NFC_AmiiboConfig members
+  - Added TickCounter for measuring performance
+  - Added (linear/vram/mappable)GetSize for retrieving allocated buffer size
+  - Added nim:s client implementation.
+  - Correct bus clock used for time calulations
+  - Default to file write without internal copy buffer
+  - GPUCMD_Add: allow NULL for adding zerofilled parameter data
+  - Clarify threadFree usage in documentation
+  - Add GPU_TEXFACE enumeration
+
 ## Version 1.2.0
 
 * New features:
