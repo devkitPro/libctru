@@ -66,6 +66,12 @@ void threadFree(Thread thread);
 Result threadJoin(Thread thread, u64 timeout_ns);
 
 /**
+ *  @brief Changes a thread's status from attached to detached.
+ *  @param thread libctru thread handle
+ */
+void threadDetach(Thread thread);
+
+/**
  * @brief Retrieves the libctru thread handle of the current thread.
  * @return libctru thread handle of the current thread, or NULL for the main thread
  */
