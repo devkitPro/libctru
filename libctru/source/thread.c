@@ -107,6 +107,19 @@ Result threadJoin(Thread thread, u64 timeout_ns)
 	return svcWaitSynchronization(thread->handle, timeout_ns);
 }
 
+void threadDetach(Thread thread)
+{
+	if (!thread || thread->detached)
+		return;
+	if (thread->finished)
+	{
+		threadFree(thread);
+		return;
+	}
+	thread->detached = true;
+	return;
+}
+
 Thread threadGetCurrent(void)
 {
 	ThreadVars* tv = getThreadVars();
