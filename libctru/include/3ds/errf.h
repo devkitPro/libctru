@@ -32,7 +32,7 @@ typedef struct {
 	u32 far;                ///< pc = ifar (prefetch abort) / dfar (data abort)
 	u32 fpexc;
 	u32 fpinst;
-	u32 fpint2;
+	u32 fpinst2;
 } ERRF_ExceptionInfo;
 
 typedef struct {
