@@ -28,8 +28,8 @@ typedef enum {
 typedef struct {
 	ERRF_ExceptionType type; ///< Type of the exception. One of the ERRF_EXCEPTION_* values.
 	u8  reserved[3];
-	u32 reg1;                ///< If type is prefetch, this should be ifsr, and on data abort dfsr
-	u32 reg2;                ///< If type is prefetch, this should be r15, and dfar on data abort
+	u32 fsr;                ///< ifsr (prefetch abort) / dfsr (data abort)
+	u32 far;                ///< pc = ifar (prefetch abort) / dfar (data abort)
 	u32 fpexc;
 	u32 fpinst;
 	u32 fpint2;
