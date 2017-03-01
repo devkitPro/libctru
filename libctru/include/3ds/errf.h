@@ -51,7 +51,7 @@ typedef struct {
 	u64 appTitleId;    ///< Application Title ID.
 	union {
 		ERRF_ExceptionData exception_data; ///< Data for when type is ERRF_ERRTYPE_EXCEPTION
-		char failure_mesg[60];             ///< String for when type is ERRF_ERRTYPE_FAILURE
+		char failure_mesg[0x60];             ///< String for when type is ERRF_ERRTYPE_FAILURE
 	} data;                                ///< The different types of data for errors.
 } ERRF_FatalErrInfo;
 
