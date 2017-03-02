@@ -8,7 +8,7 @@
 #include <3ds/util/utf.h>
 #include <3ds/applets/error.h>
 
-void error_Init(ErrConf* err, ErrorType type, err_lang lang)
+void error_Init(ErrConf* err, ErrorType type, ErrorLang lang)
 {
 	memset(err, 0, sizeof(*err));
 	err->errorType=type;
@@ -43,7 +43,7 @@ static char* c_shift(const char *text)
 {
 	size_t len = strlen(text);
 	char *str = (char*)malloc(len + 2);
-	if(str)
+	if (str)
 	{
 		str[0] = text[0];
 		strcpy(&str[1], text);
@@ -51,13 +51,13 @@ static char* c_shift(const char *text)
 	return str;
 }
 
-void error_code(ErrConf* err,int error)
+void error_code(ErrConf* err, int error)
 {
 	err->errorCode = error;
 }
 
 void error_text(ErrConf *err, char* text)
-{	char *tex=c_shift(text);
+{	char *tex = c_shift(text);
 	errorConvertToUTF16(err->Text, tex, 1900);
 	free(tex);
 }
