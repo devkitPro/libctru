@@ -27,7 +27,6 @@ typedef enum
 	ERROR_TEXT_LANGUAGE_WORD_WRAP = ERROR_TEXT | ERROR_LANGUAGE_FLAG | ERROR_WORD_WRAP_FLAG,   ///< Displays the custom error message with automatic line wrapping and in the specified language.
 }errorType;
 
-
 ///< Flags for the Upper Screen.Does nothing even if specified.
 
 typedef enum
@@ -35,7 +34,6 @@ typedef enum
 	NORMAL = 0,    
 	STEREO,        
 }errorScreenFlag;
-
 
 ///< Return code of the Error module.Use UNKNOWN for simple apps.
 
@@ -49,7 +47,6 @@ typedef enum
 	SOFTWARE_RESET,     
 	POWER_BUTTON,       
 }errorReturnCode;
-
 
 ///< Structure to be passed to the applet.Shouldn't be modified directly.
 
