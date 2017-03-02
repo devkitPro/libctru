@@ -34,7 +34,7 @@ typedef enum
 {
 	NORMAL = 0,    
 	STEREO,        
-ScreenFlag;
+}ScreenFlag;
 
 
 ///< The language to use.Use DEFAULT if you want your System Setting language.
