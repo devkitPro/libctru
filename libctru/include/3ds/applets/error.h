@@ -55,7 +55,6 @@ typedef enum
 	PORTUGUESE,    
 	RUSSIAN,       
 	TRAD_CHINESE,  
-	
 }err_lang;
 
 
