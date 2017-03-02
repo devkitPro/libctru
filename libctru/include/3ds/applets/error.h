@@ -25,7 +25,7 @@ typedef enum
 	EULA_LANGUAGE = EULA | ERROR_LANGUAGE_FLAG,                 ///< Displays EULA in a specified language.
 	ERROR_TEXT_WORD_WRAP = ERROR_TEXT | ERROR_WORD_WRAP_FLAG,   ///< Displays the custom error message passed to this applet with automatic line wrapping
 	ERROR_TEXT_LANGUAGE_WORD_WRAP = ERROR_TEXT | ERROR_LANGUAGE_FLAG | ERROR_WORD_WRAP_FLAG,   ///< Displays the custom error message with automatic line wrapping and in the specified language.
-}ErrorType;
+}errorType;
 
 
 ///< Flags for the Upper Screen.Does nothing even if specified.
@@ -34,27 +34,7 @@ typedef enum
 {
 	NORMAL = 0,    
 	STEREO,        
-}ScreenFlag;
-
-
-///< The language to use.Use DEFAULT if you want your System Setting language.
-
-typedef enum
-{
-	DEFAULT = 0,   
-	JAPANESE,      
-	ENGLISH,       
-	FRENCH,        
-	GERMAN,        
-	ITALIAN,       
-	SPANISH,       
-	SIMP_CHINESE,  
-	KOREAN,        
-	DUTCH,         
-	PORTUGUESE,    
-	RUSSIAN,       
-	TRAD_CHINESE,  
-}ErrorLang;
+}errorScreenFlag;
 
 
 ///< Return code of the Error module.Use UNKNOWN for simple apps.
@@ -68,44 +48,45 @@ typedef enum
 	HOME_BUTTON = 10,   
 	SOFTWARE_RESET,     
 	POWER_BUTTON,       
-}ReturnCode;
+}errorReturnCode;
+
 
 ///< Structure to be passed to the applet.Shouldn't be modified directly.
 
 typedef struct 
 {
-	ErrorType errorType;
+	errorType errorType;
 	int errorCode;
-	ScreenFlag upperScreenFlag;
-	ErrorLang useLanguage;
+	errorScreenFlag upperScreenFlag;
+	CFG_Language useLanguage;
 	u16 Text[1900];
 	bool homeButton;
 	bool softwareReset;
 	bool appJump;
-	ReturnCode returnCode;
+	errorReturnCode returnCode;
 	u16 eulaVersion;
-}ErrConf;
+}errorConf;
 /**
 * @brief Init the error applet.
-* @param err Pointer to ErrConf.
-* @param type ErrorType Type of error.
-* @param lang ErrorLang Lang of error. 
+* @param err Pointer to errorConf.
+* @param type errorType Type of error.
+* @param lang CFG_Language Lang of error. 
 */
-void error_Init(ErrConf* err, ErrorType type, ErrorLang lang);
+void errorInit(errorConf* err, errorType type, CFG_Language lang);
 /**
 * @brief Sets error code to display.
-* @param err Pointer to ErrConf.
+* @param err Pointer to errorConf.
 * @param error Error-code to display.
 */
-void error_code(ErrConf* err, int error);
+void errorCode(errorConf* err, int error);
 /**
 * @brief Sets error text to display.
-* @param err Pointer to ErrConf.
+* @param err Pointer to errorConf.
 * @param text Error-text to display.
 */
-void error_text(ErrConf* err, char* text);
+void errorText(errorConf* err, const char* text);
 /**
 * @brief Displays the error applet.
-* @param err Pointer to ErrConf.
+* @param err Pointer to errorConf.
 */
-void error_disp(ErrConf* err);
+void errorDisp(errorConf* err);
