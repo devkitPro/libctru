@@ -17,8 +17,8 @@ typedef enum
 {
     ERROR_CODE = 0,                                             ///< Displays the infrastructure communications-related error message corresponding to the error code.
     ERROR_TEXT,                                                 ///< Displays text passed to this applet.
-    EULA,                                                    	  ///< Displays the EULA
-	  ERROR_TYPE_EULA_FIRST_BOOT,                                 ///< Use prohibited.
+    EULA,                                                    	///< Displays the EULA
+    ERROR_TYPE_EULA_FIRST_BOOT,                                 ///< Use prohibited.
     ERROR_TYPE_EULA_DRAW_ONLY, 	                                ///< Use prohibited.
     ERROR_TYPE_AGREE,                                           ///< Use prohibited.
     ERROR_CODE_LANGUAGE = ERROR_CODE | ERROR_LANGUAGE_FLAG ,    ///< Displays a network error message in a specified language.
