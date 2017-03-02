@@ -20,9 +20,9 @@ void error_Init(ErrConf* err, ErrorType type, err_lang lang)
 	err->upperScreenFlag= NORMAL;
 	err->eulaVersion =         0;
 	err->homeButton  =      true;
-  err->softwareReset =   false;
-  err->appJump     =     false;
-  err-> returnCode   = UNKNOWN;
+        err->softwareReset =   false;
+        err->appJump     =     false;
+        err-> returnCode   = UNKNOWN;
 }
 
 static void errorConvertToUTF16(u16* out, const char* in, int max)
@@ -65,7 +65,7 @@ void error_code(ErrConf* err,int error)
 void error_text(ErrConf *err, char* text)
 {   
     char *tex=c_shift(text);
-	  errorConvertToUTF16(err->Text, tex,1900);
+    errorConvertToUTF16(err->Text, tex,1900);
 }
 
 void error_disp(ErrConf* err)
