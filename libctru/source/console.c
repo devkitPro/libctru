@@ -187,7 +187,7 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 	int i, count = 0;
 	char *tmp = (char*)ptr;
 
-	if(!tmp || len<=0) return -1;
+	if(!tmp) return -1;
 
 	i = 0;
 
