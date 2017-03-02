@@ -14,12 +14,12 @@ void error_Init(errorConf* err, errorType type, CFG_Language lang)
 	memset(err, 0, sizeof(*err));
 	err->errorType=type;
 	err->useLanguage=lang;
-	err->upperScreenFlag= NORMAL;
+	err->upperScreenFlag= ERROR_NORMAL;
 	err->eulaVersion =  0;
 	err->homeButton  = true;
 	err->softwareReset = false;
 	err->appJump     = false;
-	err-> returnCode   = UNKNOWN;
+	err-> returnCode   = ERROR_UNKNOWN;
 }
 
 static void errorConvertToUTF16(u16* out, const char* in, size_t max)
