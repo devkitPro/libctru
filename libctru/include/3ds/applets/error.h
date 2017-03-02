@@ -3,16 +3,15 @@
  * @brief Error applet.
  */
 #pragma once
-
  enum
 {
 	ERROR_LANGUAGE_FLAG = 0x100,    ///<??-Unknown flag
 	ERROR_WORD_WRAP_FLAG = 0x200    ///<??-Unknown flag
 };
 
-/*
-Type of Error applet to be called
-*/
+
+///< Type of Error applet to be called
+
 typedef enum 
 {
 	ERROR_CODE = 0,                                             ///< Displays the infrastructure communications-related error message corresponding to the error code.
@@ -35,7 +34,7 @@ typedef enum
 {
 	NORMAL = 0,    
 	STEREO,        
-}screen_flag;
+ScreenFlag;
 
 
 ///< The language to use.Use DEFAULT if you want your System Setting language.
@@ -55,7 +54,7 @@ typedef enum
 	PORTUGUESE,    
 	RUSSIAN,       
 	TRAD_CHINESE,  
-}err_lang;
+}ErrorLang;
 
 
 ///< Return code of the Error module.Use UNKNOWN for simple apps.
@@ -77,8 +76,8 @@ typedef struct
 {
 	ErrorType errorType;
 	int errorCode;
-	screen_flag upperScreenFlag;
-	err_lang useLanguage;
+	ScreenFlag upperScreenFlag;
+	ErrorLang useLanguage;
 	u16 Text[1900];
 	bool homeButton;
 	bool softwareReset;
@@ -90,23 +89,23 @@ typedef struct
 * @brief Init the error applet.
 * @param err Pointer to ErrConf.
 * @param type ErrorType Type of error.
-* @param lang err_lang  Lang of error. 
+* @param lang ErrorLang Lang of error. 
 */
-void error_Init(ErrConf* err ,ErrorType type, err_lang lang);
+void error_Init(ErrConf* err, ErrorType type, ErrorLang lang);
 /**
 * @brief Sets error code to display.
 * @param err Pointer to ErrConf.
 * @param error Error-code to display.
 */
-void error_code(ErrConf* err ,int error);
+void error_code(ErrConf* err, int error);
 /**
 * @brief Sets error text to display.
 * @param err Pointer to ErrConf.
 * @param text Error-text to display.
 */
-void error_text(ErrConf* err,char* text);
+void error_text(ErrConf* err, char* text);
 /**
 * @brief Displays the error applet.
 * @param err Pointer to ErrConf.
 */
-void error_disp(ErrConf*err );
+void error_disp(ErrConf* err);
