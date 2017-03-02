@@ -16,13 +16,13 @@ typedef enum
 {
 	ERROR_CODE = 0,                                             ///< Displays the infrastructure communications-related error message corresponding to the error code.
 	ERROR_TEXT,                                                 ///< Displays text passed to this applet.
-	EULA,                                                       ///< Displays the EULA
+	ERROR_EULA,                                                       ///< Displays the EULA
 	ERROR_TYPE_EULA_FIRST_BOOT,                                 ///< Use prohibited.
 	ERROR_TYPE_EULA_DRAW_ONLY,                                  ///< Use prohibited.
 	ERROR_TYPE_AGREE,                                           ///< Use prohibited.
 	ERROR_CODE_LANGUAGE = ERROR_CODE | ERROR_LANGUAGE_FLAG,     ///< Displays a network error message in a specified language.
 	ERROR_TEXT_LANGUAGE = ERROR_TEXT | ERROR_LANGUAGE_FLAG,     ///< Displays text passed to this applet in a specified language.
-	EULA_LANGUAGE = EULA | ERROR_LANGUAGE_FLAG,                 ///< Displays EULA in a specified language.
+	ERROR_EULA_LANGUAGE = ERROR_EULA | ERROR_LANGUAGE_FLAG,                 ///< Displays EULA in a specified language.
 	ERROR_TEXT_WORD_WRAP = ERROR_TEXT | ERROR_WORD_WRAP_FLAG,   ///< Displays the custom error message passed to this applet with automatic line wrapping
 	ERROR_TEXT_LANGUAGE_WORD_WRAP = ERROR_TEXT | ERROR_LANGUAGE_FLAG | ERROR_WORD_WRAP_FLAG,   ///< Displays the custom error message with automatic line wrapping and in the specified language.
 }errorType;
@@ -31,21 +31,21 @@ typedef enum
 
 typedef enum
 {
-	NORMAL = 0,    
-	STEREO,        
+	ERROR_NORMAL = 0,    
+	ERROR_STEREO,        
 }errorScreenFlag;
 
 ///< Return code of the Error module.Use UNKNOWN for simple apps.
 
 typedef enum 
 {
-	UNKNOWN = -1,       
-	NONE    = 0,        
-	SUCCESS,            
-	NOT_SUPPORTED,      
-	HOME_BUTTON = 10,   
-	SOFTWARE_RESET,     
-	POWER_BUTTON,       
+	ERROR_UNKNOWN = -1,       
+	ERROR_NONE    = 0,        
+	ERROR_SUCCESS,            
+	ERROR_NOT_SUPPORTED,      
+	ERROR_HOME_BUTTON = 10,   
+	ERROR_SOFTWARE_RESET,     
+	ERROR_POWER_BUTTON,       
 }errorReturnCode;
 
 ///< Structure to be passed to the applet.Shouldn't be modified directly.
