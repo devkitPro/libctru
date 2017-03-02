@@ -9,7 +9,7 @@
 #include <3ds/util/utf.h>
 #include <3ds/applets/error.h>
 
-void error_Init(errorConf* err, errorType type, CFG_Language lang)
+void errorInit(errorConf* err, errorType type, CFG_Language lang)
 {
 	memset(err, 0, sizeof(*err));
 	err->errorType=type;
@@ -52,18 +52,18 @@ static char* c_shift(const char *text)
 	return str;
 }
 
-void error_code(errorConf* err, int error)
+void errorCode(errorConf* err, int error)
 {
 	err->errorCode = error;
 }
 
-void error_text(errorConf *err, const char* text)
+void errorText(errorConf *err, const char* text)
 {	char *tex = c_shift(text);
 	errorConvertToUTF16(err->Text, tex, 1900);
 	free(tex);
 }
 
-void error_disp(errorConf* err)
+void errorDisp(errorConf* err)
 {   
 	aptLaunchLibraryApplet(APPID_ERROR, err, sizeof(*err), 0);
 }
