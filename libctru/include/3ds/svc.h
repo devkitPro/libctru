@@ -438,20 +438,20 @@ Result svcCreateMemoryBlock(Handle* memblock, u32 addr, u32 size, MemPerm my_per
 Result svcMapMemoryBlock(Handle memblock, u32 addr, MemPerm my_perm, MemPerm other_perm);
 
 /**
- * @brief Maps a block of process memory.
+ * @brief Maps a block of process memory, starting from address 0x00100000.
  * @param process Handle of the process.
- * @param startAddr Start address of the block of memory to map.
- * @param size Size of the block of the memory to map (truncated to a multiple of 0x1000 bytes).
+ * @param destAddress Address of the block of memory to map, in the current (destination) process.
+ * @param size Size of the block of memory to map (truncated to a multiple of 0x1000 bytes).
  */
-Result svcMapProcessMemory(Handle process, u32 startAddr, u32 size);
+Result svcMapProcessMemory(Handle process, u32 destAddress, u32 size);
 
 /**
- * @brief Unmaps a block of process memory.
+ * @brief Unmaps a block of process memory, starting from address 0x00100000.
  * @param process Handle of the process.
- * @param startAddr Start address of the block of memory to unmap.
- * @param size Size of the block of the memory to map (truncated to a multiple of 0x1000 bytes).
+ * @param destAddress Address of the block of memory to unmap, in the current (destination) process.
+ * @param size Size of the block of memory to unmap (truncated to a multiple of 0x1000 bytes).
  */
-Result svcUnmapProcessMemory(Handle process, u32 startAddr, u32 size);
+Result svcUnmapProcessMemory(Handle process, u32 destAddress, u32 size);
 
 /**
  * @brief Unmaps a block of shared memory
