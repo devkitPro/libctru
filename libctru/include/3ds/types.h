@@ -70,9 +70,9 @@ typedef struct {
 
 /// Structure representing FPU registers
 typedef struct {
-	union{
-		double d[16]; ///< d0-d15.
-		float  f[32]; ///< f0-f31.
+	union {
+		struct PACKED { double d[16]; }; ///< d0-d15.
+		float  f[32];                    ///< f0-f31.
 	};
 	u32 fpscr;        ///< fpscr.
 	u32 fpexc;        ///< fpexc.
