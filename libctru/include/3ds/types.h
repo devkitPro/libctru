@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
 	union {
 		struct PACKED { double d[16]; }; ///< d0-d15.
-		float  f[32];                    ///< f0-f31.
+		float  s[32];                    ///< s0-s31.
 	};
 	u32 fpscr;        ///< fpscr.
 	u32 fpexc;        ///< fpexc.
