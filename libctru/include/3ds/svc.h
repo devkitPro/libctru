@@ -511,7 +511,15 @@ Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 a
 Result svcInvalidateProcessDataCache(Handle process, void* addr, u32 size);
 
 /**
- * @brief Flushes a process's data cache.
+ * @brief Cleans a process's data cache.
+ * @param process Handle of the process.
+ * @param addr Address to clean.
+ * @param size Size of the memory to clean.
+ */
+Result svcStoreProcessDataCache(Handle process, void* addr, u32 size);
+
+/**
+ * @brief Flushes (cleans and invalidates) a process's data cache.
  * @param process Handle of the process.
  * @param addr Address to flush.
  * @param size Size of the memory to flush.
@@ -606,6 +614,14 @@ Result svcCreateCodeSet(Handle* out, const CodeSetInfo *info, void* code_ptr, vo
 Result svcCreateProcess(Handle* out, Handle codeset, const u32 *arm11kernelcaps, u32 arm11kernelcaps_num);
 
 /**
+ * @brief Gets a process's affinity mask.
+ * @param[out] affinitymask Pointer to store the affinity masks.
+ * @param process Handle of the process.
+ * @param processorcount Number of processors.
+ */
+Result svcGetProcessAffinityMask(u8* affinitymask, Handle process, s32 processorcount);
+
+/**
  * @brief Sets a process's affinity mask.
  * @param process Handle of the process.
  * @param affinitymask Pointer to retrieve the affinity masks from.
@@ -614,9 +630,16 @@ Result svcCreateProcess(Handle* out, Handle codeset, const u32 *arm11kernelcaps,
 Result svcSetProcessAffinityMask(Handle process, const u8* affinitymask, s32 processorcount);
 
 /**
+ * Gets a process's ideal processor.
+ * @param[out] processorid Pointer to store the ID of the process's ideal processor.
+ * @param process Handle of the process.
+ */
+Result svcGetProcessIdealProcessor(s32 *processorid, Handle process);
+
+/**
  * Sets a process's ideal processor.
  * @param process Handle of the process.
- * @param processorid ID of the thread's ideal processor.
+ * @param processorid ID of the process's ideal processor.
  */
 Result svcSetProcessIdealProcessor(Handle process, s32 processorid);
 

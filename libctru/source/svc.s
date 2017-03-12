@@ -37,8 +37,19 @@ SVC_BEGIN svcExitProcess
 	svc 0x03
 	bx  lr
 
+SVC_BEGIN svcGetProcessAffinityMask
+	svc 0x04
+	bx lr
+
 SVC_BEGIN svcSetProcessAffinityMask
 	svc 0x05
+	bx lr
+
+SVC_BEGIN svcGetProcessIdealProcessor
+	str r0, [sp, #-0x4]!
+	svc 0x06
+	ldr r3, [sp], #4
+	str r1, [r3]
 	bx lr
 
 SVC_BEGIN svcSetProcessIdealProcessor
@@ -370,6 +381,10 @@ SVC_BEGIN svcUnbindInterrupt
 
 SVC_BEGIN svcInvalidateProcessDataCache
 	svc 0x52
+	bx  lr
+
+SVC_BEGIN svcStoreProcessDataCache
+	svc 0x53
 	bx  lr
 
 SVC_BEGIN svcFlushProcessDataCache
