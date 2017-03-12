@@ -121,9 +121,9 @@ typedef struct {
 
 /// Reasons for an exit process event.
 typedef enum {
-	EXITPROCESS_EVENT_NONE                = 0, ///< No reason.
-	EXITPROCESS_EVENT_TERMINATE           = 1, ///< Process terminated.
-	EXITPROCESS_EVENT_UNHANDLED_EXCEPTION = 2, ///< Unhandled exception occurred.
+	EXITPROCESS_EVENT_EXIT                = 0, ///< Process exited either normally or due to an uncaught exception.
+	EXITPROCESS_EVENT_TERMINATE           = 1, ///< Process has been terminated by @ref svcTerminateProcess.
+	EXITPROCESS_EVENT_DEBUG_TERMINATE     = 2, ///< Process has been terminated by @ref svcTerminateDebugProcess.
 } ExitProcessEventReason;
 
 /// Event relating to the exiting of a process.
@@ -140,10 +140,10 @@ typedef struct {
 
 /// Reasons for an exit thread event.
 typedef enum {
-	EXITTHREAD_EVENT_NONE              = 0, ///< No reason.
+	EXITTHREAD_EVENT_EXIT              = 0, ///< Thread exited.
 	EXITTHREAD_EVENT_TERMINATE         = 1, ///< Thread terminated.
-	EXITTHREAD_EVENT_UNHANDLED_EXC     = 2, ///< Unhandled exception occurred.
-	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3, ///< Process terminated.
+	EXITTHREAD_EVENT_EXIT_PROCESS      = 2, ///< Process exited either normally or due to an uncaught exception.
+	EXITTHREAD_EVENT_TERMINATE_PROCESS = 3, ///< Process has been terminated by @ref svcTerminateProcess.
 } ExitThreadEventReason;
 
 /// Event relating to the exiting of a thread.
@@ -200,7 +200,7 @@ typedef struct {
 
 /// Event relating to @ref svcBreakDebugProcess
 typedef struct {
-	s32 threadIds[4]; ///< IDs of the attached process's threads that were running on each core at the time of the @ref svcBreakDebugProcess call, or -1 (only the first 2 values are meaningful on O3DS).
+	s32 thread_ids[4]; ///< IDs of the attached process's threads that were running on each core at the time of the @ref svcBreakDebugProcess call, or -1 (only the first 2 values are meaningful on O3DS).
 } DebuggerBreakExceptionEvent;
 
 /// Event relating to exceptions.
@@ -279,11 +279,11 @@ typedef struct {
 
 /// Debug flags for an attached process, set by @ref svcContinueDebugEvent
 typedef enum {
-	DBG_NO_ERRF_CPU_EXCEPTION_DUMPS   = BIT(0), ///< Don't produce err:f-format dumps for CPU exceptions (including watchpoints and breakpoints, regardless of any @ref svcKernelSetState call).
-	DBG_SIGNAL_FAULT_EXCEPTION_EVENTS = BIT(1), ///< Signal fault exception events. See @ref FaultExceptionEvent.
-	DBG_SIGNAL_SCHEDULE_EVENTS        = BIT(2), ///< Signal schedule in/out events. See @ref ScheduleInOutEvent.
-	DBG_SIGNAL_SYSCALL_EVENTS         = BIT(3), ///< Signal syscall in/out events. See @ref SyscallInOutEvent.
-	DBG_SIGNAL_MAP_EVENTS             = BIT(4), ///< Signal map events. See @ref MapEvent.
+	DBG_INHIBIT_USER_CPU_EXCEPTION_HANDLERS   = BIT(0), ///< Inhibit user-defined CPU exception handlers (including watchpoints and breakpoints, regardless of any @ref svcKernelSetState call).
+	DBG_SIGNAL_FAULT_EXCEPTION_EVENTS         = BIT(1), ///< Signal fault exception events. See @ref FaultExceptionEvent.
+	DBG_SIGNAL_SCHEDULE_EVENTS                = BIT(2), ///< Signal schedule in/out events. See @ref ScheduleInOutEvent.
+	DBG_SIGNAL_SYSCALL_EVENTS                 = BIT(3), ///< Signal syscall in/out events. See @ref SyscallInOutEvent.
+	DBG_SIGNAL_MAP_EVENTS                     = BIT(4), ///< Signal map events. See @ref MapEvent.
 } DebugFlags;
 
 typedef struct {
@@ -295,7 +295,7 @@ typedef struct {
 typedef enum {
 	THREADCONTEXT_CONTROL_CPU_GPRS  = BIT(0), ///< Control r0-r12.
 	THREADCONTEXT_CONTROL_CPU_SPRS  = BIT(1), ///< Control sp, lr, pc, cpsr.
-	THREADCONTEXT_CONTROL_FPU_GPRS  = BIT(2), ///< Control d0-d15 (or f0-f31).
+	THREADCONTEXT_CONTROL_FPU_GPRS  = BIT(2), ///< Control d0-d15 (or s0-s31).
 	THREADCONTEXT_CONTROL_FPU_SPRS  = BIT(3), ///< Control fpscr, fpexc.
 
 	THREADCONTEXT_CONTROL_CPU_REGS  = BIT(0) | BIT(1), ///< Control r0-r12, sp, lr, pc, cpsr.
