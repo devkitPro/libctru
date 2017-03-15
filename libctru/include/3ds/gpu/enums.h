@@ -138,10 +138,10 @@ typedef enum
 typedef enum
 {
 	GPU_LUT_NOISE    = 0, ///< Noise table
-	GPU_LUT_RGBMAP   = 1, ///< RGB mapping function table
-	GPU_LUT_ALPHAMAP = 2, ///< Alpha mapping function table
-	GPU_LUT_COLOR    = 3, ///< Color table
-	GPU_LUT_COLORDIF = 4, ///< Color difference table
+	GPU_LUT_RGBMAP   = 2, ///< RGB mapping function table
+	GPU_LUT_ALPHAMAP = 3, ///< Alpha mapping function table
+	GPU_LUT_COLOR    = 4, ///< Color table
+	GPU_LUT_COLORDIF = 5, ///< Color difference table
 } GPU_PROCTEX_LUTID;
 
 /// Supported color buffer formats.
