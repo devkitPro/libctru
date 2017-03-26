@@ -3,6 +3,7 @@
 #include <3ds/types.h>
 #include <3ds/gfx.h>
 #include <3ds/svc.h>
+#include <3ds/synchronization.h>
 #include <3ds/allocator/linear.h>
 #include <3ds/allocator/mappable.h>
 #include <3ds/allocator/vram.h>
@@ -127,12 +128,25 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 
 void gfxWriteFramebufferInfo(gfxScreen_t screen)
 {
-	u8* framebufferInfoHeader=gfxSharedMemory+0x200+gfxThreadID*0x80;
-	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x40;
-	GSPGPU_FramebufferInfo* framebufferInfo=(GSPGPU_FramebufferInfo*)&framebufferInfoHeader[0x4];
-	framebufferInfoHeader[0x0]^=doubleBuf[screen];
-	framebufferInfo[framebufferInfoHeader[0x0]]=*framebufferInfoSt[screen];
-	framebufferInfoHeader[0x1]=1;
+	s32* framebufferInfoHeader=(s32*)(gfxSharedMemory+0x200+gfxThreadID*0x80);
+	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x10;
+	GSPGPU_FramebufferInfo* framebufferInfo=(GSPGPU_FramebufferInfo*)&framebufferInfoHeader[1];
+	union
+	{
+		s32 header;
+		struct { u8 swap, update; };
+	} info;
+	info.header = __ldrex(framebufferInfoHeader);
+	info.swap = !info.swap;
+	u8 pos = info.swap;
+	info.update = 1;
+	framebufferInfo[pos]=*framebufferInfoSt[screen];
+	while (__strex(framebufferInfoHeader,info.header))
+	{
+		info.header = __ldrex(framebufferInfoHeader);
+		info.swap = pos;
+		info.update = 1;
+	}
 }
 
 void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bottomFormat, bool vrambuffers)
