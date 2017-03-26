@@ -20,21 +20,34 @@ extern u32 gpuCmdBufOffset; ///< GPU command buffer offset.
  * @param size Size of the command buffer.
  * @param offset Offset of the command buffer.
  */
-void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset);
+static inline void GPUCMD_SetBuffer(u32* adr, u32 size, u32 offset)
+{
+	gpuCmdBuf=adr;
+	gpuCmdBufSize=size;
+	gpuCmdBufOffset=offset;
+}
 
 /**
  * @brief Sets the offset of the GPU command buffer.
  * @param offset Offset of the command buffer.
  */
-void GPUCMD_SetBufferOffset(u32 offset);
+static inline void GPUCMD_SetBufferOffset(u32 offset)
+{
+	gpuCmdBufOffset=offset;
+}
 
 /**
  * @brief Gets the current GPU command buffer.
- * @param adr Pointer to output the command buffer to.
- * @param size Pointer to output the size of the command buffer to.
+ * @param addr Pointer to output the command buffer to.
+ * @param size Pointer to output the size (in words) of the command buffer to.
  * @param offset Pointer to output the offset of the command buffer to.
  */
-void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset);
+static inline void GPUCMD_GetBuffer(u32** addr, u32* size, u32* offset)
+{
+	if(addr)*addr=gpuCmdBuf;
+	if(size)*size=gpuCmdBufSize;
+	if(offset)*offset=gpuCmdBufOffset;
+}
 
 /**
  * @brief Adds raw GPU commands to the current command buffer.
@@ -44,10 +57,10 @@ void GPUCMD_GetBuffer(u32** adr, u32* size, u32* offset);
 void GPUCMD_AddRawCommands(const u32* cmd, u32 size);
 
 /// Executes the GPU command buffer.
-void GPUCMD_Run(void);
+DEPRECATED void GPUCMD_Run(void);
 
 /// Flushes linear memory and executes the GPU command buffer.
-void GPUCMD_FlushAndRun(void);
+DEPRECATED void GPUCMD_FlushAndRun(void);
 
 /**
  * @brief Adds a GPU command to the current command buffer.
@@ -57,8 +70,15 @@ void GPUCMD_FlushAndRun(void);
  */
 void GPUCMD_Add(u32 header, const u32* param, u32 paramlength);
 
+/**
+ * @brief Splits the current GPU command buffer.
+ * @param addr Pointer to output the command buffer to.
+ * @param size Pointer to output the size (in words) of the command buffer to.
+ */
+void GPUCMD_Split(u32** addr, u32* size);
+
 /// Finalizes the GPU command buffer.
-void GPUCMD_Finalize(void);
+DEPRECATED void GPUCMD_Finalize(void);
 
 /**
  * @brief Converts a 32-bit float to a 16-bit float.
