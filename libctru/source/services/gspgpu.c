@@ -144,6 +144,11 @@ static int popInterrupt()
 	return curEvt;
 }
 
+// Dummy version to avoid linking in gxqueue.c if not actually used
+__attribute__((weak)) void gxCmdQueueInterrupt(GSPGPU_Event irq)
+{
+}
+
 void gspEventThreadMain(void *arg)
 {
 	while (gspRunEvents)
@@ -160,6 +165,7 @@ void gspEventThreadMain(void *arg)
 
 			if (curEvt < GSPGPU_EVENT_MAX)
 			{
+				gxCmdQueueInterrupt((GSPGPU_Event)curEvt);
 				if (gspEventCb[curEvt])
 				{
 					ThreadFunc func = gspEventCb[curEvt];

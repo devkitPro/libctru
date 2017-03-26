@@ -60,12 +60,89 @@ typedef enum
 /// Creates a transfer scaling flag.
 #define GX_TRANSFER_SCALING(x)    ((x)<<24)
 
-/// Command list flag bit 0.
-#define GX_CMDLIST_BIT0  BIT(0)
+/// Updates gas additive blend results.
+#define GX_CMDLIST_UPDATE_GAS_ACC BIT(0)
 /// Flushes the command list.
-#define GX_CMDLIST_FLUSH BIT(1)
+#define GX_CMDLIST_FLUSH          BIT(1)
 
 extern u32* gxCmdBuf; ///< GX command buffer.
+
+/// GX command entry
+typedef union
+{
+	u32 data[8]; ///< Raw command data
+	struct
+	{
+		u8 type;     ///< Command type
+		u8 unk1;
+		u8 unk2;
+		u8 unk3;
+		u32 args[7]; ///< Command arguments
+	};
+} gxCmdEntry_s;
+
+/// GX command queue structure
+typedef struct tag_gxCmdQueue_s
+{
+	gxCmdEntry_s* entries; ///< Pointer to array of GX command entries
+	u16 maxEntries;        ///< Capacity of the command array
+	u16 numEntries;        ///< Number of commands in the queue
+	u16 curEntry;          ///< Index of the first pending command to be submitted to GX
+	u16 lastEntry;         ///< Number of commands completed by GX
+	void (* callback)(struct tag_gxCmdQueue_s*); ///< User callback
+	void* user;            ///< Data for user callback
+} gxCmdQueue_s;
+
+/**
+ * @brief Clears a GX command queue.
+ * @param queue The GX command queue.
+ */
+void gxCmdQueueClear(gxCmdQueue_s* queue);
+
+/**
+ * @brief Adds a command to a GX command queue.
+ * @param queue The GX command queue.
+ * @param entry The GX command to add.
+ */
+void gxCmdQueueAdd(gxCmdQueue_s* queue, const gxCmdEntry_s* entry);
+
+/**
+ * @brief Runs a GX command queue, causing it to begin processing incoming commands as they arrive.
+ * @param queue The GX command queue.
+ */
+void gxCmdQueueRun(gxCmdQueue_s* queue);
+
+/**
+ * @brief Stops a GX command queue from processing incoming commands.
+ * @param queue The GX command queue.
+ */
+void gxCmdQueueStop(gxCmdQueue_s* queue);
+
+/**
+ * @brief Waits for a GX command queue to finish executing pending commands.
+ * @param queue The GX command queue.
+ * @param timeout Optional timeout (in nanoseconds) to wait (specify -1 for no timeout).
+ * @return false if timeout expired, true otherwise.
+ */
+bool gxCmdQueueWait(gxCmdQueue_s* queue, s64 timeout);
+
+/**
+ * @brief Sets the completion callback for a GX command queue.
+ * @param queue The GX command queue.
+ * @param callback The completion callback.
+ * @param user User data.
+ */
+static inline void gxCmdQueueSetCallback(gxCmdQueue_s* queue, void (* callback)(gxCmdQueue_s*), void* user)
+{
+	queue->callback = callback;
+	queue->user = user;
+}
+
+/**
+ * @brief Selects a command queue to which GX_* functions will add commands instead of immediately submitting them to GX.
+ * @param queue The GX command queue. (Pass NULL to remove the bound command queue)
+ */
+void GX_BindQueue(gxCmdQueue_s* queue);
 
 /**
  * @brief Requests a DMA.
@@ -120,7 +197,7 @@ Result GX_DisplayTransfer(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 fl
 Result GX_TextureCopy(u32* inadr, u32 indim, u32* outadr, u32 outdim, u32 size, u32 flags);
 
 /**
- * @brief Flushes the cache regions of three buffers.
+ * @brief Flushes the cache regions of three buffers. (This command cannot be queued in a GX command queue)
  * @param buf0a Address of the first buffer.
  * @param buf0s Size of the first buffer.
  * @param buf1a Address of the second buffer.
