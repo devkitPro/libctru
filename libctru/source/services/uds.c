@@ -501,13 +501,10 @@ Result udsScanBeacons(void *buf, size_t maxsize, udsNetworkScanInfo **networks, 
 		{
 			networks_ptr = malloc(sizeof(udsNetworkScanInfo) * hdr->total_entries);
 			if(networks_ptr == NULL)return -1;
+			if(total_networks)*total_networks = hdr->total_entries;
 			memset(networks_ptr, 0, sizeof(udsNetworkScanInfo) * hdr->total_entries);
 			*networks = networks_ptr;
-		}
-		if(total_networks)*total_networks = hdr->total_entries;
 
-		if(networks)
-		{
 			for(entpos=0; entpos<hdr->total_entries; entpos++)
 			{
 				if(curpos >= hdr->size)
