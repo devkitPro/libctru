@@ -39,6 +39,7 @@ Result GSPLCD_GetVendors(u8 *vendors);
 
 /**
  * @brief Gets the LCD screens' brightness. Stubbed on old 3ds.
- * @param screen to get the brightness value.
+ * @param screen Screen to get the brightness value of.
+ * @param brightness Brightness value returned.
  */
-Result GSPLCD_GetBrightness(u32 *screen);
+Result GSPLCD_GetBrightness(u32 screen, u32 *brightness);
