@@ -36,3 +36,10 @@ Result GSPLCD_PowerOffBacklight(u32 screen);
  * @param vendor Pointer to output the screen vendors to.
  */
 Result GSPLCD_GetVendors(u8 *vendors);
+
+/**
+ * @brief Gets the LCD screens' brightness. Stubbed on old 3ds.
+ * @param screen Screen to get the brightness value of.
+ * @param brightness Brightness value returned.
+ */
+Result GSPLCD_GetBrightness(u32 screen, u32 *brightness);
