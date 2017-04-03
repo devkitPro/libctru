@@ -23,7 +23,7 @@ VERSION	:=	$(LIBCTRU_MAJOR).$(LIBCTRU_MINOR).$(LIBCTRU_PATCH)
 # INCLUDES is a list of directories containing header files
 #---------------------------------------------------------------------------------
 TARGET		:=	ctru
-BUILD		:=	build
+#BUILD		:=	build
 SOURCES		:=	source \
 			source/allocator \
 			source/gpu \
@@ -43,10 +43,11 @@ INCLUDES	:=	include
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -Werror -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -Werror -mword-relocations \
 			-ffunction-sections \
-			-fomit-frame-pointer \
-			$(ARCH)
+			-fdata-sections \
+			$(ARCH) \
+			$(BUILD_CFLAGS)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 
@@ -67,12 +68,10 @@ LIBDIRS	:=
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/lib/lib$(TARGET).a
-
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+export DEPSDIR	:=	$(CURDIR)/deps
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
@@ -98,12 +97,12 @@ export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+			-I.
 
-.PHONY: $(BUILD) clean all
+.PHONY: clean all
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: deps lib/libctru.a lib/libctrud.a
 
 dist-bin: all
 	@tar --exclude=*~ -cjf libctru-$(VERSION).tar.bz2 include lib default_icon.png
@@ -124,14 +123,26 @@ dox:
 lib:
 	@[ -d $@ ] || mkdir -p $@
 
-$(BUILD): lib
+deps:
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+release:
+	@[ -d $@ ] || mkdir -p $@
+
+debug:
+	@[ -d $@ ] || mkdir -p $@
+
+lib/libctru.a : lib release
+	@$(MAKE) BUILD=release OUTPUT=$(CURDIR)/$@  BUILD_CFLAGS="-O2 -fomit-frame-pointer" --no-print-directory -C release -f $(CURDIR)/Makefile
+
+
+lib/libctrud.a : lib debug
+	@$(MAKE) BUILD=debug OUTPUT=$(CURDIR)/$@ BUILD_CFLAGS="-Og" --no-print-directory -C debug -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) lib docs internal_docs
+	@rm -fr deps release debug lib docs internal_docs
 
 #---------------------------------------------------------------------------------
 else
