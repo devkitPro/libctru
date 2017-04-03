@@ -133,11 +133,11 @@ debug:
 	@[ -d $@ ] || mkdir -p $@
 
 lib/libctru.a : lib release
-	@$(MAKE) BUILD=release OUTPUT=$(CURDIR)/$@  BUILD_CFLAGS="-O2 -fomit-frame-pointer" --no-print-directory -C release -f $(CURDIR)/Makefile
+	@$(MAKE) BUILD=release OUTPUT=$(CURDIR)/$@  BUILD_CFLAGS="-DNDEBUG=1 -O2 -fomit-frame-pointer" --no-print-directory -C release -f $(CURDIR)/Makefile
 
 
 lib/libctrud.a : lib debug
-	@$(MAKE) BUILD=debug OUTPUT=$(CURDIR)/$@ BUILD_CFLAGS="-Og" --no-print-directory -C debug -f $(CURDIR)/Makefile
+	@$(MAKE) BUILD=debug OUTPUT=$(CURDIR)/$@ BUILD_CFLAGS="-DDEBUG=1 -Og" --no-print-directory -C debug -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
