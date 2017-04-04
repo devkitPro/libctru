@@ -14,17 +14,17 @@
 
 typedef enum 
 {
-	ERROR_CODE = 0,                                             ///< Displays the infrastructure communications-related error message corresponding to the error code.
-	ERROR_TEXT,                                                 ///< Displays text passed to this applet.
-	ERROR_EULA,                                                       ///< Displays the EULA
-	ERROR_TYPE_EULA_FIRST_BOOT,                                 ///< Use prohibited.
-	ERROR_TYPE_EULA_DRAW_ONLY,                                  ///< Use prohibited.
-	ERROR_TYPE_AGREE,                                           ///< Use prohibited.
-	ERROR_CODE_LANGUAGE = ERROR_CODE | ERROR_LANGUAGE_FLAG,     ///< Displays a network error message in a specified language.
-	ERROR_TEXT_LANGUAGE = ERROR_TEXT | ERROR_LANGUAGE_FLAG,     ///< Displays text passed to this applet in a specified language.
-	ERROR_EULA_LANGUAGE = ERROR_EULA | ERROR_LANGUAGE_FLAG,                 ///< Displays EULA in a specified language.
-	ERROR_TEXT_WORD_WRAP = ERROR_TEXT | ERROR_WORD_WRAP_FLAG,   ///< Displays the custom error message passed to this applet with automatic line wrapping
-	ERROR_TEXT_LANGUAGE_WORD_WRAP = ERROR_TEXT | ERROR_LANGUAGE_FLAG | ERROR_WORD_WRAP_FLAG,   ///< Displays the custom error message with automatic line wrapping and in the specified language.
+	ERROR_CODE = 0,						///< Displays the infrastructure communications-related error message corresponding to the error code.
+	ERROR_TEXT,						///< Displays text passed to this applet.
+	ERROR_EULA,						///< Displays the EULA
+	ERROR_TYPE_EULA_FIRST_BOOT,				///< Use prohibited.
+	ERROR_TYPE_EULA_DRAW_ONLY,				///< Use prohibited.
+	ERROR_TYPE_AGREE,					///< Use prohibited.
+	ERROR_CODE_LANGUAGE = ERROR_CODE | ERROR_LANGUAGE_FLAG,	///< Displays a network error message in a specified language.
+	ERROR_TEXT_LANGUAGE = ERROR_TEXT | ERROR_LANGUAGE_FLAG,	///< Displays text passed to this applet in a specified language.
+	ERROR_EULA_LANGUAGE = ERROR_EULA | ERROR_LANGUAGE_FLAG,	///< Displays EULA in a specified language.
+	ERROR_TEXT_WORD_WRAP = ERROR_TEXT | ERROR_WORD_WRAP_FLAG,///< Displays the custom error message passed to this applet with automatic line wrapping
+	ERROR_TEXT_LANGUAGE_WORD_WRAP = ERROR_TEXT | ERROR_LANGUAGE_FLAG | ERROR_WORD_WRAP_FLAG	///< Displays the custom error message with automatic line wrapping and in the specified language.
 }errorType;
 
 ///< Flags for the Upper Screen.Does nothing even if specified.
@@ -32,7 +32,7 @@ typedef enum
 typedef enum
 {
 	ERROR_NORMAL = 0,    
-	ERROR_STEREO,        
+	ERROR_STEREO
 }errorScreenFlag;
 
 ///< Return code of the Error module.Use UNKNOWN for simple apps.
@@ -45,7 +45,7 @@ typedef enum
 	ERROR_NOT_SUPPORTED,      
 	ERROR_HOME_BUTTON = 10,   
 	ERROR_SOFTWARE_RESET,     
-	ERROR_POWER_BUTTON,       
+	ERROR_POWER_BUTTON     
 }errorReturnCode;
 
 ///< Structure to be passed to the applet.Shouldn't be modified directly.
@@ -55,7 +55,7 @@ typedef struct
 	errorType errorType;
 	int errorCode;
 	errorScreenFlag upperScreenFlag;
-	CFG_Language useLanguage;
+	u16 useLanguage;
 	u16 Text[1900];
 	bool homeButton;
 	bool softwareReset;
