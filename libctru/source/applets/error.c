@@ -1,8 +1,6 @@
 #include <3ds.h>
-#include <stdlib.h>
 #include <string.h>
 #include <3ds/types.h>
-#include <3ds/svc.h>
 #include <3ds/synchronization.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/cfgu.h>
@@ -12,14 +10,19 @@
 void errorInit(errorConf* err, errorType type, CFG_Language lang)
 {
 	memset(err, 0, sizeof(*err));
-	err->errorType=type;
-	err->useLanguage=lang;
-	err->upperScreenFlag= ERROR_NORMAL;
+	err->errorType = type;
+	err->useLanguage = lang;
+	err->upperScreenFlag = ERROR_NORMAL;
 	err->eulaVersion =  0;
-	err->homeButton  = true;
+	err->homeButton = true;
 	err->softwareReset = false;
-	err->appJump     = false;
-	err-> returnCode   = ERROR_UNKNOWN;
+	err->appJump = false;
+	err->returnCode = ERROR_UNKNOWN;
+}
+
+void errorCode(errorConf* err, int error)
+{
+	err->errorCode = error;
 }
 
 static void errorConvertToUTF16(u16* out, const char* in, size_t max)
@@ -37,30 +40,12 @@ static void errorConvertToUTF16(u16* out, const char* in, size_t max)
 		return;
 	}
 
-	out[units] = 0;
-}
-
-static char* c_shift(const char *text)
-{
-	size_t len = strlen(text);
-	char *str = (char*)malloc(len + 2);
-	if (str)
-	{
-		str[0] = text[0];
-		strcpy(&str[1], text);
-	}
-	return str;
-}
-
-void errorCode(errorConf* err, int error)
-{
-	err->errorCode = error;
+	out[units] = 0;	
 }
 
 void errorText(errorConf *err, const char* text)
-{	char *tex = c_shift(text);
-	errorConvertToUTF16(err->Text, tex, 1900);
-	free(tex);
+{
+	errorConvertToUTF16(err->Text, text, 1900);
 }
 
 void errorDisp(errorConf* err)
