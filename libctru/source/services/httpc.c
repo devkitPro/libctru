@@ -303,7 +303,7 @@ Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char
 	return cmdbuf[1];
 }
 
-Result httpcAddPostDataBinary(httpcContext *context, const char* name, u8* value, u32 len)
+Result httpcAddPostDataBinary(httpcContext *context, const char* name, const u8* value, u32 len)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
