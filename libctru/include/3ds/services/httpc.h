@@ -89,7 +89,7 @@ Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char
  * @param value The binary data to pass as a value.
  * @param len Length of the binary data which has been passed.
  */
-Result httpcAddPostDataBinary(httpcContext *context, const char* name, u8* value, u32 len)
+Result httpcAddPostDataBinary(httpcContext *context, const char* name, u8* value, u32 len);
 	
 /**
  * @brief Adds a POST body to a HTTP context.
