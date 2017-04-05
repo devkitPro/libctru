@@ -303,6 +303,27 @@ Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char
 	return cmdbuf[1];
 }
 
+Result httpcAddPostDataBinary(httpcContext *context, const char* name, const u8* value, u32 len)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	int name_len=strlen(name)+1;
+	
+	cmdbuf[0]=IPC_MakeHeader(0x13, 3, 4); // 0x1300C4
+	cmdbuf[1]=context->httphandle;
+	cmdbuf[2]=name_len;
+	cmdbuf[3]=len;
+	cmdbuf[4]=IPC_Desc_StaticBuffer(name_len,3);
+	cmdbuf[5]=(u32)name;
+	cmdbuf[6]=IPC_Desc_Buffer(len,IPC_BUFFER_R);
+	cmdbuf[7]=(u32)value;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result httpcAddPostDataRaw(httpcContext *context, const u32* data, u32 len)
 {
 	u32* cmdbuf=getThreadCommandBuffer();

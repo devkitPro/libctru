@@ -83,6 +83,15 @@ Result httpcAddRequestHeaderField(httpcContext *context, const char* name, const
 Result httpcAddPostDataAscii(httpcContext *context, const char* name, const char* value);
 
 /**
+ * @brief Adds a POST form field with binary data to a HTTP context.
+ * @param context Context to use.
+ * @param name Name of the field.
+ * @param value The binary data to pass as a value.
+ * @param len Length of the binary data which has been passed.
+ */
+Result httpcAddPostDataBinary(httpcContext *context, const char* name, const u8* value, u32 len);
+	
+/**
  * @brief Adds a POST body to a HTTP context.
  * @param context Context to use.
  * @param data The data to be passed as raw into the body of the post request.
