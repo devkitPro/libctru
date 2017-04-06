@@ -71,8 +71,6 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
-export DEPSDIR	:=	$(CURDIR)/deps
-
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
@@ -102,7 +100,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 .PHONY: clean all
 
 #---------------------------------------------------------------------------------
-all: deps lib/libctru.a lib/libctrud.a
+all: lib/libctru.a lib/libctrud.a
 
 dist-bin: all
 	@tar --exclude=*~ -cjf libctru-$(VERSION).tar.bz2 include lib default_icon.png
@@ -123,31 +121,35 @@ dox:
 lib:
 	@[ -d $@ ] || mkdir -p $@
 
-deps:
-	@[ -d $@ ] || mkdir -p $@
-
 release:
 	@[ -d $@ ] || mkdir -p $@
 
 debug:
 	@[ -d $@ ] || mkdir -p $@
 
-lib/libctru.a : lib release
-	@$(MAKE) BUILD=release OUTPUT=$(CURDIR)/$@  BUILD_CFLAGS="-DNDEBUG=1 -O2 -fomit-frame-pointer" --no-print-directory -C release -f $(CURDIR)/Makefile
+lib/libctru.a : lib release $(SOURCES) $(INCLUDES)
+	@$(MAKE) BUILD=release OUTPUT=$(CURDIR)/$@ \
+	BUILD_CFLAGS="-DNDEBUG=1 -O2 -fomit-frame-pointer" \
+	DEPSDIR=$(CURDIR)/release \
+	--no-print-directory -C release \
+	-f $(CURDIR)/Makefile
 
-
-lib/libctrud.a : lib debug
-	@$(MAKE) BUILD=debug OUTPUT=$(CURDIR)/$@ BUILD_CFLAGS="-DDEBUG=1 -Og" --no-print-directory -C debug -f $(CURDIR)/Makefile
+lib/libctrud.a : lib debug $(SOURCES) $(INCLUDES)
+	@$(MAKE) BUILD=debug OUTPUT=$(CURDIR)/$@ \
+	BUILD_CFLAGS="-DDEBUG=1 -Og" \
+	DEPSDIR=$(CURDIR)/debug \
+	--no-print-directory -C debug \
+	-f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr deps release debug lib docs internal_docs
+	@rm -fr release debug lib docs internal_docs
 
 #---------------------------------------------------------------------------------
 else
 
-DEPENDS	:=	$(foreach file,$(OFILES:.o=.d),$(DEPSDIR)/$(file))
+DEPENDS	:=	$(OFILES:.o=.d)
 
 #---------------------------------------------------------------------------------
 # main targets
