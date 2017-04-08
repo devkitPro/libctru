@@ -453,6 +453,28 @@ typedef enum
 	GPU_LUTSELECT_DA     = 2, ///< Distance attenuation LUT.
 } GPU_LIGHTLUTSELECT;
 
+/// Fog modes.
+typedef enum
+{
+	GPU_NO_FOG = 0, ///< Fog/Gas unit disabled.
+	GPU_FOG    = 5, ///< Fog/Gas unit configured in Fog mode.
+	GPU_GAS    = 7, ///< Fog/Gas unit configured in Gas mode.
+} GPU_FOGMODE;
+
+/// Gas shading density source values.
+typedef enum
+{
+	GPU_PLAIN_DENSITY = 0, ///< Plain density.
+	GPU_DEPTH_DENSITY = 1, ///< Depth density.
+} GPU_GASMODE;
+
+/// Gas color LUT inputs.
+typedef enum
+{
+	GPU_GAS_DENSITY      = 0, ///< Gas density used as input.
+	GPU_GAS_LIGHT_FACTOR = 1, ///< Light factor used as input.
+} GPU_GASLUTINPUT;
+
 /// Supported primitives.
 typedef enum
 {
