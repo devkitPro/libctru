@@ -8,6 +8,7 @@
 enum {
 	RUNFLAG_APTWORKAROUND = BIT(0), ///< Use APT workaround.
 	RUNFLAG_APTREINIT     = BIT(1), ///< Reinitialize APT.
+	RUNFLAG_APTCHAINLOAD  = BIT(2), ///< Chainload APT on return.
 };
 
 /**

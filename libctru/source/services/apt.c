@@ -42,6 +42,8 @@ enum
 static u8 aptHomeButtonState;
 static u32 aptFlags = FLAG_ALLOWSLEEP;
 static u32 aptParameters[0x1000/4];
+static u64 aptChainloadTid;
+static u8 aptChainloadMediatype;
 
 typedef enum
 {
@@ -74,9 +76,15 @@ static bool aptIsReinit(void)
 	return (envGetSystemRunFlags() & RUNFLAG_APTREINIT) != 0;
 }
 
+static bool aptIsChainload(void)
+{
+	return (envGetSystemRunFlags() & RUNFLAG_APTCHAINLOAD) != 0;
+}
+
 static bool aptIsCrippled(void)
 {
-	return (envGetSystemRunFlags() & RUNFLAG_APTWORKAROUND) != 0 && !aptIsReinit();
+	u32 flags = envGetSystemRunFlags();
+	return (flags & RUNFLAG_APTWORKAROUND) && !(flags & RUNFLAG_APTREINIT);
 }
 
 static Result aptGetServiceHandle(Handle* aptuHandle)
@@ -203,6 +211,9 @@ Result aptInit(void)
 	aptEventHandlerThread = threadCreate(aptEventHandler, 0x0, APT_HANDLER_STACKSIZE, 0x31, -2, true);
 	if (!aptEventHandlerThread) goto _fail4;
 
+	// Get information about ourselves
+	APT_GetAppletInfo(envGetAptAppId(), &aptChainloadTid, &aptChainloadMediatype, NULL, NULL, NULL);
+
 	// Special handling for aptReinit (aka hax)
 	APT_Transition transition = TR_ENABLE;
 	if (aptIsReinit())
@@ -256,6 +267,12 @@ void aptSetSleepAllowed(bool allowed)
 	}
 }
 
+void aptSetChainloader(u64 programID, u8 mediatype)
+{
+	aptChainloadTid = programID;
+	aptChainloadMediatype = mediatype;
+}
+
 static void aptExitProcess(void)
 {
 	APT_CloseApplication(NULL, 0, 0);
@@ -270,8 +287,19 @@ void aptExit(void)
 
 	if (!aptIsCrippled())
 	{
-		if ((aptFlags & FLAG_EXITED) || !aptIsReinit())
+		bool exited = (aptFlags & FLAG_EXITED) != 0;
+		if (exited || !aptIsReinit())
 		{
+			if (!exited && aptIsChainload())
+			{
+				u8 param[0x300] = {0};
+				u8 hmac[0x20] = {0};
+				APT_PrepareToDoApplicationJump(0, aptChainloadTid, aptChainloadMediatype);
+				APT_DoApplicationJump(param, sizeof(param), hmac);
+				while (aptMainLoop())
+					svcSleepThread(25*1000*1000);
+			}
+
 			APT_PrepareToCloseApplication(true);
 
 			extern void (*__system_retAddr)(void);

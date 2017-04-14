@@ -196,6 +196,13 @@ void aptSetMessageCallback(aptMessageCb callback, void* user);
 bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
 
 /**
+ * @brief Sets the chainloader target.
+ * @param programID ID of the program to chainload to.
+ * @param mediatype Media type of the program to chainload to.
+ */
+void aptSetChainloader(u64 programID, u8 mediatype);
+
+/**
  * @brief Gets an APT lock handle.
  * @param flags Flags to use.
  * @param lockHandle Pointer to output the lock handle to.
