@@ -146,11 +146,11 @@ sdmc_fixpath(struct _reent *r,
   } while(code != 0);
 
   if(path[0] == '/')
-    strncpy(__fixedpath, path, PATH_MAX+1);
+    strncpy(__fixedpath, path, PATH_MAX);
   else
   {
-    strncpy(__fixedpath, __cwd, PATH_MAX+1);
-    strncat(__fixedpath, path, PATH_MAX+1);
+    strncpy(__fixedpath, __cwd, PATH_MAX);
+    strncat(__fixedpath, path, PATH_MAX);
   }
 
   if(__fixedpath[PATH_MAX] != 0)
