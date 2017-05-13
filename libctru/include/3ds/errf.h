@@ -110,3 +110,13 @@ Result ERRF_ThrowResult(Result failure);
  * on development units/patched ErrDisp.
  */
 Result ERRF_ThrowResultWithMessage(Result failure, const char* message);
+
+/**
+ * @brief Handles an exception using ErrDisp.
+ * @param excep Exception information
+ * @param regs CPU registers
+ *
+ * You might want to clear ENVINFO's bit0 to be able to see any debugging information.
+ * @sa threadOnException
+ */
+void ERRF_ExceptionHandler(ERRF_ExceptionInfo* excep, CpuRegisters* regs) __attribute__((noreturn));
