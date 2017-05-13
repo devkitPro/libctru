@@ -106,3 +106,30 @@ Result ERRF_ThrowResultWithMessage(Result failure, const char* message)
 
 	return ret;
 }
+
+void ERRF_ExceptionHandler(ERRF_ExceptionInfo* excep, CpuRegisters* regs)
+{
+	ERRF_FatalErrInfo error;
+	Result ret;
+
+	if (R_FAILED(ret = errfInit()))
+	{
+		svcBreak(USERBREAK_PANIC);
+		for(;;);
+	}
+
+	memset(&error, 0, sizeof(error));
+
+	error.type = ERRF_ERRTYPE_EXCEPTION;
+
+	error.pcAddr = regs->pc;
+	getCommonErrorData(&error, 0);
+	error.data.exception_data.excep = *excep;
+	error.data.exception_data.regs = *regs;	
+
+	ret = ERRF_Throw(&error);
+
+	errfExit();
+
+	for(;;);
+}
