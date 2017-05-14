@@ -116,8 +116,9 @@ typedef struct PrintConsole
 /// Console debug devices supported by libnds.
 typedef enum {
 	debugDevice_NULL,    ///< Swallows prints to stderr
-	debugDevice_3DMOO,   ///< Directs stderr debug statements to 3dmoo
+	debugDevice_SVC,     ///< Outputs stderr debug statements using svcOutputDebugString, which can then be captured by interactive debuggers
 	debugDevice_CONSOLE, ///< Directs stderr debug statements to 3DS console window
+	debugDevice_3DMOO = debugDevice_SVC,
 } debugDevice;
 
 /**
