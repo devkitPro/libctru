@@ -10,7 +10,7 @@
 void errorInit(errorConf* err, errorType type, CFG_Language lang)
 {
 	memset(err, 0, sizeof(*err));
-	err->errorType = type;
+	err->Type = type;
 	err->useLanguage = lang;
 	err->upperScreenFlag = ERROR_NORMAL;
 	err->eulaVersion =  0;
