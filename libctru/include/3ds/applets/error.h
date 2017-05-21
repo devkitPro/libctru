@@ -52,7 +52,7 @@ typedef enum
 
 typedef struct 
 {
-	errorType errorType;
+	errorType type;
 	int errorCode;
 	errorScreenFlag upperScreenFlag;
 	u16 useLanguage;
