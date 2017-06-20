@@ -416,6 +416,17 @@ SVC_BEGIN svcCreatePort
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcCreateSession
+	push {r0, r1}
+	svc 0x49
+	ldr r3, [sp, #0]
+	str r1, [r3]
+	ldr r3, [sp, #4]
+	str r2, [r3]
+	add sp, sp, #8
+	bx  lr
+SVC_END
+
 SVC_BEGIN svcAcceptSession
 	str r0, [sp, #-4]!
 	svc 0x4A
