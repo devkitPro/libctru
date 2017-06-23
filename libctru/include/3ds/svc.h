@@ -894,6 +894,13 @@ Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 v
 Result svcSendSyncRequest(Handle session);
 
 /**
+ * @brief Connects to a port via a handle.
+ * @param[out] clientSession Pointer to output the client session handle to.
+ * @param clientPort Port client endpoint to connect to.
+ */
+Result svcCreateSessionToPort(Handle* clientSession, Handle clientPort);
+
+/**
  * @brief Creates a linked pair of session endpoints.
  * @param[out] serverSession Pointer to output the created server endpoint handle to.
  * @param[out] clientSession Pointer to output the created client endpoint handle to.
