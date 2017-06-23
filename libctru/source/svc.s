@@ -416,6 +416,14 @@ SVC_BEGIN svcCreatePort
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcCreateSessionToPort
+	push {r0}
+	svc 0x48
+	pop {r2}
+	str r1, [r2]
+	bx lr
+SVC_END
+
 SVC_BEGIN svcCreateSession
 	push {r0, r1}
 	svc 0x49
