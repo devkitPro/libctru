@@ -31,7 +31,7 @@ install:
   
 env:
   global:
-    - secure: "flMuk/VTG6xhMfazYKyIi+0yHceJkPRLg5igm3zuUDPeMhFxYCtwJe44Uu9YrTj5VqXmfbIC27q/I68lia6Q+A/WvlIRYo1BO/Gh8sTT65hYe9KHODdel01tODHe2jmf80fskdowREj60etrwHYdP75O4ntn9A/PI9hZ5s/yrEQ="
+    - secure: "SYuVfyfmO6P+KnOXFZpNbBLO3QpGZJjIvFJHix3+xAfjENZoCzn+A7Gmcbm07VN0UB9sDJrYklyUrUepVWSuOd+FiNEyiLi4oYXxFzDjA9am7W1nFEaBAw6Ilifg7KX2OlClXaF7iiQ1udtmN9Uw+1LwfpldDDqti1H9TANaKHc="
   
 script:
   - cd $TRAVIS_BUILD_DIR/libctru
