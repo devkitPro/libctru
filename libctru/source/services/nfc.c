@@ -37,7 +37,13 @@ Result nfcInit(NFC_OpType type)
 	if (R_SUCCEEDED(ret))
 	{
 		nfc_optype = type;
-		ret = NFC_Initialize(type);
+		for (;;)
+		{
+			ret = NFC_Initialize(type);
+			if (ret != 0xd0a17480)
+				break;
+			svcSleepThread(500000);
+		}
 		if (R_FAILED(ret)) svcCloseHandle(nfcHandle);
 	}
 	if (R_FAILED(ret)) AtomicDecrement(&nfcRefCount);
