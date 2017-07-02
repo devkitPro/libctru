@@ -637,6 +637,24 @@ SVC_BEGIN svcTerminateProcess
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcSetProcessResourceLimits
+	svc 0x77
+	bx  lr
+SVC_END
+
+SVC_BEGIN svcCreateResourceLimits
+	push {r0}
+	svc  0x78
+	pop  {r2}
+	str  r1, [r2]
+	bx   lr
+SVC_END
+
+SVC_BEGIN svcSetResourceLimitValues
+	svc 0x79
+	bx  lr
+SVC_END
+
 SVC_BEGIN svcBackdoor
 	svc 0x7B
 	bx  lr
