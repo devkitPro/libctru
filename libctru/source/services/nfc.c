@@ -15,6 +15,7 @@ static NFC_OpType nfc_optype = NFC_OpType_NFCTag;
 static Result NFC_Initialize(NFC_OpType type);
 static Result NFC_Shutdown(NFC_OpType type);
 
+static Result NFC_StartCommsAdapter();
 static Result NFC_StartCommunication(void);
 static Result NFC_StopCommunication(void);
 static Result NFC_CommunicationGetStatus(u8 *out);
@@ -64,7 +65,7 @@ Handle nfcGetSessionHandle(void)
 	return nfcHandle;
 }
 
-Result nfcStartScanning(u16 inval)
+static Result NFC_StartCommsAdapter()
 {
 	Result ret, ret2;
 	bool new3ds_flag = false;
@@ -72,81 +73,51 @@ Result nfcStartScanning(u16 inval)
 
 	APT_CheckNew3DS(&new3ds_flag);
 
-	if(!new3ds_flag)
+	if(new3ds_flag) return 0;
+	
+	ret = NFC_StartCommunication();
+	if(R_FAILED(ret))return ret;
+
+	while(1)
 	{
-		ret = NFC_StartCommunication();
-		if(R_FAILED(ret))return ret;
+		status = 0;
+		ret = NFC_CommunicationGetStatus(&status);
+		if(R_FAILED(ret))break;
 
-		while(1)
+		if(status==1)//"Attempting to initialize Old3DS NFC adapter communication."
 		{
-			status = 0;
-			ret = NFC_CommunicationGetStatus(&status);
-			if(R_FAILED(ret))break;
-
-			if(status==1)//"Attempting to initialize Old3DS NFC adapter communication."
-			{
-				svcSleepThread(1000000*100);
-				continue;
-			}
-			else if(status==2)//"Old3DS NFC adapter communication initialization successfully finished."
-			{
-				break;
-			}
-
-			//An error occured with Old3DS NFC-adapter communication initialization.
-
-			ret = NFC_CommunicationGetResult(&ret2);
-			if(R_FAILED(ret))break;
-
-			return ret2;
+			svcSleepThread(1000000*100);
+			continue;
+		}
+		else if(status==2)//"Old3DS NFC adapter communication initialization successfully finished."
+		{
+			break;
 		}
 
-		if(R_FAILED(ret))return ret;
+		//An error occured with Old3DS NFC-adapter communication initialization.
+
+		ret = NFC_CommunicationGetResult(&ret2);
+		if(R_FAILED(ret))break;
+
+		return ret2;
 	}
+
+	return ret;
+}
+
+Result nfcStartScanning(u16 inval)
+{
+	Result ret = NFC_StartCommsAdapter();
+	if(R_FAILED(ret)) return ret;
 
 	return NFC_StartTagScanning(inval);
 }
 
 Result nfcStartOtherTagScanning(u16 unk0, u32 unk1)
 {
-	Result ret, ret2;
-	bool new3ds_flag = false;
-	u8 status;
-
-	APT_CheckNew3DS(&new3ds_flag);
-
-	if(!new3ds_flag)
-	{
-		ret = NFC_StartCommunication();
-		if(R_FAILED(ret))return ret;
-
-		while(1)
-		{
-			status = 0;
-			ret = NFC_CommunicationGetStatus(&status);
-			if(R_FAILED(ret))break;
-
-			if(status==1)//"Attempting to initialize Old3DS NFC adapter communication."
-			{
-				svcSleepThread(1000000*100);
-				continue;
-			}
-			else if(status==2)//"Old3DS NFC adapter communication initialization successfully finished."
-			{
-				break;
-			}
-
-			//An error occured with Old3DS NFC-adapter communication initialization.
-
-			ret = NFC_CommunicationGetResult(&ret2);
-			if(R_FAILED(ret))break;
-
-			return ret2;
-		}
-
-		if(R_FAILED(ret))return ret;
-	}
-
+	Result ret = NFC_StartCommsAdapter();
+	if(R_FAILED(ret)) return ret;
+	
 	return NFC_StartOtherTagScanning(unk0, unk1);	
 }
 
