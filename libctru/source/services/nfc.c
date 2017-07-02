@@ -21,6 +21,7 @@ static Result NFC_CommunicationGetStatus(u8 *out);
 static Result NFC_CommunicationGetResult(Result *out);
 
 static Result NFC_StartTagScanning(u16 unknown);
+static Result NFC_StartOtherTagScanning(u16 unk0, u32 unk1);
 static Result NFC_StopTagScanning(void);
 
 static Result NFC_InitializeWriteAppData(u32 amiibo_appid, NFC_AppDataInitStruct *initstruct, const void *buf, size_t size);
@@ -104,6 +105,49 @@ Result nfcStartScanning(u16 inval)
 	}
 
 	return NFC_StartTagScanning(inval);
+}
+
+Result nfcStartOtherTagScanning(u16 unk0, u32 unk1)
+{
+	Result ret, ret2;
+	bool new3ds_flag = false;
+	u8 status;
+
+	APT_CheckNew3DS(&new3ds_flag);
+
+	if(!new3ds_flag)
+	{
+		ret = NFC_StartCommunication();
+		if(R_FAILED(ret))return ret;
+
+		while(1)
+		{
+			status = 0;
+			ret = NFC_CommunicationGetStatus(&status);
+			if(R_FAILED(ret))break;
+
+			if(status==1)//"Attempting to initialize Old3DS NFC adapter communication."
+			{
+				svcSleepThread(1000000*100);
+				continue;
+			}
+			else if(status==2)//"Old3DS NFC adapter communication initialization successfully finished."
+			{
+				break;
+			}
+
+			//An error occured with Old3DS NFC-adapter communication initialization.
+
+			ret = NFC_CommunicationGetResult(&ret2);
+			if(R_FAILED(ret))break;
+
+			return ret2;
+		}
+
+		if(R_FAILED(ret))return ret;
+	}
+
+	return NFC_StartOtherTagScanning(unk0, unk1);	
 }
 
 void nfcStopScanning(void)
@@ -442,7 +486,7 @@ static Result NFC_GetAppDataInitStruct(NFC_AppDataInitStruct *out)
 	return ret;
 }
 
-Result nfcStartOtherTagScanning(u16 unk0, u32 unk1)
+static Result NFC_StartOtherTagScanning(u16 unk0, u32 unk1)
 {
 	Result ret=0;
 	u32* cmdbuf=getThreadCommandBuffer();
