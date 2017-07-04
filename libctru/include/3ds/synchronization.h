@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <sys/lock.h>
+#include <3ds/svc.h>
 
 /// A light lock.
 typedef _LOCK_T LightLock;
