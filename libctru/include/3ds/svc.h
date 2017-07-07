@@ -777,6 +777,28 @@ Result svcGetResourceLimitLimitValues(s64* values, Handle resourceLimit, u32* na
 Result svcGetResourceLimitCurrentValues(s64* values, Handle resourceLimit, u32* names, s32 nameCount);
 
 /**
+ * @brief Sets the resource limit set of a process.
+ * @param process Process to set the resource limit set to.
+ * @param resourceLimit Resource limit set handle.
+ */
+Result svcSetProcessResourceLimits(Handle process, Handle resourceLimit);
+
+/**
+ * @brief Creates a resource limit set.
+ * @param[out] resourceLimit Pointer to output the resource limit set handle to.
+ */
+Result svcCreateResourceLimit(Handle* resourceLimit);
+
+/**
+ * @brief Sets the value limits of a resource limit set.
+ * @param resourceLimit Resource limit set to use.
+ * @param names Resource limit names to set the limits of.
+ * @param values Value limits to set.
+ * @param nameCount Number of resource limit names.
+ */
+Result svcSetResourceLimitValues(Handle resourceLimit, const u32* names, const s64* values, s32 nameCount);
+
+/**
  * @brief Gets the process ID of a thread.
  * @param[out] out Pointer to output the process ID of the thread @p handle to.
  * @param handle Handle of the thread.
