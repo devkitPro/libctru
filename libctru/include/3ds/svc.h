@@ -1008,6 +1008,18 @@ Result svcGetHandleInfo(s64* out, Handle handle, u32 param);
 Result svcGetSystemInfo(s64* out, u32 type, s32 param);
 
 /**
+ * @brief Sets the GPU protection register to restrict the range of the GPU DMA. 11.3+ only.
+ * @param useApplicationRestriction Whether to use the register value used for APPLICATION titles.
+ */
+Result svcSetGpuProt(bool useApplicationRestriction);
+
+/**
+ * @brief Enables or disables Wi-Fi. 11.4+ only.
+ * @param enabled Whether to enable or disable Wi-Fi.
+ */
+Result svcSetWifiEnabled(bool enabled);
+
+/**
  * @brief Sets the current kernel state.
  * @param type Type of state to set (the other parameters depend on it).
  */

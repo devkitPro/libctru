@@ -502,6 +502,16 @@ SVC_BEGIN svcGetDmaState
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcSetGpuProt
+	svc 0x59
+	bx  lr
+SVC_END
+
+SVC_BEGIN svcSetWifiEnabled
+	svc 0x5A
+	bx  lr
+SVC_END
+
 SVC_BEGIN svcDebugActiveProcess
 	push {r0}
 	svc 0x60
