@@ -43,6 +43,6 @@ Result PTMU_GetTotalStepCount(u32 *steps);
 
 /**
  * @brief Gets whether the adapter is plugged in or not
- * @param out Pointer to write the adapter state to. (0 = not plugged in, 1 = plugged in)
+ * @param out Pointer to write the adapter state to.
  */
-Result PTMU_GetAdapterState(u8 *out);
+Result PTMU_GetAdapterState(bool *out);
