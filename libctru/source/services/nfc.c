@@ -15,7 +15,7 @@ static NFC_OpType nfc_optype = NFC_OpType_NFCTag;
 static Result NFC_Initialize(NFC_OpType type);
 static Result NFC_Shutdown(NFC_OpType type);
 
-static Result NFC_StartCommsAdapter();
+static Result NFC_StartCommsAdapter(void);
 static Result NFC_StartCommunication(void);
 static Result NFC_StopCommunication(void);
 static Result NFC_CommunicationGetStatus(u8 *out);
@@ -65,7 +65,7 @@ Handle nfcGetSessionHandle(void)
 	return nfcHandle;
 }
 
-static Result NFC_StartCommsAdapter()
+static Result NFC_StartCommsAdapter(void)
 {
 	Result ret, ret2;
 	bool new3ds_flag = false;
