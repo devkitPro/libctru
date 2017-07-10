@@ -94,3 +94,16 @@ Result PTMU_GetTotalStepCount(u32 *steps)
 	return (Result)cmdbuf[1];
 }
 
+Result PTMU_GetAdapterState(bool *out)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	
+	cmdbuf[0] = IPC_MakeHeader(0x5,0,0); // 0x50000
+	
+	if(R_FAILED(ret = svcSendSyncRequest(ptmuHandle)))return ret;
+	
+	*out = cmdbuf[2] & 0xFF;
+	
+	return (Result)cmdbuf[1];
+}
