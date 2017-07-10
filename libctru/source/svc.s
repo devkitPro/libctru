@@ -502,6 +502,16 @@ SVC_BEGIN svcGetDmaState
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcSetGpuProt
+	svc 0x59
+	bx  lr
+SVC_END
+
+SVC_BEGIN svcSetWifiEnabled
+	svc 0x5A
+	bx  lr
+SVC_END
+
 SVC_BEGIN svcDebugActiveProcess
 	push {r0}
 	svc 0x60
@@ -634,6 +644,24 @@ SVC_END
 
 SVC_BEGIN svcTerminateProcess
 	svc 0x76
+	bx  lr
+SVC_END
+
+SVC_BEGIN svcSetProcessResourceLimits
+	svc 0x77
+	bx  lr
+SVC_END
+
+SVC_BEGIN svcCreateResourceLimits
+	push {r0}
+	svc  0x78
+	pop  {r2}
+	str  r1, [r2]
+	bx   lr
+SVC_END
+
+SVC_BEGIN svcSetResourceLimitValues
+	svc 0x79
 	bx  lr
 SVC_END
 

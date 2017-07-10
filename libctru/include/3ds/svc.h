@@ -777,6 +777,28 @@ Result svcGetResourceLimitLimitValues(s64* values, Handle resourceLimit, u32* na
 Result svcGetResourceLimitCurrentValues(s64* values, Handle resourceLimit, u32* names, s32 nameCount);
 
 /**
+ * @brief Sets the resource limit set of a process.
+ * @param process Process to set the resource limit set to.
+ * @param resourceLimit Resource limit set handle.
+ */
+Result svcSetProcessResourceLimits(Handle process, Handle resourceLimit);
+
+/**
+ * @brief Creates a resource limit set.
+ * @param[out] resourceLimit Pointer to output the resource limit set handle to.
+ */
+Result svcCreateResourceLimit(Handle* resourceLimit);
+
+/**
+ * @brief Sets the value limits of a resource limit set.
+ * @param resourceLimit Resource limit set to use.
+ * @param names Resource limit names to set the limits of.
+ * @param values Value limits to set.
+ * @param nameCount Number of resource limit names.
+ */
+Result svcSetResourceLimitValues(Handle resourceLimit, const u32* names, const s64* values, s32 nameCount);
+
+/**
  * @brief Gets the process ID of a thread.
  * @param[out] out Pointer to output the process ID of the thread @p handle to.
  * @param handle Handle of the thread.
@@ -1006,6 +1028,18 @@ Result svcGetHandleInfo(s64* out, Handle handle, u32 param);
  * @param param Parameter clarifying the system info type.
  */
 Result svcGetSystemInfo(s64* out, u32 type, s32 param);
+
+/**
+ * @brief Sets the GPU protection register to restrict the range of the GPU DMA. 11.3+ only.
+ * @param useApplicationRestriction Whether to use the register value used for APPLICATION titles.
+ */
+Result svcSetGpuProt(bool useApplicationRestriction);
+
+/**
+ * @brief Enables or disables Wi-Fi. 11.4+ only.
+ * @param enabled Whether to enable or disable Wi-Fi.
+ */
+Result svcSetWifiEnabled(bool enabled);
 
 /**
  * @brief Sets the current kernel state.
