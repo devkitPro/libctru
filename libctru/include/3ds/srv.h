@@ -94,7 +94,7 @@ Result srvReceiveNotification(u32* notificationIdOut);
 /**
  * @brief Publishes a notification to subscribers.
  * @param notificationId ID of the notification.
- * @param flags Flags to publish with. (bit 0 = only fire if not fired, bit 1 = report errors)
+ * @param flags Flags to publish with. (bit 0 = only fire if not fired, bit 1 = do not report an error if there are more than 16 pending notifications)
  */
 Result srvPublishToSubscriber(u32 notificationId, u32 flags);
 
