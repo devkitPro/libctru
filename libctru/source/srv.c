@@ -90,7 +90,7 @@ Result srvRegisterService(Handle* out, const char* name, int maxSessions)
 
 	cmdbuf[0] = IPC_MakeHeader(0x3,4,0); // 0x30100
 	strncpy((char*) &cmdbuf[1], name,8);
-	cmdbuf[3] = strlen(name);
+	cmdbuf[3] = strnlen(name, 8);
 	cmdbuf[4] = maxSessions;
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
@@ -107,7 +107,7 @@ Result srvUnregisterService(const char* name)
 
 	cmdbuf[0] = IPC_MakeHeader(0x4,3,0); // 0x400C0
 	strncpy((char*) &cmdbuf[1], name,8);
-	cmdbuf[3] = strlen(name);
+	cmdbuf[3] = strnlen(name, 8);
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
 
@@ -121,7 +121,7 @@ Result srvGetServiceHandleDirect(Handle* out, const char* name)
 
 	cmdbuf[0] = IPC_MakeHeader(0x5,4,0); // 0x50100
 	strncpy((char*) &cmdbuf[1], name,8);
-	cmdbuf[3] = strlen(name);
+	cmdbuf[3] = strnlen(name, 8);
 	cmdbuf[4] = 0x0;
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
@@ -138,8 +138,8 @@ Result srvRegisterPort(const char* name, Handle clientHandle)
 
 	cmdbuf[0] = IPC_MakeHeader(0x6,3,2); // 0x600C2
 	strncpy((char*) &cmdbuf[1], name,8);
-	cmdbuf[3] = strlen(name);
-	cmdbuf[4] = IPC_Desc_SharedHandles(0);
+	cmdbuf[3] = strnlen(name, 8);
+	cmdbuf[4] = IPC_Desc_SharedHandles(1);
 	cmdbuf[5] = clientHandle;
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
@@ -154,7 +154,7 @@ Result srvUnregisterPort(const char* name)
 
 	cmdbuf[0] = IPC_MakeHeader(0x7,3,0); // 0x700C0
 	strncpy((char*) &cmdbuf[1], name,8);
-	cmdbuf[3] = strlen(name);
+	cmdbuf[3] = strnlen(name, 8);
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
 
@@ -168,7 +168,7 @@ Result srvGetPort(Handle* out, const char* name)
 
 	cmdbuf[0] = IPC_MakeHeader(0x8,4,0); // 0x80100
 	strncpy((char*) &cmdbuf[1], name,8);
-	cmdbuf[3] = strlen(name);
+	cmdbuf[3] = strnlen(name, 8);
 	cmdbuf[4] = 0x0;
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
@@ -255,7 +255,7 @@ Result srvIsServiceRegistered(bool* registeredOut, const char* name)
 
 	cmdbuf[0] = IPC_MakeHeader(0xE,3,0); // 0xE00C0
 	strncpy((char*) &cmdbuf[1], name,8);
-	cmdbuf[3] = strlen(name);
+	cmdbuf[3] = strnlen(name, 8);
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
 
