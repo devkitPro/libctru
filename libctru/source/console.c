@@ -179,6 +179,30 @@ static void consoleClearLine(char mode) {
 
 
 //---------------------------------------------------------------------------------
+static inline void consolePosition(int x, int y) {
+//---------------------------------------------------------------------------------
+	// invalid position
+	if(x < 0 || y < 0)
+		return;
+
+	// 1-based, but we'll take a 0
+	if(x < 1)
+		x = 1;
+	if(y < 1)
+		y = 1;
+
+	// clip to console edge
+	if(x > currentConsole->windowWidth)
+		x = currentConsole->windowWidth;
+	if(y > currentConsole->windowHeight)
+		y = currentConsole->windowHeight;
+
+	// 1-based adjustment
+	currentConsole->cursorX = x - 1;
+	currentConsole->cursorY = y - 1;
+}
+
+//---------------------------------------------------------------------------------
 ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 //---------------------------------------------------------------------------------
 
@@ -256,32 +280,28 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 						int  x, y;
 						char c;
 						if(sscanf(escapeseq,"[%d;%d%c", &y, &x, &c) == 3 && (c == 'f' || c == 'H')) {
-							currentConsole->cursorX = x;
-							currentConsole->cursorY = y;
+							consolePosition(x, y);
 							escaping = false;
 							break;
 						}
 
 						x = y = 1;
 						if(sscanf(escapeseq,"[%d;%c", &y, &c) == 2 && (c == 'f' || c == 'H')) {
-							currentConsole->cursorX = x;
-							currentConsole->cursorY = y;
+							consolePosition(x, y);
 							escaping = false;
 							break;
 						}
 
 						x = y = 1;
 						if(sscanf(escapeseq,"[;%d%c", &x, &c) == 2 && (c == 'f' || c == 'H')) {
-							currentConsole->cursorX = x;
-							currentConsole->cursorY = y;
+							consolePosition(x, y);
 							escaping = false;
 							break;
 						}
 
 						x = y = 1;
 						if(sscanf(escapeseq,"[;%c", &c) == 1 && (c == 'f' || c == 'H')) {
-							currentConsole->cursorX = x;
-							currentConsole->cursorY = y;
+							consolePosition(x, y);
 							escaping = false;
 							break;
 						}
