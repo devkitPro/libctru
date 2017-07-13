@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 1.30
+## Version 1.3.0
 
 - Implement more svc calls
   - svcCreateResourceLimit
