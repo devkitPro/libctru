@@ -1,5 +1,35 @@
 # Changelog
 
+## Version 1.30
+
+- Implement more svc calls
+  - svcCreateResourceLimit
+  - svcSetResourceLimitValues
+  - svcSetProcessResourceLimits
+  - svcCreateSession
+  - svcCreateSessionToPort
+  - svcSetGpuProt
+  - svcSetWifiEnabled
+- Additional functions 
+  - implement httpcAddPostDataBinary
+  - implement PTMU_GetAdapterState
+  - implement GSPLCD_GetBrightness
+  - add threadDetach
+- srv fixes
+  - Fix srvPublishToSubscriber documentation
+  - Fix handling of service/named port names of length 8 
+  - Fix srvRegisterPort
+- debugging support
+  - Add support for user-specified exception handlers
+  - Rename debugDevice_3DMOO to debugDevice_SVC
+  - created debug version of library
+- Implement error applet
+- GPU updates
+  - Add GX command queue system for batching GX commands
+  - Correct GPU_PROCTEX_LUTID definition
+  - Add GPU_FOGMODE, GPU_GASMODE and GPU_GASLUTINPUT
+- Other improvements and minor adjustments for overall system stability to enhance the user experience
+  
 ## Version 1.2.1
 
   - Added NFC support
