@@ -9,7 +9,7 @@ It is not meant to provide higher level functions; to put things in perspective,
 
 libctru is just a library and needs a toolchain to function. devkitARM (created by [devkitPro](http://devkitpro.org)) is the officially supported ARM cross compiling toolchain, which provides the framework necessary to supply a usable POSIX-like environment, with working C and C++ standard libraries; as well as the tools required to compile homebrew in the 3DSX format, and assemble GPU shaders. The use of other ARM toolchains is severely discouraged.
 
-The most recent version of devkitARM (r46 at the time of writing) is always recommended. The installers/setup scripts supplied by devkitPro install a prebuilt copy of the latest stable version of libctru, which is recommended for general use. Please note that devkitPro has a policy of keeping legacy code to a minimum, so a library upgrade may result in older code failing to compile or behave properly. Developers are encouraged to keep their code working with the latest versions of the tools and libraries.
+The most recent version of devkitARM is always recommended. The [installers/setup scripts](https://sourceforge.net/projects/devkitpro/files/Automated%20Installer/) supplied by devkitPro install a prebuilt copy of the latest stable version of libctru, which is recommended for general use. Please note that devkitPro has a policy of keeping legacy code to a minimum, so a library upgrade may result in older code failing to compile or behave properly. Developers are encouraged to keep their code working with the latest versions of the tools and libraries.
 
 You may find instructions on how to install devkitARM on [the devkitPro Wiki](http://devkitpro.org/wiki/Getting_Started).
 
