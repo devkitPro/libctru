@@ -43,3 +43,17 @@ Result GSPLCD_GetVendors(u8 *vendors);
  * @param brightness Brightness value returned.
  */
 Result GSPLCD_GetBrightness(u32 screen, u32 *brightness);
+
+/**
+ * @brief Sets the LCD screens' brightness.
+ * @param screen Screen to set the brightness value of.
+ * @param brightness Brightness value set.
+ */
+Result GSPLCD_SetBrightness(u32 screen, u32 brightness);
+
+/**
+ * @brief Sets the LCD screens' raw brightness.
+ * @param screen Screen to set the brightness value of.
+ * @param brightness Brightness value set.
+ */
+Result GSPLCD_SetBrightnessRaw(u32 screen, u32 brightness);
