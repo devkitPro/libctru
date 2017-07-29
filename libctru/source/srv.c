@@ -11,6 +11,9 @@
 #include <3ds/synchronization.h>
 #include <3ds/env.h>
 
+#include <3ds/os.h>
+#include <3ds/services/srvpm.h>
+
 static Handle srvHandle;
 static int srvRefCount;
 
@@ -20,7 +23,10 @@ Result srvInit(void)
 
 	if (AtomicPostIncrement(&srvRefCount)) return 0;
 
-	rc = svcConnectToPort(&srvHandle, "srv:");
+	if(osGetFirmVersion() < SYSTEM_VERSION(2, 39, 4) && *srvPmGetSessionHandle() != 0)
+		rc = svcDuplicateHandle(&srvHandle, *srvPmGetSessionHandle()); // Prior to system version 7.0 srv:pm was a superset of srv:
+	else
+		rc = svcConnectToPort(&srvHandle, "srv:");
 	if (R_FAILED(rc)) goto end;
 
 	rc = srvRegisterClient();
