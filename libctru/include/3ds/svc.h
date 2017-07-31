@@ -102,6 +102,22 @@ typedef enum {
 	THREADINFO_TYPE_UNKNOWN ///< Unknown.
 } ThreadInfoType;
 
+/// Types of resource limit
+typedef enum {
+	RESLIMIT_PRIORITY       = 0,        ///< Thread priority
+	RESLIMIT_COMMIT         = 1,        ///< Quantity of allocatable memory
+	RESLIMIT_THREAD         = 2,        ///< Number of threads
+	RESLIMIT_EVENT          = 3,        ///< Number of events
+	RESLIMIT_MUTEX          = 4,        ///< Number of mutexes
+	RESLIMIT_SEMAPHORE      = 5,        ///< Number of semaphores
+	RESLIMIT_TIMER          = 6,        ///< Number of timers
+	RESLIMIT_SHAREDMEMORY   = 7,        ///< Number of shared memory objects, see @ref svcCreateMemoryBlock
+	RESLIMIT_ADDRESSARBITER = 8,        ///< Number of address arbiters
+	RESLIMIT_CPUTIME        = 9,        ///< CPU time. Value expressed in percentage regular until it reaches 90.
+
+	RESLIMIT_BIT            = BIT(31),  ///< Forces enum size to be 32 bits
+} ResourceLimitType;
+
 /// Pseudo handle for the current thread
 #define CUR_THREAD_HANDLE  0xFFFF8000
 
@@ -765,7 +781,7 @@ Result svcGetResourceLimit(Handle* resourceLimit, Handle process);
  * @param names Resource limit names to get the limits of.
  * @param nameCount Number of resource limit names.
  */
-Result svcGetResourceLimitLimitValues(s64* values, Handle resourceLimit, u32* names, s32 nameCount);
+Result svcGetResourceLimitLimitValues(s64* values, Handle resourceLimit, ResourceLimitType* names, s32 nameCount);
 
 /**
  * @brief Gets the values of a resource limit set.
@@ -774,7 +790,7 @@ Result svcGetResourceLimitLimitValues(s64* values, Handle resourceLimit, u32* na
  * @param names Resource limit names to get the values of.
  * @param nameCount Number of resource limit names.
  */
-Result svcGetResourceLimitCurrentValues(s64* values, Handle resourceLimit, u32* names, s32 nameCount);
+Result svcGetResourceLimitCurrentValues(s64* values, Handle resourceLimit, ResourceLimitType* names, s32 nameCount);
 
 /**
  * @brief Sets the resource limit set of a process.
@@ -793,10 +809,11 @@ Result svcCreateResourceLimit(Handle* resourceLimit);
  * @brief Sets the value limits of a resource limit set.
  * @param resourceLimit Resource limit set to use.
  * @param names Resource limit names to set the limits of.
- * @param values Value limits to set.
+ * @param values Value limits to set. The high 32 bits of RESLIMIT_COMMIT are used to
+                 set APPMEMALLOC in configuration memory, otherwise those bits are unused.
  * @param nameCount Number of resource limit names.
  */
-Result svcSetResourceLimitValues(Handle resourceLimit, const u32* names, const s64* values, s32 nameCount);
+Result svcSetResourceLimitValues(Handle resourceLimit, const ResourceLimitType* names, const s64* values, s32 nameCount);
 
 /**
  * @brief Gets the process ID of a thread.
