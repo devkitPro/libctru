@@ -19,6 +19,14 @@ typedef struct
 	LightLock lock; ///< Lock used for sticky timer operation
 } LightEvent;
 
+/// A light semaphore.
+typedef struct
+{
+	s32 current_count;      ///< The current release count of the semaphore
+	s16 num_threads_acq;    ///< Number of threads concurrently acquiring the semaphore
+	s16 max_count;          ///< The maximum release count of the semaphore
+} LightSemaphore;
+
 /// Performs a Data Synchronization Barrier operation.
 static inline void __dsb(void)
 {
@@ -53,6 +61,56 @@ static inline bool __strex(s32* addr, s32 val)
 {
 	bool res;
 	__asm__ __volatile__("strex %[res], %[val], %[addr]" : [res] "=&r" (res) : [val] "r" (val), [addr] "Q" (*addr));
+	return res;
+}
+
+/**
+ * @brief Performs a ldrexh operation.
+ * @param addr Address to perform the operation on.
+ * @return The resulting value.
+ */
+static inline u16 __ldrexh(u16* addr)
+{
+	u16 val;
+	__asm__ __volatile__("ldrexh %[val], %[addr]" : [val] "=r" (val) : [addr] "Q" (*addr));
+	return val;
+}
+
+/**
+ * @brief Performs a strexh operation.
+ * @param addr Address to perform the operation on.
+ * @param val Value to store.
+ * @return Whether the operation was successful.
+ */
+static inline bool __strexh(u16* addr, u16 val)
+{
+	bool res;
+	__asm__ __volatile__("strexh %[res], %[val], %[addr]" : [res] "=&r" (res) : [val] "r" (val), [addr] "Q" (*addr));
+	return res;
+}
+
+/**
+ * @brief Performs a ldrexb operation.
+ * @param addr Address to perform the operation on.
+ * @return The resulting value.
+ */
+static inline u8 __ldrexb(u8* addr)
+{
+	u8 val;
+	__asm__ __volatile__("ldrexb %[val], %[addr]" : [val] "=r" (val) : [addr] "Q" (*addr));
+	return val;
+}
+
+/**
+ * @brief Performs a strexb operation.
+ * @param addr Address to perform the operation on.
+ * @param val Value to store.
+ * @return Whether the operation was successful.
+ */
+static inline bool __strexb(u8* addr, u8 val)
+{
+	bool res;
+	__asm__ __volatile__("strexb %[res], %[val], %[addr]" : [res] "=&r" (res) : [val] "r" (val), [addr] "Q" (*addr));
 	return res;
 }
 
@@ -160,3 +218,25 @@ int LightEvent_TryWait(LightEvent* event);
  * @param event Pointer to the event.
  */
 void LightEvent_Wait(LightEvent* event);
+
+/**
+ * @brief Initializes a light semaphore.
+ * @param event Pointer to the semaphore.
+ * @param max_count Initial count of the semaphore.
+ * @param max_count Maximum count of the semaphore.
+ */
+void LightSemaphore_Init(LightSemaphore* semaphore, s16 initial_count, s16 max_count);
+
+/**
+ * @brief Acquires a light semaphore.
+ * @param semaphore Pointer to the semaphore.
+ * @param count Acquire count
+ */
+void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count);
+
+/**
+ * @brief Releases a light semaphore.
+ * @param semaphore Pointer to the semaphore.
+ * @param count Release count
+ */
+void LightSemaphore_Release(LightSemaphore* semaphore, s32 count);

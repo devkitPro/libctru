@@ -216,3 +216,52 @@ void LightEvent_Wait(LightEvent* event)
 		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
 	}
 }
+
+void LightSemaphore_Init(LightSemaphore* semaphore, s16 initial_count, s16 max_count)
+{
+	semaphore->current_count = (s32)initial_count;
+	semaphore->num_threads_acq = 0;
+	semaphore->max_count = max_count;
+}
+
+void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count)
+{
+	s32 old_count;
+	s16 num_threads_acq;
+
+	do
+	{
+		for (;;)
+		{
+			old_count = __ldrex(&semaphore->current_count);
+			if (old_count > 0)
+				break;
+			__clrex();
+
+			do
+				num_threads_acq = (s16)__ldrexh((u16 *)&semaphore->num_threads_acq);
+			while (__strexh((u16 *)&semaphore->num_threads_acq, num_threads_acq + 1));
+
+			svcArbitrateAddress(arbiter, (u32)semaphore, ARBITRATION_WAIT_IF_LESS_THAN, count, 0);
+
+			do
+				num_threads_acq = (s16)__ldrexh((u16 *)&semaphore->num_threads_acq);
+			while (__strexh((u16 *)&semaphore->num_threads_acq, num_threads_acq - 1));
+		}
+	} while (__strex(&semaphore->current_count, old_count - count));
+}
+
+void LightSemaphore_Release(LightSemaphore* semaphore, s32 count)
+{
+	s32 old_count, new_count;
+	do
+	{
+		old_count = __ldrex(&semaphore->current_count);
+		new_count = old_count + count;
+		if (new_count >= semaphore->max_count)
+			new_count = semaphore->max_count;
+	} while (__strex(&semaphore->current_count, new_count));
+
+	if(old_count <= 0 || semaphore->num_threads_acq > 0)
+		svcArbitrateAddress(arbiter, (u32)semaphore, ARBITRATION_SIGNAL, count, 0);
+}
