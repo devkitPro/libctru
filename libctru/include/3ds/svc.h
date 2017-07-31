@@ -898,7 +898,7 @@ Result svcWaitSynchronization(Handle handle, s64 nanoseconds);
  * @param wait_all Whether to wait for synchronization on all handles.
  * @param nanoseconds Maximum nanoseconds to wait for.
  */
-Result svcWaitSynchronizationN(s32* out, Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
+Result svcWaitSynchronizationN(s32* out, const Handle* handles, s32 handles_num, bool wait_all, s64 nanoseconds);
 
 /**
  * @brief Creates an address arbiter
@@ -960,7 +960,7 @@ Result svcAcceptSession(Handle* session, Handle port);
  * @param handleCount Number of handles.
  * @param replyTarget Handle of the session to reply to.
  */
-Result svcReplyAndReceive(s32* index, Handle* handles, s32 handleCount, Handle replyTarget);
+Result svcReplyAndReceive(s32* index, const Handle* handles, s32 handleCount, Handle replyTarget);
 
 /**
  * @brief Binds an event or semaphore handle to an ARM11 interrupt.
