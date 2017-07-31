@@ -13,6 +13,7 @@ extern "C" {
 #include <3ds/result.h>
 #include <3ds/ipc.h>
 #include <3ds/svc.h>
+#include <3ds/exheader.h>
 #include <3ds/srv.h>
 #include <3ds/errf.h>
 #include <3ds/os.h>
