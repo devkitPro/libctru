@@ -19,6 +19,12 @@ Result gspLcdInit(void);
 /// Exits GSPLCD.
 void gspLcdExit(void);
 
+/// Powers on both backlights.
+Result GSPLCD_PowerOnAllBacklights(void);
+
+/// Powers off both backlights.
+Result GSPLCD_PowerOffAllBacklights(void);
+
 /**
  * @brief Powers on the backlight.
  * @param screen Screen to power on.
@@ -30,6 +36,12 @@ Result GSPLCD_PowerOnBacklight(u32 screen);
  * @param screen Screen to power off.
  */
 Result GSPLCD_PowerOffBacklight(u32 screen);
+
+/**
+ * @brief Sets 3D_LEDSTATE to the input state value.
+ * @param state 0 = 3D LED enable, 1 = 3D LED disable.
+ */
+Result GSPLCD_SetLedForceOff(u8 state);
 
 /**
  * @brief Gets the LCD screens' vendors. Stubbed on old 3ds.

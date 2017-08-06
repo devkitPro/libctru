@@ -26,6 +26,30 @@ void gspLcdExit(void)
 	svcCloseHandle(gspLcdHandle);
 }
 
+Result GSPLCD_PowerOnAllBacklights(void)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x0F,0,0); // 0x0F0000
+
+	Result ret=0;
+	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPLCD_PowerOffAllBacklights(void)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x10,0,0); // 0x100000
+
+	Result ret=0;
+	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
+
+	return cmdbuf[1];
+}
+
 Result GSPLCD_PowerOnBacklight(u32 screen)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -45,6 +69,19 @@ Result GSPLCD_PowerOffBacklight(u32 screen)
 
 	cmdbuf[0] = IPC_MakeHeader(0x12,1,0); // 0x120040
 	cmdbuf[1] = screen;
+
+	Result ret=0;
+	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPLCD_SetLedForceOff(u8 state)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x13,1,0); // 0x130040
+	cmdbuf[1] = state;
 
 	Result ret=0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
