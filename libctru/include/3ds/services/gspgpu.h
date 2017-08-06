@@ -220,6 +220,6 @@ Result GSPGPU_TriggerCmdReqQueue(void);
 
 /**
  * @brief Sets 3D_LEDSTATE to the input state value.
- * @param state 0 = 3D LED enable, 1 = 3D LED disable.
+ * @param state False = 3D LED enable, true = 3D LED disable.
  */
-Result GSPGPU_SetLedForceOff(u8 state);
+Result GSPGPU_SetLedForceOff(bool state);

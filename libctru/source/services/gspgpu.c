@@ -430,7 +430,7 @@ Result GSPGPU_RestoreVramSysArea(void)
 	return cmdbuf[1];
 }
 
-Result GSPGPU_SetLedForceOff(u8 state)
+Result GSPGPU_SetLedForceOff(bool state)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 

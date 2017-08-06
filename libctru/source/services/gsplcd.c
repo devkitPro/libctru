@@ -76,7 +76,7 @@ Result GSPLCD_PowerOffBacklight(u32 screen)
 	return cmdbuf[1];
 }
 
-Result GSPLCD_SetLedForceOff(u8 state)
+Result GSPLCD_SetLedForceOff(bool state)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 

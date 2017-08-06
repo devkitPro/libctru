@@ -39,9 +39,9 @@ Result GSPLCD_PowerOffBacklight(u32 screen);
 
 /**
  * @brief Sets 3D_LEDSTATE to the input state value.
- * @param state 0 = 3D LED enable, 1 = 3D LED disable.
+ * @param state False = 3D LED enable, true = 3D LED disable.
  */
-Result GSPLCD_SetLedForceOff(u8 state);
+Result GSPLCD_SetLedForceOff(bool state);
 
 /**
  * @brief Gets the LCD screens' vendors. Stubbed on old 3ds.
