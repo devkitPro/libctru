@@ -430,3 +430,15 @@ Result GSPGPU_RestoreVramSysArea(void)
 	return cmdbuf[1];
 }
 
+Result GSPGPU_SetLedForceOff(u8 state)
+{
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1C,1,0); // 0x1C0040
+	cmdbuf[1] = state;
+
+	Result ret=0;
+	if (R_FAILED(ret = svcSendSyncRequest(gspGpuHandle))) return ret;
+
+	return cmdbuf[1];
+}
