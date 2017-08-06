@@ -76,12 +76,12 @@ Result GSPLCD_PowerOffBacklight(u32 screen)
 	return cmdbuf[1];
 }
 
-Result GSPLCD_SetLedForceOff(bool state)
+Result GSPLCD_SetLedForceOff(bool disable)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x13,1,0); // 0x130040
-	cmdbuf[1] = state & 0xFF;
+	cmdbuf[1] = disable & 0xFF;
 
 	Result ret=0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
