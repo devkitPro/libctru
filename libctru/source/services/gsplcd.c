@@ -81,7 +81,7 @@ Result GSPLCD_SetLedForceOff(bool state)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x13,1,0); // 0x130040
-	cmdbuf[1] = state;
+	cmdbuf[1] = state & 0xFF;
 
 	Result ret=0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
