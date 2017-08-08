@@ -33,7 +33,7 @@ static u16 crc16_ccitt(void const *buf, size_t len, uint32_t starting_val)
 	return (u16)(crc & 0xffff);
 }
 
-bool miiSelectorChecksumIsValid(MiiSelectorReturn *returnbuf)
+bool miiSelectorChecksumIsValid(const MiiSelectorReturn *returnbuf)
 {
 	u16 computed =
 	    crc16_ccitt(&returnbuf->mii, sizeof(returnbuf->mii) + sizeof(returnbuf->_pad0x68), 0x0000);

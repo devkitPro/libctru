@@ -108,4 +108,4 @@ Result miiSelectorLaunch(MiiSelectorContext *ctx);
  *
  * @return `true` if `returnbuf->checksum` is the same as the one computed from `returnbuf`
  */
-bool miiSelectorChecksumIsValid(MiiSelectorReturn *returnbuf);
+bool miiSelectorChecksumIsValid(const MiiSelectorReturn *returnbuf);
