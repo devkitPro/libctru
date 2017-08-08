@@ -1,12 +1,27 @@
 #include <3ds/types.h>
+#include <3ds/result.h>
 #include <3ds/services/apt.h>
 
 #include <3ds/applets/miiselector.h>
 
-Result miiSelectorLaunch(MiiSelectorContext *ctx)
+#include <string.h> // for memcpy
+
+Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn *returnbuf)
 {
-	ctx->config.magic = MIISELECTOR_MAGIC;
-	return aptLaunchLibraryApplet(APPID_APPLETED, &ctx->config, sizeof(MiiSelectorConf), 0);
+	union {
+		MiiSelectorConf config;
+		MiiSelectorReturn ret;
+	} ctx;
+
+	memcpy(&ctx.config, conf, sizeof(MiiSelectorConf));
+	ctx.config.magic = MIISELECTOR_MAGIC;
+
+	Result ret = aptLaunchLibraryApplet(APPID_APPLETED, &ctx.config, sizeof(MiiSelectorConf), 0);
+	if(R_SUCCEEDED(ret) && returnbuf) {
+		memcpy(returnbuf, &ctx.ret, sizeof(MiiSelectorReturn));
+	}
+
+	return ret;
 }
 
 static u16 crc16_ccitt(void const *buf, size_t len, uint32_t starting_val)

@@ -85,20 +85,12 @@ _assert_struct_size(MiiSelectorReturn, 0x84);
 #undef _assert_struct_size
 
 /**
- * @brief Mii selector context
- *
- * Configure how to launch the applet in @ref MiiSelectorContext.config. After
- * returning, the applet has written data to @ref MiiSelectorContext.ret.
- */
-typedef union {
-	MiiSelectorConf config; ///< Configuration passed to applet
-	MiiSelectorReturn ret;  ///< Data written by applet after return
-} MiiSelectorContext;
-
-/**
  * @brief Launch the Mii selector library applet
+ *
+ * @param conf Configuration determining how the applet should behave
+ * @param returnbuf Data returned by the applet
  */
-Result miiSelectorLaunch(MiiSelectorContext *ctx);
+Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn* returnbuf);
 
 /**
  * @brief Verifies that the Mii data returned from the applet matches its
