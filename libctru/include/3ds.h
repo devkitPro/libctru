@@ -27,7 +27,7 @@ extern "C" {
 #include <3ds/allocator/linear.h>
 #include <3ds/allocator/mappable.h>
 #include <3ds/allocator/vram.h>
-  
+
 #include <3ds/services/ac.h>
 #include <3ds/services/am.h>
 #include <3ds/services/ampxi.h>
@@ -64,7 +64,7 @@ extern "C" {
 #include <3ds/services/qtm.h>
 #include <3ds/services/srvpm.h>
 #include <3ds/services/y2r.h>
-#include <3ds/services/mcuHWC.h>  
+#include <3ds/services/mcuHwc.h>
 #include <3ds/services/hb.h>
 
 #include <3ds/gpu/gx.h>
@@ -77,7 +77,7 @@ extern "C" {
 
 #include <3ds/applets/swkbd.h>
 #include <3ds/applets/error.h>
-  
+
 #include <3ds/sdmc.h>
 #include <3ds/romfs.h>
 #include <3ds/font.h>
