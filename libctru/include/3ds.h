@@ -27,8 +27,7 @@ extern "C" {
 #include <3ds/allocator/linear.h>
 #include <3ds/allocator/mappable.h>
 #include <3ds/allocator/vram.h>
-
-  #
+  
 #include <3ds/services/ac.h>
 #include <3ds/services/am.h>
 #include <3ds/services/ampxi.h>
