@@ -22,21 +22,6 @@ void GPUCMD_AddRawCommands(const u32* cmd, u32 size)
 	gpuCmdBufOffset+=size;
 }
 
-void GPUCMD_Run(void)
-{
-	GX_ProcessCommandList(gpuCmdBuf, gpuCmdBufOffset*4, GX_CMDLIST_FLUSH);
-}
-
-extern u32 __ctru_linear_heap;
-extern u32 __ctru_linear_heap_size;
-
-void GPUCMD_FlushAndRun(void)
-{
-	//take advantage of GX_FlushCacheRegions to flush gsp heap
-	GX_FlushCacheRegions(gpuCmdBuf, gpuCmdBufOffset*4, (u32 *) __ctru_linear_heap, __ctru_linear_heap_size, NULL, 0);
-	GX_ProcessCommandList(gpuCmdBuf, gpuCmdBufOffset*4, 0x0);
-}
-
 void GPUCMD_Add(u32 header, const u32* param, u32 paramlength)
 {
 	if(!paramlength)paramlength=1;
@@ -72,15 +57,6 @@ void GPUCMD_Split(u32** addr, u32* size)
 	gpuCmdBuf       += gpuCmdBufOffset;
 	gpuCmdBufSize   -= gpuCmdBufOffset;
 	gpuCmdBufOffset  = 0;
-}
-
-void GPUCMD_Finalize(void)
-{
-	GPUCMD_AddMaskedWrite(GPUREG_PRIMITIVE_CONFIG, 0x8, 0x00000000);
-	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_FLUSH, 0x00000001);
-	GPUCMD_AddWrite(GPUREG_FRAMEBUFFER_INVALIDATE, 0x00000001);
-	GPUCMD_AddWrite(GPUREG_FINALIZE, 0x12345678);
-	GPUCMD_AddWrite(GPUREG_FINALIZE, 0x12345678); //not the cleanest way of guaranteeing 0x10-byte size but whatever good enough for now
 }
 
 static inline u32 floatrawbits(float f)

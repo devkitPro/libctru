@@ -56,12 +56,6 @@ static inline void GPUCMD_GetBuffer(u32** addr, u32* size, u32* offset)
  */
 void GPUCMD_AddRawCommands(const u32* cmd, u32 size);
 
-/// Executes the GPU command buffer.
-DEPRECATED void GPUCMD_Run(void);
-
-/// Flushes linear memory and executes the GPU command buffer.
-DEPRECATED void GPUCMD_FlushAndRun(void);
-
 /**
  * @brief Adds a GPU command to the current command buffer.
  * @param header Header of the command.
@@ -76,9 +70,6 @@ void GPUCMD_Add(u32 header, const u32* param, u32 paramlength);
  * @param size Pointer to output the size (in words) of the command buffer to.
  */
 void GPUCMD_Split(u32** addr, u32* size);
-
-/// Finalizes the GPU command buffer.
-DEPRECATED void GPUCMD_Finalize(void);
 
 /**
  * @brief Converts a 32-bit float to a 16-bit float.
