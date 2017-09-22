@@ -218,3 +218,8 @@ Result GSPGPU_UnregisterInterruptRelayQueue(void);
 /// Triggers a handling of commands written to shared memory.
 Result GSPGPU_TriggerCmdReqQueue(void);
 
+/**
+ * @brief Sets 3D_LEDSTATE to the input state value.
+ * @param disable False = 3D LED enable, true = 3D LED disable.
+ */
+Result GSPGPU_SetLedForceOff(bool disable);
