@@ -15,7 +15,7 @@ Result mcuHwcInit(void)
 void mcuHwcExit(void)
 {
 	if (AtomicDecrement(&mcuHwcRefCount)) return;
-	svcCloseHandle(mcuHWCHandle);
+	svcCloseHandle(mcuHwcHandle);
 }
 
 Result mcuHwcReadRegister(u8 reg, void* data, u32 size)
@@ -29,7 +29,7 @@ Result mcuHwcReadRegister(u8 reg, void* data, u32 size)
 	cmdbuf[3] = IPC_Desc_Buffer (size, IPC_BUFFER_W);
 	cmdbuf[4] = (u32)data;
 
-	if(R_FAILED(ret = svcSendSyncRequest(mcuHWCHandle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -45,7 +45,7 @@ Result mcuHwcWriteRegister(u8 reg, const void *data, u32 size)
 	cmdbuf[3] = IPC_Desc_Buffer (size, IPC_BUFFER_R);
 	cmdbuf[4] = (u32)data;
 
-	if(R_FAILED(ret = svcSendSyncRequest(mcuHWCHandle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -57,7 +57,7 @@ Result mcuHwcGetBatteryVoltage(u8 *voltage)
 
 	cmdbuf[0] = IPC_MakeHeader(0x4,0,0); // 0x40000
 
-	if(R_FAILED(ret = svcSendSyncRequest(mcuHWCHandle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
 
 	*voltage = cmdbuf[2];
 
@@ -71,7 +71,7 @@ Result mcuHwcGetBatteryLevel(u8 *level)
 
 	cmdbuf[0] = IPC_MakeHeader(0x5,0,0); // 0x50000
 
-	if(R_FAILED(ret = svcSendSyncRequest(mcuHWCHandle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
 
 	*level = cmdbuf[2];
 
@@ -85,7 +85,7 @@ Result mcuHwcGetSoundSliderLevel(u8 *level)
 
 	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0xB0000
 
-	if(R_FAILED(ret = svcSendSyncRequest(mcuHWCHandle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
 
 	*level = cmdbuf[2];
 
