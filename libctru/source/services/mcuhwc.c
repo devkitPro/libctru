@@ -1,24 +1,24 @@
 #include <3ds.h>
 #include <3ds/services/mcuHwc.h>
 
-static Handle mcuHWCHandle;
-static int mcuHWCRefCount;
+static Handle mcuHwcHandle;
+static int mcuHwcRefCount;
 
-Result mcuHWCInit(void)
+Result mcuHwcInit(void)
 {
-	if (AtomicPostIncrement(&mcuHWCRefCount)) return 0;
-	Result res = srvGetServiceHandle(&mcuHWCHandle, "mcu::HWC");
-	if (R_FAILED(res)) AtomicDecrement(&mcuHWCRefCount);
+	if (AtomicPostIncrement(&mcuHwcRefCount)) return 0;
+	Result res = srvGetServiceHandle(&mcuHwcHandle, "mcu::HWC");
+	if (R_FAILED(res)) AtomicDecrement(&mcuHwcRefCount);
 	return res;
 }
 
-void mcuHWCExit(void)
+void mcuHwcExit(void)
 {
-	if (AtomicDecrement(&mcuHWCRefCount)) return;
+	if (AtomicDecrement(&mcuHwcRefCount)) return;
 	svcCloseHandle(mcuHWCHandle);
 }
 
-Result mcuReadRegister(u8 reg, void* data, u32 size)
+Result mcuHwcReadRegister(u8 reg, void* data, u32 size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -34,7 +34,7 @@ Result mcuReadRegister(u8 reg, void* data, u32 size)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuWriteRegister(u8 reg, const void *data, u32 size)
+Result mcuHwcWriteRegister(u8 reg, const void *data, u32 size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -50,7 +50,7 @@ Result mcuWriteRegister(u8 reg, const void *data, u32 size)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuGetBatteryVoltage(u8 *voltage)
+Result mcuHwcGetBatteryVoltage(u8 *voltage)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -64,7 +64,7 @@ Result mcuGetBatteryVoltage(u8 *voltage)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuGetBatteryLevel(u8 *level)
+Result mcuHwcGetBatteryLevel(u8 *level)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -78,7 +78,7 @@ Result mcuGetBatteryLevel(u8 *level)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuGetSoundSliderLevel(u8 *level)
+Result mcuHwcGetSoundSliderLevel(u8 *level)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
