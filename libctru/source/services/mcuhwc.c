@@ -1,5 +1,5 @@
 #include <3ds.h>
-#include <3ds/services/mcuHwc.h>
+#include <3ds/services/mcuhwc.h>
 
 static Handle mcuHwcHandle;
 static int mcuHwcRefCount;
