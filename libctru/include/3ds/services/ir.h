@@ -87,7 +87,7 @@ Result IRU_GetBitRate(u8 *out);
 Result IRU_SetIRLEDState(u32 value);
 
 /**
- * @brief Gets the IR KED state.
+ * @brief Gets the IR LED state.
  * @param out Pointer to write the IR LED state to.
  */
 Result IRU_GetIRLEDRecvState(u32 *out);

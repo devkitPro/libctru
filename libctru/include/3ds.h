@@ -63,6 +63,7 @@ extern "C" {
 #include <3ds/services/news.h>
 #include <3ds/services/qtm.h>
 #include <3ds/services/srvpm.h>
+#include <3ds/services/loader.h>
 #include <3ds/services/y2r.h>
 #include <3ds/services/mcuhwc.h>
 #include <3ds/services/hb.h>
@@ -77,6 +78,8 @@ extern "C" {
 
 #include <3ds/applets/swkbd.h>
 #include <3ds/applets/error.h>
+
+#include <3ds/applets/miiselector.h>
 
 #include <3ds/sdmc.h>
 #include <3ds/romfs.h>

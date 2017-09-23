@@ -385,7 +385,7 @@ typedef enum
 /// Light distance attenuation disable bits in GPUREG_LIGHT_CONFIG1.
 #define GPU_LC1_ATTNBIT(n)     BIT((n)+24)
 /// Creates a light permutation parameter.
-#define GPU_LIGHTPERM(i,n)     ((n) << (i))
+#define GPU_LIGHTPERM(i,n)     ((n) << ((i)*4))
 /// Creates a light LUT input parameter.
 #define GPU_LIGHTLUTINPUT(i,n) ((n) << ((i)*4))
 /// Creates a light LUT index parameter.
