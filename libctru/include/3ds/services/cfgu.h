@@ -135,3 +135,38 @@ Result CFG_UpdateConfigNANDSavegame(void);
  * @param language Pointer to write the language to. (see @ref CFG_Language)
  */
 Result CFGU_GetSystemLanguage(u8* language);
+
+/**
+ * @brief Deletes the NAND LocalFriendCodeSeed file, then recreates it using the LocalFriendCodeSeed data stored in memory.
+ */
+Result CFGI_RestoreNANDLocalFriendCodeSeed(void);
+
+/**
+ * @brief Deletes the NAND SecureInfo file, then recreates it using the SecureInfo data stored in memory.
+ */
+Result CFGI_RestoreNANDSecureInfo(void);
+
+/**
+ * @brief Deletes the "config" file stored in the NAND Config_Savegame.
+ */
+Result CFGI_DeleteConfigNANDSavefile(void);
+
+/**
+ * @brief Formats Config_Savegame.
+ */
+Result CFGI_FormatConfig(void);
+
+/**
+ * @brief Clears parental controls
+ */
+Result CFGI_ClearParentalControls(void);
+
+/**
+ * @brief Verifies the RSA signature for the LocalFriendCodeSeed data already stored in memory.
+ */
+Result CFGI_VerifySigLocalFriendCodeSeed(void);
+
+/**
+ * @brief Verifies the RSA signature for the SecureInfo data already stored in memory.
+ */
+Result CFGI_VerifySigSecureInfo(void);

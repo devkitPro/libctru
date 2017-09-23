@@ -231,3 +231,87 @@ Result CFGU_GetSystemLanguage(u8* language)
 {
 	return CFGU_GetConfigInfoBlk2(1, 0xA0002, language);
 }
+
+Result CFGI_RestoreNANDLocalFriendCodeSeed(void) 
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x80D, 0, 0); // 0x80D0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_RestoreNANDSecureInfo(void) 
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x812,0,0); // 0x8120000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_DeleteConfigNANDSavefile(void) 
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x805,0,0); // 0x8050000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_FormatConfig(void) 
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x806,0,0); // 0x8060000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_ClearParentalControls(void) 
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x40F,0,0); // 0x40F0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_VerifySigLocalFriendCodeSeed(void) 
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x80E,0,0); // 0x80E0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_VerifySigSecureInfo(void) 
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x813,0,0); // 0x8130000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
