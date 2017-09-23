@@ -1,5 +1,5 @@
 /**
- * @file mcuHwc.h
+ * @file mcuhwc.h
  * @brief mcuHwc service.
  */
 #pragma once
