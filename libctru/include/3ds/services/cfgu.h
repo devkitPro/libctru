@@ -60,7 +60,7 @@ Result CFGU_GetRegionCanadaUSA(u8* value);
 
 /**
  * @brief Gets the system's model.
- * @param model Pointer to output the model to. (0 = O3DS, 1 = O3DSXL, 2 = N3DS, 3 = 2DS, 4 = N3DSXL)
+ * @param model Pointer to output the model to. (0 = O3DS, 1 = O3DSXL, 2 = N3DS, 3 = 2DS, 4 = N3DSXL, 5 = N2DSXL)
  */
 Result CFGU_GetSystemModel(u8* model);
 
@@ -139,17 +139,17 @@ Result CFGU_GetSystemLanguage(u8* language);
 /**
  * @brief Deletes the NAND LocalFriendCodeSeed file, then recreates it using the LocalFriendCodeSeed data stored in memory.
  */
-Result CFGI_RestoreNANDLocalFriendCodeSeed(void);
+Result CFGI_RestoreLocalFriendCodeSeed(void);
 
 /**
  * @brief Deletes the NAND SecureInfo file, then recreates it using the SecureInfo data stored in memory.
  */
-Result CFGI_RestoreNANDSecureInfo(void);
+Result CFGI_RestoreSecureInfo(void);
 
 /**
  * @brief Deletes the "config" file stored in the NAND Config_Savegame.
  */
-Result CFGI_DeleteConfigNANDSavefile(void);
+Result CFGI_DeleteConfigSavefile(void);
 
 /**
  * @brief Formats Config_Savegame.

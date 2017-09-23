@@ -215,7 +215,7 @@ Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, u8* inData)
 	return (Result)cmdbuf[1];
 }
 
-Result CFG_UpdateConfigNANDSavegame(void)
+Result CFG_UpdateConfigSavegame(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -232,7 +232,7 @@ Result CFGU_GetSystemLanguage(u8* language)
 	return CFGU_GetConfigInfoBlk2(1, 0xA0002, language);
 }
 
-Result CFGI_RestoreNANDLocalFriendCodeSeed(void) 
+Result CFGI_RestoreLocalFriendCodeSeed(void) 
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -244,7 +244,7 @@ Result CFGI_RestoreNANDLocalFriendCodeSeed(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_RestoreNANDSecureInfo(void) 
+Result CFGI_RestoreSecureInfo(void) 
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -256,7 +256,7 @@ Result CFGI_RestoreNANDSecureInfo(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_DeleteConfigNANDSavefile(void) 
+Result CFGI_DeleteConfigSavefile(void) 
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
