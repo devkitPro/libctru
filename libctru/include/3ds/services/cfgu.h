@@ -128,7 +128,7 @@ Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, u8* inData);
 /**
  * @brief Writes the CFG buffer in memory to the savegame in NAND.
  */
-Result CFG_UpdateConfigNANDSavegame(void);
+Result CFG_UpdateConfigSavegame(void);
 
 /**
  * @brief Gets the system's language.
