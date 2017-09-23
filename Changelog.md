@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 1.4.0
+
+- Added LightSemaphore synchronization primitive.
+- Added exheader definitions.
+- Added support for the Loader service.
+- Added support for the mcu::HWC service.
+- Added support for the Mii selector applet.
+- Added ResourceLimitType.
+- Added AM commands: AM_DeleteAllTemporaryTitles, AM_DeleteAllExpiredTitles, AM_DeleteAllTwlTitles.
+- Added CFGI commands: CFGI_RestoreLocalFriendCodeSeed, CFGI_RestoreSecureInfo, CFGI_DeleteConfigSavefile, CFGI_FormatConfig, CFGI_ClearParentalControls, CFGI_VerifySigLocalFriendCodeSeed, CFGI_VerifySigSecureInfo.
+- Added GSPGPU commands: GSPGPU_SetLedForceOff.
+- Added GSPLCD commands: GSPLCD_SetBrightness, GSPLCD_SetBrightnessRaw, GSPLCD_PowerOnAllBacklights, GSPLCD_PowerOffAllBacklights, GSPLCD_SetLedForceOff.
+- Fixed srv:pm handling in pre-7.x system versions.
+- Fixed GPU_LIGHTPERM macro definition.
+- Removed the remaining deprecated GPUCMD commands.
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.3.0
 
 - Implement more svc calls
