@@ -492,8 +492,11 @@ Result AM_DeleteAllDemoLaunchInfos(void);
 /// Deletes temporary titles.
 Result AM_DeleteAllTemporaryTitles(void);
 
-/// Deletes experied titles.
-Result AM_DeleteAllExpiredTitles(void);
+/**
+ * @brief Deletes all expired titles.
+ * @param mediatype Media type to delete from.
+ */
+Result AM_DeleteAllExpiredTitles(FS_MediaType mediatype);
 
 /// Deletes all TWL titles.
 Result AM_DeleteAllTwlTitles(void);
