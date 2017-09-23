@@ -60,7 +60,7 @@ Result CFGU_GetRegionCanadaUSA(u8* value);
 
 /**
  * @brief Gets the system's model.
- * @param model Pointer to output the model to. (0 = O3DS, 1 = O3DSXL, 2 = N3DS, 3 = 2DS, 4 = N3DSXL)
+ * @param model Pointer to output the model to. (0 = O3DS, 1 = O3DSXL, 2 = N3DS, 3 = 2DS, 4 = N3DSXL, 5 = N2DSXL)
  */
 Result CFGU_GetSystemModel(u8* model);
 
@@ -128,10 +128,45 @@ Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, u8* inData);
 /**
  * @brief Writes the CFG buffer in memory to the savegame in NAND.
  */
-Result CFG_UpdateConfigNANDSavegame(void);
+Result CFG_UpdateConfigSavegame(void);
 
 /**
  * @brief Gets the system's language.
  * @param language Pointer to write the language to. (see @ref CFG_Language)
  */
 Result CFGU_GetSystemLanguage(u8* language);
+
+/**
+ * @brief Deletes the NAND LocalFriendCodeSeed file, then recreates it using the LocalFriendCodeSeed data stored in memory.
+ */
+Result CFGI_RestoreLocalFriendCodeSeed(void);
+
+/**
+ * @brief Deletes the NAND SecureInfo file, then recreates it using the SecureInfo data stored in memory.
+ */
+Result CFGI_RestoreSecureInfo(void);
+
+/**
+ * @brief Deletes the "config" file stored in the NAND Config_Savegame.
+ */
+Result CFGI_DeleteConfigSavefile(void);
+
+/**
+ * @brief Formats Config_Savegame.
+ */
+Result CFGI_FormatConfig(void);
+
+/**
+ * @brief Clears parental controls
+ */
+Result CFGI_ClearParentalControls(void);
+
+/**
+ * @brief Verifies the RSA signature for the LocalFriendCodeSeed data already stored in memory.
+ */
+Result CFGI_VerifySigLocalFriendCodeSeed(void);
+
+/**
+ * @brief Verifies the RSA signature for the SecureInfo data already stored in memory.
+ */
+Result CFGI_VerifySigSecureInfo(void);
