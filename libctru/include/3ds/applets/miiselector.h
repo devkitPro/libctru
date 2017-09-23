@@ -5,11 +5,6 @@
 
 #pragma once
 
-/// @cond INTERNAL
-#define _assert_struct_size(s, size) \
-	_Static_assert(sizeof(s) == (size), #s " is not of size " #size "!")
-/// @endcond
-
 /// Magic value needed to launch the applet.
 #define MIISELECTOR_MAGIC 0x13DE28CF
 
@@ -51,9 +46,6 @@ typedef struct
 	           ///< applet.
 } MiiSelectorConf;
 
-/// @private
-_assert_struct_size(MiiSelectorConf, 0x104);
-
 /// Size of the data describing a single Mii
 #define MIISELECTOR_MIIDATA_SIZE 0x5c
 
@@ -78,11 +70,6 @@ typedef struct
 	                                                   ///< if one was selected (UTF16-LE
 	                                                   ///< string). Zeroed otherwise.
 } MiiSelectorReturn;
-
-/// @private
-_assert_struct_size(MiiSelectorReturn, 0x84);
-
-#undef _assert_struct_size
 
 /**
  * @brief Launch the Mii selector library applet
