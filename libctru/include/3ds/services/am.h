@@ -488,3 +488,15 @@ Result AM_CommitImportTitlesAndUpdateFirmwareAuto(FS_MediaType mediaType, u32 ti
 
 /// Resets play count of all installed demos by deleting their launch info.
 Result AM_DeleteAllDemoLaunchInfos(void);
+
+/// Deletes temporary titles.
+Result AM_DeleteAllTemporaryTitles(void);
+
+/**
+ * @brief Deletes all expired titles.
+ * @param mediatype Media type to delete from.
+ */
+Result AM_DeleteAllExpiredTitles(FS_MediaType mediatype);
+
+/// Deletes all TWL titles.
+Result AM_DeleteAllTwlTitles(void);
