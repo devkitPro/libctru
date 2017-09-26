@@ -1,8 +1,18 @@
 /**
- * @file mcuHwc.h
+ * @file mcuhwc.h
  * @brief mcuHwc service.
  */
 #pragma once
+
+typedef enum
+{
+	LED_NORMAL = 1,	///< The normal mode of the led
+	LED_SLEEP_MODE,	///< The led pulses slowly as it does in the sleep mode
+	LED_OFF, 	///< Switch off power led
+	LED_RED,	///< Red state of the led
+	LED_BLUE,	///< Blue state of the led
+	LED_BLINK_RED,	///< Blinking red state of power led and notification led
+}powerLedState;
 
 /// Initializes mcuHwc.
 Result mcuHwcInit(void);
@@ -43,3 +53,15 @@ Result mcuHwcGetBatteryLevel(u8 *level);
  * @param level Pointer to write the slider level to.
  */
 Result mcuHwcGetSoundSliderLevel(u8 *level);
+
+/**
+ * @brief Sets Wifi LED state
+ * @param state State of Wifi LED. (True/False)
+ */
+Result mcuHwcSetWifiLedState(bool state);
+
+/**
+ * @brief Sets Power LED state
+ * @param state powerLedState State of power LED.
+ */
+Result mcuHwcSetPowerLedState(powerLedState state);
