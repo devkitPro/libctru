@@ -85,7 +85,7 @@ Result mcuHwcSetPowerLedState(powerLedState state)
 
 	cmdbuf[0] = IPC_MakeHeader(0x6,2,0); // 0x60040
 	cmdbuf[1] = state;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
 
 	return (Result)cmdbuf[1];
@@ -98,7 +98,7 @@ Result mcuHwcSetWifiLedState(bool state)
 
 	cmdbuf[0] = IPC_MakeHeader(0x7,0,0); // 0x70000
 	cmdbuf[1] = state;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
 
 	return (Result)cmdbuf[1];

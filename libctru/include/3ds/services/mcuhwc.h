@@ -65,3 +65,9 @@ Result mcuHwcSetWifiLedState(bool state);
  * @param state powerLedState State of power LED.
  */
 Result mcuHwcSetPowerLedState(powerLedState state);
+
+/**
+ * @brief Gets 3d slider level
+ * @param level Pointer to write 3D slider level to.
+ */
+ Result mcuHwcGet3dSliderLevel(u8 *level)
