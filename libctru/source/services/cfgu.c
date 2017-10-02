@@ -315,3 +315,18 @@ Result CFGI_VerifySigSecureInfo(void)
 
 	return (Result)cmdbuf[1];
 }
+
+Result CFGI_SecureInfoGetSerialNumber(u8 *serial)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x408,1,2); // 0x4080042
+	cmdbuf[1] = 0xF;
+	cmdbuf[2] = 12 | (0xF << 4);
+	cmdbuf[3] = (u32)serial;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}

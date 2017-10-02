@@ -170,3 +170,9 @@ Result CFGI_VerifySigLocalFriendCodeSeed(void);
  * @brief Verifies the RSA signature for the SecureInfo data already stored in memory.
  */
 Result CFGI_VerifySigSecureInfo(void);
+
+/**
+ * @brief Gets the system's serial number.
+ * @param serial Pointer to output the serial to.
+ */
+Result CFGI_SecureInfoGetSerialNumber(u8 *serial);
