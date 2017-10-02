@@ -53,12 +53,12 @@ Result ACU_GetWifiStatus(u32 *out)
 
 Result ACU_GetStatus(u32 *out)
 {
-    Result ret=0;
+	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0xC,0,0); // 0x000C0000
 
-    if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
 
 	*out = cmdbuf[2];
 
