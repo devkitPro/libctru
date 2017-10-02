@@ -50,3 +50,45 @@ Result ACU_GetWifiStatus(u32 *out)
 
 	return (Result)cmdbuf[1];
 }
+
+Result ACU_GetStatus(u32 *out)
+{
+    Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xC,0,0); // 0x000C0000
+
+    if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
+
+	*out = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACU_GetSecurityMode(u32 *out)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x33,0,0); // 0x00330000
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
+
+	*out = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACU_GetSsidLength(u32 *out)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x35,0,0); // 0x00350000
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
+
+	*out = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
