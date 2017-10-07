@@ -21,7 +21,7 @@ Result mcuHwcInit(void);
 void mcuHwcExit(void);
 
 /**
- * @brief Reads data from a mcuHwc Register
+ * @brief Reads data from an i2c device3 register
  * @param reg Register number. See https://www.3dbrew.org/wiki/I2C_Registers#Device_3 for more info
  * @param data Pointer to write the data to.
  * @param size Size of data to be read
@@ -29,7 +29,7 @@ void mcuHwcExit(void);
 Result mcuHwcReadRegister(u8 reg, void *data, u32 size);
 
 /**
- * @brief Writes data to a mcuHwc Register
+ * @brief Writes data to a i2c device3 register
  * @param reg Register number. See https://www.3dbrew.org/wiki/I2C_Registers#Device_3 for more info
  * @param data Pointer to write the data to.
  * @param size Size of data to be written
