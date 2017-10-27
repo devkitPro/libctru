@@ -182,3 +182,9 @@ Result CFGI_VerifySigSecureInfo(void);
  * @param serial Pointer to output the serial to. (This is normally 0xF)
  */
 Result CFGI_SecureInfoGetSerialNumber(u8 *serial);
+
+/**
+ * @brief Gets the 64-bit local friend code seed.
+ * @param seed Pointer to write the friend code seed to.
+ */
+Result CFGI_GetLocalFriendCodeSeed(u64* seed);

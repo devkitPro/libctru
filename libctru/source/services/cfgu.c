@@ -344,3 +344,17 @@ Result CFGI_SecureInfoGetSerialNumber(u8 *serial)
 
 	return (Result)cmdbuf[1];
 }
+
+Result CFGI_GetLocalFriendCodeSeed(u64* seed)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x405,0,0); // 0x4050000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	*seed = (u64)cmdbuf[2] | (u64)cmdbuf[3] << 32;
+
+	return (Result)cmdbuf[1];
+}
