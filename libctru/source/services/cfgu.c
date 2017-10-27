@@ -133,6 +133,20 @@ Result CFGU_GetCountryCodeID(u16 string, u16* code)
 	return (Result)cmdbuf[1];
 }
 
+Result CFGU_IsNFCSupported(bool* isSupported)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0x000B0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	*isSupported = cmdbuf[2] & 0xFF;
+
+	return (Result)cmdbuf[1];
+}
+
 // See here for block IDs:
 // http://3dbrew.org/wiki/Config_Savegame#Configuration_blocks
 Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)

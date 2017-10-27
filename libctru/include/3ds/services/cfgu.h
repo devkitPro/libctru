@@ -85,6 +85,12 @@ Result CFGU_GetCountryCodeString(u16 code, u16* string);
 Result CFGU_GetCountryCodeID(u16 string, u16* code);
 
 /**
+ * @brief Checks if NFC (code name: fangate) is supported.
+ * @param isSupported pointer to the output the result to.
+ */
+Result CFGU_IsNFCSupported(bool* isSupported);
+
+/**
  * @brief Gets a config info block with flags = 2.
  * @param size Size of the data to retrieve.
  * @param blkID ID of the block to retrieve.
