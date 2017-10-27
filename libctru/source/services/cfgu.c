@@ -337,7 +337,7 @@ Result CFGI_SecureInfoGetSerialNumber(u8 *serial)
 
 	cmdbuf[0] = IPC_MakeHeader(0x408,1,2); // 0x4080042
 	cmdbuf[1] = 0xF;
-	cmdbuf[2] = 12 | (0xF << 4);
+	cmdbuf[2] = IPC_Desc_Buffer(0xF, IPC_BUFFER_W);
 	cmdbuf[3] = (u32)serial;
 
 	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
