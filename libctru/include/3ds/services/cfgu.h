@@ -179,6 +179,6 @@ Result CFGI_VerifySigSecureInfo(void);
 
 /**
  * @brief Gets the system's serial number.
- * @param serial Pointer to output the serial to.
+ * @param serial Pointer to output the serial to. (This is normally 0xF)
  */
 Result CFGI_SecureInfoGetSerialNumber(u8 *serial);
