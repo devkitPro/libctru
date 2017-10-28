@@ -184,6 +184,12 @@ Result CFGI_VerifySigSecureInfo(void);
 Result CFGI_SecureInfoGetSerialNumber(u8 *serial);
 
 /**
+ * @brief Gets the 0x110-byte buffer containing the data for the LocalFriendCodeSeed.
+ * @param data Pointer to output the buffer. (The size must be at least 0x110-bytes)
+ */
+Result CFGI_GetLocalFriendCodeSeedData(u8 *data);
+
+/**
  * @brief Gets the 64-bit local friend code seed.
  * @param seed Pointer to write the friend code seed to.
  */
