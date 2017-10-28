@@ -133,6 +133,20 @@ Result CFGU_GetCountryCodeID(u16 string, u16* code)
 	return (Result)cmdbuf[1];
 }
 
+Result CFGU_IsNFCSupported(bool* isSupported)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0x000B0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	*isSupported = cmdbuf[2] & 0xFF;
+
+	return (Result)cmdbuf[1];
+}
+
 // See here for block IDs:
 // http://3dbrew.org/wiki/Config_Savegame#Configuration_blocks
 Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
@@ -312,6 +326,50 @@ Result CFGI_VerifySigSecureInfo(void)
 	cmdbuf[0] = IPC_MakeHeader(0x813,0,0); // 0x8130000
 
 	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_SecureInfoGetSerialNumber(u8 *serial)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x408,1,2); // 0x4080042
+	cmdbuf[1] = 0xF;
+	cmdbuf[2] = IPC_Desc_Buffer(0xF, IPC_BUFFER_W);
+	cmdbuf[3] = (u32)serial;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_GetLocalFriendCodeSeedData(u8 *data)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x404,1,2); // 0x4040042
+	cmdbuf[1] = (u32)0x110;
+	cmdbuf[2] = IPC_Desc_Buffer((u32)0x110, IPC_BUFFER_W);
+	cmdbuf[3] = (u32)data;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_GetLocalFriendCodeSeed(u64* seed)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x405,0,0); // 0x4050000
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	*seed = (u64)cmdbuf[2] | (u64)cmdbuf[3] << 32;
 
 	return (Result)cmdbuf[1];
 }
