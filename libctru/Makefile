@@ -31,6 +31,7 @@ SOURCES		:=	source \
 			source/services \
 			source/services/soc \
 			source/applets \
+			source/util/decompress \
 			source/util/rbtree \
 			source/util/utf \
 			source/system
