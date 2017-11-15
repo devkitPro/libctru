@@ -78,6 +78,32 @@ Result mcuHwcGetBatteryLevel(u8 *level)
 	return (Result)cmdbuf[1];
 }
 
+Result mcuHwcSetPowerLedState(powerLedState state)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x6,2,0); // 0x60040
+	cmdbuf[1] = state;
+
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result mcuHwcSetWifiLedState(bool state)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x7,0,0); // 0x70000
+	cmdbuf[1] = state;
+
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result mcuHwcGetSoundSliderLevel(u8 *level)
 {
 	Result ret = 0;
@@ -90,4 +116,9 @@ Result mcuHwcGetSoundSliderLevel(u8 *level)
 	*level = cmdbuf[2];
 
 	return (Result)cmdbuf[1];
+}
+
+Result mcuHwcGet3dSliderLevel(u8 *level)
+{
+	return mcuHwcReadRegister(8, &level, 1);
 }
