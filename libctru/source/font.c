@@ -99,13 +99,13 @@ void fontCalcGlyphPos(fontGlyphPos_s* out, int glyphIndex, u32 flags, float scal
 	int rowId = glInSheet % tglp->nRows;
 
 	float tx = (float)(rowId*(tglp->cellWidth+1)+1) / tglp->sheetWidth;
-	float ty = 1.0f - (float)((lineId+1)*(tglp->cellHeight+1)+1) / tglp->sheetHeight;
+	float ty = 1.0f - (float)(lineId*(tglp->cellHeight+1)+1) / tglp->sheetHeight;
 	float tw = (float)cwi->glyphWidth / tglp->sheetWidth;
 	float th = (float)tglp->cellHeight / tglp->sheetHeight;
 	out->texcoord.left = tx;
-	out->texcoord.top = ty+th;
+	out->texcoord.top = ty;
 	out->texcoord.right = tx+tw;
-	out->texcoord.bottom = ty;
+	out->texcoord.bottom = ty-th;
 
 	if (flags & GLYPH_POS_CALC_VTXCOORD)
 	{

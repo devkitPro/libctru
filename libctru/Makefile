@@ -9,7 +9,7 @@ endif
 include $(DEVKITARM)/base_rules
 
 export LIBCTRU_MAJOR	:= 1
-export LIBCTRU_MINOR	:= 3
+export LIBCTRU_MINOR	:= 4
 export LIBCTRU_PATCH	:= 0
 
 
@@ -106,17 +106,13 @@ dist-bin: all
 	@tar --exclude=*~ -cjf libctru-$(VERSION).tar.bz2 include lib default_icon.png
 
 dist-src:
-	@tar --exclude=*~ -cjf libctru-src-$(VERSION).tar.bz2 include source data Makefile Doxyfile Doxyfile.internal default_icon.png
+	@tar --exclude=*~ -cjf libctru-src-$(VERSION).tar.bz2 include source data Makefile Doxyfile default_icon.png
 
 dist: dist-src dist-bin
 
 install: dist-bin
 	mkdir -p $(DEVKITPRO)/libctru
 	bzip2 -cd libctru-$(VERSION).tar.bz2 | tar -xf - -C $(DEVKITPRO)/libctru
-
-dox:
-	@doxygen Doxyfile
-	@doxygen Doxyfile.internal
 
 lib:
 	@[ -d $@ ] || mkdir -p $@
@@ -144,7 +140,7 @@ lib/libctrud.a : lib debug $(SOURCES) $(INCLUDES)
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr release debug lib docs internal_docs
+	@rm -fr release debug lib docs
 
 #---------------------------------------------------------------------------------
 else

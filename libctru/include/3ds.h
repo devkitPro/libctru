@@ -90,29 +90,48 @@ extern "C" {
 #endif
 /**
  * @example app_launch/source/main.c
+ * @example audio/filters/source/main.c
  * @example audio/mic/source/main.c
+ * @example audio/streaming/source/main.c
+ * @example camera/image/source/main.c
+ * @example camera/video/source/main.c
  * @example get_system_language/source/main.c
  * @example graphics/bitmap/24bit-color/source/main.c
- * @example graphics/printing/hello-world/source/main.c
- * @example graphics/printing/both-screen-text/source/main.c
- * @example graphics/printing/colored-text/source/main.c
- * @example graphics/printing/multiple-windows-text/source/main.c
- * @example graphics/printing/system-font/source/main.c
+ * @example graphics/gpu/both_screens/source/main.c
  * @example graphics/gpu/fragment_light/source/main.c
  * @example graphics/gpu/geoshader/source/main.c
  * @example graphics/gpu/gpusprites/source/main.c
  * @example graphics/gpu/immediate/source/main.c
+ * @example graphics/gpu/lenny/source/main.c
+ * @example graphics/gpu/loop_subdivision/source/main.c
+ * @example graphics/gpu/mipmap_fog/source/main.c
+ * @example graphics/gpu/particles/source/main.c
+ * @example graphics/gpu/proctex/source/main.c
  * @example graphics/gpu/simple_tri/source/main.c
  * @example graphics/gpu/textured_cube/source/main.c
- * @example http/source/main.c
+ * @example graphics/gpu/toon_shading/source/main.c
+ * @example graphics/printing/both-screen-text/source/main.c
+ * @example graphics/printing/colored-text/source/main.c
+ * @example graphics/printing/hello-world/source/main.c
+ * @example graphics/printing/multiple-windows-text/source/main.c
+ * @example graphics/printing/system-font/source/main.c
  * @example input/read-controls/source/main.c
+ * @example input/software-keyboard/source/main.c
  * @example input/touch-screen/source/main.c
  * @example libapplet_launch/source/main.c
  * @example mvd/source/main.c
+ * @example network/boss/source/main.c
+ * @example network/http/source/main.c
+ * @example network/http_post/source/main.c
+ * @example network/sockets/source/sockets.c
+ * @example network/sslc/source/ssl.c
+ * @example network/uds/source/uds.c
+ * @example nfc/source/main.c
  * @example qtm/source/main.c
+ * @example romfs/source/main.c
  * @example sdmc/source/main.c
- * @example threads/thread-basic/source/main.c
  * @example threads/event/source/main.c
+ * @example threads/thread-basic/source/main.c
  * @example time/rtc/source/main.c
  */
 

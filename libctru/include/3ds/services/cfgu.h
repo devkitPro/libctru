@@ -85,6 +85,12 @@ Result CFGU_GetCountryCodeString(u16 code, u16* string);
 Result CFGU_GetCountryCodeID(u16 string, u16* code);
 
 /**
+ * @brief Checks if NFC (code name: fangate) is supported.
+ * @param isSupported pointer to the output the result to.
+ */
+Result CFGU_IsNFCSupported(bool* isSupported);
+
+/**
  * @brief Gets a config info block with flags = 2.
  * @param size Size of the data to retrieve.
  * @param blkID ID of the block to retrieve.
@@ -170,3 +176,21 @@ Result CFGI_VerifySigLocalFriendCodeSeed(void);
  * @brief Verifies the RSA signature for the SecureInfo data already stored in memory.
  */
 Result CFGI_VerifySigSecureInfo(void);
+
+/**
+ * @brief Gets the system's serial number.
+ * @param serial Pointer to output the serial to. (This is normally 0xF)
+ */
+Result CFGI_SecureInfoGetSerialNumber(u8 *serial);
+
+/**
+ * @brief Gets the 0x110-byte buffer containing the data for the LocalFriendCodeSeed.
+ * @param data Pointer to output the buffer. (The size must be at least 0x110-bytes)
+ */
+Result CFGI_GetLocalFriendCodeSeedData(u8 *data);
+
+/**
+ * @brief Gets the 64-bit local friend code seed.
+ * @param seed Pointer to write the friend code seed to.
+ */
+Result CFGI_GetLocalFriendCodeSeed(u64* seed);
