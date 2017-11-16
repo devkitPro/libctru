@@ -79,7 +79,7 @@ Result ACU_GetSecurityMode(u32 *out)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_GetSsidLength(u32 *out)
+Result ACU_GetSSIDLength(u32 *out)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();

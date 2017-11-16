@@ -35,4 +35,4 @@ Result ACU_GetSecurityMode(u32 *out);
  * @brief Gets the current Wifi SSID length.
  * @param out Pointer to output the current Wifi SSID length to.
  */
-Result ACU_GetSsidLength(u32 *out);
+Result ACU_GetSSIDLength(u32 *out);
