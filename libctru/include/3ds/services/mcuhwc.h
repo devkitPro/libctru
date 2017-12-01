@@ -26,7 +26,7 @@ void mcuHwcExit(void);
  * @param data Pointer to write the data to.
  * @param size Size of data to be read
  */
-Result mcuHwcReadRegister(u8 reg, void *data, u32 size);
+Result MCUHWC_ReadRegister(u8 reg, void *data, u32 size);
 
 /**
  * @brief Writes data to a i2c device3 register
@@ -34,40 +34,52 @@ Result mcuHwcReadRegister(u8 reg, void *data, u32 size);
  * @param data Pointer to write the data to.
  * @param size Size of data to be written
  */
-Result mcuHwcWriteRegister(u8 reg, const void *data, u32 size);
+Result MCUHWC_WriteRegister(u8 reg, const void *data, u32 size);
 
 /**
  * @brief Gets the battery voltage
  * @param voltage Pointer to write the battery voltage to.
  */
-Result mcuHwcGetBatteryVoltage(u8 *voltage);
+Result MCUHWC_GetBatteryVoltage(u8 *voltage);
 
 /**
  * @brief Gets the battery level
  * @param level Pointer to write the current battery level to.
  */
-Result mcuHwcGetBatteryLevel(u8 *level);
+Result MCUHWC_GetBatteryLevel(u8 *level);
 
 /**
  * @brief Gets the sound slider level
  * @param level Pointer to write the slider level to.
  */
-Result mcuHwcGetSoundSliderLevel(u8 *level);
+Result MCUHWC_GetSoundSliderLevel(u8 *level);
 
 /**
  * @brief Sets Wifi LED state
  * @param state State of Wifi LED. (True/False)
  */
-Result mcuHwcSetWifiLedState(bool state);
+Result MCUHWC_SetWifiLedState(bool state);
 
 /**
  * @brief Sets Power LED state
  * @param state powerLedState State of power LED.
  */
-Result mcuHwcSetPowerLedState(powerLedState state);
+Result MCUHWC_SetPowerLedState(powerLedState state);
 
 /**
  * @brief Gets 3d slider level
  * @param level Pointer to write 3D slider level to.
  */
-Result mcuHwcGet3dSliderLevel(u8 *level);
+Result MCUHWC_Get3dSliderLevel(u8 *level);
+
+/**
+ * @brief Gets the major MCU firmware version
+ * @param out Pointer to write the major firmware version to.
+ */
+Result MCUHWC_GetFwVerHigh(u8 *out);
+
+/**
+ * @brief Gets the minor MCU firmware version
+ * @param out Pointer to write the minor firmware version to.
+ */
+Result MCUHWC_GetFwVerLow(u8 *out);

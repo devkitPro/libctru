@@ -18,7 +18,7 @@ void mcuHwcExit(void)
 	svcCloseHandle(mcuHwcHandle);
 }
 
-Result mcuHwcReadRegister(u8 reg, void* data, u32 size)
+Result MCUHWC_ReadRegister(u8 reg, void* data, u32 size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -34,7 +34,7 @@ Result mcuHwcReadRegister(u8 reg, void* data, u32 size)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuHwcWriteRegister(u8 reg, const void *data, u32 size)
+Result MCUHWC_WriteRegister(u8 reg, const void *data, u32 size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -50,7 +50,7 @@ Result mcuHwcWriteRegister(u8 reg, const void *data, u32 size)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuHwcGetBatteryVoltage(u8 *voltage)
+Result MCUHWC_GetBatteryVoltage(u8 *voltage)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -64,7 +64,7 @@ Result mcuHwcGetBatteryVoltage(u8 *voltage)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuHwcGetBatteryLevel(u8 *level)
+Result MCUHWC_GetBatteryLevel(u8 *level)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -78,7 +78,7 @@ Result mcuHwcGetBatteryLevel(u8 *level)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuHwcSetPowerLedState(powerLedState state)
+Result MCUHWC_SetPowerLedState(powerLedState state)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -91,7 +91,7 @@ Result mcuHwcSetPowerLedState(powerLedState state)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuHwcSetWifiLedState(bool state)
+Result MCUHWC_SetWifiLedState(bool state)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -104,7 +104,7 @@ Result mcuHwcSetWifiLedState(bool state)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuHwcGetSoundSliderLevel(u8 *level)
+Result MCUHWC_GetSoundSliderLevel(u8 *level)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -118,7 +118,35 @@ Result mcuHwcGetSoundSliderLevel(u8 *level)
 	return (Result)cmdbuf[1];
 }
 
-Result mcuHwcGet3dSliderLevel(u8 *level)
+Result MCUHWC_Get3dSliderLevel(u8 *level)
 {
-	return mcuHwcReadRegister(8, &level, 1);
+	return MCUHWC_ReadRegister(8, &level, 1);
+}
+
+Result MCUHWC_GetFwVerHigh(u8 *out)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x10,0,0); // 0x100000
+
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
+
+	*out = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result MCUHWC_GetFwVerLow(u8 *out)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x11,0,0); // 0x110000
+
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
+
+	*out = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
 }
