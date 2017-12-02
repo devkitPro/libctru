@@ -31,24 +31,39 @@ typedef struct
 
 /** @brief Initialize buffer object from memory
  *  @param[in] buffer Decompression buffer object
- *  @param[in] data   Data to buffer
+ *  @param[in] data   Data to emulate buffering
  *  @param[in] size   Data size
  */
 static inline void
 buffer_memory(buffer_t *buffer, const void *data, size_t size)
 {
-  buffer->data = (void*)data;
-  buffer->size = size;
-  buffer->pos  = 0;
+  buffer->data  = (void*)data;
+  buffer->limit = size;
+  buffer->size  = size;
+  buffer->pos   = 0;
 }
 
-/** @brief Initialize buffer object
+/** @brief Initialize buffer object with static memory
+ *  @param[in] buffer Decompression buffer object
+ *  @param[in] data   Data buffer
+ *  @param[in] size   Data size
+ */
+static inline void
+buffer_static(buffer_t *buffer, const void *data, size_t size)
+{
+  buffer->data  = (void*)data;
+  buffer->limit = size;
+  buffer->size  = 0;
+  buffer->pos   = 0;
+}
+
+/** @brief Initialize buffer object with dynamic memory
  *  @param[in] buffer Decompression buffer object
  *  @param[in] size   Buffer size limit
  *  @returns Whether succeeded
  */
 static inline bool
-buffer_init(buffer_t *buffer, size_t size)
+buffer_dynamic(buffer_t *buffer, size_t size)
 {
   buffer->data = (uint8_t*)malloc(size);
   if(!buffer->data)
@@ -498,6 +513,7 @@ decompress_lz11(buffer_t *buffer, const decompressIOVec *iov, size_t iovcnt,
 }
 
 /** @brief Decompress Huffman
+ *  @param[in] bits     Data size in bits (usually 4 or 8)
  *  @param[in] buffer   Decompression buffer object
  *  @param[in] iov      Output vector
  *  @param[in] iovcnt   Number of buffers
@@ -507,9 +523,13 @@ decompress_lz11(buffer_t *buffer, const decompressIOVec *iov, size_t iovcnt,
  *  @returns Whether succeeded
  */
 static bool
-decompress_huff(buffer_t *buffer, const decompressIOVec *iov, size_t iovcnt,
-                size_t size, decompressCallback callback, void *userdata)
+decompress_huff(const size_t bits, buffer_t *buffer, const decompressIOVec *iov,
+                size_t iovcnt, size_t size, decompressCallback callback,
+                void *userdata)
 {
+  if(bits < 1 || bits > 8)
+    return false;
+
   uint8_t *tree = (uint8_t*)malloc(512);
   if(!tree)
     return false;
@@ -528,14 +548,13 @@ decompress_huff(buffer_t *buffer, const decompressIOVec *iov, size_t iovcnt,
     return false;
   }
 
-  iov_iter     out = iov_begin(iov, iovcnt);
-  const size_t bits = 8;
-  uint32_t     word = 0;               // 32-bits of input bitstream
-  uint32_t     mask = 0;               // which bit we are reading
-  uint32_t     dataMask = (1<<bits)-1; // mask to apply to data
-  size_t       node;                   // node in the huffman tree
-  size_t       child;                  // child of a node
-  uint32_t     offset;                 // offset from node to child
+  iov_iter out = iov_begin(iov, iovcnt);
+  uint32_t word = 0;               // 32-bits of input bitstream
+  uint32_t mask = 0;               // which bit we are reading
+  uint8_t  dataMask = (1<<bits)-1; // mask to apply to data
+  size_t   node;                   // node in the huffman tree
+  size_t   child;                  // child of a node
+  uint32_t offset;                 // offset from node to child
 
   // point to the root of the huffman tree
   node = 1;
@@ -686,45 +705,67 @@ decompressCallback_Stdio(void *userdata, void *buffer, size_t size)
   return fread(buffer, 1, size, fp);
 }
 
+ssize_t
+decompressHeader(decompressType *type, size_t *size,
+                 decompressCallback callback, void *userdata, size_t insize)
+{
+  buffer_t buffer;
+  uint8_t bufferdata[4];
+  if(!callback)
+    buffer_memory(&buffer, userdata, insize);
+  else
+    buffer_static(&buffer, bufferdata, sizeof(bufferdata));
+
+  uint8_t header[4];
+  if(!buffer_read(&buffer, header, 4, callback, userdata))
+    return -1;
+
+  size_t bytes = 4;
+
+  decompressType outtype = header[0] & ~0x80;
+  size_t outsize = (header[1] <<  0)
+                 | (header[2] <<  8)
+                 | (header[3] << 16);
+
+  if(header[0] & 0x80)
+  {
+    if(!buffer_read(&buffer, header, 4, callback, userdata))
+      return -1;
+
+    bytes += 4;
+    outsize |= header[0] << 24;
+  }
+
+  if(type)
+    *type = outtype;
+  if(size)
+    *size = outsize;
+
+  return bytes;
+}
+
 bool
 decompressV(const decompressIOVec *iov, size_t iovcnt,
-            decompressCallback callback, void *userdata, size_t usersize)
+            decompressCallback callback, void *userdata, size_t insize)
 {
   if(iovcnt == 0)
     return false;
 
+  decompressType type;
+  size_t size;
+  ssize_t bytes = decompressHeader(&type, &size, callback, userdata, insize);
+  if(bytes < 0)
+    return false;
+
   buffer_t buffer;
   if(!callback)
-    buffer_memory(&buffer, userdata, usersize);
-  else if(!buffer_init(&buffer, BUFFERSIZE))
-    return false;
-
-  uint8_t header[8];
-  if(!buffer_read(&buffer, header, 4, callback, userdata))
   {
-    if(callback)
-      buffer_destroy(&buffer);
+    userdata = (uint8_t*)userdata + bytes;
+    insize -= bytes;
+    buffer_memory(&buffer, userdata, insize);
+  }
+  else if(!buffer_dynamic(&buffer, BUFFERSIZE))
     return false;
-  }
-
-  uint8_t type = header[0];
-  size_t  size = (header[1] <<  0)
-               | (header[2] <<  8)
-               | (header[3] << 16);
-
-  if(type & 0x80)
-  {
-    type &= ~0x80;
-
-    if(!buffer_read(&buffer, &header[4], 4, callback, userdata))
-    {
-      if(callback)
-        buffer_destroy(&buffer);
-      return false;
-    }
-
-    size |= header[4] << 24;
-  }
 
   size_t iovsize = iov_size(iov, iovcnt);
   if(iovsize < size)
@@ -733,26 +774,34 @@ decompressV(const decompressIOVec *iov, size_t iovcnt,
   bool result = false;
   switch(type)
   {
-    case 0x00:
+    case DECOMPRESS_DUMMY:
     {
       iov_iter out = iov_begin(iov, iovcnt);
       result = iov_read(&buffer, &out, size, callback, userdata);
       break;
     }
 
-    case 0x10:
+    case DECOMPRESS_LZSS:
       result = decompress_lzss(&buffer, iov, iovcnt, size, callback, userdata);
       break;
 
-    case 0x11:
+    case DECOMPRESS_LZ11:
       result = decompress_lz11(&buffer, iov, iovcnt, size, callback, userdata);
       break;
 
-    case 0x28:
-      result = decompress_huff(&buffer, iov, iovcnt, size, callback, userdata);
+    case DECOMPRESS_HUFF1:
+    case DECOMPRESS_HUFF2:
+    case DECOMPRESS_HUFF3:
+    case DECOMPRESS_HUFF4:
+    case DECOMPRESS_HUFF5:
+    case DECOMPRESS_HUFF6:
+    case DECOMPRESS_HUFF7:
+    case DECOMPRESS_HUFF8:
+      result = decompress_huff(type & 0xF, &buffer, iov, iovcnt, size,
+                               callback, userdata);
       break;
 
-    case 0x30:
+    case DECOMPRESS_RLE:
       result = decompress_rle(&buffer, iov, iovcnt, size, callback, userdata);
       break;
   }
@@ -764,12 +813,12 @@ decompressV(const decompressIOVec *iov, size_t iovcnt,
 
 bool
 decompressV_LZSS(const decompressIOVec *iov, size_t iovcnt,
-                 decompressCallback callback, void *userdata, size_t usersize)
+                 decompressCallback callback, void *userdata, size_t insize)
 {
   buffer_t buffer;
   if(!callback)
-    buffer_memory(&buffer, userdata, usersize);
-  else if(!buffer_init(&buffer, BUFFERSIZE))
+    buffer_memory(&buffer, userdata, insize);
+  else if(!buffer_dynamic(&buffer, BUFFERSIZE))
     return false;
 
   size_t size = iov_size(iov, iovcnt);
@@ -782,12 +831,12 @@ decompressV_LZSS(const decompressIOVec *iov, size_t iovcnt,
 
 bool
 decompressV_LZ11(const decompressIOVec *iov, size_t iovcnt,
-                 decompressCallback callback, void *userdata, size_t usersize)
+                 decompressCallback callback, void *userdata, size_t insize)
 {
   buffer_t buffer;
   if(!callback)
-    buffer_memory(&buffer, userdata, usersize);
-  else if(!buffer_init(&buffer, BUFFERSIZE))
+    buffer_memory(&buffer, userdata, insize);
+  else if(!buffer_dynamic(&buffer, BUFFERSIZE))
     return false;
 
   size_t size = iov_size(iov, iovcnt);
@@ -799,17 +848,17 @@ decompressV_LZ11(const decompressIOVec *iov, size_t iovcnt,
 }
 
 bool
-decompressV_Huff(const decompressIOVec *iov, size_t iovcnt,
-                 decompressCallback callback, void *userdata, size_t usersize)
+decompressV_Huff(size_t bits, const decompressIOVec *iov, size_t iovcnt,
+                 decompressCallback callback, void *userdata, size_t insize)
 {
   buffer_t buffer;
   if(!callback)
-    buffer_memory(&buffer, userdata, usersize);
-  else if(!buffer_init(&buffer, BUFFERSIZE))
+    buffer_memory(&buffer, userdata, insize);
+  else if(!buffer_dynamic(&buffer, BUFFERSIZE))
     return false;
 
   size_t size = iov_size(iov, iovcnt);
-  bool result = decompress_huff(&buffer, iov, iovcnt, size, callback, userdata);
+  bool result = decompress_huff(bits, &buffer, iov, iovcnt, size, callback, userdata);
 
   if(callback)
     buffer_destroy(&buffer);
@@ -818,12 +867,12 @@ decompressV_Huff(const decompressIOVec *iov, size_t iovcnt,
 
 bool
 decompressV_RLE(const decompressIOVec *iov, size_t iovcnt,
-                decompressCallback callback, void *userdata, size_t usersize)
+                decompressCallback callback, void *userdata, size_t insize)
 {
   buffer_t buffer;
   if(!callback)
-    buffer_memory(&buffer, userdata, usersize);
-  else if(!buffer_init(&buffer, BUFFERSIZE))
+    buffer_memory(&buffer, userdata, insize);
+  else if(!buffer_dynamic(&buffer, BUFFERSIZE))
     return false;
 
   size_t size = iov_size(iov, iovcnt);
