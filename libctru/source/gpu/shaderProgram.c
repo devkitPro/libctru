@@ -177,7 +177,7 @@ Result shaderProgramSetGshInputPermutation(shaderProgram_s* sp, u64 permutation)
 	if(!sp || !sp->geometryShader)return -1;
 
 	sp->geoShaderInputPermutation[0] = permutation & 0xFFFFFFFF;
-	sp->geoShaderInputPermutation[0] = permutation>>32;
+	sp->geoShaderInputPermutation[1] = permutation>>32;
 	return 0;
 }
 
