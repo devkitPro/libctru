@@ -51,7 +51,7 @@ Result psInitHandle(Handle handle);
 void psExit(void);
 
 /// Returns the PS session handle.
-Handle psGetSessionHandle();
+Handle psGetSessionHandle(void);
 
 /**
  * @brief Signs a RSA signature.

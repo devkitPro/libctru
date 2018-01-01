@@ -2,7 +2,7 @@
 #include <3ds/ipc.h>
 #include <3ds/result.h>
 
-int SOCU_ShutdownSockets()
+int SOCU_ShutdownSockets(void)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 

@@ -120,9 +120,9 @@ long gethostid(void);
 // this is supposed to be in unistd.h but newlib only puts it for cygwin, waiting for newlib patch from dkA
 int gethostname(char *name, size_t namelen);
 
-int SOCU_ShutdownSockets();
+int SOCU_ShutdownSockets(void);
 
-int SOCU_CloseSockets();
+int SOCU_CloseSockets(void);
 
 /**
  * @brief Retrieves information from the network configuration. Similar to getsockopt().

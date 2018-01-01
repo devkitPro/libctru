@@ -323,7 +323,7 @@ Result udsEjectClient(u16 NetworkNodeID);
 /**
  * @brief This can be used by the host to force-disconnect the spectators. Afterwards new spectators will not be allowed to connect until udsAllowSpectators() is used.
  */
-Result udsEjectSpectator();
+Result udsEjectSpectator(void);
 
 /**
  * @brief This can be used by the host to update the network attributes. If bitmask 0x4 is clear in the input bitmask, this clears that bit in the value before actually writing the value into state. Normally you should use the below wrapper functions.
