@@ -38,7 +38,7 @@ void psExit(void)
 	psHandle = 0;
 }
 
-Handle psGetSessionHandle()
+Handle psGetSessionHandle(void)
 {
 	return psHandle;
 }

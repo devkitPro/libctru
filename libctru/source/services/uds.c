@@ -335,7 +335,7 @@ Result udsEjectClient(u16 NetworkNodeID)
 	return cmdbuf[1];
 }
 
-Result udsEjectSpectator()
+Result udsEjectSpectator(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 

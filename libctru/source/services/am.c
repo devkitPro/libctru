@@ -727,7 +727,7 @@ Result AM_InstallTitleBegin(FS_MediaType mediaType, u64 titleId, bool unk)
 	return (Result)cmdbuf[1];
 }
 
-Result AM_InstallTitleStop()
+Result AM_InstallTitleStop(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -755,7 +755,7 @@ Result AM_InstallTitleResume(FS_MediaType mediaType, u64 titleId)
 }
 
 
-Result AM_InstallTitleAbort()
+Result AM_InstallTitleAbort(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -767,7 +767,7 @@ Result AM_InstallTitleAbort()
 	return (Result)cmdbuf[1];
 }
 
-Result AM_InstallTitleFinish()
+Result AM_InstallTitleFinish(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();

@@ -374,7 +374,7 @@ Result AM_InstallTicketFinish(Handle ticketHandle);
 Result AM_InstallTitleBegin(FS_MediaType mediaType, u64 titleId, bool unk);
 
 /// Stops installing a title, generally to be resumed later.
-Result AM_InstallTitleStop();
+Result AM_InstallTitleStop(void);
 
 /**
  * @brief Resumes installing a title.
@@ -384,10 +384,10 @@ Result AM_InstallTitleStop();
 Result AM_InstallTitleResume(FS_MediaType mediaType, u64 titleId);
 
 /// Aborts installing a title.
-Result AM_InstallTitleAbort();
+Result AM_InstallTitleAbort(void);
 
 /// Finishes installing a title.
-Result AM_InstallTitleFinish();
+Result AM_InstallTitleFinish(void);
 
 /**
  * @brief Commits installed titles.
