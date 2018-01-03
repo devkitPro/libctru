@@ -102,7 +102,7 @@ void gfxSetDoubleBuffering(gfxScreen_t screen, bool doubleBuffering) {
 	doubleBuf[screen] = doubleBuffering ? 1 : 0; // make sure they're the integer values '1' and '0'
 }
 
-void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
+static void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 {
 	if(screen==GFX_TOP)
 	{
@@ -126,7 +126,7 @@ void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 	}
 }
 
-void gfxWriteFramebufferInfo(gfxScreen_t screen)
+static void gfxWriteFramebufferInfo(gfxScreen_t screen)
 {
 	s32* framebufferInfoHeader=(s32*)(gfxSharedMemory+0x200+gfxThreadID*0x80);
 	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x10;
