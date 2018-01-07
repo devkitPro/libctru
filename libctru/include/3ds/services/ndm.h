@@ -4,6 +4,7 @@
  */
 #pragma once
 
+/// Exclusive states.
 typedef enum {
 	EXCLUSIVE_STATE_NONE = 0,
 	EXCLUSIVE_STATE_INFRASTRUCTURE = 1,
@@ -12,6 +13,7 @@ typedef enum {
 	EXCLUSIVE_STATE_STREETPASS_DATA = 4
 } NDM_ExclusiveState;
 
+/// Current states.
 typedef enum {
 	STATE_INITIAL = 0,
 	STATE_SUSPENDED = 1,
@@ -27,6 +29,7 @@ typedef enum {
 	STATE_CEC_SUSPENDING = 11
 } NDM_State;
 
+// Daemons.
 typedef enum {
 	DAEMON_CEC = 0,
 	DAEMON_BOSS = 1,
@@ -34,6 +37,7 @@ typedef enum {
 	DAEMON_FRIENDS = 3
 } NDM_Daemon;
 
+/// Used to specify multiple daemons.
 typedef enum {
 	DAEMON_MASK_CEC = 1 << DAEMON_CEC,
 	DAEMON_MASK_BOSS = 1 << DAEMON_BOSS,
@@ -41,6 +45,7 @@ typedef enum {
 	DAEMON_MASK_FRIENDS = 1 << DAEMON_FRIENDS
 } NDM_Daemon_Mask;
 
+// Daemon status.
 typedef enum {
 	DAEMON_STATUS_BUSY = 0,
 	DAEMON_STATUS_IDLE = 1,
