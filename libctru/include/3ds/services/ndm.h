@@ -10,8 +10,8 @@ typedef enum {
 	EXCLUSIVE_STATE_INFRASTRUCTURE = 1,
 	EXCLUSIVE_STATE_LOCAL_COMMUNICATIONS = 2,
 	EXCLUSIVE_STATE_STREETPASS = 3,
-	EXCLUSIVE_STATE_STREETPASS_DATA = 4
-} NDM_ExclusiveState;
+	EXCLUSIVE_STATE_STREETPASS_DATA = 4,
+} ndmExclusiveState;
 
 /// Current states.
 typedef enum {
@@ -26,24 +26,24 @@ typedef enum {
 	STATE_INFRASTRUCTURE_FORCE_DISCONNECTING = 8,
 	STATE_CEC_WORKING = 9,
 	STATE_CEC_FORCE_SUSPENDING = 10,
-	STATE_CEC_SUSPENDING = 11
-} NDM_State;
+	STATE_CEC_SUSPENDING = 11,
+} ndmState;
 
 // Daemons.
 typedef enum {
 	DAEMON_CEC = 0,
 	DAEMON_BOSS = 1,
 	DAEMON_NIM = 2,
-	DAEMON_FRIENDS = 3
-} NDM_Daemon;
+	DAEMON_FRIENDS = 3,
+} ndmDaemon;
 
 /// Used to specify multiple daemons.
 typedef enum {
 	DAEMON_MASK_CEC = 1 << DAEMON_CEC,
 	DAEMON_MASK_BOSS = 1 << DAEMON_BOSS,
 	DAEMON_MASK_NIM = 1 << DAEMON_NIM,
-	DAEMON_MASK_FRIENDS = 1 << DAEMON_FRIENDS
-} NDM_Daemon_Mask;
+	DAEMON_MASK_FRIENDS = 1 << DAEMON_FRIENDS,
+} ndmDaemonMask;
 
 // Daemon status.
 typedef enum {
@@ -51,7 +51,7 @@ typedef enum {
 	DAEMON_STATUS_IDLE = 1,
 	DAEMON_STATUS_SUSPENDING = 2,
 	DAEMON_STATUS_SUSPENDED = 3
-} NDM_Daemon_Status;
+} ndmDaemonStatus;
 
 /// Initializes ndmu.
 Result ndmuInit(void);
@@ -61,9 +61,9 @@ void ndmuExit(void);
 
 /**
  * @brief Sets the network daemon to an exclusive state.
- * @param state State specified in the NDM_ExclusiveState enumerator.
+ * @param state State specified in the ndmExclusiveState enumerator.
  */
-Result NDMU_EnterExclusiveState(NDM_ExclusiveState state);
+Result NDMU_EnterExclusiveState(ndmExclusiveState state);
 
 ///  Cancels an exclusive state for the network daemon.
 Result NDMU_LeaveExclusiveState(void);
@@ -72,7 +72,7 @@ Result NDMU_LeaveExclusiveState(void);
  * @brief Returns the exclusive state for the network daemon.
  * @param state Pointer to write the exclsuive state to.
  */
-Result NDMU_GetExclusiveState(NDM_ExclusiveState *state);
+Result NDMU_GetExclusiveState(ndmExclusiveState *state);
 
 ///  Locks the exclusive state.
 Result NDMU_LockState(void);
@@ -93,13 +93,13 @@ Result NDMU_ResumeScheduler(void);
  * @brief Returns the current state for the network daemon.
  * @param state Pointer to write the current state to.
  */
-Result NDMU_GetCurrentState(NDM_State *state);
+Result NDMU_GetCurrentState(ndmState *state);
 
 /**
  * @brief Returns the daemon state.
  * @param state Pointer to write the daemons state to.
  */
-Result NDMU_QueryStatus(NDM_Daemon_Status *state);
+Result NDMU_QueryStatus(ndmDaemonStatus *status);
 
 /**
  * @brief Sets the scan interval.

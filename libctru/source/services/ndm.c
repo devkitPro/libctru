@@ -33,7 +33,7 @@ void ndmuExit(void)
 	ndmuHandle = 0;
 }
 
-Result NDMU_EnterExclusiveState(NDM_ExclusiveState state)
+Result NDMU_EnterExclusiveState(ndmExclusiveState state)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -60,7 +60,7 @@ Result NDMU_LeaveExclusiveState(void)
 	return (Result)cmdbuf[1];
 }
 
-Result NDMU_GetExclusiveState(NDM_ExclusiveState *state)
+Result NDMU_GetExclusiveState(ndmExclusiveState *state)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -125,7 +125,7 @@ Result NDMU_ResumeScheduler(void)
 	return (Result)cmdbuf[1];
 }
 
-Result NDMU_GetCurrentState(NDM_State *state)
+Result NDMU_GetCurrentState(ndmState *state)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -139,7 +139,7 @@ Result NDMU_GetCurrentState(NDM_State *state)
 	return (Result)cmdbuf[1];
 }
 
-Result NDMU_QueryStatus(NDM_Daemon_Status *state)
+Result NDMU_QueryStatus(ndmDaemonStatus *status)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -148,7 +148,7 @@ Result NDMU_QueryStatus(NDM_Daemon_Status *state)
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
 
-	*state = cmdbuf[2];
+	*status = cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
