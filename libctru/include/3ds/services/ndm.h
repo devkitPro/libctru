@@ -18,7 +18,7 @@ Result ndmuInit(void);
 /// Exits ndmu.
 void ndmuExit(void);
 
-Result ndmuEnterExclusiveState(NDM_ExclusiveState state);
+Result NDMU_EnterExclusiveState(NDM_ExclusiveState state);
 
-Result ndmuLeaveExclusiveState(void);
+Result NDMU_LeaveExclusiveState(void);
 

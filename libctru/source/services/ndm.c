@@ -10,30 +10,30 @@
 #include <3ds/services/ndm.h>
 #include <3ds/ipc.h>
 
-Handle __ndmu_servhandle;
-static int __ndmu_refcount;
+Handle ndmuHandle;
+static int ndmuRefCount;
 
 Result ndmuInit(void)
 {
 	Result ret=0;
 
-	if (AtomicPostIncrement(&__ndmu_refcount)) return 0;
+	if (AtomicPostIncrement(&ndmuRefCount)) return 0;
 
-	ret = srvGetServiceHandle(&__ndmu_servhandle, "ndm:u");
-	if (R_FAILED(ret)) AtomicDecrement(&__ndmu_refcount);
+	ret = srvGetServiceHandle(&ndmuHandle, "ndm:u");
+	if (R_FAILED(ret)) AtomicDecrement(&ndmuRefCount);
 
 	return ret;
 }
 
 void ndmuExit(void)
 {
-	if (AtomicDecrement(&__ndmu_refcount)) return;
+	if (AtomicDecrement(&ndmuRefCount)) return;
 
-	svcCloseHandle(__ndmu_servhandle);
-	__ndmu_servhandle = 0;
+	svcCloseHandle(ndmuHandle);
+	ndmuHandle = 0;
 }
 
-Result ndmuEnterExclusiveState(NDM_ExclusiveState state)
+Result NDMU_EnterExclusiveState(NDM_ExclusiveState state)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -42,12 +42,12 @@ Result ndmuEnterExclusiveState(NDM_ExclusiveState state)
 	cmdbuf[2]=IPC_Desc_CurProcessHandle();
 
 	Result ret=0;
-	if(R_FAILED(ret=svcSendSyncRequest(__ndmu_servhandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
 
 	return cmdbuf[1];
 }
 
-Result ndmuLeaveExclusiveState(void)
+Result NDMU_LeaveExclusiveState(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
@@ -55,7 +55,7 @@ Result ndmuLeaveExclusiveState(void)
 	cmdbuf[1]=IPC_Desc_CurProcessHandle();
 
 	Result ret=0;
-	if(R_FAILED(ret=svcSendSyncRequest(__ndmu_servhandle)))return ret;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
 
 	return cmdbuf[1];
 }
