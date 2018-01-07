@@ -9,7 +9,7 @@ typedef enum {
 	EXCLUSIVE_STATE_INFRASTRUCTURE = 1,
 	EXCLUSIVE_STATE_LOCAL_COMMUNICATIONS = 2,
 	EXCLUSIVE_STATE_STREETPASS = 3,
-	EXCLUSIVE_STATE_STREETPASS_DATA = 4,
+	EXCLUSIVE_STATE_STREETPASS_DATA = 4
 } NDM_ExclusiveState;
 
 typedef enum {
@@ -24,8 +24,29 @@ typedef enum {
 	STATE_INFRASTRUCTURE_FORCE_DISCONNECTING = 8,
 	STATE_CEC_WORKING = 9,
 	STATE_CEC_FORCE_SUSPENDING = 10,
-	STATE_CEC_SUSPENDING = 11,
+	STATE_CEC_SUSPENDING = 11
 } NDM_State;
+
+typedef enum {
+	DAEMON_CEC = 0,
+	DAEMON_BOSS = 1,
+	DAEMON_NIM = 2,
+	DAEMON_FRIENDS = 3
+} NDM_Daemon;
+
+typedef enum {
+	DAEMON_MASK_CEC = 1 << DAEMON_CEC,
+	DAEMON_MASK_BOSS = 1 << DAEMON_BOSS,
+	DAEMON_MASK_NIM = 1 << DAEMON_NIM,
+	DAEMON_MASK_FRIENDS = 1 << DAEMON_FRIENDS
+} NDM_Daemon_Mask;
+
+typedef enum {
+	DAEMON_STATUS_BUSY = 0,
+	DAEMON_STATUS_IDLE = 1,
+	DAEMON_STATUS_SUSPENDING = 2,
+	DAEMON_STATUS_SUSPENDED = 3
+} NDM_Daemon_Status;
 
 /// Initializes ndmu.
 Result ndmuInit(void);
@@ -44,7 +65,7 @@ Result NDMU_LeaveExclusiveState(void);
 
 /**
  * @brief Returns the exclusive state for the network daemon.
- * @param state Pointer to write the exclsuive ndm state to.
+ * @param state Pointer to write the exclsuive state to.
  */
 Result NDMU_GetExclusiveState(NDM_ExclusiveState *state);
 
@@ -64,10 +85,16 @@ Result NDMU_SuspendScheduler(u32 flag);
 Result NDMU_ResumeScheduler(void);
 
 /**
- * @brief Returns the current ndm state.
- * @param state Pointer to write the current NDM state to.
+ * @brief Returns the current state for the network daemon.
+ * @param state Pointer to write the current state to.
  */
 Result NDMU_GetCurrentState(NDM_State *state);
+
+/**
+ * @brief Returns the daemon state.
+ * @param state Pointer to write the daemons state to.
+ */
+Result NDMU_QueryStatus(NDM_Daemon_Status *state);
 
 /**
  * @brief Sets the scan interval.

@@ -139,6 +139,20 @@ Result NDMU_GetCurrentState(NDM_State *state)
 	return (Result)cmdbuf[1];
 }
 
+Result NDMU_QueryStatus(NDM_Daemon_Status *state)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0xD,1,0); // 0xD0000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
+
+	*state = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
 Result NDMU_SetScanInterval(u32 interval)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -192,7 +206,7 @@ Result NDMU_ResetDaemons(void)
 	return (Result)cmdbuf[1];
 }
 
-Result NDMU_ClearHalfAwakeMacFilter(void)
+Result NDMU_ClearMacFilter(void)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
