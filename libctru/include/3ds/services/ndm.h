@@ -34,33 +34,33 @@ Result ndmuInit(void);
 void ndmuExit(void);
 
 /**
- * @brief Enter an exclusive ndm state.
+ * @brief Sets the network daemon to an exclusive state.
  * @param state State specified in the NDM_ExclusiveState enumerator.
  */
 Result NDMU_EnterExclusiveState(NDM_ExclusiveState state);
 
-///  Leaves the ndm exclusive state.
+///  Cancels an exclusive state for the network daemon.
 Result NDMU_LeaveExclusiveState(void);
 
 /**
- * @brief Returns the exclsuive ndm state.
+ * @brief Returns the exclusive state for the network daemon.
  * @param state Pointer to write the exclsuive ndm state to.
  */
 Result NDMU_GetExclusiveState(NDM_ExclusiveState *state);
 
-///  Locks the ndm state.
+///  Locks the exclusive state.
 Result NDMU_LockState(void);
 
-///  Unlocks the ndm state.
+///  Unlocks the exclusive state.
 Result NDMU_UnlockState(void);
 
 /**
- * @brief Suspends the ndm scheduler.
+ * @brief Suspends scheduling for all network daemons.
  * @param flag 0 = Wait for completion, 1 = Perform in background.
  */
 Result NDMU_SuspendScheduler(u32 flag);
 
-///  Resumes the ndm scheduler.
+/// Resumes daemon scheduling.
 Result NDMU_ResumeScheduler(void);
 
 /**
@@ -87,7 +87,7 @@ Result NDMU_GetScanInterval(u32 *interval);
  */
 Result NDMU_GetRetryInterval(u32 *interval);
 
-/// Reset daemons to default daemon bit mask values.
+/// Reverts network daemon to defaults.
 Result NDMU_ResetDaemons(void);
 
 ///  Clears half awake mac filter.
