@@ -50,7 +50,7 @@ typedef enum {
 	DAEMON_STATUS_BUSY = 0,
 	DAEMON_STATUS_IDLE = 1,
 	DAEMON_STATUS_SUSPENDING = 2,
-	DAEMON_STATUS_SUSPENDED = 3
+	DAEMON_STATUS_SUSPENDED = 3,
 } ndmDaemonStatus;
 
 /// Initializes ndmu.
