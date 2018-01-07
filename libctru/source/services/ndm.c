@@ -74,6 +74,32 @@ Result NDMU_GetExclusiveState(NDM_ExclusiveState *state)
 	return (Result)cmdbuf[1];
 }
 
+Result NDMU_LockState(void)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x4,0,2); // 0x40002
+	cmdbuf[1]=IPC_Desc_CurProcessHandle();
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result NDMU_UnlockState(void)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x5,0,2); // 0x50002
+	cmdbuf[1]=IPC_Desc_CurProcessHandle();
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result NDMU_SuspendScheduler(u32 flag)
 {
 	u32* cmdbuf=getThreadCommandBuffer();

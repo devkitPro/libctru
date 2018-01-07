@@ -48,6 +48,12 @@ Result NDMU_LeaveExclusiveState(void);
  */
 Result NDMU_GetExclusiveState(NDM_ExclusiveState *state);
 
+///  Locks the ndm state.
+Result NDMU_LockState(void);
+
+///  Unlocks the ndm state.
+Result NDMU_UnlockState(void);
+
 /**
  * @brief Suspends the ndm scheduler.
  * @param flag 0 = Wait for completion, 1 = Perform in background.
