@@ -8,7 +8,7 @@
 #include <3ds/ipc.h>
 #include <3ds/os.h>
 
-#define IS_PRE_7X (osGetFirmVersion() >= SYSTEM_VERSION(2, 39, 4))
+#define IS_PRE_7X (osGetFirmVersion() < SYSTEM_VERSION(2, 39, 4))
 
 static Handle srvPmHandle;
 static int srvPmRefCount;
@@ -38,7 +38,8 @@ void srvPmExit(void)
 {
 	if (*srvGetSessionHandle() != 0) srvExit();
 	if (AtomicDecrement(&srvPmRefCount)) return;
-	svcCloseHandle(srvPmHandle);
+	if(srvPmHandle != 0) svcCloseHandle(srvPmHandle);
+	srvPmHandle = 0;
 }
 
 Handle *srvPmGetSessionHandle(void)
@@ -78,13 +79,13 @@ Result SRVPM_PublishToAll(u32 notificationId)
 	return srvPmSendCommand(cmdbuf);
 }
 
-Result SRVPM_RegisterProcess(u32 pid, u32 count, char (*serviceAccessControlList)[8])
+Result SRVPM_RegisterProcess(u32 pid, u32 count, const char (*serviceAccessControlList)[8])
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x3,2,2); // 0x30082
 	cmdbuf[1] = pid;
-	cmdbuf[2] = count;
+	cmdbuf[2] = count*2;
 	cmdbuf[3] = IPC_Desc_StaticBuffer(count*8,0);
 	cmdbuf[4] = (u32)serviceAccessControlList;
 
