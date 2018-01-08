@@ -138,7 +138,7 @@ Result NDMU_ResetDaemons(void);
  * @brief Gets the current default daemon bit mask.
  * @param interval Pointer to write the default daemon mask value to. The default value is (DAEMONMASK_CEC | DAEMONMASK_FRIENDS)
  */
-Result NDMU_GetDefaultDaemons(ndmDaemonMask *mask)
+Result NDMU_GetDefaultDaemons(ndmDaemonMask *mask);
 
 ///  Clears half awake mac filter.
 Result NDMU_ClearMacFilter(void);
