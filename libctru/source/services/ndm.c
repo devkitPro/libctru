@@ -100,6 +100,32 @@ Result NDMU_UnlockState(void)
 	return (Result)cmdbuf[1];
 }
 
+Result NDMU_SuspendDaemons(ndmDaemonMask mask)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x6,1,0); // 0x60040
+	cmdbuf[1]=mask;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result NDMU_ResumeDaemons(ndmDaemonMask mask)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x7,1,0); // 0x70040
+	cmdbuf[1]=mask;
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result NDMU_SuspendScheduler(u32 flag)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
@@ -202,6 +228,20 @@ Result NDMU_ResetDaemons(void)
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result NDMU_GetDefaultDaemons(ndmDaemonMask *mask)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x16,0,0); // 0x160000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
+
+	*mask = cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }

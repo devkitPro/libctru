@@ -39,10 +39,10 @@ typedef enum {
 
 /// Used to specify multiple daemons.
 typedef enum {
-	DAEMON_MASK_CEC = 1 << DAEMON_CEC,
-	DAEMON_MASK_BOSS = 1 << DAEMON_BOSS,
-	DAEMON_MASK_NIM = 1 << DAEMON_NIM,
-	DAEMON_MASK_FRIENDS = 1 << DAEMON_FRIENDS,
+	DAEMON_MASK_CEC = BIT(DAEMON_CEC),
+	DAEMON_MASK_BOSS = BIT(DAEMON_BOSS),
+	DAEMON_MASK_NIM = BIT(DAEMON_NIM),
+	DAEMON_MASK_FRIENDS = BIT(DAEMON_FRIENDS),
 } ndmDaemonMask;
 
 // Daemon status.
@@ -79,6 +79,18 @@ Result NDMU_LockState(void);
 
 ///  Unlocks the exclusive state.
 Result NDMU_UnlockState(void);
+
+/**
+ * @brief Suspends network daemon.
+ * @param mask The specified daemon.
+ */
+Result NDMU_SuspendDaemons(ndmDaemonMask mask);
+
+/**
+ * @brief Resumes network daemon.
+ * @param mask The specified daemon.
+ */
+Result NDMU_ResumeDaemons(ndmDaemonMask mask);
 
 /**
  * @brief Suspends scheduling for all network daemons.
@@ -121,6 +133,12 @@ Result NDMU_GetRetryInterval(u32 *interval);
 
 /// Reverts network daemon to defaults.
 Result NDMU_ResetDaemons(void);
+
+/**
+ * @brief Gets the current default daemon bit mask.
+ * @param interval Pointer to write the default daemon mask value to. The default value is (DAEMONMASK_CEC | DAEMONMASK_FRIENDS)
+ */
+Result NDMU_GetDefaultDaemons(ndmDaemonMask *mask)
 
 ///  Clears half awake mac filter.
 Result NDMU_ClearMacFilter(void);
