@@ -55,7 +55,7 @@ Result udsInit(size_t sharedmem_size, const char *username)
 	if(R_SUCCEEDED(ret))
 	{
 		ndm_state = 1;
-		ret = ndmuEnterExclusiveState(EXCLUSIVE_STATE_LOCAL_COMMUNICATIONS);
+		ret = NDMU_EnterExclusiveState(EXCLUSIVE_STATE_LOCAL_COMMUNICATIONS);
 		if(R_SUCCEEDED(ret))
 		{
 			ndm_state = 2;
@@ -80,7 +80,7 @@ Result udsInit(size_t sharedmem_size, const char *username)
 	{
 		if(ndm_state)
 		{
-			if(ndm_state==2)ndmuLeaveExclusiveState();
+			if(ndm_state==2)NDMU_LeaveExclusiveState();
 			ndmuExit();
 		}
 
@@ -111,7 +111,7 @@ void udsExit(void)
 	svcCloseHandle(__uds_connectionstatus_event);
 	__uds_connectionstatus_event = 0;
 
-	ndmuLeaveExclusiveState();
+	NDMU_LeaveExclusiveState();
 	ndmuExit();
 }
 
