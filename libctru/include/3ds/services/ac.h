@@ -36,3 +36,15 @@ Result ACU_GetSecurityMode(u32 *out);
  * @param out Pointer to output the current Wifi SSID length to.
  */
 Result ACU_GetSSIDLength(u32 *out);
+
+/**
+ * @brief Gets the last error to occur during a connection.
+ * @param errorCode Pointer to output the error code to.
+ */
+Result ACU_GetLastErrorCode(u32* errorCode);
+
+/**
+ * @brief Gets the last detailed error to occur during a connection.
+ * @param errorCode Pointer to output the error code to.
+ */
+Result ACU_GetLastDetailErrorCode(u32* errorCode);

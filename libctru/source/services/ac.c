@@ -92,3 +92,31 @@ Result ACU_GetSSIDLength(u32 *out)
 
 	return (Result)cmdbuf[1];
 }
+
+Result ACU_GetLastErrorCode(u32* errorCode)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xA,0,0); // 0xA0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
+
+	if(errorCode) *errorCode = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACU_GetLastDetailErrorCode(u32* errorCode)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0xB0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
+
+	if(errorCode) *errorCode = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
