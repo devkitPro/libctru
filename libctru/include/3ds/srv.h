@@ -11,6 +11,14 @@ Result srvInit(void);
 void srvExit(void);
 
 /**
+ * @brief Makes srvGetServiceHandle non-blocking for the current thread (or blocking, the default), in case of unavailable (full) requested services.
+ * @param blocking Whether srvGetServiceHandle should be non-blocking.
+ *                 srvGetServiceHandle will always block if the service hasn't been registered yet,
+ *                 use srvIsServiceRegistered to check whether that is the case or not.
+ */
+void srvSetBlockingPolicy(bool nonBlocking);
+
+/**
  * @brief Gets the current service API session handle.
  * @return The current service API session handle.
  */
@@ -20,6 +28,9 @@ Handle *srvGetSessionHandle(void);
  * @brief Retrieves a service handle, retrieving from the environment handle list if possible.
  * @param out Pointer to write the handle to.
  * @param name Name of the service.
+ * @return 0 if no error occured,
+ *         0xD8E06406 if the caller has no right to access the service,
+ *         0xD0401834 if the requested service port is full and srvGetServiceHandle is non-blocking (see @ref srvSetBlockingPolicy).
  */
 Result srvGetServiceHandle(Handle* out, const char* name);
 
@@ -50,6 +61,9 @@ Result srvUnregisterService(const char* name);
  * @brief Retrieves a service handle.
  * @param out Pointer to output the handle to.
  * @param name Name of the service.
+ * * @return 0 if no error occured,
+ *           0xD8E06406 if the caller has no right to access the service,
+ *           0xD0401834 if the requested service port is full and srvGetServiceHandle is non-blocking (see @ref srvSetBlockingPolicy).
  */
 Result srvGetServiceHandleDirect(Handle* out, const char* name);
 
@@ -72,6 +86,12 @@ Result srvUnregisterPort(const char* name);
  * @param name Name of the port.
  */
 Result srvGetPort(Handle* out, const char* name);
+
+/**
+ * @brief Waits for a port to be registered.
+ * @param name Name of the port to wait for registration.
+ */
+Result srvWaitForPortRegistered(const char* name);
 
 /**
  * @brief Subscribes to a notification.
@@ -112,3 +132,10 @@ Result srvPublishAndGetSubscriber(u32* processIdCountOut, u32* processIdsOut, u3
  * @param name Name of the service to check.
  */
 Result srvIsServiceRegistered(bool* registeredOut, const char* name);
+
+/**
+ * @brief Checks whether a port is registered.
+ * @param registeredOut Pointer to output the registration status to.
+ * @param name Name of the port to check.
+ */
+Result srvIsPortRegistered(bool* registeredOut, const char* name);

@@ -14,8 +14,16 @@
 #include <3ds/os.h>
 #include <3ds/services/srvpm.h>
 
+#include "internal.h"
+
 static Handle srvHandle;
 static int srvRefCount;
+
+static bool srvGetBlockingPolicy(void)
+{
+	ThreadVars *tv = getThreadVars();
+	return tv->magic == THREADVARS_MAGIC && tv->srv_blocking_policy;
+}
 
 Result srvInit(void)
 {
@@ -41,6 +49,12 @@ void srvExit(void)
 
 	if (srvHandle != 0) svcCloseHandle(srvHandle);
 	srvHandle = 0;
+}
+
+void srvSetBlockingPolicy(bool nonBlocking)
+{
+	ThreadVars *tv = getThreadVars();
+	tv->srv_blocking_policy = nonBlocking;
 }
 
 Handle *srvGetSessionHandle(void)
@@ -128,7 +142,7 @@ Result srvGetServiceHandleDirect(Handle* out, const char* name)
 	cmdbuf[0] = IPC_MakeHeader(0x5,4,0); // 0x50100
 	strncpy((char*) &cmdbuf[1], name,8);
 	cmdbuf[3] = strnlen(name, 8);
-	cmdbuf[4] = 0x0;
+	cmdbuf[4] = (u32)srvGetBlockingPolicy(); // per-thread setting, default is blocking
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
 
@@ -181,6 +195,20 @@ Result srvGetPort(Handle* out, const char* name)
 
 	if(out) *out = cmdbuf[3];
 
+	return cmdbuf[1];
+}
+
+Result srvWaitForPortRegistered(const char* name)
+{
+	Result rc = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x8,4,0); // 0x80100
+	strncpy((char*) &cmdbuf[1], name,8);
+	cmdbuf[3] = strnlen(name, 8);
+	cmdbuf[4] = 0x1;
+
+	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
 	return cmdbuf[1];
 }
 
@@ -268,4 +296,22 @@ Result srvIsServiceRegistered(bool* registeredOut, const char* name)
 	if(registeredOut) *registeredOut = cmdbuf[2] & 0xFF;
 
 	return cmdbuf[1];
+}
+
+Result srvIsPortRegistered(bool* registeredOut, const char* name)
+{
+	Handle port;
+	Result rc = srvGetPort(&port, name);
+
+	if(rc == 0xD8801BFA)
+	{
+		if(registeredOut) *registeredOut = false;
+		return 0;
+	}
+	else if(R_SUCCEEDED(rc))
+	{
+		if(registeredOut) *registeredOut = true;
+		svcCloseHandle(port);
+	}
+	return rc;
 }
