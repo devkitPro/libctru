@@ -26,6 +26,9 @@ typedef struct
 	// FS session override
 	u32    fs_magic;
 	Handle fs_session;
+
+	// Whether srvGetServiceHandle is non-blocking in case of full service ports.
+	bool srv_blocking_policy;
 } ThreadVars;
 
 static inline ThreadVars* getThreadVars(void)
