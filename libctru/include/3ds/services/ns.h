@@ -41,5 +41,6 @@ Result NS_RebootToTitle(u8 mediatype, u64 titleid);
 /**
  * @brief Terminates the process with the specified titleid.
  * @param titleid ID of the title to terminate.
+ * @param timeout Timeout in nanoseconds. Pass 0 if not required.
  */
-Result NS_TerminateProcessTID(u64 titleid);
+Result NS_TerminateProcessTID(u64 titleid, u64 timeout);
