@@ -56,6 +56,18 @@ Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid)
 	return (Result)cmdbuf[1];
 }
 
+Result NS_TerminateTitle(void)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x3,0,0); // 0x30000
+	
+	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result NS_LaunchApplicationFIRM(u64 titleid, u32 flags)
 {
 	Result ret = 0;

@@ -24,6 +24,8 @@ Result NS_LaunchFIRM(u64 titleid);
  */
 Result NS_LaunchTitle(u64 titleid, u32 launch_flags, u32 *procid);
 
+/// Terminates the application from which this function is called
+Result NS_TerminateTitle(void);
 /**
  * @brief Launches a title and the required firmware.
  * @param titleid ID of the title to launch, 0 for gamecard.
