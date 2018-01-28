@@ -156,11 +156,20 @@ typedef enum
 	DIRECTORY_ACTION_UNKNOWN = 0,
 } FS_DirectoryAction;
 
+/// Short name data.
+typedef struct
+{
+	char body[0xA];  ///< The part other than the 8.3 format extension.
+	char ext[4];     ///< The 8.3 format extension.
+	bool valid;      ///< Short filename validity.
+	u8 padding;
+} ShortName;
+
 /// Directory entry.
 typedef struct
 {
 	u16 name[0x106];      ///< UTF-16 directory name.
-	char shortName[0x0A]; ///< File name.
+	ShortName shortName;  ///< File name.
 	char shortExt[0x04];  ///< File extension.
 	u8 valid;             ///< Valid flag. (Always 1)
 	u8 reserved;          ///< Reserved.
