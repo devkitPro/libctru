@@ -169,7 +169,7 @@ typedef struct
 typedef struct
 {
 	u16 name[0x106];      ///< UTF-16 directory name.
-	ShortName shortName;  ///< File name.
+	ShortName shortName;  ///< 8.3 filename.
 	char shortExt[0x04];  ///< File extension.
 	u8 valid;             ///< Valid flag. (Always 1)
 	u8 reserved;          ///< Reserved.
