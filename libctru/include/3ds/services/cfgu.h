@@ -194,3 +194,21 @@ Result CFGI_GetLocalFriendCodeSeedData(u8 *data);
  * @param seed Pointer to write the friend code seed to.
  */
 Result CFGI_GetLocalFriendCodeSeed(u64* seed);
+
+/**
+ * @brief Gets the 0x11-byte data following the SecureInfo signature.
+ * @param data Pointer to output the buffer. (The size must be at least 0x110-bytes)
+ */
+Result CFGI_GetSecureInfoData(u8 *data);
+
+/**
+ * @brief Gets the 0x100-byte RSA-2048 SecureInfo signature.
+ * @param data Pointer to output the buffer. (The size must be at least 0x110-bytes)
+ */
+Result CFGI_GetSecureInfoSignature(u8 *data);
+
+/**
+ * @brief Gets value loaded from SecureInfo offset 0x101.
+ * @param data Pointer to output the buffer. (The size must be at least 0x110-bytes)
+ */
+Result CFGI_GetSecureInfoByte101(u8 *data);

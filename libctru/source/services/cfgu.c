@@ -373,3 +373,46 @@ Result CFGI_GetLocalFriendCodeSeed(u64* seed)
 
 	return (Result)cmdbuf[1];
 }
+
+Result CFGI_GetSecureInfoData(u8 *data)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x814,1,2); // 0x8140042
+	cmdbuf[1] = (u32)0x11;
+	cmdbuf[2] = IPC_Desc_Buffer((u32)0x11, IPC_BUFFER_W);
+	cmdbuf[3] = (u32)data;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_GetSecureInfoSignature(u8 *data)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x815,1,2); // 0x8150042
+	cmdbuf[1] = (u32)0x100;
+	cmdbuf[2] = IPC_Desc_Buffer((u32)0x100, IPC_BUFFER_W);
+	cmdbuf[3] = (u32)data;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result CFGI_GetSecureInfoByte101(u8 *data)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x817,0,0); // 0x8170000
+	cmdbuf[2] = (u32)data;
+
+	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
