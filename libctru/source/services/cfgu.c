@@ -403,16 +403,3 @@ Result CFGI_GetSecureInfoSignature(u8 *data)
 
 	return (Result)cmdbuf[1];
 }
-
-Result CFGI_GetSecureInfoByte101(u8 *data)
-{
-	Result ret = 0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
-	cmdbuf[0] = IPC_MakeHeader(0x817,0,0); // 0x8170000
-	cmdbuf[2] = (u32)data;
-
-	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
-
-	return (Result)cmdbuf[1];
-}

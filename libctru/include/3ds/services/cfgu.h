@@ -206,9 +206,3 @@ Result CFGI_GetSecureInfoData(u8 *data);
  * @param data Pointer to output the buffer. (The size must be at least 0x100-bytes)
  */
 Result CFGI_GetSecureInfoSignature(u8 *data);
-
-/**
- * @brief Gets value loaded from SecureInfo offset 0x101.
- * @param data Pointer to output the buffer.
- */
-Result CFGI_GetSecureInfoByte101(u8 *data);
