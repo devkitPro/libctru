@@ -29,7 +29,7 @@ Result acWaitInternetConnection(void);
  * @brief Gets the connected WiFi status.
  * @param out Pointer to output the connected WiFi status to. (0 = not connected, 1 = O3DS Internet, 2 = N3DS Internet)
  */
-Result ACU_GetWiFiStatus(u32 *out);
+Result ACU_GetWifiStatus(u32 *out);
 
 /**
  * @brief Gets the connected WiFi status.
