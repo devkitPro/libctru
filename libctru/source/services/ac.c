@@ -65,7 +65,7 @@ Result ACU_GetStatus(u32 *out)
 	return (Result)cmdbuf[1];
 }
 
-Result ACI_GetSecurityMode(acSecurityMode *mode)
+Result ACU_GetSecurityMode(acSecurityMode *mode)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
