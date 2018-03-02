@@ -4,7 +4,7 @@
  */
 #pragma once
 
-/// WiFi security modes.
+/// Wifi security modes.
 typedef enum {
     AC_OPEN = 0,       ///< Open authentication.
     AC_WEP_40BIT = 1,  ///< WEP 40-bit authentication.
@@ -26,32 +26,32 @@ void acExit(void);
 Result acWaitInternetConnection(void);
 
 /**
- * @brief Gets the connected WiFi status.
- * @param out Pointer to output the connected WiFi status to. (0 = not connected, 1 = O3DS Internet, 2 = N3DS Internet)
+ * @brief Gets the connected Wifi status.
+ * @param out Pointer to output the connected Wifi status to. (0 = not connected, 1 = O3DS Internet, 2 = N3DS Internet)
  */
 Result ACU_GetWifiStatus(u32 *out);
 
 /**
- * @brief Gets the connected WiFi status.
- * @param out Pointer to output the connected WiFi status to. (1 = not connected, 3 = connected)
+ * @brief Gets the connected Wifi status.
+ * @param out Pointer to output the connected Wifi status to. (1 = not connected, 3 = connected)
  */
 Result ACU_GetStatus(u32 *out);
 
 /**
- * @brief Gets the connected WiFi security mode.
- * @param mode Pointer to output the connected WiFi security mode to. (0 = Open Authentication, 1 = WEP 40-bit, 2 = WEP 104-bit, 3 = WEP 128-bit, 4 = WPA TKIP, 5 = WPA2 TKIP, 6 = WPA AES, 7 = WPA2 AES)
+ * @brief Gets the connected Wifi security mode.
+ * @param mode Pointer to output the connected Wifi security mode to. (0 = Open Authentication, 1 = WEP 40-bit, 2 = WEP 104-bit, 3 = WEP 128-bit, 4 = WPA TKIP, 5 = WPA2 TKIP, 6 = WPA AES, 7 = WPA2 AES)
  */
 Result ACU_GetSecurityMode(acSecurityMode *mode);
 
 /**
- * @brief Gets the connected WiFi SSID.
- * @param SSID Pointer to output the connected WiFi SSID to.
+ * @brief Gets the connected Wifi SSID.
+ * @param SSID Pointer to output the connected Wifi SSID to.
  */
 Result ACU_GetSSID(char *SSID);
 
 /**
- * @brief Gets the connected WiFi SSID length.
- * @param out Pointer to output the connected WiFi SSID length to.
+ * @brief Gets the connected Wifi SSID length.
+ * @param out Pointer to output the connected Wifi SSID length to.
  */
 Result ACU_GetSSIDLength(u32 *out);
 
