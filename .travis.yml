@@ -20,7 +20,7 @@ before_install:
   - export DEVKITARM=${DEVKITPRO}/devkitARM
   - mkdir -p $DEVKITPRO
   - cd $DEVKITPRO
-  - wget -N http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl
+  - wget -N https://raw.githubusercontent.com/devkitPro/installer/master/perl/devkitARMupdate.pl
   - 
 
 install:
