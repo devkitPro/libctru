@@ -116,3 +116,15 @@ Result NS_TerminateProcessTID(u64 titleid, u64 timeout)
 
 	return (Result)cmdbuf[1];
 }
+
+Result NS_RebootSystem(void)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x16,0,0); // 0x160000
+	
+	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
