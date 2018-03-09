@@ -46,3 +46,6 @@ Result NS_RebootToTitle(u8 mediatype, u64 titleid);
  * @param timeout Timeout in nanoseconds. Pass 0 if not required.
  */
 Result NS_TerminateProcessTID(u64 titleid, u64 timeout);
+
+/// Reboots the system
+Result NS_RebootSystem(void);
