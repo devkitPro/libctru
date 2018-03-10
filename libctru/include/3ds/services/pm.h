@@ -47,3 +47,22 @@ Result PM_GetFIRMLaunchParams(u32 size, u8* out);
  * @param in Buffer to retrieve the launch parameters from.
  */
 Result PM_LaunchFIRMSetParams(u32 firm_titleid_low, u32 size, u8* in);
+
+/**
+ * @brief Terminates the current Application
+ * @param timeout Timeout in nanoseconds
+ */
+Result PM_TerminateCurrentApplication(u64 timeout);
+
+/**
+ * @brief Terminates the specified Process
+ * @param pid Process-ID of the process to terminate
+ * @param timeout Timeout on nanoseconds
+ */
+Result PM_TerminateProcess(u8 pid, u64 timeout);
+
+/**
+ * @brief Unregisters a process
+ * @param tid TitleID of the process to unregister
+ */
+ Result PM_UnregisterProcess(u64 tid);
