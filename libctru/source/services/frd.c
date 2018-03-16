@@ -1,6 +1,5 @@
 #include <string.h>
-
-#include "frd.h"
+#include <3ds/services/frd.h>
 
 static Handle frdHandle;
 static int frdRefCount;
