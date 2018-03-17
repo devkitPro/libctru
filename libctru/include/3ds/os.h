@@ -165,7 +165,7 @@ static inline void osTickCounterUpdate(TickCounter* cnt)
  * @param cnt The tick counter.
  * @return The number of milliseconds elapsed.
  */
-double osTickCounterRead(TickCounter* cnt);
+double osTickCounterRead(const TickCounter* cnt);
 
 /**
  * @brief Gets the current Wifi signal strength.

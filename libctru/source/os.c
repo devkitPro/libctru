@@ -113,7 +113,7 @@ u64 osGetTime(void) {
 }
 
 //---------------------------------------------------------------------------------
-double osTickCounterRead(TickCounter* cnt) {
+double osTickCounterRead(const TickCounter* cnt) {
 //---------------------------------------------------------------------------------
 	return u64_to_double(cnt->elapsed) / CPU_TICKS_PER_MSEC;
 }
