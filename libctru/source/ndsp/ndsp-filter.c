@@ -3,7 +3,7 @@
 #include <3ds/ndsp/ndsp.h>
 #include <3ds/ndsp/channel.h>
 
-#define Fs 32728.0f
+#define Fs NDSP_SAMPLE_RATE
 
 bool ndspChnIirMonoSetParamsLowPassFilter(int id, float f0)
 {
