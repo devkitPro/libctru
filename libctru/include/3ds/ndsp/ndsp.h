@@ -4,6 +4,10 @@
  */
 #pragma once
 
+#include <3ds/os.h>
+
+#define NDSP_SAMPLE_RATE (SYSCLOCK_SOC / 512.0)
+
 ///@name Data types
 ///@{
 /// Sound output modes.

@@ -123,7 +123,7 @@ void ndspChnSetRate(int id, float rate)
 {
 	ndspChnSt* chn = &ndspChn[id];
 	LightLock_Lock(&chn->lock);
-	chn->rate = rate/32728.0f;
+	chn->rate = rate / NDSP_SAMPLE_RATE;
 	chn->flags |= CFLAG_RATE;
 	LightLock_Unlock(&chn->lock);
 }

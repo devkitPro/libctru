@@ -16,10 +16,10 @@ typedef enum
 /// Microphone audio sampling rates.
 typedef enum
 {
-	MICU_SAMPLE_RATE_32730 = 0, ///< 32730 Hz
-	MICU_SAMPLE_RATE_16360 = 1, ///< 16360 Hz
-	MICU_SAMPLE_RATE_10910 = 2, ///< 10910 Hz
-	MICU_SAMPLE_RATE_8180 =  3, ///< 8180 Hz
+	MICU_SAMPLE_RATE_32730 = 0, ///< 32728.498 Hz
+	MICU_SAMPLE_RATE_16360 = 1, ///< 16364.479 Hz
+	MICU_SAMPLE_RATE_10910 = 2, ///< 10909.499 Hz
+	MICU_SAMPLE_RATE_8180 =  3, ///< 8182.1245 Hz
 } MICU_SampleRate;
 
 /**
