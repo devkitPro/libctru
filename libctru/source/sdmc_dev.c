@@ -150,6 +150,7 @@ sdmc_fixpath(struct _reent *r,
   else
   {
     strncpy(__fixedpath, __cwd, PATH_MAX);
+    __fixedpath[PATH_MAX] = '\0';
     strncat(__fixedpath, path, PATH_MAX);
   }
 
@@ -820,6 +821,7 @@ sdmc_chdir(struct _reent *r,
   {
     FSDIR_Close(fd);
     strncpy(__cwd, __fixedpath, PATH_MAX);
+    __cwd[PATH_MAX] = '\0';
     return 0;
   }
 
