@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 1.5.0
+
+- Added new decompression API which supports LZSS/LZ10, LZ11, RLE & Huffman formats, and which can read compressed data from memory or from a file.
+- Added srvSetBlockingPolicy, which controls whether srvGetServiceHandle blocks when the service isn't yet registered (or returns an error otherwise).
+- Added ACU commands: ACU_GetStatus, ACU_GetSecurityMode, ACU_GetSSIDLength, ACU_GetSecurityMode, ACU_GetProxyEnable, ACU_GetProxyPort, ACU_GetProxyUserName, ACU_GetProxyPassword, ACU_GetLastErrorCode, ACU_GetLastDetailErrorCode.
+- Added CFGI commands: CFGI_SecureInfoGetSerialNumber, CFGU_IsNFCSupported, CFGI_GetLocalFriendCodeSeed, CFGI_GetLocalFriendCodeSeedData, CFGI_GetSecureInfoData, CFGI_GetSecureInfoSignature.
+- Added MCUHWC commands: MCUHWC_SetWifiLedState, MCUHWC_SetPowerLedState, MCUHWC_Get3dSliderLevel, MCUHWC_GetFwVerHigh, MCUHWC_GetFwVerLow.
+- Added NS commands: NS_TerminateTitle, NS_TerminateProcessTID (with timeout), NS_RebootSystem.
+- Added PM commands: PM_TerminateCurrentApplication, PM_TerminateProcess, PM_UnregisterProcess.
+- Overhauled NDMU service support and added many commands that were previously missing.
+- Fixed bugs in srv:pm implementation.
+- Fixed calculation of vertical texture coordinates in fontCalcGlyphPos.
+- Fixed shaderProgramSetGshInputPermutation.
+- Fixed and added clock speed constants (affects system clock and NDSP).
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.4.0
 
 - Added LightSemaphore synchronization primitive.
