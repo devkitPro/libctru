@@ -19,7 +19,7 @@ before_install:
   - sudo dpkg -i devkitpro-pacman.deb
 
 install:
-  - sudo dkp-pacman -Syu 3ds-dev --needed
+  - sudo dkp-pacman -Syu 3ds-dev --noconfirm --needed
   
 env:
   global:
