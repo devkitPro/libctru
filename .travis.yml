@@ -1,6 +1,6 @@
 language: c
 
-sudo: false
+sudo: true
 
 #Cache devkitARM and doxygen
 cache:
@@ -15,19 +15,11 @@ before_install:
   - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then wget http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.11.linux.bin.tar.gz; fi
   - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then tar xzf doxygen-1.8.11.linux.bin.tar.gz; fi
   - export PATH=$PATH:$DOXY_BINPATH
-  # Prepare devkitARM update
-  - export DEVKITPRO=/home/travis/devkitPro
-  - export DEVKITARM=${DEVKITPRO}/devkitARM
-  - mkdir -p $DEVKITPRO
-  - cd $DEVKITPRO
-  - wget -N https://raw.githubusercontent.com/devkitPro/installer/master/perl/devkitARMupdate.pl
-  - 
+  - wget https://github.com/devkitPro/pacman/releases/download/v1.0.0/devkitpro-pacman.deb
+  - sudo dpkg -i devkitpro-pacman.deb
 
 install:
-  - cd $DEVKITPRO
-  # Install or update devkitARM if it's cached
-  - perl devkitARMupdate.pl
-  - cd $TRAVIS_BUILD_DIR
+  - sudo pacman -Syu 3ds-dev --needed
   
 env:
   global:
