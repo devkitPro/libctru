@@ -1,3 +1,3 @@
 #!/bin/bash -ex
 
-make -C libctru
+make -C libctru/libctru
