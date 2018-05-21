@@ -1,7 +1,13 @@
 language: c
 
 sudo: required
-  
+
+services: docker 
+
+#Cache doxygen
+cache:
+  directories:
+    - /home/travis/doxygen/doxygen-1.8.11/bin
 env:
   global:
     - secure: "SYuVfyfmO6P+KnOXFZpNbBLO3QpGZJjIvFJHix3+xAfjENZoCzn+A7Gmcbm07VN0UB9sDJrYklyUrUepVWSuOd+FiNEyiLi4oYXxFzDjA9am7W1nFEaBAw6Ilifg7KX2OlClXaF7iiQ1udtmN9Uw+1LwfpldDDqti1H9TANaKHc="
