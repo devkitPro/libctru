@@ -20,9 +20,12 @@ before_install:
   - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then tar xzf doxygen-1.8.11.linux.bin.tar.gz; fi
   - export PATH=$PATH:$DOXY_BINPATH
 
-install: "./.travis/deps.sh"
-script:  "./.travis/build.sh"
-  
+install:
+  - docker pull devkitpro/devkitarm
+
+script:
+  - docker run -e ENABLE_COMPATIBILITY_REPORTING -v $TRAVIS_BUILD_DIR:libctru -v devkitpro/devkitarm /bin/bash -ex /libctru/.travis/docker.sh
+
 after_success:
   - cd $TRAVIS_BUILD_DIR
   - #Build the doxygen files and upload to GH pages
