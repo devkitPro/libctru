@@ -159,6 +159,18 @@ bool aptIsSleepAllowed(void);
 void aptSetSleepAllowed(bool allowed);
 
 /**
+ * @brief Gets whether to allow the system to go back to HOME menu.
+ * @return Whether going back to HOME menu is allowed.
+ */
+bool aptIsHomeAllowed(void);
+
+/**
+ * @brief Sets whether to allow the system to go back to HOME menu.
+ * @param allowed Whether going back to HOME menu is allowed.
+ */
+void aptSetHomeAllowed(bool allowed);
+
+/**
  * @brief Processes the current APT status. Generally used within a main loop.
  * @return Whether the application should continue running.
  */
