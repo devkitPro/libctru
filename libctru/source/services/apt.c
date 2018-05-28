@@ -41,6 +41,7 @@ enum
 
 static u8 aptHomeButtonState;
 static u32 aptFlags = FLAG_ALLOWSLEEP;
+static bool home_allowed = false;
 static u32 aptParameters[0x1000/4];
 static u64 aptChainloadTid;
 static u8 aptChainloadMediatype;
@@ -267,6 +268,16 @@ void aptSetSleepAllowed(bool allowed)
 	}
 }
 
+bool aptIsHomeAllowed(void)
+{
+	return home_allowed;
+}
+
+void aptSetHomeAllowed(bool allowed)
+{
+	home_allowed = allowed;
+}
+
 void aptSetChainloader(u64 programID, u8 mediatype)
 {
 	aptChainloadTid = programID;
@@ -338,10 +349,10 @@ void aptEventHandler(void *arg)
 		switch (signal)
 		{
 			case APTSIGNAL_HOMEBUTTON:
-				if (!aptHomeButtonState) aptHomeButtonState = 1;
+				if (!aptHomeButtonState && aptIsHomeAllowed()) aptHomeButtonState = 1;
 				break;
 			case APTSIGNAL_HOMEBUTTON2:
-				if (!aptHomeButtonState) aptHomeButtonState = 2;
+				if (!aptHomeButtonState && aptIsHomeAllowed()) aptHomeButtonState = 2;
 				break;
 			case APTSIGNAL_SLEEP_QUERY:
 				APT_ReplySleepQuery(envGetAptAppId(), aptIsSleepAllowed() ? APTREPLY_ACCEPT : APTREPLY_REJECT);
