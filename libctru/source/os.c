@@ -163,12 +163,3 @@ void osSetSpeedupEnable(bool enable)
 	__ctru_speedup = enable;
 	__ctru_speedup_config();
 }
-
-int usleep(useconds_t useconds)
-{
-
-	svcSleepThread(useconds * 1000ull);
-
-	return 0;
-
-}
