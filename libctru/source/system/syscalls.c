@@ -12,6 +12,7 @@
 
 void __ctru_exit(int rc);
 int __libctru_gtod(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
+int __libctru_nanosleep(const struct timespec *req, struct timespec *rem);
 
 extern const u8 __tdata_lma[];
 extern const u8 __tdata_lma_end[];
@@ -34,7 +35,8 @@ void __system_initSyscalls(void)
 	__syscalls.exit     = __ctru_exit;
 	__syscalls.gettod_r = __libctru_gtod;
 	__syscalls.getreent = __ctru_get_reent;
-
+	__syscalls.nanosleep = __libctru_nanosleep;
+	
 	// Register locking syscalls
 	__syscalls.lock_init                  = LightLock_Init;
 	__syscalls.lock_acquire               = LightLock_Lock;
