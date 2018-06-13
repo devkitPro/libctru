@@ -164,11 +164,8 @@ void osSetSpeedupEnable(bool enable)
 	__ctru_speedup_config();
 }
 
-int usleep(useconds_t useconds)
+int __libctru_nanosleep(const struct timespec *req, struct timespec *rem)
 {
-
-	svcSleepThread(useconds * 1000ull);
-
+	svcSleepThread(req->tv_sec * 1000000000ull + req->tv_nsec);
 	return 0;
-
 }
