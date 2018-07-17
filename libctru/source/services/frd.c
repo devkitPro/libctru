@@ -4,6 +4,42 @@
 static Handle frdHandle;
 static int frdRefCount;
 
+static void frdConvertToUTF8(char* out, const u16* in, size_t max)
+{
+    if (!in || !*in)
+    {
+        out[0] = 0;
+        return;
+    }
+
+    ssize_t units = utf16_to_utf8((uint8_t*)out, in, max);
+    if (units < 0)
+    {
+        out[0] = 0;
+        return;
+    }
+
+    out[units] = 0;
+}
+
+static void frdConvertToUTF16(u16* out, const char* in, size_t max)
+{
+	if (!in || !*in)
+	{
+		out[0] = 0;
+		return;
+	}
+
+	ssize_t units = utf8_to_utf16(out, (const uint8_t*)in, max-1);
+	if (units < 0)
+	{
+		out[0] = 0;
+		return;
+	}
+
+	out[units] = 0;	
+}
+
 Result frdInit(void)
 {
 	Result ret = 0;
@@ -108,7 +144,7 @@ Result FRD_GetMyProfile(Profile *profile)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetMyScreenName(u16 *name)
+Result FRD_GetMyScreenName(char *name, size_t max_size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -117,7 +153,7 @@ Result FRD_GetMyScreenName(u16 *name)
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 	
-	memcpy(name, &cmdbuf[2], FRIENDS_SCREEN_NAME_SIZE); // 11-byte UTF-16 screen name (with null terminator)
+	frdConvertToUTF8(name, (u16*)&cmdbuf[2], max_size);
 	
 	return (Result)cmdbuf[1];
 }
@@ -164,7 +200,7 @@ Result FRD_GetMyFavoriteGame(u64 *titleId)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetMyComment(u16 *comment)
+Result FRD_GetMyComment(char *comment, size_t max_size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -173,7 +209,7 @@ Result FRD_GetMyComment(u16 *comment)
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 	
-	memcpy(comment, &cmdbuf[2], FRIENDS_COMMENT_SIZE); // 16-byte UTF-16 comment
+	frdConvertToUTF8(comment, (u16*)&cmdbuf[2], max_size);
 	
 	return (Result)cmdbuf[1];
 }
@@ -212,14 +248,18 @@ Result FRD_IsFromFriendList(FriendKey *friendKeyList, bool *isFromList)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_UpdateGameModeDescription(u16 *desc)
+Result FRD_UpdateGameModeDescription(const char *desc)
 {
+	u16 u16_desc[strlen(desc) + 1];
+	
+	frdConvertToUTF16(u16_desc, desc, strlen(desc) + 1);
+
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x1D,0,2); // 0x1D0002
 	cmdbuf[1] = 0x400802;
-	cmdbuf[2] = (uintptr_t)desc;
+	cmdbuf[2] = (uintptr_t)u16_desc;
     
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 

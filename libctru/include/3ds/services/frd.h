@@ -93,9 +93,10 @@ Result FRD_GetMyProfile(Profile *profile);
 
 /**
  * @brief Gets the current user's screen name.
- * @param name Pointer to write the current user's screen name to. 11-byte UTF-16 screen name (with null terminator)
+ * @param name Pointer to write the current user's screen name to.
+ * @param max_size Max size of the screen name.
  */
-Result FRD_GetMyScreenName(u16 *name);
+Result FRD_GetMyScreenName(char *name, size_t max_size);
 
 /**
  * @brief Gets the current user's Mii data.
@@ -118,8 +119,9 @@ Result FRD_GetMyFavoriteGame(u64 *titleId);
 /**
  * @brief Gets the current user's comment on their friend profile.
  * @param comment Pointer to write the current user's comment to.
+ * @param max_size Max size of the comment.
  */
-Result FRD_GetMyComment(u16 *comment);
+Result FRD_GetMyComment(char *comment, size_t max_size);
 
 /**
  * @brief Gets the current user's firend key list
@@ -141,7 +143,7 @@ Result FRD_IsFromFriendList(FriendKey *friendKeyList, bool *isFromList);
  * @brief Updates the game mode description string.
  * @param desc Pointer to write the game mode description to.
  */
-Result FRD_UpdateGameModeDescription(u16 *desc);
+Result FRD_UpdateGameModeDescription(const char *desc);
 
 /**
  * @brief Returns the friend code using the given principal ID.
