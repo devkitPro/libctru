@@ -2,7 +2,7 @@
  * @file frd.h
  * @brief Friend Services
  */
- #pragma once
+#pragma once
 #include <3ds.h>
 
 #define FRIENDS_SCREEN_NAME_SIZE 0x16   // 11 (0x16 because UTF-16)
@@ -18,37 +18,74 @@ typedef struct
    u64 localFriendCode;
 } FriendKey;
 
+/// Friend Title data
+typedef struct
+{
+   u64 tid;
+   u32 version;
+   u32 unk;
+} TitleData;
 /// Structure containing basic Mii information.
 typedef struct 
 {
-    u32 mii_id;
-    u64 system_id;
-    u32 cdate;
-    u8 mac[0x6];
-    u16 padding;
-    u16 misc1;
-    u16 mii_name[0xB];
-    u8 width;
-    u8 height;
-    u32 misc2;
-    u32 unknown1;
-    u32 misc3;
-    u32 unknown2;
-    u8 allow_copy;
-    u8 unknown3[0x7];
-    u16 author[0xB];
+   u32 mii_id;
+	u64 system_id;
+	u32 cdate;
+	u8 mac[0x6];
+   u16 padding;
+   u16 misc1;
+   u16 mii_name[0xB];
+   u8 width;
+   u8 height;
+   u32 misc2;
+   u32 unknown1;
+   u32 misc3;
+   u32 unknown2;
+   u8 allow_copy;
+   u8 unknown3[0x7];
+   u16 author[0xB];
 } MiiData;
 
 /// Friend profile data
 typedef struct
 {
-    u8 region;      // The region code for the hardware.
-    u8 country;     // Country code.
-    u8 area;        // Area code.
-    u8 language;    // Language code.
-    u8 platform;    // Platform code.
-    u32 padding;
+   u8 region;      // The region code for the hardware.
+   u8 country;     // Country code.
+   u8 area;        // Area code.
+   u8 language;    // Language code.
+   u8 platform;    // Platform code.
+   u32 padding;
 } Profile;
+
+/// Game Description structure
+typedef struct
+{
+   TitleData data;
+   u16 desc[128];
+} GameDescription;
+
+/// Friend Notification Event structure
+typedef struct
+{
+	u8 type;
+	u8 padding3[3];
+	u32 padding;
+	FriendKey key;
+}NotificationEvent;
+
+/// Enum to use with FRD_GetNotificationEvent
+typedef enum 
+{
+	selfOnline = 1, // Self went online
+	selfOffline, // Self went offline
+	friendOnline, // Friend Went Online 
+	friendPresence, // Friend Presence changed
+	friendMii, // Friend Mii changed
+	friendProfile, // Friend Profile changed
+	friendOffline, // Friend went offline
+	friendBecameFriend, // Friend registered self as friend
+	friendInvitaton // Friend Sent invitation
+}NotificationTypes;
 
 /// Initializes FRD service.
 Result frdInit(void);
@@ -70,6 +107,12 @@ Result FRDU_IsOnline(bool *state);
 
 /// Logs out of Nintendo's friend server.
 Result FRD_Logout(void);
+
+/**
+ * @brief Log in to Nintendo's friend server.
+ * @param event Event to signal when Login is done.
+ */
+Result FRD_Login(Handle event);
 
 /**
  * @brief Gets the current user's friend key.
@@ -133,6 +176,38 @@ Result FRD_GetMyComment(char *comment, size_t max_size);
 Result FRD_GetFriendKeyList(FriendKey *friendKeyList, size_t *num, size_t offset, size_t size);
 
 /**
+ * @brief Gets Friends Mii data.
+ * @param mii Pointer to write Mii data to.
+ * @param keys Pointer to FriendKeys.
+ * @param numberOfKeys Number of Friendkeys.
+ */
+Result FRD_GetFriendMii(MiiData *mii, const FriendKey *keys, size_t numberOfKeys);
+
+/**
+ * @brief Get a friend's profile data.
+ * @param profile Pointer to write profile data to.
+ * @param keys Pointer to FriendKeys.
+ * @param numberOfKeys Number of FriendKeys.
+ */
+Result FRD_GetFriendProfile(Profile *profile, const FriendKey *keys, size_t numberOfKeys);
+
+/**
+ * @brief Get a friend's playing Game.
+ * @param desc Pointer to write Game Description data to.
+ * @param keys Pointer to FriendKeys,
+ * @param numberOfKeys Number Of FriendKeys.
+ */
+Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *keys, size_t numberOfKeys);
+
+/**
+ * @brief Get a friend's favourite Game.
+ * @param desc Pointer to write Game Description data to.
+ * @param keys Pointer to FriendKeys,
+ * @param numberOfKeys Number Of FriendKeys.
+ */
+Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *keys, size_t numberOfKeys);
+
+/**
  * @brief Determines if the application was started using the join game option in the friends applet.
  * @param friendKeyList Pointer to a list of friend keys.
  * @param isFromList Pointer to a write the friendship status to.
@@ -146,6 +221,20 @@ Result FRD_IsFromFriendList(FriendKey *friendKeyList, bool *isFromList);
 Result FRD_UpdateGameModeDescription(const char *desc);
 
 /**
+ * @brief Event which is signaled when friend login states change.
+ * @param event event which will be signaled.
+ */
+Result FRD_AttachToEventNotification(Handle event);
+
+/**
+ * @brief Get Latest Event Notification
+ * @param event Pointer to write recieved notification event struct to.
+ * @param size Number of events
+ * @param recievedNotifCount Number of notification reccieved.
+ */
+Result FRD_GetEventNotification(NotificationEvent *event, size_t size, u32 *recievedNotifCount); 
+
+/**
  * @brief Returns the friend code using the given principal ID.
  * @param principalId The principal ID being used.
  * @param friendCode Pointer to write the friend code to.
@@ -154,7 +243,7 @@ Result FRD_PrincipalIdToFriendCode(u32 principalId, u64 *friendCode);
 
 /**
  * @brief Returns the principal ID using the given friend code.
-  * @param friendCode The friend code being used.
+ * @param friendCode The friend code being used.
  * @param principalId Pointer to write the principal ID to.
  */
 Result FRD_FriendCodeToPrincipalId(u64 friendCode, u32 *principalId);
@@ -171,3 +260,17 @@ Result FRD_IsValidFriendCode(u64 friendCode, bool *isValid);
  * @param sdkVer The SDK version needed to be used.
  */
 Result FRD_SetClientSdkVersion(u32 sdkVer);
+
+/**
+ * @brief Add a Friend online.
+ * @param event Event signaled when friend is registered.
+ * @param principalId PrincipalId of the friend to add.
+ */
+Result FRD_AddFriendOnline(Handle event, u32 principalId);
+
+/**
+ * @brief Remove a Friend.
+ * @param principalId PrinipalId of the friend code to remove.
+ * @param localFriendCode LocalFriendCode of the friend code to remove.
+ */
+Result FRD_RemoveFriend(u32 principalId, u64 localFriendCode);
