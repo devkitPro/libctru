@@ -13,55 +13,55 @@
 /// Friend key data
 typedef struct
 {
-   u32 principalId;
-   u32 padding;
-   u64 localFriendCode;
+	u32 principalId;
+	u32 padding;
+	u64 localFriendCode;
 } FriendKey;
 
 /// Friend Title data
 typedef struct
 {
-   u64 tid;
-   u32 version;
-   u32 unk;
+	u64 tid;
+	u32 version;
+	u32 unk;
 } TitleData;
 /// Structure containing basic Mii information.
 typedef struct 
 {
-   u32 mii_id;
+	u32 mii_id;
 	u64 system_id;
 	u32 cdate;
 	u8 mac[0x6];
-   u16 padding;
-   u16 misc1;
-   u16 mii_name[0xB];
-   u8 width;
-   u8 height;
-   u32 misc2;
-   u32 unknown1;
-   u32 misc3;
-   u32 unknown2;
-   u8 allow_copy;
-   u8 unknown3[0x7];
-   u16 author[0xB];
+	u16 padding;
+	u16 misc1;
+	u16 mii_name[0xB];
+	u8 width;
+	u8 height;
+	u32 misc2;
+	u32 unknown1;
+	u32 misc3;
+	u32 unknown2;
+	u8 allow_copy;
+	u8 unknown3[0x7];
+	u16 author[0xB];
 } MiiData;
 
 /// Friend profile data
 typedef struct
 {
-   u8 region;      // The region code for the hardware.
-   u8 country;     // Country code.
-   u8 area;        // Area code.
-   u8 language;    // Language code.
-   u8 platform;    // Platform code.
-   u32 padding;
+	u8 region;      // The region code for the hardware.
+	u8 country;     // Country code.
+	u8 area;        // Area code.
+	u8 language;    // Language code.
+	u8 platform;    // Platform code.
+	u32 padding;
 } Profile;
 
 /// Game Description structure
 typedef struct
 {
-   TitleData data;
-   u16 desc[128];
+	TitleData data;
+	u16 desc[128];
 } GameDescription;
 
 /// Friend Notification Event structure

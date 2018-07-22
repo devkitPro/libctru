@@ -37,7 +37,7 @@ static void frdConvertToUTF16(u16* out, const char* in, size_t max)
 		return;
 	}
 
-	out[units] = 0;	
+	out[units] = 0;
 }
 
 Result frdInit(void)
@@ -70,7 +70,7 @@ Result FRDU_HasLoggedIn(bool *state)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*state = cmdbuf[2] & 0xFF;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -84,7 +84,7 @@ Result FRDU_IsOnline(bool *state)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*state = cmdbuf[2] & 0xFF;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -108,7 +108,7 @@ Result FRD_Logout(void)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x04,0,0); // 0x40000
-	 
+
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	return (Result)cmdbuf[1];
@@ -124,7 +124,7 @@ Result FRD_GetMyFriendKey(FriendKey *key)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	memcpy(key, &cmdbuf[2], sizeof(FriendKey));
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -137,10 +137,10 @@ Result FRD_GetMyPreference(bool *isPublicMode, bool *isShowGameName, bool *isSho
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
-	*isPublicMode = cmdbuf[2] & 0xFF; // Public mode 
-	*isShowGameName = cmdbuf[3] & 0xFF; // Show current game 
+	*isPublicMode = cmdbuf[2] & 0xFF; // Public mode
+	*isShowGameName = cmdbuf[3] & 0xFF; // Show current game
 	*isShowPlayedGame = cmdbuf[4] & 0xFF; // Show game history.
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -154,7 +154,7 @@ Result FRD_GetMyProfile(Profile *profile)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	memcpy(profile, &cmdbuf[2], sizeof(Profile));
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -166,9 +166,9 @@ Result FRD_GetMyScreenName(char *name, size_t max_size)
 	cmdbuf[0] = IPC_MakeHeader(0x09,0,0); // 0x90000
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
-	
+
 	frdConvertToUTF8(name, (u16*)&cmdbuf[2], max_size);
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -182,7 +182,7 @@ Result FRD_GetMyMii(MiiData *mii)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	memcpy(mii, &cmdbuf[2], FRIEND_MII_STORE_DATA_SIZE);
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -196,7 +196,7 @@ Result FRD_GetMyPlayingGame(u64 *titleId)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*titleId = (((u64)cmdbuf[3]) << 32 | (u64)cmdbuf[2]);
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -210,7 +210,7 @@ Result FRD_GetMyFavoriteGame(u64 *titleId)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*titleId = (((u64)cmdbuf[3]) << 32 | (u64)cmdbuf[2]);
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -222,9 +222,9 @@ Result FRD_GetMyComment(char *comment, size_t max_size)
 	cmdbuf[0] = IPC_MakeHeader(0x0F,0,0); // 0xF0000
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
-	
+
 	frdConvertToUTF8(comment, (u16*)&cmdbuf[2], max_size);
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -242,7 +242,7 @@ Result FRD_GetFriendKeyList(FriendKey *friendKeyList, size_t *num, size_t offset
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*num = cmdbuf[2];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -250,7 +250,7 @@ Result FRD_GetFriendMii(MiiData *mii, const FriendKey *keys, size_t numberOfKeys
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x14,1,4); //0x140044
 	cmdbuf[1] = numberOfKeys;
 	cmdbuf[2] = (numberOfKeys << 18)|2;
@@ -272,13 +272,13 @@ Result FRD_GetFriendProfile(Profile *profile, const FriendKey *keys, size_t numb
 	cmdbuf[1] = numberOfKeys;
 	cmdbuf[2] = (numberOfKeys << 18)|2;
 	cmdbuf[3] = (u32)keys;
-	 
+
 	u32 *staticbuf = getThreadStaticBuffers();
 	staticbuf[0] = (numberOfKeys << 17)|2;
 	staticbuf[1] = (u32)profile;
-	 
+
 	if(R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
-	 
+
 	return (Result)cmdbuf[1];
 }
 
@@ -331,14 +331,14 @@ Result FRD_IsFromFriendList(FriendKey *friendKeyList, bool *isFromList)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*isFromList = cmdbuf[2] & 0xFF;
-	
+
 	return (Result)cmdbuf[1];
 }
 
 Result FRD_UpdateGameModeDescription(const char *desc)
 {
 	u16 u16_desc[strlen(desc) + 1];
-	
+
 	frdConvertToUTF16(u16_desc, desc, strlen(desc) + 1);
 
 	Result ret = 0;
@@ -347,7 +347,7 @@ Result FRD_UpdateGameModeDescription(const char *desc)
 	cmdbuf[0] = IPC_MakeHeader(0x1D,0,2); // 0x1D0002
 	cmdbuf[1] = 0x400802;
 	cmdbuf[2] = (uintptr_t)u16_desc;
-	 
+
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	return (Result)cmdbuf[1];
@@ -357,35 +357,35 @@ Result FRD_AttachToEventNotification(Handle event)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] =IPC_MakeHeader(0x20,0,2); //0x200002;
 	cmdbuf[1] = 0;
 	cmdbuf[2] = (u32)event;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
-	
+
 	return (Result)cmdbuf[1];
 }
 
 Result FRD_GetEventNotification(NotificationEvent *event, size_t size, u32 *recievedNotifCount)
 {
 	Result ret = 0;
-	
+
 	u32 *cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x22,1,0); //0x220040
 	cmdbuf[1] = (u32)size;
-	
+
 	u32 *staticbuf = getThreadStaticBuffers();
 	staticbuf[0] = 0x60000 * size | 2;
 	staticbuf[1] = (u32)event;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(frdHandle)))
 		return ret;
-	
+
 	*recievedNotifCount = cmdbuf[3];
-	
+
 	return (Result)cmdbuf[1];
-} 
+}
 
 Result FRD_PrincipalIdToFriendCode(u32 principalId, u64 *friendCode)
 {
@@ -398,7 +398,7 @@ Result FRD_PrincipalIdToFriendCode(u32 principalId, u64 *friendCode)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*friendCode = (((u64)cmdbuf[3]) << 32 | (u64)cmdbuf[2]);
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -414,7 +414,7 @@ Result FRD_FriendCodeToPrincipalId(u64 friendCode, u32 *principalId)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*principalId = cmdbuf[2];
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -430,7 +430,7 @@ Result FRD_IsValidFriendCode(u64 friendCode, bool *isValid)
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
 	*isValid = cmdbuf[2] & 0xFF;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -456,9 +456,9 @@ Result FRD_AddFriendOnline(Handle event, u32 principalId)
 	cmdbuf[1] = principalId;
 	cmdbuf[2] = 0;
 	cmdbuf[3] = (u32)event;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
-	
+
 	return (Result)cmdbuf[1];
 }
 
@@ -470,8 +470,8 @@ Result FRD_RemoveFriend(u32 principalId, u64 localFriendCode)
 	cmdbuf[1] = principalId;
 	cmdbuf[2] = localFriendCode & 0xffffffff;
 	cmdbuf[3] = (localFriendCode >> 32) & 0xffffffff;
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
-	
-	return cmdbuf[1];	
+
+	return cmdbuf[1];
 }
