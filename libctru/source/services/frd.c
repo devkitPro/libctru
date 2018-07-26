@@ -46,9 +46,9 @@ Result frdInit(void)
 
 	if (AtomicPostIncrement(&frdRefCount)) return 0;
 
-	ret = srvGetServiceHandle(&frdHandle, "frd:u");
+	ret = srvGetServiceHandle(&frdHandle, "frd:a");
 	if (R_FAILED(ret)) ret = srvGetServiceHandle(&frdHandle, "frd:n");
-	if (R_FAILED(ret)) ret = srvGetServiceHandle(&frdHandle, "frd:a");
+	if (R_FAILED(ret)) ret = srvGetServiceHandle(&frdHandle, "frd:u");
 	if (R_FAILED(ret)) AtomicDecrement(&frdRefCount);
 
 	return ret;
@@ -58,6 +58,11 @@ void frdExit(void)
 {
 	if (AtomicDecrement(&frdRefCount)) return;
 	svcCloseHandle(frdHandle);
+}
+
+Handle *frdGetSessionHandle(void)
+{
+	return &frdHandle;
 }
 
 Result FRDU_HasLoggedIn(bool *state)

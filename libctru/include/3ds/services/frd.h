@@ -93,6 +93,8 @@ Result frdInit(void);
 /// Exists FRD.
 void frdExit(void);
 
+/// Get FRD handle.
+Handle *frdSessionGetHandle(void);
 /**
  * @brief Gets the login status of the current user.
  * @param state Pointer to write the current user's login status to.
