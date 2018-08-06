@@ -5,10 +5,11 @@
 #pragma once
 #include <3ds.h>
 
-#define FRIENDS_SCREEN_NAME_SIZE 0x16   // 11 (0x16 because UTF-16)
-#define FRIENDS_COMMENT_SIZE 0x22       // 16 (0x21 because UTF-16 + null character)
-#define FRIEND_LIST_SIZE 0x64           // 100 (Number of Friends)
-#define FRIEND_MII_STORE_DATA_SIZE 0x60 // 96 (Mii data)
+#define FRIEND_SCREEN_NAME_SIZE 0x16	// 11 (0x16 because UTF-16)
+#define FRIEND_COMMENT_SIZE 0x22		// 16 (0x21 because UTF-16 + null character)
+#define FRIEND_LIST_SIZE 0x64			// 100 (Number of Friends)
+
+#pragma pack(push, 1)
 
 /// Friend key data
 typedef struct
@@ -25,6 +26,7 @@ typedef struct
 	u32 version;
 	u32 unk;
 } TitleData;
+
 /// Structure containing basic Mii information.
 typedef struct 
 {
@@ -55,7 +57,7 @@ typedef struct
 	u8 language;    // Language code.
 	u8 platform;    // Platform code.
 	u32 padding;
-} Profile;
+} FriendProfile;
 
 /// Game Description structure
 typedef struct
@@ -71,21 +73,23 @@ typedef struct
 	u8 padding3[3];
 	u32 padding;
 	FriendKey key;
-}NotificationEvent;
+} NotificationEvent;
+
+#pragma pack(pop)
 
 /// Enum to use with FRD_GetNotificationEvent
 typedef enum 
 {
-	selfOnline = 1, // Self went online
-	selfOffline, // Self went offline
-	friendOnline, // Friend Went Online 
-	friendPresence, // Friend Presence changed
-	friendMii, // Friend Mii changed
-	friendProfile, // Friend Profile changed
-	friendOffline, // Friend went offline
-	friendBecameFriend, // Friend registered self as friend
-	friendInvitaton // Friend Sent invitation
-}NotificationTypes;
+	USER_WENT_ONLINE = 1, // Self went online
+	USER_WENT_OFFLINE, // Self went offline
+	FRIEND_WENT_ONLINE, // Friend Went Online 
+	FRIEND_UPDATED_PRESENCE, // Friend Presence changed
+	FRIEND_UPDATED_MII, // Friend Mii changed
+	FRIEND_UPDATED_PROFILE, // Friend Profile changed
+	FRIEND_WENT_OFFLINE, // Friend went offline
+	FRIEND_REGISTERED_USER, // Friend registered self as friend
+	FRIEND_SENT_INVITATION // Friend Sent invitation
+} NotificationTypes;
 
 /// Initializes FRD service.
 Result frdInit(void);
@@ -134,14 +138,14 @@ Result FRD_GetMyPreference(bool *isPublicMode, bool *isShowGameName, bool *isSho
  * @brief Gets the current user's profile information.
  * @param profile Pointer to write the current user's profile information to.
  */
-Result FRD_GetMyProfile(Profile *profile);
+Result FRD_GetMyProfile(FriendProfile *profile);
 
 /**
  * @brief Gets the current user's screen name.
  * @param name Pointer to write the current user's screen name to.
  * @param max_size Max size of the screen name.
  */
-Result FRD_GetMyScreenName(char *name, size_t max_size);
+Result FRD_GetMyScreenName(char *name, u32 max_size);
 
 /**
  * @brief Gets the current user's Mii data.
@@ -166,24 +170,25 @@ Result FRD_GetMyFavoriteGame(u64 *titleId);
  * @param comment Pointer to write the current user's comment to.
  * @param max_size Max size of the comment.
  */
-Result FRD_GetMyComment(char *comment, size_t max_size);
+Result FRD_GetMyComment(char *comment, u32 max_size);
 
 /**
- * @brief Gets the current user's firend key list
+ * @brief Gets the current user's friend key list
  * @param friendKeyList Pointer to write the friend key list to.
  * @param num Stores the number of friend keys obtained.
- * @param offset the index of the friend key to start with.
- * @param size Size of the friend key list. (FRIEND_LIST_SIZE)
+ * @param offset The index of the friend key to start with.
+ * @param size Size of the friend key list (max is FRIEND_LIST_SIZE).
  */
-Result FRD_GetFriendKeyList(FriendKey *friendKeyList, size_t *num, size_t offset, size_t size);
+Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 count);
 
 /**
- * @brief Gets Friends Mii data.
- * @param mii Pointer to write Mii data to.
- * @param keys Pointer to FriendKeys.
- * @param numberOfKeys Number of Friendkeys.
+ * @brief Gets current user's friend Mii data
+ * @param miis Pointer to output the Miis to.
+ * @param keys Pointer to the friend key list.
+ * @param offset Start offset.
+ * @param count Mii count.
  */
-Result FRD_GetFriendMii(MiiData *mii, const FriendKey *keys, size_t numberOfKeys);
+Result FRD_GetFriendMii(MiiData *miis, const FriendKey *keys, u32 offset, u32 count);
 
 /**
  * @brief Get a friend's profile data.
@@ -191,7 +196,7 @@ Result FRD_GetFriendMii(MiiData *mii, const FriendKey *keys, size_t numberOfKeys
  * @param keys Pointer to FriendKeys.
  * @param numberOfKeys Number of FriendKeys.
  */
-Result FRD_GetFriendProfile(Profile *profile, const FriendKey *keys, size_t numberOfKeys);
+Result FRD_GetFriendProfile(FriendProfile *profile, const FriendKey *keys, u32 offset, u32 count);
 
 /**
  * @brief Get a friend's playing Game.
@@ -199,7 +204,7 @@ Result FRD_GetFriendProfile(Profile *profile, const FriendKey *keys, size_t numb
  * @param keys Pointer to FriendKeys,
  * @param numberOfKeys Number Of FriendKeys.
  */
-Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *keys, size_t numberOfKeys);
+Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *keys, u32 offset, u32 count);
 
 /**
  * @brief Get a friend's favourite Game.
@@ -207,14 +212,14 @@ Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *keys, si
  * @param keys Pointer to FriendKeys,
  * @param numberOfKeys Number Of FriendKeys.
  */
-Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *keys, size_t numberOfKeys);
+Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *keys, u32 offset, u32 count);
 
 /**
- * @brief Determines if the application was started using the join game option in the friends applet.
- * @param friendKeyList Pointer to a list of friend keys.
- * @param isFromList Pointer to a write the friendship status to.
+ * @brief Gets whether a friend code is included on the user's friend list.
+ * @param friendCode Friend code to check.
+ * @param isFromList Pointer to output the result to.
  */
-Result FRD_IsFromFriendList(FriendKey *friendKeyList, bool *isFromList);
+Result FRD_IsIncludedInFriendList(u64 friendCode, bool *isFromList);
 
 /**
  * @brief Updates the game mode description string.
@@ -234,7 +239,7 @@ Result FRD_AttachToEventNotification(Handle event);
  * @param size Number of events
  * @param recievedNotifCount Number of notification reccieved.
  */
-Result FRD_GetEventNotification(NotificationEvent *event, size_t size, u32 *recievedNotifCount); 
+Result FRD_GetEventNotification(NotificationEvent *event, u32 size, u32 *recievedNotifCount); 
 
 /**
  * @brief Returns the friend code using the given principal ID.
