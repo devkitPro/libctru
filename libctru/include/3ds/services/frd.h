@@ -5,9 +5,9 @@
 #pragma once
 #include <3ds.h>
 
-#define FRIEND_SCREEN_NAME_SIZE 0x16	// 11 (0x16 because UTF-16)
-#define FRIEND_COMMENT_SIZE 0x22		// 16 (0x21 because UTF-16 + null character)
-#define FRIEND_LIST_SIZE 0x64			// 100 (Number of Friends)
+#define FRIEND_SCREEN_NAME_SIZE 0x16 // 11 (0x16 because UTF-16)
+#define FRIEND_COMMENT_SIZE 0x22     // 16 (0x21 because UTF-16 + null character)
+#define FRIEND_LIST_SIZE 0x64        // 100 (Max. number of friends)
 
 #pragma pack(push, 1)
 
@@ -177,40 +177,43 @@ Result FRD_GetMyComment(char *comment, u32 max_size);
  * @param friendKeyList Pointer to write the friend key list to.
  * @param num Stores the number of friend keys obtained.
  * @param offset The index of the friend key to start with.
- * @param size Size of the friend key list (max is FRIEND_LIST_SIZE).
+ * @param count Number of entries to read (max is FRIEND_LIST_SIZE).
  */
 Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 count);
 
 /**
- * @brief Gets current user's friend Mii data
+ * @brief Gets current user's friends' Mii data
  * @param miis Pointer to output the Miis to.
  * @param keys Pointer to the friend key list.
- * @param offset Start offset.
+ * @param offset Starting offset.
  * @param count Mii count.
  */
 Result FRD_GetFriendMii(MiiData *miis, const FriendKey *keys, u32 offset, u32 count);
 
 /**
- * @brief Get a friend's profile data.
+ * @brief Get current user's friends' profile data.
  * @param profile Pointer to write profile data to.
- * @param keys Pointer to FriendKeys.
- * @param numberOfKeys Number of FriendKeys.
+ * @param keys Pointer to the friend key list.
+ * @param offset Starting offset.
+ * @param count Profile count.
  */
 Result FRD_GetFriendProfile(FriendProfile *profile, const FriendKey *keys, u32 offset, u32 count);
 
 /**
- * @brief Get a friend's playing Game.
+ * @brief Get current user's friends' playing game.
  * @param desc Pointer to write Game Description data to.
- * @param keys Pointer to FriendKeys,
- * @param numberOfKeys Number Of FriendKeys.
+ * @param keys Pointer to the friend key list.
+ * @param offset Starting offset.
+ * @param count Entry count.
  */
 Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *keys, u32 offset, u32 count);
 
 /**
- * @brief Get a friend's favourite Game.
+ * @brief Get current user's friends' favourite game.
  * @param desc Pointer to write Game Description data to.
- * @param keys Pointer to FriendKeys,
- * @param numberOfKeys Number Of FriendKeys.
+ * @param keys Pointer to the friend key list.
+ * @param offset Starting offset.
+ * @param count Entry count.
  */
 Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *keys, u32 offset, u32 count);
 
