@@ -172,16 +172,16 @@ Result FRD_GetMyFavoriteGame(u64 *titleId);
 Result FRD_GetMyComment(char *comment, size_t max_size);
 
 /**
- * @brief Gets the current user's firend key list
+ * @brief Gets the current user's friend key list.
  * @param friendKeyList Pointer to write the friend key list to.
  * @param num Stores the number of friend keys obtained.
- * @param offset the index of the friend key to start with.
+ * @param offset The index of the friend key to start with.
  * @param size Size of the friend key list. (FRIEND_LIST_SIZE)
  */
 Result FRD_GetFriendKeyList(FriendKey *friendKeyList, size_t *num, size_t offset, size_t size);
 
 /**
- * @brief Gets Friends Mii data.
+ * @brief Gets the current user's friends' Mii data.
  * @param miiDataList Pointer to write Mii data to.
  * @param friendKeyList Pointer to FriendKeys.
  * @param size Number of Friendkeys.
@@ -189,7 +189,7 @@ Result FRD_GetFriendKeyList(FriendKey *friendKeyList, size_t *num, size_t offset
 Result FRD_GetFriendMii(MiiData *miiDataList, const FriendKey *friendKeyList, size_t size);
 
 /**
- * @brief Get a friend's profile data.
+ * @brief Get the current user's friends' profile data.
  * @param profile Pointer to write profile data to.
  * @param friendKeyList Pointer to FriendKeys.
  * @param size Number of FriendKeys.
@@ -197,7 +197,7 @@ Result FRD_GetFriendMii(MiiData *miiDataList, const FriendKey *friendKeyList, si
 Result FRD_GetFriendProfile(FriendProfile *profile, const FriendKey *friendKeyList, size_t size);
 
 /**
- * @brief Get a friend's playing Game.
+ * @brief Get the current user's friends' playing game.
  * @param desc Pointer to write Game Description data to.
  * @param friendKeyList Pointer to FriendKeys,
  * @param size Number Of FriendKeys.
@@ -205,7 +205,7 @@ Result FRD_GetFriendProfile(FriendProfile *profile, const FriendKey *friendKeyLi
 Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *friendKeyList, size_t size);
 
 /**
- * @brief Get a friend's favourite Game.
+ * @brief Get the current user's friends' favourite game.
  * @param desc Pointer to write Game Description data to.
  * @param friendKeyList Pointer to FriendKeys,
  * @param size Number Of FriendKeys.
@@ -213,7 +213,7 @@ Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *friendKe
 Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *friendKeyList, size_t size);
 
 /**
- * @brief Determines if the application was started using the join game option in the friends applet.
+ * @brief Gets whether a friend key is included in the current user's friend list.
  * @param friendKeyList Pointer to a list of friend keys.
  * @param isFromList Pointer to a write the friendship status to.
  */
