@@ -5,9 +5,9 @@
 #pragma once
 #include <3ds.h>
 
-#define FRIEND_SCREEN_NAME_SIZE 0x16  ///< 11 (0x16 because UTF-16)
-#define FRIEND_COMMENT_SIZE 0x22      ///< 16 (0x21 because UTF-16 + null character)
-#define FRIEND_LIST_SIZE 0x64         ///< 100 (Number of Friends)
+#define FRIEND_SCREEN_NAME_SIZE 0xB   ///< 11-byte UTF-16 screen name
+#define FRIEND_COMMENT_SIZE 0x21      ///< 33-byte UTF-16 comment
+#define FRIEND_LIST_SIZE 0x64         ///< 100 (Max number of friends)
 
 #pragma pack(push, 1)
 
