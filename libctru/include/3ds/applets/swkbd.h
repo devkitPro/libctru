@@ -3,6 +3,7 @@
  * @brief Software keyboard applet.
  */
 #pragma once
+#include <3ds/types.h>
 
 /// Keyboard types.
 typedef enum

@@ -3,6 +3,8 @@
  * @brief Error applet.
  */
 #pragma once
+#include <3ds/types.h>
+
  enum
 {
 	ERROR_LANGUAGE_FLAG = 0x100,    ///<??-Unknown flag
