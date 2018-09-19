@@ -7,8 +7,10 @@ extern "C"
 
 #include "mem_pool.h"
 #include "addrmap.h"
+#include "lock.h"
 
 static MemPool sVramPool;
+static LightLock sLock = 1;
 
 static bool vramInit()
 {
@@ -39,6 +41,7 @@ void* vramMemAlign(size_t size, size_t alignment)
 		return nullptr;
 
 	// Initialize the pool if it is not ready
+	LockGuard guard(sLock);
 	if (!sVramPool.Ready() && !vramInit())
 		return nullptr;
 
@@ -70,12 +73,14 @@ void* vramRealloc(void* mem, size_t size)
 
 size_t vramGetSize(void* mem)
 {
+	LockGuard guard(sLock);
 	auto node = getNode(mem);
 	return node ? node->chunk.size : 0;
 }
 
 void vramFree(void* mem)
 {
+	LockGuard guard(sLock);
 	auto node = getNode(mem);
 	if (!node) return;
 
@@ -88,5 +93,6 @@ void vramFree(void* mem)
 
 u32 vramSpaceFree()
 {
+	LockGuard guard(sLock);
 	return sVramPool.GetFreeSpace();
 }

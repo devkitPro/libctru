@@ -5,6 +5,8 @@ rbtree_node_t*
 rbtree_find(const rbtree_t      *tree,
             const rbtree_node_t *node)
 {
+  rbtree_validate(tree);
+
   rbtree_node_t *tmp  = tree->root;
   rbtree_node_t *save = NULL;
 
@@ -25,6 +27,8 @@ rbtree_find(const rbtree_t      *tree,
       tmp = tmp->child[LEFT];
     }
   }
+
+  rbtree_validate(tree);
 
   return save;
 }

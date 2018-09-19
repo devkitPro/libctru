@@ -60,6 +60,8 @@ rbtree_remove(rbtree_t                 *tree,
               rbtree_node_t            *node,
               rbtree_node_destructor_t destructor)
 {
+  rbtree_validate(tree);
+
   rbtree_color_t color;
   rbtree_node_t  *child, *parent, *original = node;
   rbtree_node_t  *next;
@@ -135,6 +137,8 @@ rbtree_remove(rbtree_t                 *tree,
     (*destructor)(original);
 
   tree->size -= 1;
+
+  rbtree_validate(tree);
 
   return next;
 }

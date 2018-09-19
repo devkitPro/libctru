@@ -5,6 +5,8 @@ static inline rbtree_node_t*
 do_minmax(const rbtree_t *tree,
           int            max)
 {
+  rbtree_validate(tree);
+
   rbtree_node_t *node = tree->root;
 
   if(node == NULL)

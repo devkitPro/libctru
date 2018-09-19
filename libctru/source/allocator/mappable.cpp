@@ -7,8 +7,10 @@ extern "C"
 
 #include "mem_pool.h"
 #include "addrmap.h"
+#include "lock.h"
 
 static MemPool sMappablePool;
+static LightLock sLock = 1;
 
 static bool mappableInit()
 {
@@ -25,6 +27,7 @@ static bool mappableInit()
 void* mappableAlloc(size_t size)
 {
 	// Initialize the pool if it is not ready
+	LockGuard guard(sLock);
 	if (!sMappablePool.Ready() && !mappableInit())
 		return nullptr;
 
@@ -45,12 +48,14 @@ void* mappableAlloc(size_t size)
 
 size_t mappableGetSize(void* mem)
 {
+	LockGuard guard(sLock);
 	auto node = getNode(mem);
 	return node ? node->chunk.size : 0;
 }
 
 void mappableFree(void* mem)
 {
+	LockGuard guard(sLock);
 	auto node = getNode(mem);
 	if (!node) return;
 
@@ -63,5 +68,6 @@ void mappableFree(void* mem)
 
 u32 mappableSpaceFree()
 {
+	LockGuard guard(sLock);
 	return sMappablePool.GetFreeSpace();
 }

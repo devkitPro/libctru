@@ -5,6 +5,8 @@ void
 rbtree_clear(rbtree_t                 *tree,
              rbtree_node_destructor_t destructor)
 {
+  rbtree_validate(tree);
+
   rbtree_node_t *node = tree->root;
 
   while(tree->root != NULL)
@@ -31,4 +33,6 @@ rbtree_clear(rbtree_t                 *tree,
   }
 
   tree->size = 0;
+
+  rbtree_validate(tree);
 }

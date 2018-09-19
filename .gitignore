@@ -9,3 +9,5 @@ docs/
 examples/
 internal_docs
 build.sh
+libctru/source/util/rbtree/test/*.o
+libctru/source/util/rbtree/test/rbtree_test

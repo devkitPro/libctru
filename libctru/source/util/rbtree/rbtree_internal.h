@@ -1,4 +1,5 @@
 #pragma once
+#include "3ds/util/rbtree.h"
 
 #define LEFT  0
 #define RIGHT 1
@@ -62,3 +63,9 @@ void
 rbtree_rotate(rbtree_t      *tree,
               rbtree_node_t *node,
               int           left);
+
+void
+rbtree_validate(const rbtree_t *tree);
+
+void
+rbtree_node_validate(const rbtree_t *tree, const rbtree_node_t *node, size_t *all, size_t *black, size_t *depth);

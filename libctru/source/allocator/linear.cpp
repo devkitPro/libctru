@@ -7,11 +7,13 @@ extern "C"
 
 #include "mem_pool.h"
 #include "addrmap.h"
+#include "lock.h"
 
 extern u32 __ctru_linear_heap;
 extern u32 __ctru_linear_heap_size;
 
 static MemPool sLinearPool;
+static LightLock sLock = 1;
 
 static bool linearInit()
 {
@@ -42,6 +44,7 @@ void* linearMemAlign(size_t size, size_t alignment)
 		return nullptr;
 
 	// Initialize the pool if it is not ready
+	LockGuard guard(sLock);
 	if (!sLinearPool.Ready() && !linearInit())
 		return nullptr;
 
@@ -73,12 +76,14 @@ void* linearRealloc(void* mem, size_t size)
 
 size_t linearGetSize(void* mem)
 {
+	LockGuard guard(sLock);
 	auto node = getNode(mem);
 	return node ? node->chunk.size : 0;
 }
 
 void linearFree(void* mem)
 {
+	LockGuard guard(sLock);
 	auto node = getNode(mem);
 	if (!node) return;
 
@@ -91,5 +96,6 @@ void linearFree(void* mem)
 
 u32 linearSpaceFree()
 {
+	LockGuard guard(sLock);
 	return sLinearPool.GetFreeSpace();
 }

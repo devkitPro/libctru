@@ -6,6 +6,8 @@ do_insert(rbtree_t      *tree,
           rbtree_node_t *node,
           int           multi)
 {
+  rbtree_validate(tree);
+
   rbtree_node_t *original = node;
   rbtree_node_t **tmp     = &tree->root;
   rbtree_node_t *parent   = NULL;
@@ -31,6 +33,8 @@ do_insert(rbtree_t      *tree,
 
   if(save != NULL)
   {
+    rbtree_validate(tree);
+
     return save;
   }
 
@@ -77,6 +81,8 @@ do_insert(rbtree_t      *tree,
   set_black(tree->root);
 
   tree->size += 1;
+
+  rbtree_validate(tree);
 
   return original;
 }
