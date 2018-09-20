@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <3ds/synchronization.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -21,16 +22,21 @@ typedef int  (*rbtree_node_comparator_t)(const rbtree_node_t *lhs,
 /// An rbtree node.
 struct rbtree_node
 {
-  uintptr_t      parent_color; ///< Parent color.
-  rbtree_node_t  *child[2];    ///< Node children.
+  char          nodeTag[4];   ///< Node tag.
+  uintptr_t     parent_color; ///< Parent color.
+  rbtree_node_t *child[2];    ///< Node children.
+  rbtree_t      *tree;        ///< Owning tree.
 };
 
 /// An rbtree.
 struct rbtree
 {
+  char                     treeTag[4]; ///< Tree tag.
   rbtree_node_t            *root;      ///< Root node.
   rbtree_node_comparator_t comparator; ///< Node comparator.
   size_t                   size;       ///< Size.
+  LightLock                lock;       ///< Tree mutex.
+  bool                     busy;       ///< Busy flag.
 };
 
 #ifdef __cplusplus

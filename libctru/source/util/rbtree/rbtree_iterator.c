@@ -7,16 +7,16 @@ do_iterate(const rbtree_node_t *node,
 {
   rbtree_node_t *it = (rbtree_node_t*)node;
 
-  if(it->child[next] != NULL)
+  if(it->child[next])
   {
     it = it->child[next];
-    while(it->child[!next] != NULL)
+    while(it->child[!next])
       it = it->child[!next];
   }
   else
   {
     rbtree_node_t *parent = get_parent(node);
-    while(parent != NULL && it == parent->child[next])
+    while(parent && it == parent->child[next])
     {
       it = parent;
       parent = get_parent(it);

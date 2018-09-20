@@ -29,7 +29,7 @@ set_red(rbtree_node_t *node)
 static inline rbtree_color_t
 get_color(const rbtree_node_t *node)
 {
-  if(node == NULL)
+  if(!node)
     return BLACK;
   return (rbtree_color_t)(node->parent_color & COLOR_MASK);
 }
@@ -58,6 +58,12 @@ set_parent(rbtree_node_t       *node,
 {
   node->parent_color = (get_color(node)) | ((uintptr_t)parent);
 }
+
+void
+rbtree_set_busy(rbtree_t *tree);
+
+void
+rbtree_clear_busy(rbtree_t *tree);
 
 void
 rbtree_rotate(rbtree_t      *tree,

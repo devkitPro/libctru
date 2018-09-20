@@ -111,7 +111,8 @@ int main(int argc, char *argv[])
       else
         nodes.emplace_back(node);
 
-      if(remove() < chance)
+      // remove random node
+      if(remove() <= chance)
       {
         auto it = std::begin(nodes) + (eng() % nodes.size());
         rbtree_remove(&tree, &(*it)->node, IntNodeDestructor);
@@ -121,6 +122,8 @@ int main(int argc, char *argv[])
 //      printTree(&tree);
     }
   }
+
+  std::printf("Ended with %zu nodes in tree\n", rbtree_size(&tree));
 
   rbtree_clear(&tree, IntNodeDestructor);
 }

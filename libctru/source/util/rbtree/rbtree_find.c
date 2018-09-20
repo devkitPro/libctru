@@ -5,12 +5,13 @@ rbtree_node_t*
 rbtree_find(const rbtree_t      *tree,
             const rbtree_node_t *node)
 {
+  rbtree_set_busy((rbtree_t*)tree);
   rbtree_validate(tree);
 
   rbtree_node_t *tmp  = tree->root;
   rbtree_node_t *save = NULL;
 
-  while(tmp != NULL)
+  while(tmp)
   {
     int rc = (*tree->comparator)(node, tmp);
     if(rc < 0)
@@ -29,6 +30,7 @@ rbtree_find(const rbtree_t      *tree,
   }
 
   rbtree_validate(tree);
+  rbtree_clear_busy((rbtree_t*)tree);
 
   return save;
 }

@@ -6,14 +6,24 @@ do_insert(rbtree_t      *tree,
           rbtree_node_t *node,
           int           multi)
 {
+  rbtree_set_busy(tree);
   rbtree_validate(tree);
+
+  node->nodeTag[3]   = 'N';
+  node->nodeTag[2]   = 'O';
+  node->nodeTag[1]   = 'D';
+  node->nodeTag[0]   = 'E';
+  node->parent_color = 0;
+  node->child[LEFT]  = NULL;
+  node->child[RIGHT] = NULL;
+  node->tree         = tree;
 
   rbtree_node_t *original = node;
   rbtree_node_t **tmp     = &tree->root;
   rbtree_node_t *parent   = NULL;
   rbtree_node_t *save     = NULL;
 
-  while(*tmp != NULL)
+  while(*tmp)
   {
     int cmp = (*(tree->comparator))(node, *tmp);
     parent  = *tmp;
@@ -31,9 +41,19 @@ do_insert(rbtree_t      *tree,
     }
   }
 
-  if(save != NULL)
+  if(save)
   {
+    node->nodeTag[3]   = 'D';
+    node->nodeTag[2]   = 'O';
+    node->nodeTag[1]   = 'N';
+    node->nodeTag[0]   = 'E';
+    node->parent_color = 0;
+    node->child[LEFT]  = NULL;
+    node->child[RIGHT] = NULL;
+    node->tree         = NULL;
+
     rbtree_validate(tree);
+    rbtree_clear_busy(tree);
 
     return save;
   }
@@ -83,6 +103,7 @@ do_insert(rbtree_t      *tree,
   tree->size += 1;
 
   rbtree_validate(tree);
+  rbtree_clear_busy(tree);
 
   return original;
 }

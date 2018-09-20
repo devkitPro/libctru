@@ -4,7 +4,11 @@
 size_t
 rbtree_size(const rbtree_t *tree)
 {
+  rbtree_set_busy((rbtree_t*)tree);
   rbtree_validate(tree);
 
-  return tree->size;
+  size_t size = tree->size;
+
+  rbtree_clear_busy((rbtree_t*)tree);
+  return size;
 }

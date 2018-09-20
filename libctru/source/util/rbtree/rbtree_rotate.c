@@ -10,12 +10,12 @@ rbtree_rotate(rbtree_t      *tree,
   rbtree_node_t *parent = get_parent(node);
 
   node->child[left] = tmp->child[!left];
-  if(tmp->child[!left] != NULL)
+  if(tmp->child[!left])
     set_parent(tmp->child[!left], node);
 
   tmp->child[!left] = node;
   set_parent(tmp, parent);
-  if(parent != NULL)
+  if(parent)
   {
     if(node == parent->child[!left])
       parent->child[!left] = tmp;

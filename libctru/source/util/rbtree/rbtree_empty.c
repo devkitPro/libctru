@@ -4,7 +4,11 @@
 int
 rbtree_empty(const rbtree_t *tree)
 {
+  rbtree_set_busy((rbtree_t*)tree);
   rbtree_validate(tree);
 
-  return tree->root == NULL;
+  bool empty = !tree->root;
+
+  rbtree_clear_busy((rbtree_t*)tree);
+  return empty;
 }

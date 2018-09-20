@@ -51,8 +51,27 @@ recolor(rbtree_t      *tree,
     }
   }
 
-  if(node != NULL)
+  if(node)
     set_black(node);
+}
+
+static bool
+in_tree(const rbtree_t      *tree,
+        const rbtree_node_t *node)
+{
+  if(tree->root == node)
+    return true;
+
+  const rbtree_node_t *parent = get_parent(node);
+  while(parent)
+  {
+    if(tree->root == parent)
+      return true;
+
+    parent = get_parent(parent);
+  }
+
+  return false;
 }
 
 rbtree_node_t*
@@ -60,6 +79,9 @@ rbtree_remove(rbtree_t                 *tree,
               rbtree_node_t            *node,
               rbtree_node_destructor_t destructor)
 {
+  rbtree_set_busy(tree);
+  if(!in_tree(tree, node))
+    svcBreak(USERBREAK_PANIC);
   rbtree_validate(tree);
 
   rbtree_color_t color;
@@ -68,16 +90,16 @@ rbtree_remove(rbtree_t                 *tree,
 
   next = rbtree_node_next(node);
 
-  if(node->child[LEFT] != NULL && node->child[RIGHT] != NULL)
+  if(node->child[LEFT] && node->child[RIGHT])
   {
     rbtree_node_t *old = node;
 
     node = node->child[RIGHT];
-    while(node->child[LEFT] != NULL)
+    while(node->child[LEFT])
       node = node->child[LEFT];
 
     parent = get_parent(old);
-    if(parent != NULL)
+    if(parent)
     {
       if(parent->child[LEFT] == old)
         parent->child[LEFT] = node;
@@ -95,7 +117,7 @@ rbtree_remove(rbtree_t                 *tree,
       parent = node;
     else
     {
-      if(child != NULL)
+      if(child)
         set_parent(child, parent);
       parent->child[LEFT] = child;
 
@@ -109,7 +131,7 @@ rbtree_remove(rbtree_t                 *tree,
   }
   else
   {
-    if(node->child[LEFT] == NULL)
+    if(!node->child[LEFT])
       child = node->child[RIGHT];
     else
       child = node->child[LEFT];
@@ -117,9 +139,9 @@ rbtree_remove(rbtree_t                 *tree,
     parent = get_parent(node);
     color  = get_color(node);
 
-    if(child != NULL)
+    if(child)
       set_parent(child, parent);
-    if(parent != NULL)
+    if(parent)
     {
       if(parent->child[LEFT] == node)
         parent->child[LEFT] = child;
@@ -133,12 +155,22 @@ rbtree_remove(rbtree_t                 *tree,
   if(color == BLACK)
     recolor(tree, parent, child);
 
-  if(destructor != NULL)
+  original->nodeTag[3]   = 'D';
+  original->nodeTag[2]   = 'O';
+  original->nodeTag[1]   = 'N';
+  original->nodeTag[0]   = 'E';
+  original->parent_color = 0;
+  original->child[LEFT]  = NULL;
+  original->child[RIGHT] = NULL;
+  original->tree         = NULL;
+
+  if(destructor)
     (*destructor)(original);
 
   tree->size -= 1;
 
   rbtree_validate(tree);
+  rbtree_clear_busy(tree);
 
   return next;
 }

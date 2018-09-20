@@ -9,7 +9,6 @@
   abort(); \
 } while(0)
 
-
 void
 rbtree_validate(const rbtree_t *tree)
 {
@@ -23,7 +22,7 @@ rbtree_validate(const rbtree_t *tree)
   // root node's parent must be null
   if(tree->root)
   {
-    if(get_parent(tree->root) != NULL)
+    if(get_parent(tree->root))
       panic();
   }
 
@@ -42,7 +41,7 @@ rbtree_node_validate(const rbtree_t *tree, const rbtree_node_t *node, size_t *si
   if(!node) // implies is_black
   {
     if(black)
-      *black += 1;
+      *black = 1;
 
     if(depth)
       *depth = 1;
@@ -108,14 +107,14 @@ rbtree_node_validate(const rbtree_t *tree, const rbtree_node_t *node, size_t *si
 
   // size is left+right subtrees plus self
   if(size)
-    *size += left_size + right_size + 1;
+    *size = left_size + right_size + 1;
 
   // all possible paths to leaf nodes must have the same number of black nodes along the path
   if(left_black != right_black)
     panic();
 
   if(black)
-    *black += left_black + (is_black(node) ? 1 : 0);
+    *black = left_black + (is_black(node) ? 1 : 0);
 
   // depth of one subtree must not exceed 2x depth of the other subtree
   if(left_depth < right_depth)
@@ -133,4 +132,26 @@ rbtree_node_validate(const rbtree_t *tree, const rbtree_node_t *node, size_t *si
     else
       *depth = right_depth + 1;
   }
+}
+
+void
+rbtree_set_busy(rbtree_t *tree)
+{
+  LightLock_Lock(&tree->lock);
+  if(tree->busy)
+    panic();
+
+  tree->busy = true;
+  LightLock_Unlock(&tree->lock);
+}
+
+void
+rbtree_clear_busy(rbtree_t *tree)
+{
+  LightLock_Lock(&tree->lock);
+  if(!tree->busy)
+    panic();
+
+  tree->busy = false;
+  LightLock_Unlock(&tree->lock);
 }
