@@ -1,4 +1,5 @@
 #include <3ds/util/rbtree.h>
+#include <3ds/svc.h>
 #include "rbtree_internal.h"
 
 static void

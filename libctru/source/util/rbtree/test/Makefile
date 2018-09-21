@@ -4,7 +4,12 @@ CXXFILES := $(wildcard *.cpp)
 OFILES   := $(patsubst ../%,%,$(CFILES:.c=.c.o))
 OXXFILES := $(CXXFILES:.cpp=.cpp.o)
 
-CPPFLAGS := -Wall -g -I../../../../include -O2
+CPPFLAGS := -Wall -g -I../../../../include -O2 \
+            -D"LightLock=pthread_mutex_t" \
+            -D"LightLock_Init(x)=pthread_mutex_init(x, NULL)" \
+            -D"LightLock_Lock(x)=pthread_mutex_lock(x)" \
+            -D"LightLock_Unlock(x)=pthread_mutex_unlock(x)"
+
 CFLAGS   := $(CPPFLAGS)
 CXXFLAGS := $(CPPFLAGS) -std=c++11
 

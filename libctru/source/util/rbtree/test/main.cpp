@@ -76,6 +76,7 @@ void printTree(const rbtree_t *tree)
 
 void svcBreak(UserBreakType breakReason)
 {
+  std::abort();
 }
 
 int main(int argc, char *argv[])

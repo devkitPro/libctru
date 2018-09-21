@@ -4,7 +4,12 @@
  */
 #pragma once
 
+#ifdef _3DS
 #include <3ds/synchronization.h>
+#else
+#include <pthread.h>
+#endif
+#include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
 
