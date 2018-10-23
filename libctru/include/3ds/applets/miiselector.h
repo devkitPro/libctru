@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <3ds/types.h>
 
 /// Magic value needed to launch the applet.
 #define MIISELECTOR_MAGIC 0x13DE28CF
