@@ -233,7 +233,7 @@ Result FRD_GetMyComment(char *comment, size_t max_size)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetFriendKeyList(FriendKey *friendKeyList, size_t *num, size_t offset, size_t size)
+Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 size)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -304,19 +304,19 @@ Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *friendKe
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *friendKeyList, size_t size)
+Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *friendKeyList, u32 count)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x19,1,2); // 0x190042
-	cmdbuf[1] = size;
-	cmdbuf[2] = (size << 18) | 2;
+	cmdbuf[1] = count;
+	cmdbuf[2] = (count << 18) | 2;
 	cmdbuf[3] = (u32)friendKeyList;
 
 	u32 *staticbuf = getThreadStaticBuffers();
 
-	staticbuf[0] = (size << 18) | 2;
+	staticbuf[0] = (count << 18) | 2;
 	staticbuf[1] = (u32)desc;
 
 	if (R_FAILED(svcSendSyncRequest(frdHandle))) return ret;
@@ -324,7 +324,7 @@ Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *friend
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_IsFromFriendList(FriendKey *friendKeyList, bool *isFromList)
+Result FRD_IsInFriendList(FriendKey *friendKeyList, bool *isFromList)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -372,16 +372,16 @@ Result FRD_AttachToEventNotification(Handle event)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetEventNotification(NotificationEvent *event, size_t size, u32 *recievedNotifCount)
+Result FRD_GetEventNotification(NotificationEvent *event, u32 count, u32 *recievedNotifCount)
 {
 	Result ret = 0;
 
 	u32 *cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x22,1,0); //0x220040
-	cmdbuf[1] = (u32)size;
+	cmdbuf[1] = count;
 
 	u32 *staticbuf = getThreadStaticBuffers();
-	staticbuf[0] = 0x60000 * size | 2;
+	staticbuf[0] = 0x60000 * count | 2;
 	staticbuf[1] = (u32)event;
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;

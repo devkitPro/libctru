@@ -178,7 +178,7 @@ Result FRD_GetMyComment(char *comment, size_t max_size);
  * @param offset The index of the friend key to start with.
  * @param size Size of the friend key list. (FRIEND_LIST_SIZE)
  */
-Result FRD_GetFriendKeyList(FriendKey *friendKeyList, size_t *num, size_t offset, size_t size);
+Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 size);
 
 /**
  * @brief Gets the current user's friends' Mii data.
@@ -208,16 +208,16 @@ Result FRD_GetFriendPlayingGame(GameDescription *desc, const FriendKey *friendKe
  * @brief Get the current user's friends' favourite game.
  * @param desc Pointer to write Game Description data to.
  * @param friendKeyList Pointer to FriendKeys,
- * @param size Number Of FriendKeys.
+ * @param count Number Of FriendKeys.
  */
-Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *friendKeyList, size_t size);
+Result FRD_GetFriendFavouriteGame(GameDescription *desc, const FriendKey *friendKeyList, u32 count);
 
 /**
  * @brief Gets whether a friend key is included in the current user's friend list.
  * @param friendKeyList Pointer to a list of friend keys.
  * @param isFromList Pointer to a write the friendship status to.
  */
-Result FRD_IsFromFriendList(FriendKey *friendKeyList, bool *isFromList);
+Result FRD_IsInFriendList(FriendKey *friendKeyList, bool *isFromList);
 
 /**
  * @brief Updates the game mode description string.
@@ -234,10 +234,10 @@ Result FRD_AttachToEventNotification(Handle event);
 /**
  * @brief Get Latest Event Notification
  * @param event Pointer to write recieved notification event struct to.
- * @param size Number of events
+ * @param count Number of events
  * @param recievedNotifCount Number of notification reccieved.
  */
-Result FRD_GetEventNotification(NotificationEvent *event, size_t size, u32 *recievedNotifCount); 
+Result FRD_GetEventNotification(NotificationEvent *event, u32 count, u32 *recievedNotifCount); 
 
 /**
  * @brief Returns the friend code using the given principal ID.
