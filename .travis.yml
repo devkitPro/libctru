@@ -7,17 +7,17 @@ services: docker
 #Cache doxygen
 cache:
   directories:
-    - /home/travis/doxygen/doxygen-1.8.11/bin
+    - /home/travis/doxygen/doxygen-1.8.15/bin
 env:
   global:
     - secure: "SYuVfyfmO6P+KnOXFZpNbBLO3QpGZJjIvFJHix3+xAfjENZoCzn+A7Gmcbm07VN0UB9sDJrYklyUrUepVWSuOd+FiNEyiLi4oYXxFzDjA9am7W1nFEaBAw6Ilifg7KX2OlClXaF7iiQ1udtmN9Uw+1LwfpldDDqti1H9TANaKHc="
 
 before_install:
   # Travis has an OLD doxygen build, so we fetch a recent one
-  - export DOXY_BINPATH=/home/travis/doxygen/doxygen-1.8.11/bin
+  - export DOXY_BINPATH=/home/travis/doxygen/doxygen-1.8.15/bin
   - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then mkdir -p ~/doxygen && cd ~/doxygen; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then wget http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.11.linux.bin.tar.gz; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then tar xzf doxygen-1.8.11.linux.bin.tar.gz; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then wget http://doxygen.nl/files/doxygen-1.8.15.linux.bin.tar.gz; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then tar xzf doxygen-1.8.15.linux.bin.tar.gz; fi
   - export PATH=$PATH:$DOXY_BINPATH
 
 install:
