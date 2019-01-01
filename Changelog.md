@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.5.1
+
+- Added support for the FRD service.
+- Added gas-related GPU definitions.
+- Implemented nanosleep.
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.5.0
 
 - Added new decompression API which supports LZSS/LZ10, LZ11, RLE & Huffman formats, and which can read compressed data from memory or from a file.
