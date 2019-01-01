@@ -311,7 +311,7 @@
 #define GPUREG_GAS_LIGHT_Z_COLOR 0x0122      ///< Unknown.
 #define GPUREG_GAS_LUT_INDEX 0x0123          ///< Unknown.
 #define GPUREG_GAS_LUT_DATA 0x0124           ///< Unknown.
-#define GPUREG_0125 0x0125                   ///< Unknown.
+#define GPUREG_GAS_ACCMAX_FEEDBACK 0x0125    ///< Unknown.
 #define GPUREG_GAS_DELTAZ_DEPTH 0x0126       ///< Unknown.
 #define GPUREG_0127 0x0127                   ///< Unknown.
 #define GPUREG_0128 0x0128                   ///< Unknown.

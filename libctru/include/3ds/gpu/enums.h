@@ -184,6 +184,18 @@ typedef enum
 	GPU_EARLYDEPTH_LESS    = 3, ///< Pass if less than.
 } GPU_EARLYDEPTHFUNC;
 
+/// Gas depth functions.
+typedef enum
+{
+	GPU_GAS_NEVER    = 0, ///< Never pass (0).
+	GPU_GAS_ALWAYS   = 1, ///< Always pass (1).
+	GPU_GAS_GREATER  = 2, ///< Pass if greater than (1-X).
+	GPU_GAS_LESS     = 3, ///< Pass if less than (X).
+} GPU_GASDEPTHFUNC;
+
+/// Converts \ref GPU_TESTFUNC into \ref GPU_GASDEPTHFUNC.
+#define GPU_MAKEGASDEPTHFUNC(n) (GPU_GASDEPTHFUNC)((0xAF02>>((int)(n)<<1))&3)
+
 /// Scissor test modes.
 typedef enum
 {
