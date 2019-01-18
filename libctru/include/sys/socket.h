@@ -42,6 +42,8 @@
 #define SO_TYPE         0x1008      // get socket type
 #define SO_ERROR        0x1009      // get socket error
 
+#define SO_BROADCAST    0x0000      // unrequired, included for compatibility
+
 typedef uint32_t socklen_t;
 typedef uint16_t sa_family_t;
 
