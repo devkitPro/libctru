@@ -48,25 +48,32 @@ rbtree_node_validate(const rbtree_t *tree, const rbtree_node_t *node, size_t *si
 
     return;
   }
-  else // non-null
-  {
-    rbtree_node_t *parent = get_parent(node);
-    if(!parent)
-    {
-      // only the root node can have a null parent
-      if(node != tree->root)
-        panic();
-    }
-    else
-    {
-      // make sure this node is a child of its parent
-      if(parent->child[LEFT] != node && parent->child[RIGHT] != node)
-        panic();
 
-      // if the parent is red, this node must be black
-      if(is_red(parent) && !is_black(node))
-        panic();
-    }
+  for(size_t i = 0; i < 32; ++i)
+  {
+    if(node->prefix[i])
+      panic();
+
+    if(node->suffix[i])
+      panic();
+  }
+
+  rbtree_node_t *parent = get_parent(node);
+  if(!parent)
+  {
+    // only the root node can have a null parent
+    if(node != tree->root)
+      panic();
+  }
+  else
+  {
+    // make sure this node is a child of its parent
+    if(parent->child[LEFT] != node && parent->child[RIGHT] != node)
+      panic();
+
+    // if the parent is red, this node must be black
+    if(is_red(parent) && !is_black(node))
+      panic();
   }
 
   if(is_red(node))

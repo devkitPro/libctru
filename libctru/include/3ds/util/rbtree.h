@@ -27,10 +27,12 @@ typedef int  (*rbtree_node_comparator_t)(const rbtree_node_t *lhs,
 /// An rbtree node.
 struct rbtree_node
 {
+  uint32_t      prefix[32];   ///< Guard prefix.
   char          nodeTag[4];   ///< Node tag.
   uintptr_t     parent_color; ///< Parent color.
   rbtree_node_t *child[2];    ///< Node children.
   rbtree_t      *tree;        ///< Owning tree.
+  uint32_t      *suffix[32];  ///< Guard suffix.
 };
 
 /// An rbtree.

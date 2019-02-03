@@ -9,6 +9,12 @@ do_insert(rbtree_t      *tree,
   rbtree_set_busy(tree);
   rbtree_validate(tree);
 
+  for(size_t i = 0; i < 32; ++i)
+  {
+    node->prefix[i] = 0;
+    node->suffix[i] = 0;
+  }
+
   node->nodeTag[3]   = 'N';
   node->nodeTag[2]   = 'O';
   node->nodeTag[1]   = 'D';

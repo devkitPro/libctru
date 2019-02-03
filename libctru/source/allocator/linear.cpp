@@ -59,7 +59,9 @@ void* linearMemAlign(size_t size, size_t alignment)
 		sLinearPool.Deallocate(chunk);
 		return nullptr;
 	}
-	if (rbtree_insert(&sAddrMap, &node->node));
+	if (rbtree_insert(&sAddrMap, &node->node) != &node->node)
+		svcBreak(USERBREAK_PANIC);
+
 	return chunk.addr;
 }
 
