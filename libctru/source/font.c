@@ -47,7 +47,7 @@ void fontFixPointers(CFNT_s* font)
 int fontGlyphIndexFromCodePoint(CFNT_s* font, u32 codePoint)
 {
 	if (!font)
-		font = fontGetSystemFont();
+		font = g_sharedFont;
 	int ret = font->finf.alterCharIndex;
 	if (codePoint < 0x10000)
 	{
@@ -86,7 +86,7 @@ int fontGlyphIndexFromCodePoint(CFNT_s* font, u32 codePoint)
 charWidthInfo_s* fontGetCharWidthInfo(CFNT_s* font, int glyphIndex)
 {
 	if (!font)
-		font = fontGetSystemFont();
+		font = g_sharedFont;
 	charWidthInfo_s* info = NULL;
 	CWDH_s* cwdh;
 	for (cwdh = font->finf.cwdh; cwdh && !info; cwdh = cwdh->next)
@@ -103,7 +103,7 @@ charWidthInfo_s* fontGetCharWidthInfo(CFNT_s* font, int glyphIndex)
 void fontCalcGlyphPos(fontGlyphPos_s* out, CFNT_s* font, int glyphIndex, u32 flags, float scaleX, float scaleY)
 {
 	if (!font)
-		font = fontGetSystemFont();
+		font = g_sharedFont;
 	FINF_s* finf = &font->finf;
 	TGLP_s* tglp = finf->tglp;
 	charWidthInfo_s* cwi = fontGetCharWidthInfo(font, glyphIndex);
