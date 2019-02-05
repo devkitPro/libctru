@@ -161,7 +161,7 @@ Result fontEnsureMapped(void);
  * @brief Fixes the pointers internal to a just-loaded font
  * @param font Font to fix
  * @remark Should never be run on the system font, and only once
- * 		   on any other font.
+ * 	       on any other font.
  */
 void fontFixPointers(CFNT_s* font);
 
