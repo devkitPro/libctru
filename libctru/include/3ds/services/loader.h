@@ -32,7 +32,7 @@ Result LOADER_LoadProcess(Handle* process, u64 programHandle);
 Result LOADER_RegisterProgram(u64* programHandle, u64 titleId, FS_MediaType mediaType, u64 updateTitleId, FS_MediaType updateMediaType);
 
 /**
- * @brief Registers a program (along with its update).
+ * @brief Unregisters a program (along with its update).
  * @param programHandle The handle of the program to unregister.
  */
 Result LOADER_UnregisterProgram(u64 programHandle);
