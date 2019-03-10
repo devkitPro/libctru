@@ -40,6 +40,7 @@ extern "C" {
 #include <3ds/services/csnd.h>
 #include <3ds/services/dsp.h>
 #include <3ds/services/fs.h>
+#include <3ds/services/fsreg.h>
 #include <3ds/services/frd.h>
 #include <3ds/services/gspgpu.h>
 #include <3ds/services/gsplcd.h>
