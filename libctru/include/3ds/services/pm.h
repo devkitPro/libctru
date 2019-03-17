@@ -4,6 +4,16 @@
  */
 #pragma once
 
+/// Launch flags for PM launch commands.
+enum {
+	PMLAUNCHFLAG_NORMAL_APPLICATION            = BIT(0),
+	PMLAUNCHFLAG_LOAD_DEPENDENCIES             = BIT(1),
+	PMLAUNCHFLAG_NOTIFY_TERMINATION            = BIT(2),
+	PMLAUNCHFLAG_QUEUE_DEBUG_APPLICATION       = BIT(3),
+	PMLAUNCHFLAG_TERMINATION_NOTIFICATION_MASK = 0xF0,
+	PMLAUNCHFLAG_USE_UPDATE_TITLE              = BIT(16),
+};
+
 /// Initializes PM.
 Result pmInit(void);
 
