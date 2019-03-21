@@ -652,7 +652,7 @@ SVC_BEGIN svcSetProcessResourceLimits
 	bx  lr
 SVC_END
 
-SVC_BEGIN svcCreateResourceLimits
+SVC_BEGIN svcCreateResourceLimit
 	push {r0}
 	svc  0x78
 	pop  {r2}
