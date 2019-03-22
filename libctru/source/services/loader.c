@@ -31,7 +31,7 @@ Result LOADER_LoadProcess(Handle* process, u64 programHandle)
 	cmdbuf[0] = IPC_MakeHeader(1, 2, 0); // 0x10080
 	cmdbuf[1] = (u32)programHandle;
 	cmdbuf[2] = (u32)(programHandle >> 32);
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(loaderHandle))) return ret;
 
 	*process = cmdbuf[3];
@@ -55,7 +55,7 @@ Result LOADER_RegisterProgram(u64* programHandle, u64 titleId, FS_MediaType medi
 
 	if(R_FAILED(ret = svcSendSyncRequest(loaderHandle))) return ret;
 
-	*programHandle = ((u64)cmdbuf[2] << 32) | cmdbuf[3];
+	*programHandle = ((u64)cmdbuf[3] << 32) | cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -68,7 +68,7 @@ Result LOADER_UnregisterProgram(u64 programHandle)
 	cmdbuf[0] = IPC_MakeHeader(3, 2, 0); // 0x30080
 	cmdbuf[1] = (u32)programHandle;
 	cmdbuf[2] = (u32)(programHandle >> 32);
-	
+
 	if(R_FAILED(ret = svcSendSyncRequest(loaderHandle))) return ret;
 
 	return (Result)cmdbuf[1];
@@ -84,10 +84,14 @@ Result LOADER_GetProgramInfo(ExHeader_Info* exheaderInfo, u64 programHandle)
 	cmdbuf[1] = (u32)programHandle;
 	cmdbuf[2] = (u32)(programHandle >> 32);
 
+	u32 staticbufscpy[2] = {staticbufs[0], staticbufs[1]};
 	staticbufs[0] = IPC_Desc_StaticBuffer(0x400, 0);
 	staticbufs[1] = (u32)exheaderInfo;
 
 	if(R_FAILED(ret = svcSendSyncRequest(loaderHandle))) return ret;
+
+	staticbufs[0] = staticbufscpy[0];
+	staticbufs[1] = staticbufscpy[1];
 
 	return (Result)cmdbuf[1];
 }
