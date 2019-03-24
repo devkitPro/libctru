@@ -11,6 +11,8 @@ enum {
 	PMLAUNCHFLAG_NOTIFY_TERMINATION            = BIT(2),
 	PMLAUNCHFLAG_QUEUE_DEBUG_APPLICATION       = BIT(3),
 	PMLAUNCHFLAG_TERMINATION_NOTIFICATION_MASK = 0xF0,
+	PMLAUNCHFLAG_FORCE_USE_O3DS_APP_MEM        = BIT(8),  ///< Forces the usage of the O3DS system mode app memory setting even if N3DS system mode is not "Legacy". Dev4 and Dev5 not supported. N3DS only.
+	PMLAUNCHFLAG_FORCE_USE_O3DS_MAX_APP_MEM    = BIT(9),  ///< In conjunction with the above, forces the 96MB app memory setting. N3DS only.
 	PMLAUNCHFLAG_USE_UPDATE_TITLE              = BIT(16),
 };
 
