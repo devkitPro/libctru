@@ -24,12 +24,10 @@ Result LOADER_LoadProcess(Handle* process, u64 programHandle);
 /**
  * @brief Registers a program (along with its update).
  * @param[out] programHandle Pointer to output the program handle to.
- * @param titleId The program's title ID.
- * @param mediaType The program's media type.
- * @param updateTitleId The program update's title ID.
- * @param updateMediaType The program update's media type.
+ * @param programInfo The program info.
+ * @param programInfo The program update info.
  */
-Result LOADER_RegisterProgram(u64* programHandle, u64 titleId, FS_MediaType mediaType, u64 updateTitleId, FS_MediaType updateMediaType);
+Result LOADER_RegisterProgram(u64* programHandle, const FS_ProgramInfo *programInfo, const FS_ProgramInfo *programInfoUpdate);
 
 /**
  * @brief Unregisters a program (along with its update).

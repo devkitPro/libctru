@@ -1,3 +1,4 @@
+#include <string.h>
 #include <3ds/services/loader.h>
 #include <3ds/result.h>
 #include <3ds/svc.h>
@@ -39,19 +40,14 @@ Result LOADER_LoadProcess(Handle* process, u64 programHandle)
 	return (Result)cmdbuf[1];
 }
 
-Result LOADER_RegisterProgram(u64* programHandle, u64 titleId, FS_MediaType mediaType, u64 updateTitleId, FS_MediaType updateMediaType)
+Result LOADER_RegisterProgram(u64* programHandle, const FS_ProgramInfo *programInfo, const FS_ProgramInfo *programInfoUpdate)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(2, 8, 0); // 0x20200
-	cmdbuf[1] = (u32)titleId;
-	cmdbuf[2] = (u32)(titleId >> 32);
-	cmdbuf[3] = mediaType;
-
-	cmdbuf[5] = (u32)updateTitleId;
-	cmdbuf[6] = (u32)(updateTitleId >> 32);
-	cmdbuf[7] = updateMediaType;
+	memcpy(&cmdbuf[1], programInfo, sizeof(FS_ProgramInfo));
+	memcpy(&cmdbuf[5], programInfoUpdate, sizeof(FS_ProgramInfo));
 
 	if(R_FAILED(ret = svcSendSyncRequest(loaderHandle))) return ret;
 
