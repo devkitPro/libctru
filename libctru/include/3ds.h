@@ -54,7 +54,8 @@ extern "C" {
 #include <3ds/services/nwmext.h>
 #include <3ds/services/ir.h>
 #include <3ds/services/ns.h>
-#include <3ds/services/pm.h>
+#include <3ds/services/pmapp.h>
+#include <3ds/services/pmdbg.h>
 #include <3ds/services/ps.h>
 #include <3ds/services/ptmu.h>
 #include <3ds/services/ptmsysm.h>
