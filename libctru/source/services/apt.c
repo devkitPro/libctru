@@ -689,7 +689,7 @@ Result APT_GetProgramID(u64* pProgramID)
 {
 	u32 cmdbuf[16];
 	cmdbuf[0] = IPC_MakeHeader(0x58,0,2); // 0x580002
-	cmdbuf[1] = IPC_Desc_CurProcessHandle();
+	cmdbuf[1] = IPC_Desc_CurProcessId();
 
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))

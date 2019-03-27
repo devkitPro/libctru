@@ -68,7 +68,7 @@ int fcntl(int sockfd, int cmd, ...)
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)cmd;
 	cmdbuf[3] = (u32)arg;
-	cmdbuf[4] = IPC_Desc_CurProcessHandle();
+	cmdbuf[4] = IPC_Desc_CurProcessId();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {

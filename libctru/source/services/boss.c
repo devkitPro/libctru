@@ -79,7 +79,7 @@ static Result bossipc_InitializeSession(u64 programID)
 	if(bossPriv)cmdbuf[0] = IPC_MakeHeader(0x0401,2,2); // 0x04010082
 	cmdbuf[1] = (u32) programID;
 	cmdbuf[2] = (u32) (programID >> 32);
-	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[3] = IPC_Desc_CurProcessId();
 
 	if(R_FAILED(ret = svcSendSyncRequest(bossHandle)))return ret;
 

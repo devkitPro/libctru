@@ -35,7 +35,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	cmdbuf[0] = IPC_MakeHeader(0x6,2,4); // 0x60084
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)addrlen;
-	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[3] = IPC_Desc_CurProcessId();
 	cmdbuf[5] = IPC_Desc_StaticBuffer(tmp_addrlen,0);
 	cmdbuf[6] = (u32)tmpaddr;
 

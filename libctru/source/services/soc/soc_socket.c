@@ -29,7 +29,7 @@ int socket(int domain, int type, int protocol)
 	cmdbuf[1] = domain;
 	cmdbuf[2] = type;
 	cmdbuf[3] = protocol;
-	cmdbuf[4] = IPC_Desc_CurProcessHandle();
+	cmdbuf[4] = IPC_Desc_CurProcessId();
 
 	dev = FindDevice("soc:");
 	if(dev < 0) {

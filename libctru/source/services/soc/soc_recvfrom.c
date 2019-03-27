@@ -21,7 +21,7 @@ ssize_t socuipc_cmd7(int sockfd, void *buf, size_t len, int flags, struct sockad
 	cmdbuf[2] = (u32)len;
 	cmdbuf[3] = (u32)flags;
 	cmdbuf[4] = (u32)tmp_addrlen;
-	cmdbuf[5] = IPC_Desc_CurProcessHandle();
+	cmdbuf[5] = IPC_Desc_CurProcessId();
 	cmdbuf[7] = IPC_Desc_Buffer(len,IPC_BUFFER_W);
 	cmdbuf[8] = (u32)buf;
 

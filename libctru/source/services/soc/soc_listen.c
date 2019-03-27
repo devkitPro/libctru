@@ -17,7 +17,7 @@ int listen(int sockfd, int max_connections)
 	cmdbuf[0] = IPC_MakeHeader(0x3,2,2); // 0x30082
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)max_connections;
-	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[3] = IPC_Desc_CurProcessId();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {

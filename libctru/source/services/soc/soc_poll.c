@@ -39,7 +39,7 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 	cmdbuf[0] = IPC_MakeHeader(0x14,2,4); // 0x140084
 	cmdbuf[1] = (u32)nfds;
 	cmdbuf[2] = (u32)timeout;
-	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[3] = IPC_Desc_CurProcessId();
 	cmdbuf[5] = IPC_Desc_StaticBuffer(size,10);
 	cmdbuf[6] = (u32)tmp_fds;
 
