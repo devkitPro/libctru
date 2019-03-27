@@ -60,14 +60,19 @@ static inline u32 IPC_Desc_MoveHandles(unsigned number)
 }
 
 /**
- * @brief Returns the code to ask the kernel to fill the handle with the current process handle.
- * @return The code to request the current process handle.
+ * @brief Returns the code to ask the kernel to fill the handle with the current process ID.
+ * @return The code to request the current process ID.
  *
- * The next value is a placeholder that will be replaced by the current process handle by the kernel.
+ * The next value is a placeholder that will be replaced by the current process ID by the kernel.
  */
-static inline u32 IPC_Desc_CurProcessHandle(void)
+static inline u32 IPC_Desc_CurProcessId(void)
 {
 	return 0x20;
+}
+
+static inline DEPRECATED u32 IPC_Desc_CurProcessHandle(void)
+{
+	return IPC_Desc_CurProcessId();
 }
 
 /**

@@ -48,7 +48,7 @@ Result NEWS_AddNotification(const u16* title, u32 titleLength, const u16* messag
 
 	u32 baseIndex = 4;
 	if (!useNewsS) {
-		cmdbuf[baseIndex] = IPC_Desc_CurProcessHandle();
+		cmdbuf[baseIndex] = IPC_Desc_CurProcessId();
 		cmdbuf[baseIndex + 1] = 0; // Process ID, Filled automatically by the ARM11 kernel.
 		baseIndex += 2;
 	}

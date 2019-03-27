@@ -45,7 +45,7 @@ static Result SOCU_Initialize(Handle memhandle, u32 memsize)
 
 	cmdbuf[0] = IPC_MakeHeader(0x1,1,4); // 0x10044
 	cmdbuf[1] = memsize;
-	cmdbuf[2] = IPC_Desc_CurProcessHandle();
+	cmdbuf[2] = IPC_Desc_CurProcessId();
 	cmdbuf[4] = IPC_Desc_SharedHandles(1);
 	cmdbuf[5] = memhandle;
 
@@ -160,7 +160,7 @@ soc_close(struct _reent *r,
 
 	cmdbuf[0] = IPC_MakeHeader(0xB,1,2); // 0xB0042
 	cmdbuf[1] = (u32)sockfd;
-	cmdbuf[2] = IPC_Desc_CurProcessHandle();
+	cmdbuf[2] = IPC_Desc_CurProcessId();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {

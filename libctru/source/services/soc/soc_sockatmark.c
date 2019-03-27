@@ -16,7 +16,7 @@ int sockatmark(int sockfd)
 
 	cmdbuf[0] = IPC_MakeHeader(0x15,1,2); // 0x150042
 	cmdbuf[1] = (u32)sockfd;
-	cmdbuf[2] = IPC_Desc_CurProcessHandle();
+	cmdbuf[2] = IPC_Desc_CurProcessId();
 
 	ret = svcSendSyncRequest(SOCU_handle);
 	if(ret != 0) {

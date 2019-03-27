@@ -39,7 +39,7 @@ Result NDMU_EnterExclusiveState(ndmExclusiveState state)
 
 	cmdbuf[0]=IPC_MakeHeader(0x1,1,2); // 0x10042
 	cmdbuf[1]=state;
-	cmdbuf[2]=IPC_Desc_CurProcessHandle();
+	cmdbuf[2]=IPC_Desc_CurProcessId();
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
@@ -52,7 +52,7 @@ Result NDMU_LeaveExclusiveState(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x2,0,2); // 0x20002
-	cmdbuf[1]=IPC_Desc_CurProcessHandle();
+	cmdbuf[1]=IPC_Desc_CurProcessId();
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
@@ -79,7 +79,7 @@ Result NDMU_LockState(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x4,0,2); // 0x40002
-	cmdbuf[1]=IPC_Desc_CurProcessHandle();
+	cmdbuf[1]=IPC_Desc_CurProcessId();
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
@@ -92,7 +92,7 @@ Result NDMU_UnlockState(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x5,0,2); // 0x50002
-	cmdbuf[1]=IPC_Desc_CurProcessHandle();
+	cmdbuf[1]=IPC_Desc_CurProcessId();
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;

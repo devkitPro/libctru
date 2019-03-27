@@ -74,7 +74,7 @@ static Result NFC_StartCommsAdapter(void)
 	APT_CheckNew3DS(&new3ds_flag);
 
 	if(new3ds_flag) return 0;
-	
+
 	ret = NFC_StartCommunication();
 	if(R_FAILED(ret))return ret;
 
@@ -117,8 +117,8 @@ Result nfcStartOtherTagScanning(u16 unk0, u32 unk1)
 {
 	Result ret = NFC_StartCommsAdapter();
 	if(R_FAILED(ret)) return ret;
-	
-	return NFC_StartOtherTagScanning(unk0, unk1);	
+
+	return NFC_StartOtherTagScanning(unk0, unk1);
 }
 
 void nfcStopScanning(void)
@@ -248,7 +248,7 @@ Result nfcUpdateStoredAmiiboData(void)
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	cmdbuf[0]=IPC_MakeHeader(0x9,0,2); // 0x90002
-	cmdbuf[1]=IPC_Desc_CurProcessHandle();
+	cmdbuf[1]=IPC_Desc_CurProcessId();
 
 	if(R_FAILED(ret=svcSendSyncRequest(nfcHandle)))return ret;
 	ret = cmdbuf[1];
@@ -349,7 +349,7 @@ static Result NFC_InitializeWriteAppData(u32 amiibo_appid, NFC_AppDataInitStruct
 	cmdbuf[1]=amiibo_appid;
 	cmdbuf[2]=size;
 	memcpy(&cmdbuf[3], initstruct->data_xc, sizeof(initstruct->data_xc));
-	cmdbuf[15]=IPC_Desc_CurProcessHandle();
+	cmdbuf[15]=IPC_Desc_CurProcessId();
 	cmdbuf[17]=IPC_Desc_StaticBuffer(size, 0);
 	cmdbuf[18]=(u32)buf;
 

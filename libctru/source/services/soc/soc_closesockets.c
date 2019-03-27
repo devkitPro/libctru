@@ -7,7 +7,7 @@ int SOCU_CloseSockets(void)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x21,0,2); // 0x210002;
-	cmdbuf[1] = IPC_Desc_CurProcessHandle();
+	cmdbuf[1] = IPC_Desc_CurProcessId();
 
 	int ret = svcSendSyncRequest(SOCU_handle);
 	if(R_FAILED(ret))return ret;

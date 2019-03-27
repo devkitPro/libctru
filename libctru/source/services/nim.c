@@ -31,7 +31,7 @@ static Result NIMS_RegisterSelf(void)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x3c, 0, 2); // 0x003c0002
-	cmdbuf[1] = IPC_Desc_CurProcessHandle();
+	cmdbuf[1] = IPC_Desc_CurProcessId();
 	cmdbuf[2] = IPC_Desc_MoveHandles(1);
 
 	if (R_FAILED(ret = svcSendSyncRequest(nimsHandle))) return ret;
@@ -160,7 +160,7 @@ Result NIMS_RegisterTask(const NIM_TitleConfig *cfg, const char *name, const cha
 	memcpy(&cmdbuf[1], cfg, sizeof(*cfg));
 	// unused: cmdbuf[7], cmdbuf[8]
 	cmdbuf[9]  = 0; // always 0? At least it is for eShop
-	cmdbuf[10] = IPC_Desc_CurProcessHandle();
+	cmdbuf[10] = IPC_Desc_CurProcessId();
 	// unused: cmdbuf[11]
 	cmdbuf[12] = IPC_Desc_StaticBuffer(sizeof(name16), 1);
 	cmdbuf[13] = (unsigned int)name16;
@@ -195,7 +195,7 @@ Result NIMS_UnregisterTask(u64 titleId)
 	cmdbuf[0] = IPC_MakeHeader(0x5, 2, 2); // 0x00050082
 	cmdbuf[1] = titleId & 0xFFFFFFFF;
 	cmdbuf[2] = (u32) ((titleId >> 32) & 0xFFFFFFFF);
-	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[3] = IPC_Desc_CurProcessId();
 
 	if (R_FAILED(ret = svcSendSyncRequest(nimsHandle))) return ret;
 

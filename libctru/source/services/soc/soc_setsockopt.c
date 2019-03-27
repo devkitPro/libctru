@@ -19,7 +19,7 @@ int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t
 	cmdbuf[2] = (u32)level;
 	cmdbuf[3] = (u32)optname;
 	cmdbuf[4] = (u32)optlen;
-	cmdbuf[5] = IPC_Desc_CurProcessHandle();
+	cmdbuf[5] = IPC_Desc_CurProcessId();
 	cmdbuf[7] = IPC_Desc_StaticBuffer(optlen,9);
 	cmdbuf[8] = (u32)optval;
 

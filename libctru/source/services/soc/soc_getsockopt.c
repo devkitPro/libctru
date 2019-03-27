@@ -20,7 +20,7 @@ int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optl
 	cmdbuf[2] = (u32)level;
 	cmdbuf[3] = (u32)optname;
 	cmdbuf[4] = (u32)*optlen;
-	cmdbuf[5] = IPC_Desc_CurProcessHandle();
+	cmdbuf[5] = IPC_Desc_CurProcessId();
 
 	u32 * staticbufs = getThreadStaticBuffers();
 	saved_threadstorage[0] = staticbufs[0];

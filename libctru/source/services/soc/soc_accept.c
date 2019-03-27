@@ -32,7 +32,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	cmdbuf[0] = IPC_MakeHeader(0x4,2,2); // 0x40082
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = (u32)tmp_addrlen;
-	cmdbuf[3] = IPC_Desc_CurProcessHandle();
+	cmdbuf[3] = IPC_Desc_CurProcessId();
 
 	u32 * staticbufs = getThreadStaticBuffers();
 	saved_threadstorage[0] = staticbufs[0];

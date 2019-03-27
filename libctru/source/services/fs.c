@@ -152,7 +152,7 @@ Result FSUSER_Initialize(Handle session)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x801,0,2); // 0x8010002
-	cmdbuf[1] = IPC_Desc_CurProcessHandle();
+	cmdbuf[1] = IPC_Desc_CurProcessId();
 
 	Result ret = 0;
 	if(R_FAILED(ret = svcSendSyncRequest(session))) return ret;
@@ -1512,7 +1512,7 @@ Result FSUSER_InitializeWithSdkVersion(Handle session, u32 version)
 
 	cmdbuf[0] = IPC_MakeHeader(0x861,1,2); // 0x8610042
 	cmdbuf[1] = version;
-	cmdbuf[2] = IPC_Desc_CurProcessHandle();
+	cmdbuf[2] = IPC_Desc_CurProcessId();
 
 	Result ret = 0;
 	if(R_FAILED(ret = svcSendSyncRequest(session))) return ret;

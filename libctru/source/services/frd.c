@@ -445,7 +445,7 @@ Result FRD_SetClientSdkVersion(u32 sdkVer)
 
 	cmdbuf[0] = IPC_MakeHeader(0x32,1,2); // 0x320042
 	cmdbuf[1] = sdkVer;
-	cmdbuf[2] = IPC_Desc_CurProcessHandle();
+	cmdbuf[2] = IPC_Desc_CurProcessId();
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 

@@ -82,7 +82,7 @@ Result srvRegisterClient(void)
 	u32* cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x1,0,2); // 0x10002
-	cmdbuf[1] = IPC_Desc_CurProcessHandle();
+	cmdbuf[1] = IPC_Desc_CurProcessId();
 
 	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
 

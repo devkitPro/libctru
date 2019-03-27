@@ -178,7 +178,7 @@ static Result HTTPC_Initialize(Handle handle, u32 sharedmem_size, Handle sharedm
 
 	cmdbuf[0]=IPC_MakeHeader(0x1,1,4); // 0x10044
 	cmdbuf[1]=sharedmem_size; // POST buffer size (page aligned)
-	cmdbuf[2]=IPC_Desc_CurProcessHandle();
+	cmdbuf[2]=IPC_Desc_CurProcessId();
 	cmdbuf[4]=IPC_Desc_SharedHandles(1);
 	cmdbuf[5]=sharedmem_handle;// POST buffer memory block handle
 
@@ -225,7 +225,7 @@ static Result HTTPC_InitializeConnectionSession(Handle handle, Handle contextHan
 
 	cmdbuf[0]=IPC_MakeHeader(0x8,1,2); // 0x80042
 	cmdbuf[1]=contextHandle;
-	cmdbuf[2]=IPC_Desc_CurProcessHandle();
+	cmdbuf[2]=IPC_Desc_CurProcessId();
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(handle)))return ret;
@@ -308,7 +308,7 @@ Result httpcAddPostDataBinary(httpcContext *context, const char* name, const u8*
 	u32* cmdbuf=getThreadCommandBuffer();
 
 	int name_len=strlen(name)+1;
-	
+
 	cmdbuf[0]=IPC_MakeHeader(0x13, 3, 4); // 0x1300C4
 	cmdbuf[1]=context->httphandle;
 	cmdbuf[2]=name_len;
