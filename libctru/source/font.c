@@ -8,7 +8,6 @@
 
 CFNT_s* g_sharedFont;
 static u32 sharedFontAddr;
-static int charPerSheet;
 
 Result fontEnsureMapped(void)
 {
@@ -26,17 +25,33 @@ Result fontEnsureMapped(void)
 		return res;
 
 	g_sharedFont = (CFNT_s*)(sharedFontAddr+0x80);
-	charPerSheet = g_sharedFont->finf.tglp->nRows * g_sharedFont->finf.tglp->nLines;
 	return 0;
 }
 
-int fontGlyphIndexFromCodePoint(u32 codePoint)
+void fontFixPointers(CFNT_s* font)
 {
-	int ret = g_sharedFont->finf.alterCharIndex;
+	font->finf.tglp = (TGLP_s*)((u32)(font->finf.tglp) + (u32) font);
+	font->finf.tglp->sheetData = (u8*)((u32)(font->finf.tglp->sheetData) + (u32) font);
+
+	font->finf.cmap = (CMAP_s*)((u32)(font->finf.cmap) + (u32) font);
+	for (CMAP_s* cmap = font->finf.cmap; cmap->next; cmap = cmap->next)
+		cmap->next = (CMAP_s*)((u32)(cmap->next) + (u32) font);
+
+	font->finf.cwdh = (CWDH_s*)((u32)(font->finf.cwdh) + (u32) font);
+	for (CWDH_s* cwdh = font->finf.cwdh; cwdh->next; cwdh = cwdh->next)
+		cwdh->next = (CWDH_s*)((u32)(cwdh->next) + (u32) font);
+}
+
+int fontGlyphIndexFromCodePoint(CFNT_s* font, u32 codePoint)
+{
+	if (!font)
+		font = g_sharedFont;
+	if (!font)
+		return -1;
+	int ret = font->finf.alterCharIndex;
 	if (codePoint < 0x10000)
 	{
-		CMAP_s* cmap;
-		for (cmap = g_sharedFont->finf.cmap; cmap; cmap = cmap->next)
+		for (CMAP_s* cmap = font->finf.cmap; cmap; cmap = cmap->next)
 		{
 			if (codePoint < cmap->codeBegin || codePoint > cmap->codeEnd)
 				continue;
@@ -67,26 +82,34 @@ int fontGlyphIndexFromCodePoint(u32 codePoint)
 	return ret;
 }
 
-charWidthInfo_s* fontGetCharWidthInfo(int glyphIndex)
+charWidthInfo_s* fontGetCharWidthInfo(CFNT_s* font, int glyphIndex)
 {
+	if (!font)
+		font = g_sharedFont;
+	if (!font)
+		return NULL;
 	charWidthInfo_s* info = NULL;
-	CWDH_s* cwdh;
-	for (cwdh = g_sharedFont->finf.cwdh; cwdh && !info; cwdh = cwdh->next)
+	for (CWDH_s* cwdh = font->finf.cwdh; cwdh && !info; cwdh = cwdh->next)
 	{
 		if (glyphIndex < cwdh->startIndex || glyphIndex > cwdh->endIndex)
 			continue;
 		info = &cwdh->widths[glyphIndex - cwdh->startIndex];
 	}
 	if (!info)
-		info = &g_sharedFont->finf.defaultWidth;
+		info = &font->finf.defaultWidth;
 	return info;
 }
 
-void fontCalcGlyphPos(fontGlyphPos_s* out, int glyphIndex, u32 flags, float scaleX, float scaleY)
+void fontCalcGlyphPos(fontGlyphPos_s* out, CFNT_s* font, int glyphIndex, u32 flags, float scaleX, float scaleY)
 {
-	FINF_s* finf = &g_sharedFont->finf;
+	if (!font)
+		font = g_sharedFont;
+	if (!font)
+		return;
+	FINF_s* finf = &font->finf;
 	TGLP_s* tglp = finf->tglp;
-	charWidthInfo_s* cwi = fontGetCharWidthInfo(glyphIndex);
+	charWidthInfo_s* cwi = fontGetCharWidthInfo(font, glyphIndex);
+	int charPerSheet = font->finf.tglp->nRows * font->finf.tglp->nLines;
 
 	int sheetId = glyphIndex / charPerSheet;
 	int glInSheet = glyphIndex % charPerSheet;

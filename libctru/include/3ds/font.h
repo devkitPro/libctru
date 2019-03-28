@@ -157,49 +157,78 @@ enum
 /// Ensures the shared system font is mapped.
 Result fontEnsureMapped(void);
 
-/// Retrieves the font information structure of the shared system font.
-static inline FINF_s* fontGetInfo(void)
+/**
+ * @brief Fixes the pointers internal to a just-loaded font
+ * @param font Font to fix
+ * @remark Should never be run on the system font, and only once on any other font.
+ */
+void fontFixPointers(CFNT_s* font);
+
+/// Gets the currently loaded system font
+static inline CFNT_s* fontGetSystemFont(void)
 {
 	extern CFNT_s* g_sharedFont;
-	return &g_sharedFont->finf;
+	return g_sharedFont;
 }
 
-/// Retrieves the texture sheet information of the shared system font.
-static inline TGLP_s* fontGetGlyphInfo(void)
+/**
+ * @brief Retrieves the font information structure of a font.
+ * @param font Pointer to font structure. If NULL, the shared system font is used.
+ */
+static inline FINF_s* fontGetInfo(CFNT_s* font)
 {
-	return fontGetInfo()->tglp;
+	if (!font)
+		font = fontGetSystemFont();
+	return &font->finf;
+}
+
+/**
+ * @brief Retrieves the texture sheet information of a font.
+ * @param font Pointer to font structure. If NULL, the shared system font is used.
+ */
+static inline TGLP_s* fontGetGlyphInfo(CFNT_s* font)
+{
+	if (!font)
+		font = fontGetSystemFont();
+	return fontGetInfo(font)->tglp;
 }
 
 /**
  * @brief Retrieves the pointer to texture data for the specified texture sheet.
+ * @param font Pointer to font structure. If NULL, the shared system font is used.
  * @param sheetIndex Index of the texture sheet.
  */
-static inline void* fontGetGlyphSheetTex(int sheetIndex)
+static inline void* fontGetGlyphSheetTex(CFNT_s* font, int sheetIndex)
 {
-	TGLP_s* tglp = fontGetGlyphInfo();
+	if (!font)
+		font = fontGetSystemFont();
+	TGLP_s* tglp = fontGetGlyphInfo(font);
 	return &tglp->sheetData[sheetIndex*tglp->sheetSize];
 }
 
 /**
  * @brief Retrieves the glyph index of the specified Unicode codepoint.
+ * @param font Pointer to font structure. If NULL, the shared system font is used.
  * @param codePoint Unicode codepoint.
  */
-int fontGlyphIndexFromCodePoint(u32 codePoint);
+int fontGlyphIndexFromCodePoint(CFNT_s* font, u32 codePoint);
 
 /**
  * @brief Retrieves character width information of the specified glyph.
+ * @param font Pointer to font structure. If NULL, the shared system font is used.
  * @param glyphIndex Index of the glyph.
  */
-charWidthInfo_s* fontGetCharWidthInfo(int glyphIndex);
+charWidthInfo_s* fontGetCharWidthInfo(CFNT_s* font, int glyphIndex);
 
 /**
  * @brief Calculates position information for the specified glyph.
  * @param out Output structure in which to write the information.
+ * @param font Pointer to font structure. If NULL, the shared system font is used.
  * @param glyphIndex Index of the glyph.
  * @param flags Calculation flags (see GLYPH_POS_* flags).
  * @param scaleX Scale factor to apply horizontally.
  * @param scaleY Scale factor to apply vertically.
  */
-void fontCalcGlyphPos(fontGlyphPos_s* out, int glyphIndex, u32 flags, float scaleX, float scaleY);
+void fontCalcGlyphPos(fontGlyphPos_s* out, CFNT_s* font, int glyphIndex, u32 flags, float scaleX, float scaleY);
 
 ///@}
