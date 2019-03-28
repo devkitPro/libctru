@@ -51,8 +51,7 @@ int fontGlyphIndexFromCodePoint(CFNT_s* font, u32 codePoint)
 	int ret = font->finf.alterCharIndex;
 	if (codePoint < 0x10000)
 	{
-		CMAP_s* cmap;
-		for (cmap = font->finf.cmap; cmap; cmap = cmap->next)
+		for (CMAP_s* cmap = font->finf.cmap; cmap; cmap = cmap->next)
 		{
 			if (codePoint < cmap->codeBegin || codePoint > cmap->codeEnd)
 				continue;
@@ -90,8 +89,7 @@ charWidthInfo_s* fontGetCharWidthInfo(CFNT_s* font, int glyphIndex)
 	if (!font)
 		return NULL;
 	charWidthInfo_s* info = NULL;
-	CWDH_s* cwdh;
-	for (cwdh = font->finf.cwdh; cwdh && !info; cwdh = cwdh->next)
+	for (CWDH_s* cwdh = font->finf.cwdh; cwdh && !info; cwdh = cwdh->next)
 	{
 		if (glyphIndex < cwdh->startIndex || glyphIndex > cwdh->endIndex)
 			continue;
