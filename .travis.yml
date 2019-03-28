@@ -1,5 +1,7 @@
 language: c
 
+os: linux
+dist: xenial
 sudo: required
 
 services: docker 
@@ -8,9 +10,6 @@ services: docker
 cache:
   directories:
     - /home/travis/doxygen/doxygen-1.8.15/bin
-env:
-  global:
-    - secure: "SYuVfyfmO6P+KnOXFZpNbBLO3QpGZJjIvFJHix3+xAfjENZoCzn+A7Gmcbm07VN0UB9sDJrYklyUrUepVWSuOd+FiNEyiLi4oYXxFzDjA9am7W1nFEaBAw6Ilifg7KX2OlClXaF7iiQ1udtmN9Uw+1LwfpldDDqti1H9TANaKHc="
 
 before_install:
   # Travis has an OLD doxygen build, so we fetch a recent one
@@ -25,11 +24,14 @@ install:
 
 script:
   - docker run -e ENABLE_COMPATIBILITY_REPORTING -v $TRAVIS_BUILD_DIR:/libctru devkitpro/devkitarm /bin/bash -ex /libctru/.travis/docker.sh
-
-after_success:
   - cd $TRAVIS_BUILD_DIR
-  - #Build the doxygen files and upload to GH pages
-  - git config --global user.email "travis@travis-ci.org"
-  - git config --global user.name "TravisCI-DocBuilder"
-  # Build the doxygen documentation and push it to gh-pages if this is a tagged release
-  - sh exportdoc.sh
+  - sh .travis/exportdoc.sh
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: libctru/docs/html
+  on:
+    tags: true
+    branch: master
