@@ -5,6 +5,7 @@
 
 #pragma once
 #include <3ds/types.h>
+#include <3ds/mii.h>
 
 /// Magic value needed to launch the applet.
 #define MIISELECTOR_MAGIC 0x13DE28CF
@@ -61,7 +62,7 @@ typedef struct
 	u32 guest_mii_was_selected;         ///< 1 if a Guest Mii was selected, 0 otherwise.
 	u32 guest_mii_index;                ///< Index of the selected Guest Mii,
 	                                    ///< 0xFFFFFFFF if no guest was selected.
-	char mii[MIISELECTOR_MIIDATA_SIZE]; ///< Data of selected Mii.
+	MiiData mii;                        ///< Data of selected Mii.
 	u16 _pad0x68;                       ///< @private
 	u16 checksum;                       ///< Checksum of the returned Mii data.
 	                                    ///< Stored as a big-endian value; use
