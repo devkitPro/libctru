@@ -3,7 +3,6 @@
  * @brief Friend Services
  */
 #pragma once
-#include <3ds.h>
 #include <3ds/mii.h>
 
 #define FRIEND_SCREEN_NAME_SIZE 0xB   ///< 11-byte UTF-16 screen name

@@ -1,5 +1,12 @@
 #include <string.h>
+#include <3ds/types.h>
+#include <3ds/svc.h>
+#include <3ds/synchronization.h>
+#include <3ds/ipc.h>
+#include <3ds/result.h>
+#include <3ds/srv.h>
 #include <3ds/services/frd.h>
+#include <3ds/util/utf.h>
 
 static Handle frdHandle;
 static int frdRefCount;
