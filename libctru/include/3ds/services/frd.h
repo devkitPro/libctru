@@ -3,7 +3,9 @@
  * @brief Friend Services
  */
 #pragma once
+
 #include <3ds.h>
+#include <3ds/mii.h>
 
 #define FRIENDS_SCREEN_NAME_SIZE 0x16   // 11 (0x16 because UTF-16)
 #define FRIENDS_COMMENT_SIZE 0x22       // 16 (0x21 because UTF-16 + null character)
@@ -25,26 +27,6 @@ typedef struct
 	u32 version;
 	u32 unk;
 } TitleData;
-/// Structure containing basic Mii information.
-typedef struct 
-{
-	u32 mii_id;
-	u64 system_id;
-	u32 cdate;
-	u8 mac[0x6];
-	u16 padding;
-	u16 misc1;
-	u16 mii_name[0xB];
-	u8 width;
-	u8 height;
-	u32 misc2;
-	u32 unknown1;
-	u32 misc3;
-	u32 unknown2;
-	u8 allow_copy;
-	u8 unknown3[0x7];
-	u16 author[0xB];
-} MiiData;
 
 /// Friend profile data
 typedef struct
