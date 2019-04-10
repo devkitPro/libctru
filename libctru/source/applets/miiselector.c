@@ -1,6 +1,7 @@
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/services/apt.h>
+#include <3ds/util/utf.h>
 
 #include <3ds/applets/miiselector.h>
 
@@ -22,6 +23,29 @@ Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn *returnb
 	}
 
 	return ret;
+}
+
+static void miiSelectorConvertToUTF16(u16* out, const char* in, int max)
+{
+	if (!in || !*in)
+	{
+		out[0] = 0;
+		return;
+	}
+
+	ssize_t units = utf8_to_utf16(out, (const uint8_t*)in, max);
+	if (units < 0)
+	{
+		out[0] = 0;
+		return;
+	}
+
+	out[units] = 0;
+}
+
+void miiSelectorSetTitle(MiiSelectorConf *conf, const char* text)
+{
+	miiSelectorConvertToUTF16(conf->title, text, MIISELECTOR_TITLE_LEN);
 }
 
 static u16 crc16_ccitt(void const *buf, size_t len, uint32_t starting_val)

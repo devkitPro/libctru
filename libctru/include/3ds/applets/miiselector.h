@@ -82,6 +82,14 @@ typedef struct
 Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn* returnbuf);
 
 /**
+ * @brief Sets title of the Mii selector library applet
+ *
+ * @param conf Pointer to the current Mii selector configuration
+ * @param text Title text
+ */
+void miiSelectorSetTitle(MiiSelectorConf *conf, const char* text);
+
+/**
  * @brief Verifies that the Mii data returned from the applet matches its
  * checksum
  *
