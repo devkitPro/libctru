@@ -65,7 +65,7 @@ void miiSelectorSetTitle(MiiSelectorConf *conf, const char* text)
 	miiSelectorConvertToUTF16(conf->title, text, MIISELECTOR_TITLE_LEN);
 }
 
-static const char miiSelectorOptions[] =
+static const u8 miiSelectorOptions[] =
 {
 	offsetof(MiiSelectorConf, enable_cancel_button),
 	offsetof(MiiSelectorConf, enable_selecting_guests),
@@ -73,7 +73,7 @@ static const char miiSelectorOptions[] =
 	offsetof(MiiSelectorConf, show_guest_page),
 };
 
-void miiSelectorSetOptions(MiiSelectorConf *conf, u8 options)
+void miiSelectorSetOptions(MiiSelectorConf *conf, u32 options)
 {
 	for (int i = 0; i < (sizeof(miiSelectorOptions)/sizeof(char)); i ++)
 		*((u8*)conf + miiSelectorOptions[i]) = (options & BIT(i)) ? 1 : 0;
@@ -132,6 +132,9 @@ void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out)
 
 void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out)
 {
+	if (!out)
+		return;
+
 	miiSelectorConvertToUTF8(out, returnbuf->mii.author_name, 30);
 }
 

@@ -101,7 +101,7 @@ void miiSelectorSetTitle(MiiSelectorConf *conf, const char* text);
  * @param conf Pointer to miiSelector configuration
  * @param options Options bitmask
  */
-void miiSelectorSetOptions(MiiSelectorConf *conf, u8 options);
+void miiSelectorSetOptions(MiiSelectorConf *conf, u32 options);
 
 /**
  * @brief Specifies which guest Miis will be selectable
