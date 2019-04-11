@@ -48,9 +48,6 @@ typedef struct
 	           ///< applet.
 } MiiSelectorConf;
 
-/// Size of the data describing a single Mii
-#define MIISELECTOR_MIIDATA_SIZE 0x5c
-
 /// Maximum length of the localized name of a Guest Mii
 #define MIISELECTOR_GUESTMII_NAME_LEN 12
 
@@ -73,6 +70,15 @@ typedef struct
 	                                                   ///< string). Zeroed otherwise.
 } MiiSelectorReturn;
 
+/// AppletEd options
+enum
+{
+	MIISELECTOR_CANCEL     = BIT(0), ///< Show the cancel button
+	MIISELECTOR_GUESTS     = BIT(1), ///< Make Guets Miis selectable
+	MIISELECTOR_TOP        = BIT(2), ///< Show AppletEd on top screen
+	MIISELECTOR_GUESTSTART = BIT(3), ///< Start on guest page
+};
+
 /**
  * @brief Launch the Mii selector library applet
  *
@@ -84,17 +90,49 @@ Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn* returnb
 /**
  * @brief Sets title of the Mii selector library applet
  *
- * @param conf Pointer to the current Mii selector configuration
- * @param text Title text
+ * @param conf Pointer to miiSelector configuration
+ * @param text Title text of Mii selector
  */
 void miiSelectorSetTitle(MiiSelectorConf *conf, const char* text);
+
+/**
+ * @brief Specifies which special options are enabled in the Mii selector
+ *
+ * @param conf Pointer to miiSelector configuration
+ * @param options Options bitmask
+ */
+void miiSelectorSetOptions(MiiSelectorConf *conf, char options);
+
+/**
+ * @brief Specifies which mii the cursor should start from
+ *
+ * @param conf Pointer to miiSelector configuration
+ * @param index Indexed number of the Mii that the cursor will start on.
+ * If there is no mii with that index, the the cursor will be at index 0.
+ */
+void miiSelectorSetIndex(MiiSelectorConf *conf, u32 index);
+
+/**
+ * @brief Get Mii name
+ *
+ * @param returnbuf Pointer to miiSelector return
+ * @param out String containing a Mii's name (a length of at least 36 is expected)
+ */
+void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out);
+
+/**
+ * @brief Get Mii Author
+ *
+ * @param returnbuf Pointer to miiSelector return
+ * @param out String containing a Mii's author (a length of at least 30 is expected)
+ */
+void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out);
 
 /**
  * @brief Verifies that the Mii data returned from the applet matches its
  * checksum
  *
  * @param returnbuffer Buffer filled by Mii selector applet
- *
  * @return `true` if `returnbuf->checksum` is the same as the one computed from `returnbuf`
  */
 bool miiSelectorChecksumIsValid(const MiiSelectorReturn *returnbuf);
