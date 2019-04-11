@@ -22,25 +22,25 @@
 /// Parameter structure passed to AppletEd
 typedef struct
 {
-	char enable_cancel_button;        ///< Enables canceling of selection if nonzero.
-	char enable_selecting_guests;     ///< Makes Guets Miis selectable if nonzero.
-	char show_on_top_screen;          ///< Shows applet on top screen if nonzero,
+	u8 enable_cancel_button;          ///< Enables canceling of selection if nonzero.
+	u8 enable_selecting_guests;       ///< Makes Guets Miis selectable if nonzero.
+	u8 show_on_top_screen;            ///< Shows applet on top screen if nonzero,
 	                                  ///< otherwise show it on the bottom screen.
-	char _unk0x3[5];                  ///< @private
+	u8 _unk0x3[5];                    ///< @private
 	u16 title[MIISELECTOR_TITLE_LEN]; ///< UTF16-LE string displayed at the top of the applet. If
 	                                  ///< set to the empty string, a default title is displayed.
-	char _unk0x88[4];                 ///< @private
-	char show_guest_page;             ///< If nonzero, the applet shows a page with Guest
+	u8 _unk0x88[4];                   ///< @private
+	u8 show_guest_page;               ///< If nonzero, the applet shows a page with Guest
 	                                  ///< Miis on launch.
-	char _unk0x8D[3];                 ///< @private
+	u8 _unk0x8D[3];                   ///< @private
 	u32 initial_index;                ///< Index of the initially selected Mii. If
 	                                  ///< @ref MiiSelectorConf.show_guest_page is
 	                                  ///< set, this is the index of a Guest Mii,
 	                                  ///< otherwise that of a user Mii.
-	char mii_guest_whitelist[MIISELECTOR_GUESTMII_SLOTS]; ///< Each byte set to a nonzero value
+	u8 mii_guest_whitelist[MIISELECTOR_GUESTMII_SLOTS];   ///< Each byte set to a nonzero value
 	                                                      ///< enables its corresponding Guest
 	                                                      ///< Mii to be enabled for selection.
-	char mii_whitelist[MIISELECTOR_USERMII_SLOTS]; ///< Each byte set to a nonzero value enables
+	u8 mii_whitelist[MIISELECTOR_USERMII_SLOTS];   ///< Each byte set to a nonzero value enables
 	                                               ///< its corresponding user Mii to be enabled
 	                                               ///< for selection.
 	u16 _unk0xFE;                                  ///< @private
@@ -101,16 +101,52 @@ void miiSelectorSetTitle(MiiSelectorConf *conf, const char* text);
  * @param conf Pointer to miiSelector configuration
  * @param options Options bitmask
  */
-void miiSelectorSetOptions(MiiSelectorConf *conf, char options);
+void miiSelectorSetOptions(MiiSelectorConf *conf, u8 options);
 
 /**
- * @brief Specifies which mii the cursor should start from
+ * @brief Specifies which guest Miis will be selectable
+ *
+ * @param conf Pointer to miiSelector configuration
+ * @param index Index of the guest Mii that will be whitelisted.
+ * @ref MIISELECTOR_GUESTMII_SLOTS can be used to whitelist all the guest Miis.
+ */
+void miiSelectorWhitelistGuestMii(MiiSelectorConf *conf, u32 index);
+
+/**
+ * @brief Specifies which guest Miis will be unselectable
+ *
+ * @param conf Pointer to miiSelector configuration
+ * @param index Index of the guest Mii that will be blacklisted.
+ * @ref MIISELECTOR_GUESTMII_SLOTS can be used to blacklist all the guest Miis.
+ */
+void miiSelectorBlacklistGuestMii(MiiSelectorConf *conf, u32 index);
+
+/**
+ * @brief Specifies which user Miis will be selectable
+ *
+ * @param conf Pointer to miiSelector configuration
+ * @param index Index of the user Mii that will be whitelisted.
+ * @ref MIISELECTOR_USERMII_SLOTS can be used to whitlist all the user Miis
+ */
+void miiSelectorWhitelistUserMii(MiiSelectorConf *conf, u32 index);
+
+/**
+ * @brief Specifies which user Miis will be selectable
+ *
+ * @param conf Pointer to miiSelector configuration
+ * @param index Index of the user Mii that will be blacklisted.
+ * @ref MIISELECTOR_USERMII_SLOTS can be used to blacklist all the user Miis
+ */
+void miiSelectorBlacklistUserMii(MiiSelectorConf *conf, u32 index);
+
+/**
+ * @brief Specifies which Mii the cursor should start from
  *
  * @param conf Pointer to miiSelector configuration
  * @param index Indexed number of the Mii that the cursor will start on.
- * If there is no mii with that index, the the cursor will be at index 0.
+ * If there is no mii with that index, the the cursor will start at index 0.
  */
-void miiSelectorSetIndex(MiiSelectorConf *conf, u32 index);
+void miiSelectorSetInitalIndex(MiiSelectorConf *conf, u32 index);
 
 /**
  * @brief Get Mii name

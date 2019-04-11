@@ -73,13 +73,49 @@ static const char miiSelectorOptions[] =
 	offsetof(MiiSelectorConf, show_guest_page),
 };
 
-void miiSelectorSetOptions(MiiSelectorConf *conf, char options)
+void miiSelectorSetOptions(MiiSelectorConf *conf, u8 options)
 {
 	for (int i = 0; i < (sizeof(miiSelectorOptions)/sizeof(char)); i ++)
 		*((u8*)conf + miiSelectorOptions[i]) = (options & BIT(i)) ? 1 : 0;
 }
 
-void miiSelectorSetIndex(MiiSelectorConf *conf, u32 index) {
+void miiSelectorWhitelistGuestMii(MiiSelectorConf *conf, u32 index)
+{
+	if (index < MIISELECTOR_GUESTMII_SLOTS)
+		conf->mii_guest_whitelist[index] = 1;
+	else if (index == MIISELECTOR_GUESTMII_SLOTS)
+		for (int i = 0; i < MIISELECTOR_GUESTMII_SLOTS; i ++)
+			conf->mii_guest_whitelist[i] = 1;
+}
+
+void miiSelectorBlacklistGuestMii(MiiSelectorConf *conf, u32 index)
+{
+	if (index < MIISELECTOR_GUESTMII_SLOTS)
+		conf->mii_guest_whitelist[index] = 0;
+	else if (index == MIISELECTOR_GUESTMII_SLOTS)
+		for (int i = 0; i < MIISELECTOR_GUESTMII_SLOTS; i ++)
+			conf->mii_guest_whitelist[i] = 0;
+}
+
+void miiSelectorWhitelistUserMii(MiiSelectorConf *conf, u32 index)
+{
+	if (index < MIISELECTOR_USERMII_SLOTS)
+		conf->mii_whitelist[index] = 1;
+	else if (index == MIISELECTOR_USERMII_SLOTS)
+		for (int i = 0; i < MIISELECTOR_USERMII_SLOTS; i ++)
+			conf->mii_whitelist[i] = 1;
+}
+
+void miiSelectorBlacklistUserMii(MiiSelectorConf *conf, u32 index)
+{
+	if (index < MIISELECTOR_USERMII_SLOTS)
+		conf->mii_whitelist[index] = 0;
+	else if (index == MIISELECTOR_USERMII_SLOTS)
+		for (int i = 0; i < MIISELECTOR_USERMII_SLOTS; i ++)
+			conf->mii_whitelist[i] = 0;
+}
+
+void miiSelectorSetInitalIndex(MiiSelectorConf *conf, u32 index) {
 	conf->initial_index = index;
 }
 
