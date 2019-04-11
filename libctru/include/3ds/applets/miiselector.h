@@ -168,7 +168,7 @@ void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out);
  * @brief Verifies that the Mii data returned from the applet matches its
  * checksum
  *
- * @param returnbuffer Buffer filled by Mii selector applet
+ * @param returnbuf Buffer filled by Mii selector applet
  * @return `true` if `returnbuf->checksum` is the same as the one computed from `returnbuf`
  */
 bool miiSelectorChecksumIsValid(const MiiSelectorReturn *returnbuf);
