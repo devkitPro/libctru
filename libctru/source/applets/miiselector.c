@@ -7,6 +7,17 @@
 
 #include <string.h> // for memcpy
 
+void miiSelectorInit(MiiSelectorConf *conf)
+{
+	memset(conf, 0, sizeof(*conf));
+
+	for (int i = 0; i < MIISELECTOR_GUESTMII_SLOTS; i ++)
+		conf->mii_guest_whitelist[i] = 1;
+
+	for (int i = 0; i < MIISELECTOR_USERMII_SLOTS; i ++)
+		conf->mii_whitelist[i] = 1;
+}
+
 Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn *returnbuf)
 {
 	union {

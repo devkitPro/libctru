@@ -80,6 +80,12 @@ enum
 };
 
 /**
+ * @brief Initialize Mii selector config
+ * @param conf Pointer to Miiselector config.
+ */
+void miiSelectorInit(MiiSelectorConf *conf);
+
+/**
  * @brief Launch the Mii selector library applet
  *
  * @param conf Configuration determining how the applet should behave
@@ -107,7 +113,7 @@ void miiSelectorSetOptions(MiiSelectorConf *conf, u32 options);
  * @brief Specifies which guest Miis will be selectable
  *
  * @param conf Pointer to miiSelector configuration
- * @param index Index of the guest Mii that will be whitelisted.
+ * @param index Index of the guest Miis that will be whitelisted.
  * @ref MIISELECTOR_GUESTMII_SLOTS can be used to whitelist all the guest Miis.
  */
 void miiSelectorWhitelistGuestMii(MiiSelectorConf *conf, u32 index);
@@ -116,7 +122,7 @@ void miiSelectorWhitelistGuestMii(MiiSelectorConf *conf, u32 index);
  * @brief Specifies which guest Miis will be unselectable
  *
  * @param conf Pointer to miiSelector configuration
- * @param index Index of the guest Mii that will be blacklisted.
+ * @param index Index of the guest Miis that will be blacklisted.
  * @ref MIISELECTOR_GUESTMII_SLOTS can be used to blacklist all the guest Miis.
  */
 void miiSelectorBlacklistGuestMii(MiiSelectorConf *conf, u32 index);
@@ -125,7 +131,7 @@ void miiSelectorBlacklistGuestMii(MiiSelectorConf *conf, u32 index);
  * @brief Specifies which user Miis will be selectable
  *
  * @param conf Pointer to miiSelector configuration
- * @param index Index of the user Mii that will be whitelisted.
+ * @param index Index of the user Miis that will be whitelisted.
  * @ref MIISELECTOR_USERMII_SLOTS can be used to whitlist all the user Miis
  */
 void miiSelectorWhitelistUserMii(MiiSelectorConf *conf, u32 index);
@@ -134,7 +140,7 @@ void miiSelectorWhitelistUserMii(MiiSelectorConf *conf, u32 index);
  * @brief Specifies which user Miis will be selectable
  *
  * @param conf Pointer to miiSelector configuration
- * @param index Index of the user Mii that will be blacklisted.
+ * @param index Index of the user Miis that will be blacklisted.
  * @ref MIISELECTOR_USERMII_SLOTS can be used to blacklist all the user Miis
  */
 void miiSelectorBlacklistUserMii(MiiSelectorConf *conf, u32 index);
@@ -144,7 +150,8 @@ void miiSelectorBlacklistUserMii(MiiSelectorConf *conf, u32 index);
  *
  * @param conf Pointer to miiSelector configuration
  * @param index Indexed number of the Mii that the cursor will start on.
- * If there is no mii with that index, the the cursor will start at index 0.
+ * If there is no mii with that index, the the cursor will start at the Mii
+ * with the index 0 (the personal Mii).
  */
 void miiSelectorSetInitalIndex(MiiSelectorConf *conf, u32 index);
 
