@@ -5,7 +5,7 @@
 typedef struct
 {
 	u8 magic; 
-	
+
 	struct
 	{
 		bool allow_copying : 1;
@@ -13,44 +13,52 @@ typedef struct
 		u8 region_lock : 2;
 		u8 char_set : 2;
 	} mii_options;
-	
+
 	struct
 	{
 		u8 page_index : 4;
 		u8 slot_index : 4;
 	} mii_pos;
-	
+
 	u8 console_identity;
 	u64 system_id;
 	u32 mii_id;
 	u8 mac[6];
 	u8 pad[2];
-	u16 mii_details;
+
+	struct {
+		u16 sex : 1;
+		u16 month : 4;
+		u16 day : 5;
+		u16 color : 4;
+		u16 favorite : 1;
+	} mii_details;
+
 	u16 mii_name[10];
 	u8 height;
 	u8 width;
-	
+
 	struct
 	{
 		bool disable_sharing : 1;
 		u8 shape : 4;
 		u8 skinColor : 3;
 	} face_style;
-	
+
 	struct
 	{
 		u8 wrinkles : 4;
 		u8 makeup : 4;
 	} face_details;
-	
+
 	u8 hair_style;
-	
+
 	struct
 	{
 		u8 color : 3;
 		bool flip : 1;
 	} hair_details;
-	
+
 	struct
 	{
 		u32 style : 6;
@@ -61,7 +69,7 @@ typedef struct
 		u32 xspacing : 4;
 		u32 yposition : 5;
 	} eye_details;
-	
+
 	struct
 	{
 		u32 style : 6;
@@ -72,7 +80,7 @@ typedef struct
 		u32 xspacing : 4;
 		u32 yposition : 5;
 	} eyebrow_details;
-	
+
 	struct
 	{
 		u16 style : 5;
@@ -94,7 +102,7 @@ typedef struct
 		u16 mustach_style : 3;
 		u16 pad : 2;
 	} mustache_details;
-	
+
 	struct
 	{
 		u16 style : 3;
