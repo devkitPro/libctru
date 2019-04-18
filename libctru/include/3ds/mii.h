@@ -20,7 +20,12 @@ typedef struct
 		u8 slot_index : 4;
 	} mii_pos;
 
-	u8 console_identity;
+	struct
+	{
+		u8 unknown0 : 4;
+		u8 origin_console : 4;
+	} console_identity;
+
 	u64 system_id;
 	u32 mii_id;
 	u8 mac[6];
