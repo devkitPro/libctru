@@ -23,7 +23,7 @@ typedef struct
 	struct
 	{
 		u8 unknown0 : 4;
-		u8 origin_console : 4;
+		u8 origin_console : 3;
 	} console_identity;
 
 	u64 system_id;
