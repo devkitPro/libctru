@@ -77,10 +77,11 @@ typedef struct
 
 	struct
 	{
-		u32 style : 6;
+		u32 style : 5;
 		u32 color : 3;
 		u32 scale : 4;
 		u32 yscale : 3;
+		u32 pad0 : 1;
 		u32 rotation : 5;
 		u32 xspacing : 4;
 		u32 yposition : 5;
