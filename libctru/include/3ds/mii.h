@@ -4,7 +4,7 @@
 
 typedef struct
 {
-	u8 magic; 
+	u8 magic;
 
 	struct
 	{
@@ -32,11 +32,11 @@ typedef struct
 	u8 pad[2];
 
 	struct {
-		u16 sex : 1;
+		bool sex : 1;
 		u16 month : 4;
 		u16 day : 5;
 		u16 color : 4;
-		u16 favorite : 1;
+		bool favorite : 1;
 	} mii_details;
 
 	u16 mii_name[10];
@@ -81,7 +81,7 @@ typedef struct
 		u32 color : 3;
 		u32 scale : 4;
 		u32 yscale : 3;
-		u32 pad0 : 1;
+		u32 pad : 1;
 		u32 rotation : 5;
 		u32 xspacing : 4;
 		u32 yposition : 5;
