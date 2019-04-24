@@ -171,6 +171,12 @@ bool aptIsHomeAllowed(void);
 void aptSetHomeAllowed(bool allowed);
 
 /**
+ * @brief Returns when the HOME button is pressed.
+ * @return Whether the HOME button is being pressed.
+ */
+bool aptIsHomePressed(void);
+
+/**
  * @brief Processes the current APT status. Generally used within a main loop.
  * @return Whether the application should continue running.
  */
