@@ -40,8 +40,9 @@ enum
 };
 
 static u8 aptHomeButtonState;
+static u8 aptRecentHomeButtonState;
 static u32 aptFlags = FLAG_ALLOWSLEEP;
-static bool aptHomeAllowed = false;
+static bool aptHomeAllowed = true;
 static u32 aptParameters[0x1000/4];
 static u64 aptChainloadTid;
 static u8 aptChainloadMediatype;
@@ -278,6 +279,11 @@ void aptSetHomeAllowed(bool allowed)
 	aptHomeAllowed = allowed;
 }
 
+bool aptIsHomePressed(void)
+{
+	return aptRecentHomeButtonState;
+}
+
 void aptSetChainloader(u64 programID, u8 mediatype)
 {
 	aptChainloadTid = programID;
@@ -349,10 +355,10 @@ void aptEventHandler(void *arg)
 		switch (signal)
 		{
 			case APTSIGNAL_HOMEBUTTON:
-				if (!aptHomeButtonState && aptIsHomeAllowed()) aptHomeButtonState = 1;
+				if (!aptHomeButtonState) aptHomeButtonState = 1;
 				break;
 			case APTSIGNAL_HOMEBUTTON2:
-				if (!aptHomeButtonState && aptIsHomeAllowed()) aptHomeButtonState = 2;
+				if (!aptHomeButtonState) aptHomeButtonState = 2;
 				break;
 			case APTSIGNAL_SLEEP_QUERY:
 				APT_ReplySleepQuery(envGetAptAppId(), aptIsSleepAllowed() ? APTREPLY_ACCEPT : APTREPLY_REJECT);
@@ -512,6 +518,8 @@ bool aptMainLoop(void)
 	if (aptIsCrippled()) return true;
 	if (aptFlags & FLAG_EXITED) return false;
 
+	if (aptRecentHomeButtonState) aptRecentHomeButtonState = 0;
+
 	if (aptFlags & FLAG_WANTSTOSLEEP)
 	{
 		aptFlags = (aptFlags &~ FLAG_WANTSTOSLEEP) | FLAG_SLEEPING;
@@ -525,7 +533,16 @@ bool aptMainLoop(void)
 		aptCallHook(APTHOOK_ONWAKEUP);
 	}
 	else if ((aptFlags & FLAG_POWERBUTTON) || aptHomeButtonState)
-		aptProcessJumpToMenu();
+	{
+		if (aptHomeAllowed || (aptFlags & FLAG_POWERBUTTON))
+			aptProcessJumpToMenu();
+		else
+		{
+			aptRecentHomeButtonState = aptHomeButtonState;
+			aptHomeButtonState = 0;
+			APT_UnlockTransition(0x01);
+		}
+	}
 
 	if (aptFlags & (FLAG_ORDERTOCLOSE|FLAG_WKUPBYCANCEL))
 	{
