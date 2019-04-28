@@ -47,7 +47,7 @@ typedef struct
 		u16 bday_month : 4;   ///< Month of Mii's birthday
 		u16 bday_day : 5;     ///< Day of Mii's birthday
 		u16 shirt_color : 4;  ///< Color of Mii's shirt
-		bool favorite : 1;    ///< Wether the Mii is one of your 10 favorite Mii's
+		bool favorite : 1;    ///< Whether the Mii is one of your 10 favorite Mii's
 	} mii_details;
 
 	u16 mii_name[10];  ///< Name of Mii (Encoded using UTF16)
@@ -57,7 +57,7 @@ typedef struct
 	/// Face style
 	struct
 	{
-		bool disable_sharing : 1; ///< Wether or not Sharing of the Mii is allowed
+		bool disable_sharing : 1; ///< Whether or not Sharing of the Mii is allowed
 		u8 shape : 4;             ///< Face shape
 		u8 skinColor : 3;         ///< Color of skin
 	} face_style;
@@ -111,19 +111,19 @@ typedef struct
 		u16 yposition : 5;
 	} nose_details;
 
-	/// Mouse details
+	/// Mouth details
 	struct
 	{
 		u16 style : 6;
 		u16 color : 3;
 		u16 scale : 4;
 		u16 yscale : 3;
-	} mouse_details;
+	} mouth_details;
 
 	/// Mustache details
 	struct
 	{
-		u16 mouse_yposition : 5;
+		u16 mouth_yposition : 5;
 		u16 mustach_style : 3;
 		u16 pad : 2;
 	} mustache_details;
