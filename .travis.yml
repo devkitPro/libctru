@@ -14,9 +14,9 @@ cache:
 before_install:
   # Travis has an OLD doxygen build, so we fetch a recent one
   - export DOXY_BINPATH=/home/travis/doxygen/doxygen-1.8.15/bin
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then mkdir -p ~/doxygen && cd ~/doxygen; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then wget http://doxygen.nl/files/doxygen-1.8.15.linux.bin.tar.gz; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ]; then tar xzf doxygen-1.8.15.linux.bin.tar.gz; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then mkdir -p ~/doxygen && cd ~/doxygen; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then wget http://doxygen.nl/files/doxygen-1.8.15.linux.bin.tar.gz; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then tar xzf doxygen-1.8.15.linux.bin.tar.gz; fi
   - export PATH=$PATH:$DOXY_BINPATH
 
 install:
@@ -24,7 +24,8 @@ install:
 
 script:
   - docker run -e ENABLE_COMPATIBILITY_REPORTING -v $TRAVIS_BUILD_DIR:/libctru devkitpro/devkitarm /bin/bash -ex /libctru/.travis/docker.sh
-  - cd $TRAVIS_BUILD_DIR
+
+before_deploy:
   - sh .travis/exportdoc.sh
 
 deploy:
