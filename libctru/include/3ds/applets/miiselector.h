@@ -159,17 +159,22 @@ void miiSelectorSetInitalIndex(MiiSelectorConf *conf, u32 index);
  * @brief Get Mii name
  *
  * @param returnbuf Pointer to miiSelector return
- * @param out String containing a Mii's name (a length of at least 36 is expected)
+ * @param out String containing a Mii's name
+ * @param max_size Size of string. Since UTF8 characters range in size from 1-3 bytes
+ * (assuming that no non-BMP characters are used), this value should be 36 (or 30 if you are not
+ * dealing with guest miis).
  */
-void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out);
+void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out, size_t max_size);
 
 /**
  * @brief Get Mii Author
  *
  * @param returnbuf Pointer to miiSelector return
- * @param out String containing a Mii's author (a length of at least 30 is expected)
+ * @param out String containing a Mii's author
+ * @param max_size Size of string. Since UTF8 characters range in size from 1-3 bytes
+ * (assuming that no non-BMP characters are used), this value should be 30.
  */
-void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out);
+void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out, size_t max_size);
 
 /**
  * @brief Verifies that the Mii data returned from the applet matches its

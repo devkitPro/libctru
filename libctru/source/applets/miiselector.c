@@ -130,23 +130,23 @@ void miiSelectorSetInitalIndex(MiiSelectorConf *conf, u32 index) {
 	conf->initial_index = index;
 }
 
-void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out)
+void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out, size_t max_size)
 {
 	if (!out)
 		return;
 
 	if (returnbuf->guest_mii_was_selected)
-		miiSelectorConvertToUTF8(out, returnbuf->guest_mii_name, 36);
+		miiSelectorConvertToUTF8(out, returnbuf->guest_mii_name, max_size);
 	else
-		miiSelectorConvertToUTF8(out, returnbuf->mii.mii_name, 36);
+		miiSelectorConvertToUTF8(out, returnbuf->mii.mii_name, max_size);
 }
 
-void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out)
+void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out, size_t max_size)
 {
 	if (!out)
 		return;
 
-	miiSelectorConvertToUTF8(out, returnbuf->mii.author_name, 30);
+	miiSelectorConvertToUTF8(out, returnbuf->mii.author_name, max_size);
 }
 
 static u16 crc16_ccitt(void const *buf, size_t len, uint32_t starting_val)
