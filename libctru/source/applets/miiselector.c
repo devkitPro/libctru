@@ -76,17 +76,16 @@ void miiSelectorSetTitle(MiiSelectorConf *conf, const char* text)
 	miiSelectorConvertToUTF16(conf->title, text, MIISELECTOR_TITLE_LEN);
 }
 
-static const u8 miiSelectorOptions[] =
-{
-	offsetof(MiiSelectorConf, enable_cancel_button),
-	offsetof(MiiSelectorConf, enable_selecting_guests),
-	offsetof(MiiSelectorConf, show_on_top_screen),
-	offsetof(MiiSelectorConf, show_guest_page),
-};
-
 void miiSelectorSetOptions(MiiSelectorConf *conf, u32 options)
 {
-	for (int i = 0; i < (sizeof(miiSelectorOptions)/sizeof(char)); i ++)
+	static const u8 miiSelectorOptions[] =
+	{
+		offsetof(MiiSelectorConf, enable_cancel_button),
+		offsetof(MiiSelectorConf, enable_selecting_guests),
+		offsetof(MiiSelectorConf, show_on_top_screen),
+		offsetof(MiiSelectorConf, show_guest_page),
+	};
+	for (int i = 0; i < sizeof(miiSelectorOptions); i ++)
 		*((u8*)conf + miiSelectorOptions[i]) = (options & BIT(i)) ? 1 : 0;
 }
 
@@ -126,10 +125,6 @@ void miiSelectorBlacklistUserMii(MiiSelectorConf *conf, u32 index)
 			conf->mii_whitelist[i] = 0;
 }
 
-void miiSelectorSetInitalIndex(MiiSelectorConf *conf, u32 index) {
-	conf->initial_index = index;
-}
-
 void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out, size_t max_size)
 {
 	if (!out)
@@ -151,7 +146,7 @@ void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out, s
 
 static u16 crc16_ccitt(void const *buf, size_t len, uint32_t starting_val)
 {
-	if(buf == NULL)
+	if (!buf)
 		return -1;
 
 	u8 const *cbuf = buf;
@@ -159,13 +154,13 @@ static u16 crc16_ccitt(void const *buf, size_t len, uint32_t starting_val)
 
 	static const u16 POLY = 0x1021;
 
-	for(size_t i = 0; i < len; i++)
+	for (size_t i = 0; i < len; i++)
 	{
-		for(int bit = 7; bit >= 0; bit--)
+		for (int bit = 7; bit >= 0; bit--)
 			crc = ((crc << 1) | ((cbuf[i] >> bit) & 0x1)) ^ (crc & 0x8000 ? POLY : 0);
 	}
 
-	for(int _ = 0; _ < 16; _++)
+	for (int _ = 0; _ < 16; _++)
 		crc = (crc << 1) ^ (crc & 0x8000 ? POLY : 0);
 
 	return (u16)(crc & 0xffff);

@@ -153,7 +153,10 @@ void miiSelectorBlacklistUserMii(MiiSelectorConf *conf, u32 index);
  * If there is no mii with that index, the the cursor will start at the Mii
  * with the index 0 (the personal Mii).
  */
-void miiSelectorSetInitalIndex(MiiSelectorConf *conf, u32 index);
+static inline void miiSelectorSetInitialIndex(MiiSelectorConf *conf, u32 index)
+{
+	conf->initial_index = index;
+}
 
 /**
  * @brief Get Mii name
