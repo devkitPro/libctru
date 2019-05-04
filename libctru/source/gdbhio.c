@@ -204,7 +204,8 @@ static int _gdbExportSeekFlag(int flag)
 }
 // https://sourceware.org/gdb/onlinedocs/gdb/struct-stat.html#struct-stat
 typedef u32 gdbhio_time_t;
-struct gdbhio_stat {
+
+struct PACKED ALIGN(4) gdbhio_stat {
 	u32  st_dev;               /* device */
 	u32  st_ino;               /* inode */
 	gdbhio_mode_t st_mode;     /* protection */
@@ -261,7 +262,9 @@ static void _gdbHioImportStructTimeval(struct timeval *out, const struct gdbhio_
 
 static void _gdbHioSetErrno(int gdbErrno, bool ctrlC)
 {
-	errno = _gdbHioImportErrno(gdbErrno);
+	if (gdbErrno != 0) {
+		errno = _gdbHioImportErrno(gdbErrno);
+	}
 	g_gdbHioWasInterruptedByCtrlC = ctrlC;
 }
 

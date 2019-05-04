@@ -22,6 +22,19 @@ static int _gdbHioGetFd(int fd)
 	return *(int *)handle->fileStruct;
 }
 
+static bool _gdbHioCompareFd(int fd, int fdval)
+{
+	__handle *handle = __get_handle(fd);
+	if (handle == NULL) {
+		return false;
+	}
+
+	if(strcmp(devoptab_list[handle->device]->name, "gdbhio") != 0) {
+		return false;
+	}
+	return *(int *)handle->fileStruct == fdval;
+}
+
 static inline int _gdbHioGetFdFromPtr(void *fdptr)
 {
 	return *(int *)fdptr;
@@ -189,8 +202,24 @@ int gdbHioDevGetStderr(void)
 int gdbHioDevRedirectStdStreams(bool in, bool out, bool err)
 {
 	int ret = 0;
-	if (in && (ret = dup2(gdbHioDevGetStdin(), STDIN_FILENO) < 0)) return ret;
-	if (out && (ret = dup2(gdbHioDevGetStdout(), STDOUT_FILENO) < 0)) return ret;
-	if (err && (ret = dup2(gdbHioDevGetStderr(), STDERR_FILENO) < 0)) return ret;
+	int fd = -1;
+	if (in && !_gdbHioCompareFd(STDIN_FILENO, GDBHIO_STDIN_FILENO)) {
+		fd = gdbHioDevGetStdin();
+		ret = dup2(fd, STDIN_FILENO);
+		close(fd);
+		if (ret < 0) return -1;
+	}
+	if (out && !_gdbHioCompareFd(STDOUT_FILENO, GDBHIO_STDOUT_FILENO)) {
+		fd = gdbHioDevGetStdout();
+		ret = dup2(fd, STDOUT_FILENO);
+		close(fd);
+		if (ret < 0) return -2;
+	}
+	if (err && !_gdbHioCompareFd(STDERR_FILENO, GDBHIO_STDERR_FILENO)) {
+		fd = gdbHioDevGetStderr();
+		ret = dup2(fd, STDERR_FILENO);
+		close(fd);
+		if (ret < 0) return -3;
+	}
 	return ret;
 }

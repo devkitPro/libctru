@@ -24,7 +24,7 @@ int gdbHioDevGetStdout(void);
 ///< Returns a file descriptor mapping to the GDB client console's standard error stream.
 int gdbHioDevGetStderr(void);
 
-///< Redirects 0 to 3 of the application's standard streams to GDB client console's.
+///< Redirects 0 to 3 of the application's standard streams to GDB client console's. Returns -1, -2, or -3, resp., on failure; 0 on success.
 int gdbHioDevRedirectStdStreams(bool in, bool out, bool err);
 
 ///< GDB HIO POSIX function gettimeofday.
