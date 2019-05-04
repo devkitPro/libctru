@@ -27,13 +27,16 @@ static inline int _gdbHioGetFdFromPtr(void *fdptr)
 	return *(int *)fdptr;
 }
 
+static inline const char *_gdbHioSkipMountpoint(const char *pathname)
+{
+	return strncmp(pathname, "gdbhio:", 7) == 0 ? pathname + 7 : pathname;
+}
+
 static int _gdbHioDevOpen(struct _reent *r, void *fdptr, const char *pathname, int flags, int mode)
 {
 	(void)r;
-	if (strncmp(pathname, "gdbhio:", 7) == 0) {
-		pathname += 7;
-	}
 
+	pathname = _gdbHioSkipMountpoint(pathname);
 	int ret = gdbHioOpen(pathname, flags, mode);
 	if (ret < 0) {
 		return ret;
@@ -70,19 +73,19 @@ static off_t _gdbHioDevLseek(struct _reent *r, void *fdptr, off_t offset, int fl
 static int _gdbHioDevRename(struct _reent *r, const char *oldpath, const char *newpath)
 {
 	(void)r;
-	return gdbHioRename(oldpath, newpath);
+	return gdbHioRename(_gdbHioSkipMountpoint(oldpath), _gdbHioSkipMountpoint(newpath));
 }
 
 static int _gdbHioDevUnlink(struct _reent *r, const char *pathname)
 {
 	(void)r;
-	return gdbHioUnlink(pathname);
+	return gdbHioUnlink(_gdbHioSkipMountpoint(pathname));
 }
 
 static int _gdbHioDevStat(struct _reent *r, const char *pathname, struct stat *st)
 {
 	(void)r;
-	return gdbHioStat(pathname, st);
+	return gdbHioStat(_gdbHioSkipMountpoint(pathname), st);
 }
 
 static int _gdbHioDevFstat(struct _reent *r, void *fdptr, struct stat *st)
