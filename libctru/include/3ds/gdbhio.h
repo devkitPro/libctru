@@ -17,7 +17,7 @@ int gdbHioOpen(const char *pathname, int flags, mode_t mode);
 int gdbHioClose(int fd);
 int gdbHioRead(int fd, void *buf, unsigned int count);
 int gdbHioWrite(int fd, const void *buf, unsigned int count);
-int gdbHioLseek(int fd, off_t offset, int flag);
+off_t gdbHioLseek(int fd, off_t offset, int flag);
 int gdbHioRename(const char *oldpath, const char *newpath);
 int gdbHioUnlink(const char *pathname);
 int gdbHioStat(const char *pathname, struct stat *st);

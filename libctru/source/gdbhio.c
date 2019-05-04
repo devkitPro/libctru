@@ -12,14 +12,15 @@
 #define GDBHIO_O_RDONLY           0x0
 #define GDBHIO_O_WRONLY           0x1
 #define GDBHIO_O_RDWR             0x2
+#define GDBHIO_O_ACCMODE          0x3
 #define GDBHIO_O_APPEND           0x8
 #define GDBHIO_O_CREAT          0x200
 #define GDBHIO_O_TRUNC          0x400
 #define GDBHIO_O_EXCL           0x800
-#define GDBHIO_O_SUPPORTED	(GDBHIO_O_RDONLY | GDBHIO_O_WRONLY| \
-				 GDBHIO_O_RDWR   | GDBHIO_O_APPEND| \
-				 GDBHIO_O_CREAT  | GDBHIO_O_TRUNC| \
-				 GDBHIO_O_EXCL)
+#define GDBHIO_O_SUPPORTED  (GDBHIO_O_RDONLY | GDBHIO_O_WRONLY| \
+                             GDBHIO_O_RDWR   | GDBHIO_O_APPEND| \
+                             GDBHIO_O_CREAT  | GDBHIO_O_TRUNC| \
+                             GDBHIO_O_EXCL)
 
 #define GDBHIO_S_IFREG        0100000
 #define GDBHIO_S_IFDIR         040000
@@ -27,15 +28,15 @@
 #define GDBHIO_S_IRUSR           0400
 #define GDBHIO_S_IWUSR           0200
 #define GDBHIO_S_IXUSR           0100
-#define GDBHIO_S_IRWXU           0700
+#define GDBHIO_S_IRWXU           (GDBHIO_S_IRUSR | GDBHIO_S_IWUSR | GDBHIO_S_IXUSR)
 #define GDBHIO_S_IRGRP            040
 #define GDBHIO_S_IWGRP            020
 #define GDBHIO_S_IXGRP            010
-#define GDBHIO_S_IRWXG            070
+#define GDBHIO_S_IRWXG            (GDBHIO_S_IRGRP | GDBHIO_S_IWGRP | GDBHIO_S_IXGRP)
 #define GDBHIO_S_IROTH             04
 #define GDBHIO_S_IWOTH             02
 #define GDBHIO_S_IXOTH             01
-#define GDBHIO_S_IRWXO             07
+#define GDBHIO_S_IRWXO             (GDBHIO_S_IROTH | GDBHIO_S_IWOTH | GDBHIO_S_IXOTH)
 #define GDBHIO_S_SUPPORTED         (GDBHIO_S_IFREG|GDBHIO_S_IFDIR|  \
                                     GDBHIO_S_IRWXU|GDBHIO_S_IRWXG|  \
                                     GDBHIO_S_IRWXO)
@@ -80,7 +81,7 @@ typedef struct PackedGdbHioRequest
 	size_t stringLengths[8];
 
 	// Return
-	int retval;
+	s64 retval;
 	int gdbErrno;
 	bool ctrlC;
 } PackedGdbHioRequest;
@@ -127,16 +128,27 @@ static int _gdbHioExportOpenFlags(int flags)
 	if (flags & O_EXCL) outflags |= GDBHIO_O_EXCL;
 	if (flags & O_TRUNC) outflags |= GDBHIO_O_TRUNC;
 	if (flags & O_APPEND) outflags |= GDBHIO_O_APPEND;
-	if (flags & O_RDONLY) outflags |= GDBHIO_O_RDONLY;
-	if (flags & O_WRONLY) outflags |= GDBHIO_O_WRONLY;
-	if (flags & O_RDWR) outflags |= GDBHIO_O_RDWR;
+
+	switch (flags & O_ACCMODE) {
+	case O_RDONLY:
+		outflags |= GDBHIO_O_RDONLY;
+		break;
+	case O_WRONLY:
+		outflags |= GDBHIO_O_WRONLY;
+		break;
+	case O_RDWR:
+		outflags |= GDBHIO_O_RDWR;
+		break;
+	default:
+		break;
+	}
 
 	// Note: O_BINARY is implicit if the host supports it
 
 	return outflags;
 }
 
-typedef int gdbhio_mode_t;
+typedef s32 gdbhio_mode_t;
 
 static mode_t _gdbHioImportFileMode(gdbhio_mode_t gdbMode)
 {
@@ -149,22 +161,12 @@ static mode_t _gdbHioImportFileMode(gdbhio_mode_t gdbMode)
 	if (gdbMode & GDBHIO_S_IRUSR) mode |= S_IRUSR;
 	if (gdbMode & GDBHIO_S_IWUSR) mode |= S_IWUSR;
 	if (gdbMode & GDBHIO_S_IXUSR) mode |= S_IXUSR;
-#ifdef S_IRGRP
 	if (gdbMode & GDBHIO_S_IRGRP) mode |= S_IRGRP;
-#endif
-#ifdef S_IWGRP
 	if (gdbMode & GDBHIO_S_IWGRP) mode |= S_IWGRP;
-#endif
-#ifdef S_IXGRP
 	if (gdbMode & GDBHIO_S_IXGRP) mode |= S_IXGRP;
-#endif
 	if (gdbMode & GDBHIO_S_IROTH) mode |= S_IROTH;
-#ifdef S_IWOTH
 	if (gdbMode & GDBHIO_S_IWOTH) mode |= S_IWOTH;
-#endif
-#ifdef S_IXOTH
 	if (gdbMode & GDBHIO_S_IXOTH) mode |= S_IXOTH;
-#endif
 
   return mode;
 }
@@ -180,22 +182,12 @@ static int _gdbHioExportFileMode(mode_t mode)
 	if (mode & S_IRUSR) gdbMode |= GDBHIO_S_IRUSR;
 	if (mode & S_IWUSR) gdbMode |= GDBHIO_S_IWUSR;
 	if (mode & S_IXUSR) gdbMode |= GDBHIO_S_IXUSR;
-#ifdef S_IRGRP
 	if (mode & S_IRGRP) gdbMode |= GDBHIO_S_IRGRP;
-#endif
-#ifdef S_IWGRP
 	if (mode & S_IWGRP) gdbMode |= GDBHIO_S_IWGRP;
-#endif
-#ifdef S_IXGRP
 	if (mode & S_IXGRP) gdbMode |= GDBHIO_S_IXGRP;
-#endif
 	if (mode & S_IROTH) gdbMode |= GDBHIO_S_IROTH;
-#ifdef S_IWOTH
 	if (mode & S_IWOTH) gdbMode |= GDBHIO_S_IWOTH;
-#endif
-#ifdef S_IXOTH
 	if (mode & S_IXOTH) gdbMode |= GDBHIO_S_IXOTH;
-#endif
 
 	return mode;
 }
@@ -213,13 +205,13 @@ static int _gdbExportSeekFlag(int flag)
 // https://sourceware.org/gdb/onlinedocs/gdb/struct-stat.html#struct-stat
 typedef u32 gdbhio_time_t;
 struct gdbhio_stat {
-	unsigned int  st_dev;      /* device */
-	unsigned int  st_ino;      /* inode */
+	u32  st_dev;               /* device */
+	u32  st_ino;               /* inode */
 	gdbhio_mode_t st_mode;     /* protection */
-	unsigned int  st_nlink;    /* number of hard links */
-	unsigned int  st_uid;      /* user ID of owner */
-	unsigned int  st_gid;      /* group ID of owner */
-	unsigned int  st_rdev;     /* device type (if inode device) */
+	u32 st_nlink;              /* number of hard links */
+	u32 st_uid;                /* user ID of owner */
+	u32 st_gid;                /* group ID of owner */
+	u32 st_rdev;               /* device type (if inode device) */
 	u64 st_size;               /* total size, in bytes */
 	u64 st_blksize;            /* blocksize for filesystem I/O */
 	u64 st_blocks;             /* number of blocks allocated */
@@ -243,7 +235,7 @@ static void _gdbHioImportStructStat(struct stat *out, const struct gdbhio_stat *
 	memset(out, 0, sizeof(struct stat));
 	out->st_dev = _gdbHioImportScalar32(in->st_dev);
 	out->st_ino = _gdbHioImportScalar32(in->st_ino);
-	out->st_mode = _gdbHioImportFileMode(_gdbHioImportScalar32(in->st_dev));
+	out->st_mode = _gdbHioImportFileMode(_gdbHioImportScalar32(in->st_mode));
 	out->st_nlink = _gdbHioImportScalar32(in->st_nlink);
 	out->st_uid = _gdbHioImportScalar32(in->st_uid);
 	out->st_gid = _gdbHioImportScalar32(in->st_gid);
@@ -273,7 +265,7 @@ static void _gdbHioSetErrno(int gdbErrno, bool ctrlC)
 	g_gdbHioWasInterruptedByCtrlC = ctrlC;
 }
 
-static int _gdbHioSendSyncRequestV(const char *name, const char *paramFormat, va_list args)
+static s64 _gdbHioSendSyncRequest64V(const char *name, const char *paramFormat, va_list args)
 {
 	PackedGdbHioRequest req = {{0}};
 	memcpy(req.magic, "GDB", 4);
@@ -289,6 +281,7 @@ static int _gdbHioSendSyncRequestV(const char *name, const char *paramFormat, va
 			case 'I':
 				req.parameters[i] = va_arg(args, u32);
 				break;
+			case 'l':
 			case 'L':
 				req.parameters[i] = va_arg(args, u64);
 				break;
@@ -315,14 +308,24 @@ static int _gdbHioSendSyncRequestV(const char *name, const char *paramFormat, va
 	return req.retval;
 }
 
-static int _gdbHioSendSyncRequest(const char *name, const char *paramFormat, ...)
+static s64 _gdbHioSendSyncRequest64(const char *name, const char *paramFormat, ...)
 {
-	int ret = 0;
+	s64 ret = 0;
 	va_list args;
 	va_start(args, paramFormat);
-	ret = _gdbHioSendSyncRequestV(name, paramFormat, args);
+	ret = _gdbHioSendSyncRequest64V(name, paramFormat, args);
 	va_end(args);
 	return ret;
+}
+
+static int _gdbHioSendSyncRequest(const char *name, const char *paramFormat, ...)
+{
+	s64 ret = 0;
+	va_list args;
+	va_start(args, paramFormat);
+	ret = _gdbHioSendSyncRequest64V(name, paramFormat, args);
+	va_end(args);
+	return (int)ret;
 }
 
 int gdbHioOpen(const char *pathname, int flags, mode_t mode)
@@ -345,9 +348,9 @@ int gdbHioWrite(int fd, const void *buf, unsigned int count)
 	return _gdbHioSendSyncRequest("write", "ipI", fd, buf, count);
 }
 
-int gdbHioLseek(int fd, off_t offset, int flag)
+off_t gdbHioLseek(int fd, off_t offset, int flag)
 {
-	return _gdbHioSendSyncRequest("lseek", "iLi", fd, offset, _gdbExportSeekFlag(flag));
+	return _gdbHioSendSyncRequest64("lseek", "ili", fd, offset, _gdbExportSeekFlag(flag));
 }
 
 int gdbHioRename(const char *oldpath, const char *newpath)
