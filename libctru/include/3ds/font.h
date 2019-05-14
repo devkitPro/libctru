@@ -168,6 +168,8 @@ void fontFixPointers(CFNT_s* font);
 static inline CFNT_s* fontGetSystemFont(void)
 {
 	extern CFNT_s* g_sharedFont;
+	if (!g_sharedFont)
+		fontEnsureMapped();
 	return g_sharedFont;
 }
 
