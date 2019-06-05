@@ -135,7 +135,7 @@ void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out, siz
 	else
 	{
 		u16 temp[10];
-		memcpy(temp, returnbuf->mii.mii_name,10);
+		memcpy(temp, returnbuf->mii.mii_name,sizeof(temp));
 
 		miiSelectorConvertToUTF8(out, temp, max_size);
 	}
@@ -147,7 +147,7 @@ void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out, s
 		return;
 
 	u16 temp[10];
-	memcpy(temp, returnbuf->mii.author_name,10);
+	memcpy(temp, returnbuf->mii.author_name, sizeof(temp));
 
 	miiSelectorConvertToUTF8(out, temp, max_size);
 }
