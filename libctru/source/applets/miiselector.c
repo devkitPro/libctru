@@ -133,7 +133,12 @@ void miiSelectorReturnGetName(const MiiSelectorReturn *returnbuf, char* out, siz
 	if (returnbuf->guest_mii_was_selected)
 		miiSelectorConvertToUTF8(out, returnbuf->guest_mii_name, max_size);
 	else
-		miiSelectorConvertToUTF8(out, returnbuf->mii.mii_name, max_size);
+	{
+		u16 temp[10];
+		memcpy(temp, returnbuf->mii.mii_name, sizeof(temp));
+
+		miiSelectorConvertToUTF8(out, temp, max_size);
+	}
 }
 
 void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out, size_t max_size)
@@ -141,7 +146,10 @@ void miiSelectorReturnGetAuthor(const MiiSelectorReturn *returnbuf, char* out, s
 	if (!out)
 		return;
 
-	miiSelectorConvertToUTF8(out, returnbuf->mii.author_name, max_size);
+	u16 temp[10];
+	memcpy(temp, returnbuf->mii.author_name, sizeof(temp));
+
+	miiSelectorConvertToUTF8(out, temp, max_size);
 }
 
 static u16 crc16_ccitt(void const *buf, size_t len, uint32_t starting_val)
