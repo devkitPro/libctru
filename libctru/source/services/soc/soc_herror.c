@@ -4,7 +4,7 @@
 
 void herror(const char *s) {
 	if(s)
-		fiprintf(stderr, "%s\n", hstrerror(h_errno));
-	else
 		fiprintf(stderr, "%s: %s\n", s, hstrerror(h_errno));
+	else
+		fiprintf(stderr, "%s\n", hstrerror(h_errno));
 }
