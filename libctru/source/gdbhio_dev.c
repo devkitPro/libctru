@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <string.h>
 
+static int g_gdbHioStdinFd = -1, g_gdbHioStdoutFd = -1, g_gdbHioStderrFd = -1;
+
 static int _gdbHioGetFd(int fd)
 {
 	__handle *handle = __get_handle(fd);
@@ -20,19 +22,6 @@ static int _gdbHioGetFd(int fd)
 		return -1;
 	}
 	return *(int *)handle->fileStruct;
-}
-
-static bool _gdbHioCompareFd(int fd, int fdval)
-{
-	__handle *handle = __get_handle(fd);
-	if (handle == NULL) {
-		return false;
-	}
-
-	if(strcmp(devoptab_list[handle->device]->name, "gdbhio") != 0) {
-		return false;
-	}
-	return *(int *)handle->fileStruct == fdval;
 }
 
 static inline int _gdbHioGetFdFromPtr(void *fdptr)
@@ -62,7 +51,18 @@ static int _gdbHioDevOpen(struct _reent *r, void *fdptr, const char *pathname, i
 static int _gdbHioDevClose(struct _reent *r, void *fdptr)
 {
 	(void)r;
-	return gdbHioClose(_gdbHioGetFdFromPtr(fdptr));
+
+	int fd = _gdbHioGetFdFromPtr(fdptr);
+	if (fd == g_gdbHioStdinFd)
+		g_gdbHioStdinFd = -1;
+	else if (fd == g_gdbHioStdoutFd)
+		g_gdbHioStdoutFd = -1;
+	else if (fd == g_gdbHioStderrFd)
+		g_gdbHioStderrFd = -1;
+	else
+		return gdbHioClose(fd);
+
+	return 0;
 }
 
 static ssize_t _gdbHioDevRead(struct _reent *r, void *fdptr, char *buf, size_t count)
@@ -176,50 +176,75 @@ int gdbHioDevInit(void)
 	}
 
 	dev = AddDevice(&g_gdbHioDevoptab);
-	return dev >= 0 ? 0 : -1;
+	if (dev < 0) return -1;
+
+	return 0;
 }
 
 void gdbHioDevExit(void)
 {
+	close(g_gdbHioStdinFd);
+	close(g_gdbHioStdoutFd);
+	close(g_gdbHioStderrFd);
 	RemoveDevice("gdbhio:");
 }
 
 int gdbHioDevGetStdin(void)
 {
-	return _gdbHioDevImportFd(GDBHIO_STDIN_FILENO);
+	if (g_gdbHioStdinFd < 0)
+		g_gdbHioStdinFd = _gdbHioDevImportFd(GDBHIO_STDIN_FILENO);
+
+	return g_gdbHioStdinFd;
 }
 
 int gdbHioDevGetStdout(void)
 {
-	return _gdbHioDevImportFd(GDBHIO_STDOUT_FILENO);
+	if (g_gdbHioStdoutFd < 0)
+		g_gdbHioStdoutFd = _gdbHioDevImportFd(GDBHIO_STDOUT_FILENO);
+
+	return g_gdbHioStdoutFd;
 }
 
 int gdbHioDevGetStderr(void)
 {
-	return _gdbHioDevImportFd(GDBHIO_STDERR_FILENO);
+	if (g_gdbHioStderrFd < 0)
+		g_gdbHioStderrFd = _gdbHioDevImportFd(GDBHIO_STDERR_FILENO);
+
+	return g_gdbHioStderrFd;
 }
 
 int gdbHioDevRedirectStdStreams(bool in, bool out, bool err)
 {
 	int ret = 0;
-	int fd = -1;
-	if (in && !_gdbHioCompareFd(STDIN_FILENO, GDBHIO_STDIN_FILENO)) {
-		fd = gdbHioDevGetStdin();
-		ret = dup2(fd, STDIN_FILENO);
-		close(fd);
+	if (in) {
+		if (gdbHioDevGetStdin() < 0) return -1;
+		ret = dup2(g_gdbHioStdinFd, STDIN_FILENO);
 		if (ret < 0) return -1;
+		if (ret != g_gdbHioStdinFd) {
+			close(g_gdbHioStdinFd);
+			g_gdbHioStdinFd = STDIN_FILENO;
+		}
 	}
-	if (out && !_gdbHioCompareFd(STDOUT_FILENO, GDBHIO_STDOUT_FILENO)) {
-		fd = gdbHioDevGetStdout();
-		ret = dup2(fd, STDOUT_FILENO);
-		close(fd);
+
+	if (out) {
+		if (gdbHioDevGetStdout() < 0) return -2;
+		ret = dup2(g_gdbHioStdoutFd, STDOUT_FILENO);
 		if (ret < 0) return -2;
+		if (ret != g_gdbHioStdoutFd) {
+			close(g_gdbHioStdoutFd);
+			g_gdbHioStdoutFd = STDOUT_FILENO;
+		}
 	}
-	if (err && !_gdbHioCompareFd(STDERR_FILENO, GDBHIO_STDERR_FILENO)) {
-		fd = gdbHioDevGetStderr();
-		ret = dup2(fd, STDERR_FILENO);
-		close(fd);
+
+	if (err) {
+		if (gdbHioDevGetStderr() < 0) return -3;
+		ret = dup2(g_gdbHioStderrFd, STDERR_FILENO);
 		if (ret < 0) return -3;
+		if (ret != g_gdbHioStderrFd) {
+			close(g_gdbHioStderrFd);
+			g_gdbHioStderrFd = STDERR_FILENO;
+		}
 	}
-	return ret;
+
+	return 0;
 }
