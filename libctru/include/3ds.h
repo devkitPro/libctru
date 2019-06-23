@@ -91,6 +91,8 @@ extern "C" {
 #include <3ds/font.h>
 #include <3ds/mii.h>
 
+#include <3ds/gdbhio_dev.h>
+
 #ifdef __cplusplus
 }
 #endif
