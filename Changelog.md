@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 1.6.0
+
+- Major overhaul to font loading code in order to support loading external fonts.
+- Major overhaul to PM service wrappers, now with separate support for pm:app and pm:dbg.
+- Added Rosalina GDB host IO (gdbhio) support.
+- Added support for the fs:REG service.
+- Added support for the PxiPM service.
+- Added PM launch flag definitions.
+- Added SO_BROADCAST.
+- Added new APT helper functions: aptIsHomeAllowed, aptSetHomeAllowed, aptIsHomePressed.
+- Added support for the Mii selector libapplet, and other improvements to Mii support.
+- Renamed IPC_Desc_CurProcessHandle to IPC_Desc_CurProcessId.
+- Changed signature of LOADER_RegisterProgram to use FS_ProgramInfo structs.
+- Fixed IPC bugs in the Loader service.
+- Fixed svcCreateResourceLimit.
+- Fixed corner case bug in GPUCMD_Add.
+- Fixed bugs in select and herror.
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.5.1
 
 - Added support for the FRD service.
@@ -50,14 +69,14 @@
   - svcCreateSessionToPort
   - svcSetGpuProt
   - svcSetWifiEnabled
-- Additional functions 
+- Additional functions
   - implement httpcAddPostDataBinary
   - implement PTMU_GetAdapterState
   - implement GSPLCD_GetBrightness
   - add threadDetach
 - srv fixes
   - Fix srvPublishToSubscriber documentation
-  - Fix handling of service/named port names of length 8 
+  - Fix handling of service/named port names of length 8
   - Fix srvRegisterPort
 - debugging support
   - Add support for user-specified exception handlers
@@ -69,7 +88,7 @@
   - Correct GPU_PROCTEX_LUTID definition
   - Add GPU_FOGMODE, GPU_GASMODE and GPU_GASLUTINPUT
 - Other improvements and minor adjustments for overall system stability to enhance the user experience
-  
+
 ## Version 1.2.1
 
   - Added NFC support
