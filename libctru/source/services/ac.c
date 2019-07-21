@@ -197,3 +197,53 @@ Result ACU_GetLastDetailErrorCode(u32* errorCode)
 
 	return (Result)cmdbuf[1];
 }
+
+Result ACU_CreateDefaultConfig(u8* config)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1,0,0); // 0x10000
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x200, 0);
+	staticbufs[1] = (u32)config;
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACU_SetAllowApType(u8* config, u8 type)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
+
+	cmdbuf[0] = IPC_MakeHeader(0x22,1,2); // 0x220042
+	cmdbuf[1] = type;
+	cmdbuf[2] = IPC_Desc_StaticBuffer(0x200, 0);
+	cmdbuf[3] = (u32)config;
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x200, 0);
+	staticbufs[1] = (u32)config;
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACU_ConnectAsync(u8* config, Handle connectionHandle)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x4,0,6); // 0x40006
+	cmdbuf[1] = 0x20;
+	cmdbuf[3] = 0;
+	cmdbuf[4] = connectionHandle;
+	cmdbuf[5] = IPC_Desc_StaticBuffer(0x200, 1);
+	cmdbuf[6] = (u32)config;
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}

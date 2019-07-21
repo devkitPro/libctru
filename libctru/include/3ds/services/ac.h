@@ -90,3 +90,23 @@ Result ACU_GetLastErrorCode(u32* errorCode);
  * @param errorCode Pointer to output the error code to.
  */
 Result ACU_GetLastDetailErrorCode(u32* errorCode);
+
+/**
+ * @brief Prepares a buffer to hold the configuration data to start a connection.
+ * @param config Pointer to a buffer of size at least 0x200 to contain the data.
+ */
+Result ACU_CreateDefaultConfig(u8* config);
+
+/**
+ * @brief Sets the slot to use when connecting.
+ * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ * @param type Allowed slots flag. 1 for slot 1, 2 for slot 2, 4 for slot 3.
+ */
+Result ACU_SetAllowApType(u8* config, u8 type);
+
+/**
+ * @brief Starts the connection procedure.
+ * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ * @param connectionHandle Handle created with svcCreateEvent to wait on until the connection succeeds or fails.
+ */
+Result ACU_ConnectAsync(u8* config, Handle connectionHandle);
