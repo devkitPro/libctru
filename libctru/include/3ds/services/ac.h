@@ -98,11 +98,24 @@ Result ACU_GetLastDetailErrorCode(u32* errorCode);
 Result ACU_CreateDefaultConfig(u8* config);
 
 /**
+ * @brief Sets something that makes the connection reliable.
+ * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ * @param area Always 2 ?
+ */
+Result ACU_SetNetworkArea(u8* config, u8 area);
+
+/**
  * @brief Sets the slot to use when connecting.
  * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
  * @param type Allowed slots flag. 1 for slot 1, 2 for slot 2, 4 for slot 3.
  */
 Result ACU_SetAllowApType(u8* config, u8 type);
+
+/**
+ * @brief Sets something that makes the connection reliable.
+ * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ */
+Result ACU_SetRequestEulaVersion(u8* config);
 
 /**
  * @brief Starts the connection procedure.
