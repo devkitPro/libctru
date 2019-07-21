@@ -16,8 +16,9 @@ Result acInit(void)
 
 	if (AtomicPostIncrement(&acRefCount)) return 0;
 
-	ret = srvGetServiceHandle(&acHandle, "ac:u");
-	if(R_FAILED(ret)) ret = srvGetServiceHandle(&acHandle, "ac:i");
+	// ac:i has the most commands, then ac:u
+	ret = srvGetServiceHandle(&acHandle, "ac:i");
+	if(R_FAILED(ret)) ret = srvGetServiceHandle(&acHandle, "ac:u");
 	if(R_FAILED(ret)) AtomicDecrement(&acRefCount);
 
 	return ret;
