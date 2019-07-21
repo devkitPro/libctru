@@ -198,7 +198,7 @@ Result ACU_GetLastDetailErrorCode(u32* errorCode)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_CreateDefaultConfig(u8* config)
+Result ACU_CreateDefaultConfig(void* config)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -213,25 +213,25 @@ Result ACU_CreateDefaultConfig(u8* config)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_SetNetworkArea(u8* config, u8 area)
+Result ACU_SetNetworkArea(void* config, u8 area)
 {
-    Result ret=0;
-    u32 *cmdbuf = getThreadCommandBuffer();
-    u32 *staticbufs = getThreadStaticBuffers();
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
 
-    cmdbuf[0] = IPC_MakeHeader(0x25,1,2); // 0x250042
-    cmdbuf[1] = area;
-    cmdbuf[2] = IPC_Desc_StaticBuffer(0x200, 0);
-    cmdbuf[3] = (u32)config;
-    staticbufs[0] = IPC_Desc_StaticBuffer(0x200, 0);
-    staticbufs[1] = (u32)config;
+	cmdbuf[0] = IPC_MakeHeader(0x25,1,2); // 0x250042
+	cmdbuf[1] = area;
+	cmdbuf[2] = IPC_Desc_StaticBuffer(0x200, 0);
+	cmdbuf[3] = (u32)config;
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x200, 0);
+	staticbufs[1] = (u32)config;
 
-    if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
 
-    return (Result)cmdbuf[1];
+	return (Result)cmdbuf[1];
 }
 
-Result ACU_SetAllowApType(u8* config, u8 type)
+Result ACU_SetAllowApType(void* config, u8 type)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -249,26 +249,26 @@ Result ACU_SetAllowApType(u8* config, u8 type)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_SetRequestEulaVersion(u8* config)
+Result ACU_SetRequestEulaVersion(void* config)
 {
-    Result ret=0;
-    u32 *cmdbuf = getThreadCommandBuffer();
-    u32 *staticbufs = getThreadStaticBuffers();
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
 
-    cmdbuf[0] = IPC_MakeHeader(0x2D,2,2); // 0x2D0082
-    cmdbuf[1] = 0;
-    cmdbuf[2] = 0;
-    cmdbuf[3] = IPC_Desc_StaticBuffer(0x200, 0);
-    cmdbuf[4] = (u32)config;
-    staticbufs[0] = IPC_Desc_StaticBuffer(0x200, 0);
-    staticbufs[1] = (u32)config;
+	cmdbuf[0] = IPC_MakeHeader(0x2D,2,2); // 0x2D0082
+	cmdbuf[1] = 0;
+	cmdbuf[2] = 0;
+	cmdbuf[3] = IPC_Desc_StaticBuffer(0x200, 0);
+	cmdbuf[4] = (u32)config;
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x200, 0);
+	staticbufs[1] = (u32)config;
 
-    if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
 
-    return (Result)cmdbuf[1];
+	return (Result)cmdbuf[1];
 }
 
-Result ACU_ConnectAsync(u8* config, Handle connectionHandle)
+Result ACU_ConnectAsync(const  void* config, Handle connectionHandle)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
