@@ -6,15 +6,20 @@
 
 /// Wifi security modes.
 typedef enum {
-    AC_OPEN = 0,       ///< Open authentication.
-    AC_WEP_40BIT = 1,  ///< WEP 40-bit authentication.
-    AC_WEP_104BIT = 2, ///< WEP 104-bit authentication.
-    AC_WEP_128BIT = 3, ///< WEP 128-bit authentication.
+	AC_OPEN = 0,       ///< Open authentication.
+	AC_WEP_40BIT = 1,  ///< WEP 40-bit authentication.
+	AC_WEP_104BIT = 2, ///< WEP 104-bit authentication.
+	AC_WEP_128BIT = 3, ///< WEP 128-bit authentication.
     AC_WPA_TKIP = 4,   ///< WPA TKIP authentication.
-    AC_WPA2_TKIP = 5,  ///< WPA2 TKIP authentication.
-    AC_WPA_AES = 6,    ///< WPA AES authentication.
-    AC_WPA2_AES = 7,   ///< WPA2 AES authentication.
+	AC_WPA2_TKIP = 5,  ///< WPA2 TKIP authentication.
+	AC_WPA_AES = 6,    ///< WPA AES authentication.
+	AC_WPA2_AES = 7,   ///< WPA2 AES authentication.
 } acSecurityMode;
+
+/// Struct to contain the data for connecting to a Wifi network from a stored slot.
+typedef struct {
+	u8 reserved[0x200];
+} acuConfig;
 
 /// Initializes AC.
 Result acInit(void);
@@ -93,33 +98,33 @@ Result ACU_GetLastDetailErrorCode(u32* errorCode);
 
 /**
  * @brief Prepares a buffer to hold the configuration data to start a connection.
- * @param config Pointer to a buffer of size at least 0x200 to contain the data.
+ * @param config Pointer to an acuConfig struct to contain the data.
  */
-Result ACU_CreateDefaultConfig(void* config);
+Result ACU_CreateDefaultConfig(acuConfig* config);
 
 /**
  * @brief Sets something that makes the connection reliable.
- * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ * @param config Pointer to an acuConfig struct used with ACU_CreateDefaultConfig previously.
  * @param area Always 2 ?
  */
-Result ACU_SetNetworkArea(void* config, u8 area);
+Result ACU_SetNetworkArea(acuConfig* config, u8 area);
 
 /**
  * @brief Sets the slot to use when connecting.
- * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ * @param config Pointer to an acuConfig struct used with ACU_CreateDefaultConfig previously.
  * @param type Allowed slots flag. 1 for slot 1, 2 for slot 2, 4 for slot 3.
  */
-Result ACU_SetAllowApType(void* config, u8 type);
+Result ACU_SetAllowApType(acuConfig* config, u8 type);
 
 /**
  * @brief Sets something that makes the connection reliable.
- * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ * @param config Pointer to an acuConfig struct used with ACU_CreateDefaultConfig previously.
  */
-Result ACU_SetRequestEulaVersion(void* config);
+Result ACU_SetRequestEulaVersion(acuConfig* config);
 
 /**
  * @brief Starts the connection procedure.
- * @param config Pointer to a buffer of size at least 0x200 used with ACU_CreateDefaultConfig previously.
+ * @param config Pointer to an acuConfig struct used with ACU_CreateDefaultConfig previously.
  * @param connectionHandle Handle created with svcCreateEvent to wait on until the connection succeeds or fails.
  */
-Result ACU_ConnectAsync(const void* config, Handle connectionHandle);
+Result ACU_ConnectAsync(const acuConfig* config, Handle connectionHandle);

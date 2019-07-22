@@ -198,7 +198,7 @@ Result ACU_GetLastDetailErrorCode(u32* errorCode)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_CreateDefaultConfig(void* config)
+Result ACU_CreateDefaultConfig(acuConfig* config)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -213,7 +213,7 @@ Result ACU_CreateDefaultConfig(void* config)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_SetNetworkArea(void* config, u8 area)
+Result ACU_SetNetworkArea(acuConfig* config, u8 area)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -231,7 +231,7 @@ Result ACU_SetNetworkArea(void* config, u8 area)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_SetAllowApType(void* config, u8 type)
+Result ACU_SetAllowApType(acuConfig* config, u8 type)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -249,7 +249,7 @@ Result ACU_SetAllowApType(void* config, u8 type)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_SetRequestEulaVersion(void* config)
+Result ACU_SetRequestEulaVersion(acuConfig* config)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -268,7 +268,7 @@ Result ACU_SetRequestEulaVersion(void* config)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_ConnectAsync(const  void* config, Handle connectionHandle)
+Result ACU_ConnectAsync(const acuConfig* config, Handle connectionHandle)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
