@@ -10,7 +10,7 @@ typedef enum {
 	AC_WEP_40BIT = 1,  ///< WEP 40-bit authentication.
 	AC_WEP_104BIT = 2, ///< WEP 104-bit authentication.
 	AC_WEP_128BIT = 3, ///< WEP 128-bit authentication.
-    AC_WPA_TKIP = 4,   ///< WPA TKIP authentication.
+	AC_WPA_TKIP = 4,   ///< WPA TKIP authentication.
 	AC_WPA2_TKIP = 5,  ///< WPA2 TKIP authentication.
 	AC_WPA_AES = 6,    ///< WPA AES authentication.
 	AC_WPA2_AES = 7,   ///< WPA2 AES authentication.
