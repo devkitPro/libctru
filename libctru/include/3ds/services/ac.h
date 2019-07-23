@@ -112,7 +112,7 @@ Result ACU_SetNetworkArea(acuConfig* config, u8 area);
 /**
  * @brief Sets the slot to use when connecting.
  * @param config Pointer to an acuConfig struct used with ACU_CreateDefaultConfig previously.
- * @param type Allowed slots flag. 1 for slot 1, 2 for slot 2, 4 for slot 3.
+ * @param type Allowed slots flag. BIT(0) for slot 1, BIT(1) for slot 2, BIT(2) for slot 3.
  */
 Result ACU_SetAllowApType(acuConfig* config, u8 type);
 
