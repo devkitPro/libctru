@@ -479,23 +479,24 @@ Result ndspInit(void)
 	}
 
 	rc = dspInit();
-	if (R_FAILED(rc)) return rc;
+	if (R_FAILED(rc)) goto _fail1;
 
 	rc = ndspInitialize(false);
-	if (R_FAILED(rc)) goto _fail1;
+	if (R_FAILED(rc)) goto _fail2;
 
 	LightEvent_Init(&sleepEvent, RESET_ONESHOT);
 
 	ndspThread = threadCreate(ndspThreadMain, 0x0, NDSP_THREAD_STACK_SIZE, 0x18, -2, true);
-	if (!ndspThread) goto _fail2;
+	if (!ndspThread) goto _fail3;
 
 	aptHook(&aptCookie, ndspAptHook, NULL);
 	return 0;
 
-_fail2:
+_fail3:
 	ndspFinalize(false);
-_fail1:
+_fail2:
 	dspExit();
+_fail1:
 	if (componentFree)
 	{
 		free((void*)componentBin);
