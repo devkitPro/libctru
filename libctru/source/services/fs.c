@@ -394,7 +394,7 @@ Result FSUSER_OpenArchive(FS_Archive* archive, FS_ArchiveID id, FS_Path path)
 	Result ret = 0;
 	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
-	if(archive) *archive = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
+	*archive = cmdbuf[2] | ((u64) cmdbuf[3] << 32);
 
 	return cmdbuf[1];
 }
