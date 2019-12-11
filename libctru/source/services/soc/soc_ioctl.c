@@ -11,9 +11,9 @@ int ioctl(int sockfd, int request, ...)
 	int *value;
 	va_list ap;
 
-	sockfd = soc_get_fd(sockfd);
-	if(sockfd < 0) {
-		errno = -sockfd;
+	ret = soc_get_fd(sockfd);
+	if(ret < 0) {
+		errno = -ret;
 		return -1;
 	}
 
