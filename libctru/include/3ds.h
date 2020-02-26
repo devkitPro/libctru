@@ -86,7 +86,7 @@ extern "C" {
 
 #include <3ds/applets/miiselector.h>
 
-#include <3ds/sdmc.h>
+#include <3ds/archive.h>
 #include <3ds/romfs.h>
 #include <3ds/font.h>
 #include <3ds/mii.h>
@@ -142,4 +142,3 @@ extern "C" {
  * @example threads/thread-basic/source/main.c
  * @example time/rtc/source/main.c
  */
-
