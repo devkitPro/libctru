@@ -144,7 +144,7 @@ static archive_fsdevice *archiveFindDevice(const char *name)
 static const char*
 archive_fixpath(struct _reent    *r,
                 const char       *path,
-                archive_fsdevice *device)
+                archive_fsdevice **device)
 {
   ssize_t       units;
   uint32_t      code;
@@ -190,8 +190,8 @@ archive_fixpath(struct _reent    *r,
   } while(code != 0);
 
   archive_fsdevice *dev = NULL;
-  if(device != NULL && device != NULL)
-    dev = device;
+  if(device != NULL && *device != NULL)
+    dev = *device;
   else if(path != device_path)
     dev = archiveFindDevice(device_path);
   else if(archive_device_cwd != -1)
@@ -218,13 +218,16 @@ archive_fixpath(struct _reent    *r,
     return NULL;
   }
 
+  if(device)
+    *device = dev;
+
   return __fixedpath;
 }
 
 static const FS_Path
 archive_utf16path(struct _reent    *r,
                   const char       *path,
-                  archive_fsdevice *device)
+                  archive_fsdevice **device)
 {
   ssize_t units;
   FS_Path fspath;
@@ -507,7 +510,7 @@ archive_open(struct _reent *r,
   FS_Path       fs_path;
   archive_fsdevice *device = r->deviceData;
 
-  fs_path = archive_utf16path(r, path, device);
+  fs_path = archive_utf16path(r, path, &device);
   if(fs_path.data == NULL)
     return -1;
 
@@ -835,7 +838,7 @@ archive_stat(struct _reent *r,
   FS_Path fs_path;
   archive_fsdevice *device = r->deviceData;
 
-  fs_path = archive_utf16path(r, file, device);
+  fs_path = archive_utf16path(r, file, &device);
   if(fs_path.data == NULL)
     return -1;
 
@@ -894,7 +897,7 @@ archive_unlink(struct _reent *r,
   FS_Path fs_path;
   archive_fsdevice *device = r->deviceData;
 
-  fs_path = archive_utf16path(r, name, device);
+  fs_path = archive_utf16path(r, name, &device);
   if(fs_path.data == NULL)
     return -1;
 
@@ -923,7 +926,7 @@ archive_chdir(struct _reent *r,
   FS_Path fs_path;
   archive_fsdevice *device = r->deviceData;
 
-  fs_path = archive_utf16path(r, name, device);
+  fs_path = archive_utf16path(r, name, &device);
   if(fs_path.data == NULL)
     return -1;
 
@@ -967,7 +970,7 @@ archive_rename(struct _reent *r,
     return -1;
   }
 
-  fs_path_old = archive_utf16path(r, oldName, sourceDevice);
+  fs_path_old = archive_utf16path(r, oldName, &sourceDevice);
   if(fs_path_old.data == NULL)
     return -1;
 
