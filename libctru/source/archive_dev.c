@@ -287,8 +287,6 @@ static int _archiveMountDevice(FS_Archive       archive,
 {
   archive_fsdevice *device = NULL;
 
-  fsExemptFromSession(archive);
-
   if (archiveFindDevice(deviceName)) //Device is already mounted with the same name
     goto _fail;
 
@@ -326,13 +324,6 @@ static int _archiveMountDevice(FS_Archive       archive,
 _fail:
   FSUSER_CloseArchive(archive);
   return -1;
-}
-
-/*! Initialize archive device */
-Result archiveMountArchive(FS_Archive  archive,
-                           const char  *deviceName)
-{
-  return _archiveMountDevice(archive, deviceName, NULL);
 }
 
 Result archiveMount(FS_ArchiveID archiveID,
@@ -373,6 +364,7 @@ Result archiveMountSdmc(void)
   rc = FSUSER_OpenArchive(&sdmcArchive, ARCHIVE_SDMC, sdmcPath);
   if(R_SUCCEEDED(rc))
   {
+    fsExemptFromSession(sdmcArchive);
     archive_fsdevice* device;
     rc = _archiveMountDevice(sdmcArchive, "sdmc", &device);
 
