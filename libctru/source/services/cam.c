@@ -522,8 +522,8 @@ Result CAMU_GetLatestVsyncTiming(s64* timing, u32 port, u32 past) {
 	cmdbuf[0] = IPC_MakeHeader(0x2A,2,0); // 0x2A0080
 	cmdbuf[1] = port;
 	cmdbuf[2] = past;
-	cmdbuf[49] = (past << 17) | 2;
-	cmdbuf[50] = (u32) timing;
+	cmdbuf[64] = (past << 17) | 2;
+	cmdbuf[65] = (u32) timing;
 
 	if (R_FAILED(ret = svcSendSyncRequest(camHandle))) return ret;
 	return cmdbuf[1];
