@@ -10,43 +10,45 @@
 
 #include <3ds/types.h>
 #include <3ds/result.h>
-#include <3ds/sdmc.h>
+#include <3ds/archive.h>
 #include <3ds/services/fs.h>
 #include <3ds/util/utf.h>
 
 
 /*! @internal
  *
- *  @file sdmc_dev.c
+ *  @file archive_dev.c
  *
- *  SDMC Device
+ *  Archive Device
  */
 
-static int sdmc_translate_error(Result error);
+static int archive_translate_error(Result error);
 
-static int       sdmc_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
-static int       sdmc_close(struct _reent *r, void *fd);
-static ssize_t   sdmc_write(struct _reent *r, void *fd, const char *ptr, size_t len);
-static ssize_t   sdmc_write_safe(struct _reent *r, void *fd, const char *ptr, size_t len);
-static ssize_t   sdmc_read(struct _reent *r, void *fd, char *ptr, size_t len);
-static off_t     sdmc_seek(struct _reent *r, void *fd, off_t pos, int dir);
-static int       sdmc_fstat(struct _reent *r, void *fd, struct stat *st);
-static int       sdmc_stat(struct _reent *r, const char *file, struct stat *st);
-static int       sdmc_link(struct _reent *r, const char *existing, const char  *newLink);
-static int       sdmc_unlink(struct _reent *r, const char *name);
-static int       sdmc_chdir(struct _reent *r, const char *name);
-static int       sdmc_rename(struct _reent *r, const char *oldName, const char *newName);
-static int       sdmc_mkdir(struct _reent *r, const char *path, int mode);
-static DIR_ITER* sdmc_diropen(struct _reent *r, DIR_ITER *dirState, const char *path);
-static int       sdmc_dirreset(struct _reent *r, DIR_ITER *dirState);
-static int       sdmc_dirnext(struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *filestat);
-static int       sdmc_dirclose(struct _reent *r, DIR_ITER *dirState);
+static int       archive_open(struct _reent *r, void *fileStruct, const char *path, int flags, int mode);
+static int       archive_close(struct _reent *r, void *fd);
+static ssize_t   archive_write(struct _reent *r, void *fd, const char *ptr, size_t len);
+static ssize_t   archive_read(struct _reent *r, void *fd, char *ptr, size_t len);
+static off_t     archive_seek(struct _reent *r, void *fd, off_t pos, int dir);
+static int       archive_fstat(struct _reent *r, void *fd, struct stat *st);
+static int       archive_stat(struct _reent *r, const char *file, struct stat *st);
+static int       archive_link(struct _reent *r, const char *existing, const char  *newLink);
+static int       archive_unlink(struct _reent *r, const char *name);
+static int       archive_chdir(struct _reent *r, const char *name);
+static int       archive_rename(struct _reent *r, const char *oldName, const char *newName);
+static int       archive_mkdir(struct _reent *r, const char *path, int mode);
+static DIR_ITER* archive_diropen(struct _reent *r, DIR_ITER *dirState, const char *path);
+static int       archive_dirreset(struct _reent *r, DIR_ITER *dirState);
+static int       archive_dirnext(struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *filestat);
+static int       archive_dirclose(struct _reent *r, DIR_ITER *dirState);
+static int       archive_statvfs(struct _reent *r, const char *path, struct statvfs *buf);
+static int       archive_ftruncate(struct _reent *r, void *fd, off_t len);
+static int       archive_fsync(struct _reent *r, void *fd);
+static int       archive_chmod(struct _reent *r, const char *path, mode_t mode);
+static int       archive_fchmod(struct _reent *r, void *fd, mode_t mode);
+static int       archive_rmdir(struct _reent *r, const char *name);
+
+/// Used for only the SD archive, about which information can actually be found
 static int       sdmc_statvfs(struct _reent *r, const char *path, struct statvfs *buf);
-static int       sdmc_ftruncate(struct _reent *r, void *fd, off_t len);
-static int       sdmc_fsync(struct _reent *r, void *fd);
-static int       sdmc_chmod(struct _reent *r, const char *path, mode_t mode);
-static int       sdmc_fchmod(struct _reent *r, void *fd, mode_t mode);
-static int       sdmc_rmdir(struct _reent *r, const char *name);
 
 /*! @cond INTERNAL */
 
@@ -56,56 +58,98 @@ typedef struct
   Handle fd;     /*! CTRU handle */
   int    flags;  /*! Flags used in open(2) */
   u64    offset; /*! Current file offset */
-} sdmc_file_t;
+} archive_file_t;
 
-/*! SDMC devoptab */
+/*! archive devoptab */
 static devoptab_t
-sdmc_devoptab =
+archive_devoptab =
 {
-  .name         = "sdmc",
-  .structSize   = sizeof(sdmc_file_t),
-  .open_r       = sdmc_open,
-  .close_r      = sdmc_close,
-  .write_r      = sdmc_write,
-  .read_r       = sdmc_read,
-  .seek_r       = sdmc_seek,
-  .fstat_r      = sdmc_fstat,
-  .stat_r       = sdmc_stat,
-  .link_r       = sdmc_link,
-  .unlink_r     = sdmc_unlink,
-  .chdir_r      = sdmc_chdir,
-  .rename_r     = sdmc_rename,
-  .mkdir_r      = sdmc_mkdir,
-  .dirStateSize = sizeof(sdmc_dir_t),
-  .diropen_r    = sdmc_diropen,
-  .dirreset_r   = sdmc_dirreset,
-  .dirnext_r    = sdmc_dirnext,
-  .dirclose_r   = sdmc_dirclose,
-  .statvfs_r    = sdmc_statvfs,
-  .ftruncate_r  = sdmc_ftruncate,
-  .fsync_r      = sdmc_fsync,
+  .name         = "archive",
+  .structSize   = sizeof(archive_file_t),
+  .open_r       = archive_open,
+  .close_r      = archive_close,
+  .write_r      = archive_write,
+  .read_r       = archive_read,
+  .seek_r       = archive_seek,
+  .fstat_r      = archive_fstat,
+  .stat_r       = archive_stat,
+  .link_r       = archive_link,
+  .unlink_r     = archive_unlink,
+  .chdir_r      = archive_chdir,
+  .rename_r     = archive_rename,
+  .mkdir_r      = archive_mkdir,
+  .dirStateSize = sizeof(archive_dir_t),
+  .diropen_r    = archive_diropen,
+  .dirreset_r   = archive_dirreset,
+  .dirnext_r    = archive_dirnext,
+  .dirclose_r   = archive_dirclose,
+  .statvfs_r    = archive_statvfs,
+  .ftruncate_r  = archive_ftruncate,
+  .fsync_r      = archive_fsync,
   .deviceData   = 0,
-  .chmod_r      = sdmc_chmod,
-  .fchmod_r     = sdmc_fchmod,
-  .rmdir_r      = sdmc_rmdir,
+  .chmod_r      = archive_chmod,
+  .fchmod_r     = archive_fchmod,
+  .rmdir_r      = archive_rmdir,
 };
 
-/*! SDMC archive handle */
-static FS_Archive sdmcArchive;
+typedef struct
+{
+    bool setup;
+    bool is_extdata;
+    s32 id;
+    devoptab_t device;
+    FS_Archive archive;
+    char* cwd;
+    char name[32];
+} archive_fsdevice;
+
+static bool archive_initialized = false;
+static s32 archive_device_cwd;
+static archive_fsdevice archive_devices[32];
 
 /*! @endcond */
 
-static char     __cwd[PATH_MAX+1] = "/";
 static __thread char     __fixedpath[PATH_MAX+1];
 static __thread uint16_t __utf16path[PATH_MAX+1];
 
+static archive_fsdevice *archiveFindDevice(const char *name)
+{
+  u32 i;
+  u32 total = sizeof(archive_devices) / sizeof(archive_fsdevice);
+  archive_fsdevice *device = NULL;
+
+  if(!archive_initialized)
+    return NULL;
+
+  for(i=0; i<total; i++)
+  {
+    device = &archive_devices[i];
+
+    if(name==NULL) //Find an unused device entry.
+    {
+      if(!device->setup)
+        return device;
+    }
+    else if(device->setup) //Find the device with the input name.
+    {
+      size_t devnamelen = strlen(device->name);
+      if(strncmp(device->name, name, devnamelen)==0 && (name[devnamelen]=='\0' || name[devnamelen]==':'))
+        return device;
+    }
+  }
+
+  return NULL;
+}
+
 static const char*
-sdmc_fixpath(struct _reent *r,
-             const char    *path)
+archive_fixpath(struct _reent    *r,
+                const char       *path,
+                archive_fsdevice **device)
 {
   ssize_t       units;
   uint32_t      code;
   const uint8_t *p = (const uint8_t*)path;
+  const char *device_path = path;
 
   // Move the path pointer to the start of the actual path
   do
@@ -145,11 +189,24 @@ sdmc_fixpath(struct _reent *r,
     p += units;
   } while(code != 0);
 
+  archive_fsdevice *dev = NULL;
+  if(device != NULL && *device != NULL)
+    dev = *device;
+  else if(path != device_path)
+    dev = archiveFindDevice(device_path);
+  else if(archive_device_cwd != -1)
+    dev = &archive_devices[archive_device_cwd];
+  if(dev == NULL)
+  {
+    r->_errno = ENODEV;
+    return NULL;
+  }
+
   if(path[0] == '/')
     strncpy(__fixedpath, path, PATH_MAX);
   else
   {
-    strncpy(__fixedpath, __cwd, PATH_MAX);
+    strncpy(__fixedpath, dev->cwd, PATH_MAX);
     __fixedpath[PATH_MAX] = '\0';
     strncat(__fixedpath, path, PATH_MAX);
   }
@@ -161,19 +218,23 @@ sdmc_fixpath(struct _reent *r,
     return NULL;
   }
 
+  if(device)
+    *device = dev;
+
   return __fixedpath;
 }
 
 static const FS_Path
-sdmc_utf16path(struct _reent *r,
-               const char    *path)
+archive_utf16path(struct _reent    *r,
+                  const char       *path,
+                  archive_fsdevice **device)
 {
   ssize_t units;
   FS_Path fspath;
 
   fspath.data = NULL;
 
-  if(sdmc_fixpath(r, path) == NULL)
+  if(archive_fixpath(r, path, device) == NULL)
     return fspath;
 
   units = utf8_to_utf16(__utf16path, (const uint8_t*)__fixedpath, PATH_MAX);
@@ -200,34 +261,122 @@ sdmc_utf16path(struct _reent *r,
 extern int __system_argc;
 extern char** __system_argv;
 
-static bool sdmcInitialised = false;
+static void _archiveInit(void)
+{
+  u32 total = sizeof(archive_devices) / sizeof(archive_fsdevice);
+  if (!archive_initialized)
+  {
+    memset(archive_devices, 0, sizeof(archive_devices));
+
+    for (u32 i=0; i<total; i++)
+    {
+      memcpy(&archive_devices[i].device, &archive_devoptab, sizeof(archive_devoptab));
+      archive_devices[i].device.name = archive_devices[i].name;
+      archive_devices[i].device.deviceData = &archive_devices[i];
+      archive_devices[i].id = i;
+    }
+
+    archive_device_cwd = -1;
+    archive_initialized = true;
+  }
+}
+
+static int _archiveMountDevice(FS_Archive       archive,
+                               const char       *deviceName,
+                               archive_fsdevice **out_device)
+{
+  archive_fsdevice *device = NULL;
+
+  if (archiveFindDevice(deviceName)) //Device is already mounted with the same name
+    goto _fail;
+
+  _archiveInit(); //Ensure driver is initialized
+
+  device = archiveFindDevice(NULL);
+  if(device==NULL)
+    goto _fail;
+  
+  device->archive = archive;
+  memset(device->name, 0, sizeof(device->name));
+  strncpy(device->name, deviceName, sizeof(device->name)-1);
+
+  int dev = AddDevice(&device->device);
+  if(dev==-1)
+    goto _fail;
+
+  device->setup = 1;
+  device->cwd = malloc(PATH_MAX+1);
+  device->cwd[0] = '/';
+  device->cwd[1] = '\0';
+
+  if (archive_device_cwd==-1)
+    archive_device_cwd = device->id;
+
+  const devoptab_t *default_dev = GetDeviceOpTab("");
+  if(default_dev==NULL || strcmp(default_dev->name, "stdnull")==0)
+    setDefaultDevice(dev);
+
+  if(out_device != NULL)
+    *out_device=device;
+
+  return dev;
+
+_fail:
+  FSUSER_CloseArchive(archive);
+  return -1;
+}
+
+Result archiveMount(FS_ArchiveID archiveID,
+                    FS_Path      archivePath,
+                    const char   *deviceName)
+{
+  FS_Archive ar;
+  Result rc = 0;
+  rc = FSUSER_OpenArchive(&ar, archiveID, archivePath);
+  if (R_SUCCEEDED(rc))
+  {
+    archive_fsdevice* device = NULL;
+    rc = _archiveMountDevice(ar, deviceName, &device);
+    if (R_SUCCEEDED(rc))
+    {
+      /* Special handling for ExtData is necessary */
+      if (archiveID == ARCHIVE_EXTDATA || archiveID == ARCHIVE_SHARED_EXTDATA || archiveID == ARCHIVE_BOSS_EXTDATA || archiveID == ARCHIVE_EXTDATA_AND_BOSS_EXTDATA)
+      {
+        device->is_extdata = true;
+      }
+    }
+  }
+  return rc;
+}
 
 /*! Initialize SDMC device */
-Result sdmcInit(void)
+Result archiveMountSdmc(void)
 {
   ssize_t  units;
   uint32_t code;
   char     *p;
   FS_Path sdmcPath = { PATH_EMPTY, 1, (u8*)"" };
+  FS_Archive sdmcArchive;
   Result   rc = 0;
 
-  if(sdmcInitialised)
-    return rc;
-
+  _archiveInit();
 
   rc = FSUSER_OpenArchive(&sdmcArchive, ARCHIVE_SDMC, sdmcPath);
   if(R_SUCCEEDED(rc))
   {
     fsExemptFromSession(sdmcArchive);
+    archive_fsdevice* device;
+    rc = _archiveMountDevice(sdmcArchive, "sdmc", &device);
 
-    int dev = AddDevice(&sdmc_devoptab);
-
-    if(dev != -1)
+    if (rc != -1)
     {
-      setDefaultDevice(dev);
+      if (device)
+      {
+        device->device.statvfs_r = sdmc_statvfs; // set SDMC's statvfs to the device
+      }
       if(__system_argc != 0 && __system_argv[0] != NULL)
       {
-        if(FindDevice(__system_argv[0]) == dev)
+        if(FindDevice(__system_argv[0]) == rc)
         {
           strncpy(__fixedpath,__system_argv[0],PATH_MAX);
           if(__fixedpath[PATH_MAX] != 0)
@@ -264,42 +413,68 @@ Result sdmcInit(void)
     }
   }
 
-  sdmcInitialised = true;
-
   return rc;
 }
 
-/*! Enable/disable safe sdmc_write
- *
- *  Safe sdmc_write is enabled by default. If it is disabled, you will be
- *  unable to write from read-only buffers.
- *
- *  @param[in] enable Whether to enable
- */
-void sdmcWriteSafe(bool enable)
+Result archiveCommitSaveData(const char *deviceName)
 {
-  if(enable)
-    sdmc_devoptab.write_r = sdmc_write_safe;
-  else
-    sdmc_devoptab.write_r = sdmc_write;
-}
-
-/*! Clean up SDMC device */
-Result sdmcExit(void)
-{
-  Result rc = 0;
-
-  if(!sdmcInitialised) return rc;
-
-  rc = FSUSER_CloseArchive(sdmcArchive);
-  if(R_SUCCEEDED(rc))
+  archive_fsdevice* device = archiveFindDevice(deviceName);
+  if(device!=NULL)
   {
-    fsUnexemptFromSession(sdmcArchive);
-    RemoveDevice("sdmc:");
-    sdmcInitialised = false;
+    return FSUSER_ControlArchive(device->archive, ARCHIVE_ACTION_COMMIT_SAVE_DATA, NULL, 0, NULL, 0);
   }
 
-  return rc;
+  return -1;
+}
+
+Result _archiveUnmountDeviceStruct(archive_fsdevice *device)
+{
+  char name[34];
+  if(!device->setup)
+    return 0;
+
+  memset(name, 0, sizeof(name));
+  strncpy(name, device->name, sizeof(name)-2);
+  strncat(name, ":", sizeof(name)-strlen(name)-1);
+
+  RemoveDevice(name);
+  free(device->cwd);
+  FSUSER_CloseArchive(device->archive);
+  fsUnexemptFromSession(device->archive);
+
+  if(device->id == archive_device_cwd)
+    archive_device_cwd = -1;
+
+  device->setup = 0;
+  memset(device->name, 0, sizeof(device->name));
+
+  return 0;
+}
+
+Result archiveUnmount(const char *deviceName)
+{
+  archive_fsdevice *device = archiveFindDevice(deviceName);
+
+  if(device==NULL)
+    return -1;
+
+  return _archiveUnmountDeviceStruct(device);
+}
+
+Result archiveUnmountAll(void)
+{
+  u32 total = sizeof(archive_devices) / sizeof(archive_fsdevice);
+  
+  if(!archive_initialized) return 0;
+
+  for(u32 i = 0; i < total; i++)
+  {
+    _archiveUnmountDeviceStruct(&archive_devices[i]);
+  }
+
+  archive_initialized = false;
+
+  return 0;
 }
 
 /*! Open a file
@@ -314,31 +489,32 @@ Result sdmcExit(void)
  *  @returns -1 for error
  */
 static int
-sdmc_open(struct _reent *r,
-          void          *fileStruct,
-          const char    *path,
-          int           flags,
-          int           mode)
+archive_open(struct _reent *r,
+             void          *fileStruct,
+             const char    *path,
+             int           flags,
+             int           mode)
 {
   Handle        fd;
   Result        rc;
-  u32           sdmc_flags = 0;
+  u32           archive_flags = 0;
   u32           attributes = 0;
   FS_Path       fs_path;
+  archive_fsdevice *device = r->deviceData;
 
-  fs_path = sdmc_utf16path(r, path);
+  fs_path = archive_utf16path(r, path, &device);
   if(fs_path.data == NULL)
     return -1;
 
   /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fileStruct;
+  archive_file_t *file = (archive_file_t*)fileStruct;
 
   /* check access mode */
   switch(flags & O_ACCMODE)
   {
     /* read-only: do not allow O_APPEND */
     case O_RDONLY:
-      sdmc_flags |= FS_OPEN_READ;
+      archive_flags |= FS_OPEN_READ;
       if(flags & O_APPEND)
       {
         r->_errno = EINVAL;
@@ -348,12 +524,12 @@ sdmc_open(struct _reent *r,
 
     /* write-only */
     case O_WRONLY:
-      sdmc_flags |= FS_OPEN_WRITE;
+      archive_flags |= FS_OPEN_WRITE;
       break;
 
     /* read and write */
     case O_RDWR:
-      sdmc_flags |= (FS_OPEN_READ | FS_OPEN_WRITE);
+      archive_flags |= (FS_OPEN_READ | FS_OPEN_WRITE);
       break;
 
     /* an invalid option was supplied */
@@ -362,17 +538,24 @@ sdmc_open(struct _reent *r,
       return -1;
   }
 
+  /* ExtData is weird and there's no good way to support writing to it through standard interfaces */
+  if (device->is_extdata && ((flags & O_ACCMODE) != O_RDONLY || (flags & O_CREAT)))
+  {
+    r->_errno = ENOTSUP;
+    return -1;
+  }
+
   /* create file */
-  if(flags & O_CREAT)
-    sdmc_flags |= FS_OPEN_CREATE;
+  if((flags & O_CREAT))
+    archive_flags |= FS_OPEN_CREATE;
 
   /* Test O_EXCL. */
   if((flags & O_CREAT) && (flags & O_EXCL))
   {
-    rc = FSUSER_CreateFile(sdmcArchive, fs_path, attributes, 0);
+    rc = FSUSER_CreateFile(device->archive, fs_path, attributes, 0);
     if(R_FAILED(rc))
     {
-      r->_errno = sdmc_translate_error(rc);
+      r->_errno = archive_translate_error(rc);
       return -1;
     }
   }
@@ -382,8 +565,8 @@ sdmc_open(struct _reent *r,
     attributes |= FS_ATTRIBUTE_READONLY;*/
 
   /* open the file */
-  rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path,
-                       sdmc_flags, attributes);
+  rc = FSUSER_OpenFile(&fd, device->archive, fs_path,
+                       archive_flags, attributes);
   if(R_SUCCEEDED(rc))
   {
     if((flags & O_ACCMODE) != O_RDONLY && (flags & O_TRUNC))
@@ -392,7 +575,7 @@ sdmc_open(struct _reent *r,
       if(R_FAILED(rc))
       {
         FSFILE_Close(fd);
-        r->_errno = sdmc_translate_error(rc);
+        r->_errno = archive_translate_error(rc);
         return -1;
       }
     }
@@ -403,39 +586,39 @@ sdmc_open(struct _reent *r,
     return 0;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
 /*! Close an open file
  *
  *  @param[in,out] r  newlib reentrancy struct
- *  @param[in]     fd Pointer to sdmc_file_t
+ *  @param[in]     fd Pointer to archive_file_t
  *
  *  @returns 0 for success
  *  @returns -1 for error
  */
 static int
-sdmc_close(struct _reent *r,
-           void          *fd)
+archive_close(struct _reent *r,
+              void          *fd)
 {
   Result      rc;
 
   /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fd;
+  archive_file_t *file = (archive_file_t*)fd;
 
   rc = FSFILE_Close(file->fd);
   if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
 /*! Write to an open file
  *
  *  @param[in,out] r   newlib reentrancy struct
- *  @param[in,out] fd  Pointer to sdmc_file_t
+ *  @param[in,out] fd  Pointer to archive_file_t
  *  @param[in]     ptr Pointer to data to write
  *  @param[in]     len Length of data to write
  *
@@ -443,17 +626,17 @@ sdmc_close(struct _reent *r,
  *  @returns -1 for error
  */
 static ssize_t
-sdmc_write(struct _reent *r,
-           void          *fd,
-           const char    *ptr,
-           size_t        len)
+archive_write(struct _reent *r,
+              void          *fd,
+              const char    *ptr,
+              size_t        len)
 {
   Result      rc;
   u32         bytes;
   u32         sync = 0;
 
   /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fd;
+  archive_file_t *file = (archive_file_t*)fd;
 
   /* check that the file was opened with write access */
   if((file->flags & O_ACCMODE) == O_RDONLY)
@@ -472,7 +655,7 @@ sdmc_write(struct _reent *r,
     rc = FSFILE_GetSize(file->fd, &file->offset);
     if(R_FAILED(rc))
     {
-      r->_errno = sdmc_translate_error(rc);
+      r->_errno = archive_translate_error(rc);
       return -1;
     }
   }
@@ -481,7 +664,7 @@ sdmc_write(struct _reent *r,
                     (u32*)ptr, len, sync);
   if(R_FAILED(rc))
   {
-    r->_errno = sdmc_translate_error(rc);
+    r->_errno = archive_translate_error(rc);
     return -1;
   }
 
@@ -490,90 +673,10 @@ sdmc_write(struct _reent *r,
   return bytes;
 }
 
-/*! Write to an open file
- *
- *  @param[in,out] r   newlib reentrancy struct
- *  @param[in,out] fd  Pointer to sdmc_file_t
- *  @param[in]     ptr Pointer to data to write
- *  @param[in]     len Length of data to write
- *
- *  @returns number of bytes written
- *  @returns -1 for error
- */
-static ssize_t
-sdmc_write_safe(struct _reent *r,
-                void          *fd,
-                const char    *ptr,
-                size_t        len)
-{
-  Result      rc;
-  u32         bytes, bytesWritten = 0;
-  u32         sync = 0;
-
-  /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fd;
-
-  /* check that the file was opened with write access */
-  if((file->flags & O_ACCMODE) == O_RDONLY)
-  {
-    r->_errno = EBADF;
-    return -1;
-  }
-
-  /* check if this is synchronous or not */
-  if(file->flags & O_SYNC)
-    sync = FS_WRITE_FLUSH | FS_WRITE_UPDATE_TIME;
-
-  if(file->flags & O_APPEND)
-  {
-    /* append means write from the end of the file */
-    rc = FSFILE_GetSize(file->fd, &file->offset);
-    if(R_FAILED(rc))
-    {
-      r->_errno = sdmc_translate_error(rc);
-      return -1;
-    }
-  }
-
-  /* Copy to internal buffer and write in chunks.
-   * You cannot write from read-only memory.
-   */
-  static __thread char tmp_buffer[8192];
-  while(len > 0)
-  {
-    size_t toWrite = len;
-    if(toWrite > sizeof(tmp_buffer))
-      toWrite = sizeof(tmp_buffer);
-
-    /* copy to internal buffer */
-    memcpy(tmp_buffer, ptr, toWrite);
-
-    /* write the data */
-    rc = FSFILE_Write(file->fd, &bytes, file->offset,
-                      (u32*)tmp_buffer, (u32)toWrite, sync);
-    if(R_FAILED(rc))
-    {
-      /* return partial transfer */
-      if(bytesWritten > 0)
-        return bytesWritten;
-
-      r->_errno = sdmc_translate_error(rc);
-      return -1;
-    }
-
-    file->offset += bytes;
-    bytesWritten += bytes;
-    ptr          += bytes;
-    len          -= bytes;
-  }
-
-  return bytesWritten;
-}
-
 /*! Read from an open file
  *
  *  @param[in,out] r   newlib reentrancy struct
- *  @param[in,out] fd  Pointer to sdmc_file_t
+ *  @param[in,out] fd  Pointer to archive_file_t
  *  @param[out]    ptr Pointer to buffer to read into
  *  @param[in]     len Length of data to read
  *
@@ -581,16 +684,16 @@ sdmc_write_safe(struct _reent *r,
  *  @returns -1 for error
  */
 static ssize_t
-sdmc_read(struct _reent *r,
-          void          *fd,
-          char          *ptr,
-          size_t         len)
+archive_read(struct _reent *r,
+             void          *fd,
+             char          *ptr,
+             size_t         len)
 {
   Result      rc;
   u32         bytes;
 
   /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fd;
+  archive_file_t *file = (archive_file_t*)fd;
 
   /* check that the file was opened with read access */
   if((file->flags & O_ACCMODE) == O_WRONLY)
@@ -608,14 +711,14 @@ sdmc_read(struct _reent *r,
     return (ssize_t)bytes;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
 /*! Update an open file's current offset
  *
  *  @param[in,out] r      newlib reentrancy struct
- *  @param[in,out] fd     Pointer to sdmc_file_t
+ *  @param[in,out] fd     Pointer to archive_file_t
  *  @param[in]     pos    Offset to seek to
  *  @param[in]     whence Where to seek from
  *
@@ -623,16 +726,16 @@ sdmc_read(struct _reent *r,
  *  @returns -1 for error
  */
 static off_t
-sdmc_seek(struct _reent *r,
-          void          *fd,
-          off_t         pos,
-          int           whence)
+archive_seek(struct _reent *r,
+             void          *fd,
+             off_t         pos,
+             int           whence)
 {
   Result      rc;
   u64         offset;
 
   /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fd;
+  archive_file_t *file = (archive_file_t*)fd;
 
   /* find the offset to see from */
   switch(whence)
@@ -652,7 +755,7 @@ sdmc_seek(struct _reent *r,
       rc = FSFILE_GetSize(file->fd, &offset);
       if(R_FAILED(rc))
       {
-        r->_errno = sdmc_translate_error(rc);
+        r->_errno = archive_translate_error(rc);
         return -1;
       }
       break;
@@ -679,20 +782,20 @@ sdmc_seek(struct _reent *r,
 /*! Get file stats from an open file
  *
  *  @param[in,out] r  newlib reentrancy struct
- *  @param[in]     fd Pointer to sdmc_file_t
+ *  @param[in]     fd Pointer to archive_file_t
  *  @param[out]    st Pointer to file stats to fill
  *
  *  @returns 0 for success
  *  @returns -1 for error
  */
 static int
-sdmc_fstat(struct _reent *r,
-           void          *fd,
-           struct stat   *st)
+archive_fstat(struct _reent *r,
+              void          *fd,
+              struct stat   *st)
 {
   Result      rc;
   u64         size;
-  sdmc_file_t *file = (sdmc_file_t*)fd;
+  archive_file_t *file = (archive_file_t*)fd;
 
   rc = FSFILE_GetSize(file->fd, &size);
   if(R_SUCCEEDED(rc))
@@ -704,7 +807,7 @@ sdmc_fstat(struct _reent *r,
     return 0;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -718,27 +821,28 @@ sdmc_fstat(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_stat(struct _reent *r,
-          const char    *file,
-          struct stat   *st)
+archive_stat(struct _reent *r,
+             const char    *file,
+             struct stat   *st)
 {
   Handle  fd;
   Result  rc;
   FS_Path fs_path;
+  archive_fsdevice *device = r->deviceData;
 
-  fs_path = sdmc_utf16path(r, file);
+  fs_path = archive_utf16path(r, file, &device);
   if(fs_path.data == NULL)
     return -1;
 
-  if(R_SUCCEEDED(rc = FSUSER_OpenFile(&fd, sdmcArchive, fs_path, FS_OPEN_READ, 0)))
+  if(R_SUCCEEDED(rc = FSUSER_OpenFile(&fd, device->archive, fs_path, FS_OPEN_READ, 0)))
   {
-    sdmc_file_t tmpfd = { .fd = fd };
-    rc = sdmc_fstat(r, &tmpfd, st);
+    archive_file_t tmpfd = { .fd = fd };
+    rc = archive_fstat(r, &tmpfd, st);
     FSFILE_Close(fd);
 
     return rc;
   }
-  else if(R_SUCCEEDED(rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path)))
+  else if(R_SUCCEEDED(rc = FSUSER_OpenDirectory(&fd, device->archive, fs_path)))
   {
     memset(st, 0, sizeof(struct stat));
     st->st_nlink = 1;
@@ -747,7 +851,7 @@ sdmc_stat(struct _reent *r,
     return 0;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -761,9 +865,9 @@ sdmc_stat(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_link(struct _reent *r,
-          const char    *existing,
-          const char    *newLink)
+archive_link(struct _reent *r,
+             const char    *existing,
+             const char    *newLink)
 {
   r->_errno = ENOSYS;
   return -1;
@@ -778,21 +882,22 @@ sdmc_link(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_unlink(struct _reent *r,
-            const char    *name)
+archive_unlink(struct _reent *r,
+               const char    *name)
 {
   Result  rc;
   FS_Path fs_path;
+  archive_fsdevice *device = r->deviceData;
 
-  fs_path = sdmc_utf16path(r, name);
+  fs_path = archive_utf16path(r, name, &device);
   if(fs_path.data == NULL)
     return -1;
 
-  rc = FSUSER_DeleteFile(sdmcArchive, fs_path);
+  rc = FSUSER_DeleteFile(device->archive, fs_path);
   if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -805,27 +910,28 @@ sdmc_unlink(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_chdir(struct _reent *r,
-           const char    *name)
+archive_chdir(struct _reent *r,
+              const char    *name)
 {
   Handle  fd;
   Result  rc;
   FS_Path fs_path;
+  archive_fsdevice *device = r->deviceData;
 
-  fs_path = sdmc_utf16path(r, name);
+  fs_path = archive_utf16path(r, name, &device);
   if(fs_path.data == NULL)
     return -1;
 
-  rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path);
+  rc = FSUSER_OpenDirectory(&fd, device->archive, fs_path);
   if(R_SUCCEEDED(rc))
   {
     FSDIR_Close(fd);
-    strncpy(__cwd, __fixedpath, PATH_MAX);
-    __cwd[PATH_MAX] = '\0';
+    strncpy(device->cwd, __fixedpath, PATH_MAX + 1);
+    device->cwd[PATH_MAX] = '\0';
     return 0;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -839,34 +945,50 @@ sdmc_chdir(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_rename(struct _reent *r,
-            const char    *oldName,
-            const char    *newName)
+archive_rename(struct _reent *r,
+               const char    *oldName,
+               const char    *newName)
 {
   Result  rc;
   FS_Path fs_path_old, fs_path_new;
   static __thread uint16_t __utf16path_old[PATH_MAX+1];
+  archive_fsdevice *sourceDevice = r->deviceData;
+  archive_fsdevice *destDevice = NULL;
 
-  fs_path_old = sdmc_utf16path(r, oldName);
+  /* treat extdata as read-only */
+  if(sourceDevice->is_extdata)
+  {
+    r->_errno = ENOTSUP;
+    return -1;
+  }
+
+  fs_path_old = archive_utf16path(r, oldName, &sourceDevice);
   if(fs_path_old.data == NULL)
     return -1;
 
   memcpy(__utf16path_old, __utf16path, sizeof(__utf16path));
   fs_path_old.data = (const u8*)__utf16path_old;
 
-  fs_path_new = sdmc_utf16path(r, newName);
+  fs_path_new = archive_utf16path(r, newName, &destDevice);
   if(fs_path_new.data == NULL)
     return -1;
 
-  rc = FSUSER_RenameFile(sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
+  /* moving between archives is not supported */
+  if(sourceDevice->archive != destDevice->archive)
+  {
+    r->_errno = ENOTSUP;
+    return -1;
+  }
+
+  rc = FSUSER_RenameFile(sourceDevice->archive, fs_path_old, sourceDevice->archive, fs_path_new);
   if(R_SUCCEEDED(rc))
     return 0;
 
-  rc = FSUSER_RenameDirectory(sdmcArchive, fs_path_old, sdmcArchive, fs_path_new);
+  rc = FSUSER_RenameDirectory(sourceDevice->archive, fs_path_old, sourceDevice->archive, fs_path_new);
   if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -880,20 +1002,28 @@ sdmc_rename(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_mkdir(struct _reent *r,
-           const char    *path,
-           int           mode)
+archive_mkdir(struct _reent *r,
+              const char    *path,
+              int           mode)
 {
   Result  rc;
   FS_Path fs_path;
+  archive_fsdevice *device = r->deviceData;
 
-  fs_path = sdmc_utf16path(r, path);
+  /* treat extdata as read-only */
+  if(device->is_extdata)
+  {
+    r->_errno = ENOTSUP;
+    return -1;
+  }
+
+  fs_path = archive_utf16path(r, path, &device);
   if(fs_path.data == NULL)
     return -1;
 
   /* TODO: Use mode to set directory attributes. */
 
-  rc = FSUSER_CreateDirectory(sdmcArchive, fs_path, 0);
+  rc = FSUSER_CreateDirectory(device->archive, fs_path, 0);
   if(rc == 0xC82044BE)
   {
     r->_errno = EEXIST;
@@ -902,7 +1032,7 @@ sdmc_mkdir(struct _reent *r,
   else if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -916,27 +1046,28 @@ sdmc_mkdir(struct _reent *r,
  *  @returns NULL for error
  */
 static DIR_ITER*
-sdmc_diropen(struct _reent *r,
-             DIR_ITER      *dirState,
-             const char    *path)
+archive_diropen(struct _reent *r,
+                DIR_ITER      *dirState,
+                const char    *path)
 {
   Handle  fd;
   Result  rc;
   FS_Path fs_path;
+  archive_fsdevice *device = r->deviceData;
 
-  fs_path = sdmc_utf16path(r, path);
+  fs_path = archive_utf16path(r, path, &device);
 
   if(fs_path.data == NULL)
     return NULL;
 
   /* get pointer to our data */
-  sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
+  archive_dir_t *dir = (archive_dir_t*)(dirState->dirStruct);
 
   /* open the directory */
-  rc = FSUSER_OpenDirectory(&fd, sdmcArchive, fs_path);
+  rc = FSUSER_OpenDirectory(&fd, device->archive, fs_path);
   if(R_SUCCEEDED(rc))
   {
-    dir->magic = SDMC_DIRITER_MAGIC;
+    dir->magic = ARCHIVE_DIRITER_MAGIC;
     dir->fd    = fd;
     dir->index = -1;
     dir->size  = 0;
@@ -944,7 +1075,7 @@ sdmc_diropen(struct _reent *r,
     return dirState;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return NULL;
 }
 
@@ -957,8 +1088,8 @@ sdmc_diropen(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_dirreset(struct _reent *r,
-              DIR_ITER      *dirState)
+archive_dirreset(struct _reent *r,
+                 DIR_ITER      *dirState)
 {
   r->_errno = ENOSYS;
   return -1;
@@ -975,10 +1106,10 @@ sdmc_dirreset(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_dirnext(struct _reent *r,
-             DIR_ITER      *dirState,
-             char          *filename,
-             struct stat   *filestat)
+archive_dirnext(struct _reent *r,
+                DIR_ITER      *dirState,
+                char          *filename,
+                struct stat   *filestat)
 {
   Result              rc;
   u32                 entries;
@@ -986,7 +1117,7 @@ sdmc_dirnext(struct _reent *r,
   FS_DirectoryEntry   *entry;
 
   /* get pointer to our data */
-  sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
+  archive_dir_t *dir = (archive_dir_t*)(dirState->dirStruct);
 
   static const size_t max_entries = sizeof(dir->entry_data) / sizeof(dir->entry_data[0]);
 
@@ -1047,7 +1178,7 @@ sdmc_dirnext(struct _reent *r,
     return 0;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -1060,24 +1191,79 @@ sdmc_dirnext(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_dirclose(struct _reent *r,
-              DIR_ITER      *dirState)
+archive_dirclose(struct _reent *r,
+                 DIR_ITER      *dirState)
 {
   Result         rc;
 
   /* get pointer to our data */
-  sdmc_dir_t *dir = (sdmc_dir_t*)(dirState->dirStruct);
+  archive_dir_t *dir = (archive_dir_t*)(dirState->dirStruct);
 
   /* close the directory */
   rc = FSDIR_Close(dir->fd);
   if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
-/*! Get filesystem statistics
+/*! Get filesystem statistics for an archive
+ *
+ *  @param[in,out] r    newlib reentrancy struct
+ *  @param[in]     path Path to filesystem to get statistics of
+ *  @param[out]    buf  Buffer to fill
+ *
+ *  @returns 0 for success
+ *  @returns -1 for error
+ */
+static int
+archive_statvfs(struct _reent  *r,
+                const char     *path,
+                struct statvfs *buf)
+{
+  // Result rc;
+  // u32 totalSize, directories, files;
+  // bool duplicateData;
+
+  // rc = FSUSER_GetFormatInfo(&totalSize, &directories, &files, &duplicateData, )
+
+  r->_errno = ENOSYS;
+
+  return -1;
+
+  // Result rc;
+  // FS_ArchiveResource resource;
+  // bool writable = false;
+
+  // rc = FSUSER_GetArchiveResource(&resource);
+
+  // if(R_SUCCEEDED(rc))
+  // {
+  //   buf->f_bsize   = resource.clusterSize;
+  //   buf->f_frsize  = resource.clusterSize;
+  //   buf->f_blocks  = resource.totalClusters;
+  //   buf->f_bfree   = resource.freeClusters;
+  //   buf->f_bavail  = resource.freeClusters;
+  //   buf->f_files   = 0; //??? how to get
+  //   buf->f_ffree   = resource.freeClusters;
+  //   buf->f_favail  = resource.freeClusters;
+  //   buf->f_fsid    = 0; //??? how to get
+  //   buf->f_flag    = ST_NOSUID;
+  //   buf->f_namemax = 0; //??? how to get
+
+  //   rc = FSUSER_IsarchiveWritable(&writable);
+  //   if(R_FAILED(rc) || !writable)
+  //     buf->f_flag |= ST_RDONLY;
+
+  //   return 0;
+  // }
+
+  // r->_errno = archive_translate_error(rc);
+  // return -1;
+}
+
+/*! Get filesystem statistics for the SD card
  *
  *  @param[in,out] r    newlib reentrancy struct
  *  @param[in]     path Path to filesystem to get statistics of
@@ -1118,28 +1304,28 @@ sdmc_statvfs(struct _reent  *r,
     return 0;
   }
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
 /*! Truncate an open file
  *
  *  @param[in,out] r   newlib reentrancy struct
- *  @param[in]     fd  Pointer to sdmc_file_t
+ *  @param[in]     fd  Pointer to archive_file_t
  *  @param[in]     len Length to truncate file to
  *
  *  @returns 0 for success
  *  @returns -1 for error
  */
 static int
-sdmc_ftruncate(struct _reent *r,
-               void          *fd,
-               off_t         len)
+archive_ftruncate(struct _reent *r,
+                  void          *fd,
+                  off_t         len)
 {
   Result      rc;
 
   /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fd;
+  archive_file_t *file = (archive_file_t*)fd;
 
   /* make sure length is non-negative */
   if(len < 0)
@@ -1153,32 +1339,32 @@ sdmc_ftruncate(struct _reent *r,
   if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
 /*! Synchronize a file to media
  *
  *  @param[in,out] r  newlib reentrancy struct
- *  @param[in]     fd Pointer to sdmc_file_t
+ *  @param[in]     fd Pointer to archive_file_t
  *
  *  @returns 0 for success
  *  @returns -1 for error
  */
 static int
-sdmc_fsync(struct _reent *r,
-           void          *fd)
+archive_fsync(struct _reent *r,
+              void          *fd)
 {
   Result rc;
 
   /* get pointer to our data */
-  sdmc_file_t *file = (sdmc_file_t*)fd;
+  archive_file_t *file = (archive_file_t*)fd;
 
   rc = FSFILE_Flush(file->fd);
   if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
@@ -1192,9 +1378,9 @@ sdmc_fsync(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_chmod(struct _reent *r,
-          const char    *path,
-          mode_t        mode)
+archive_chmod(struct _reent *r,
+              const char    *path,
+              mode_t        mode)
 {
   r->_errno = ENOSYS;
   return -1;
@@ -1203,16 +1389,16 @@ sdmc_chmod(struct _reent *r,
 /*! Change an open file's mode
  *
  *  @param[in,out] r    newlib reentrancy struct
- *  @param[in]     fd   Pointer to sdmc_file_t
+ *  @param[in]     fd   Pointer to archive_file_t
  *  @param[in]     mode New mode to set
  *
  *  @returns 0 for success
  *  @returns -1 for failure
  */
 static int
-sdmc_fchmod(struct _reent *r,
-            void          *fd,
-            mode_t        mode)
+archive_fchmod(struct _reent *r,
+               void          *fd,
+               mode_t        mode)
 {
   r->_errno = ENOSYS;
   return -1;
@@ -1227,42 +1413,51 @@ sdmc_fchmod(struct _reent *r,
  *  @returns -1 for error
  */
 static int
-sdmc_rmdir(struct _reent *r,
-           const char    *name)
+archive_rmdir(struct _reent *r,
+              const char    *name)
 {
   Result  rc;
   FS_Path fs_path;
+  archive_fsdevice *device = r->deviceData;
 
-  fs_path = sdmc_utf16path(r, name);
+  /* treat extdata as read-only */
+  if(device->is_extdata)
+  {
+    r->_errno = ENOTSUP;
+    return -1;
+  }
+
+  fs_path = archive_utf16path(r, name, &device);
   if(fs_path.data == NULL)
     return -1;
 
-  rc = FSUSER_DeleteDirectory(sdmcArchive, fs_path);
+  rc = FSUSER_DeleteDirectory(device->archive, fs_path);
   if(R_SUCCEEDED(rc))
     return 0;
 
-  r->_errno = sdmc_translate_error(rc);
+  r->_errno = archive_translate_error(rc);
   return -1;
 }
 
 Result
-sdmc_getmtime(const char *name,
-              u64        *mtime)
+archive_getmtime(const char *name,
+                 u64        *mtime)
 {
   Result        rc;
   FS_Path       fs_path;
   struct _reent r;
+  archive_fsdevice *device = NULL;
 
   r._errno = 0;
 
-  fs_path = sdmc_utf16path(&r, name);
+  fs_path = archive_utf16path(&r, name, &device);
   if(r._errno != 0)
     errno = r._errno;
 
   if(fs_path.data == NULL)
     return -1;
 
-  rc = FSUSER_ControlArchive(sdmcArchive, ARCHIVE_ACTION_GET_TIMESTAMP,
+  rc = FSUSER_ControlArchive(device->archive, ARCHIVE_ACTION_GET_TIMESTAMP,
                              (void*)fs_path.data, fs_path.size,
                              mtime, sizeof(*mtime));
   if(rc == 0)
@@ -1274,7 +1469,6 @@ sdmc_getmtime(const char *name,
   }
 
   return rc;
-
 }
 
 /*! Error map */
@@ -1326,7 +1520,7 @@ error_cmp(const void *p1, const void *p2)
  *  @returns errno
  */
 static int
-sdmc_translate_error(Result error)
+archive_translate_error(Result error)
 {
   error_map_t key = { .fs_error = error };
   const error_map_t *rc = bsearch(&key, error_table, num_errors,
