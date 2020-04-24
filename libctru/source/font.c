@@ -48,7 +48,7 @@ int fontGlyphIndexFromCodePoint(CFNT_s* font, u32 codePoint)
 		font = g_sharedFont;
 	if (!font)
 		return -1;
-	int ret = font->finf.alterCharIndex;
+	int ret = 0xFFFF;
 	if (codePoint < 0x10000)
 	{
 		for (CMAP_s* cmap = font->finf.cmap; cmap; cmap = cmap->next)
@@ -78,6 +78,13 @@ int fontGlyphIndexFromCodePoint(CFNT_s* font, u32 codePoint)
 				break;
 			}
 		}
+	}
+	if (ret == 0xFFFF) // Bogus CMAP entry. Probably exist to save space by using TABLE mappings?
+	{
+		if (font->finf.alterCharIndex == 0xFFFF)
+			return -1;
+		else
+			return font->finf.alterCharIndex;
 	}
 	return ret;
 }
