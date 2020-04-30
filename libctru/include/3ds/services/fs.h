@@ -135,6 +135,7 @@ typedef enum
 {
 	ARCHIVE_ACTION_COMMIT_SAVE_DATA = 0, ///< Commits save data changes. No inputs/outputs.
 	ARCHIVE_ACTION_GET_TIMESTAMP    = 1, ///< Retrieves a file's last-modified timestamp. In: "u16*, UTF-16 Path", Out: "u64, Time Stamp".
+	ARCHIVE_ACTION_UNKNOWN			= 0x789D, //< Unknown action; calls FSPXI command 0x56. In: "FS_Path instance", Out: "u32[4], Unknown"
 } FS_ArchiveAction;
 
 /// Secure save control actions.
@@ -444,7 +445,7 @@ Result FSUSER_IsSdmcDetected(bool *detected);
 
 /**
  * @brief Gets whether the SD card is writable.
- * @param detected Pointer to output the writable status to.
+ * @param writable Pointer to output the writable status to.
  */
 Result FSUSER_IsSdmcWritable(bool *writable);
 
@@ -610,7 +611,7 @@ Result FSUSER_SetCardSpiBaudRate(FS_CardSpiBaudRate baudRate);
 
 /**
  * @brief Sets the CARDSPI bus mode.
- * @param baudRate Bus mode to set.
+ * @param busMode Bus mode to set.
  */
 Result FSUSER_SetCardSpiBusMode(FS_CardSpiBusMode busMode);
 
@@ -871,7 +872,7 @@ Result FSUSER_SetCtrCardLatencyParameter(u64 latency, bool emulateEndurance);
 
 /**
  * @brief Toggles cleaning up invalid save data.
- * @param Whether to enable cleaning up invalid save data.
+ * @param enable Whether to enable cleaning up invalid save data.
  */
 Result FSUSER_SwitchCleanupInvalidSaveData(bool enable);
 
