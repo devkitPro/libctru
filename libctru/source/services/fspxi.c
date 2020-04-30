@@ -968,7 +968,7 @@ Result FSPXI_GetSpecialContentIndex(Handle serviceHandle, u16* index, FS_MediaTy
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_GetLegacyRomHeader(Handle serviceHandle, FS_MediaType mediaType, u64 programId, u8* header)
+Result FSPXI_GetLegacyRomHeader(Handle serviceHandle, FS_MediaType mediaType, u64 programId, void* header)
 {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
@@ -985,7 +985,7 @@ Result FSPXI_GetLegacyRomHeader(Handle serviceHandle, FS_MediaType mediaType, u6
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_GetLegacyBannerData(Handle serviceHandle, FS_MediaType mediaType, u64 programId, u8* banner, u8 unk)
+Result FSPXI_GetLegacyBannerData(Handle serviceHandle, FS_MediaType mediaType, u64 programId, void* banner, u8 unk)
 {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
@@ -1123,7 +1123,7 @@ Result FSPXI_ImportIntegrityVerificationSeed(Handle serviceHandle, const FS_Inte
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_GetLegacySubBannerData(Handle serviceHandle, u32 bannerSize, FS_MediaType mediaType, u64 programId, u8* banner)
+Result FSPXI_GetLegacySubBannerData(Handle serviceHandle, u32 bannerSize, FS_MediaType mediaType, u64 programId, void* banner)
 {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
@@ -1175,7 +1175,7 @@ Result FSPXI_GetFileLastModified(Handle serviceHandle, FSPXI_Archive archive, u6
     return (Result) cmdbuf[1];
 }
 
-Result FSPXI_ReadSpecialFile(Handle serviceHandle, u32* bytesRead, u64 fileOffset, u32 size, u8* data)
+Result FSPXI_ReadSpecialFile(Handle serviceHandle, u32* bytesRead, u64 fileOffset, u32 size, void* data)
 {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();

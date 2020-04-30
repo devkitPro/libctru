@@ -431,7 +431,7 @@ Result FSPXI_GetSpecialContentIndex(Handle serviceHandle, u16* index, FS_MediaTy
  * @param programId ID of the program.
  * @param header Pointer to output the legacy ROM header to. (size = 0x3B4)
  */
-Result FSPXI_GetLegacyRomHeader(Handle serviceHandle, FS_MediaType mediaType, u64 programId, u8* header);
+Result FSPXI_GetLegacyRomHeader(Handle serviceHandle, FS_MediaType mediaType, u64 programId, void* header);
 
 /**
  * @brief Gets the legacy banner data of a program.
@@ -440,7 +440,7 @@ Result FSPXI_GetLegacyRomHeader(Handle serviceHandle, FS_MediaType mediaType, u6
  * @param banner Pointer to output the legacy banner data to. (size = 0x23C0)
  * @param unk Unknown. Always 1?
  */
-Result FSPXI_GetLegacyBannerData(Handle serviceHandle, FS_MediaType mediaType, u64 programId, u8* banner, u8 unk);
+Result FSPXI_GetLegacyBannerData(Handle serviceHandle, FS_MediaType mediaType, u64 programId, void* banner, u8 unk);
 
 /**
  * Unknown command 3D
@@ -493,7 +493,7 @@ Result FSPXI_ImportIntegrityVerificationSeed(Handle serviceHandle, const FS_Inte
  * @param programId ID of the program.
  * @param header Pointer to output the legacy sub banner data to.
  */
-Result FSPXI_GetLegacySubBannerData(Handle serviceHandle, u32 bannerSize, FS_MediaType mediaType, u64 programId, u8* banner);
+Result FSPXI_GetLegacySubBannerData(Handle serviceHandle, u32 bannerSize, FS_MediaType mediaType, u64 programId, void* banner);
 
 /// Unknown command 47
 Result FSPXI_Unknown0x47(Handle serviceHandle, void* buf, u32 size);
@@ -514,7 +514,7 @@ Result FSPXI_GetFileLastModified(Handle serviceHandle, FSPXI_Archive archive, u6
  * @param size Size of the buffer.
  * @param data Buffer to read to.
  */
-Result FSPXI_ReadSpecialFile(Handle serviceHandle, u32* bytesRead, u64 fileOffset, u32 size, u8* data);
+Result FSPXI_ReadSpecialFile(Handle serviceHandle, u32* bytesRead, u64 fileOffset, u32 size, void* data);
 
 /**
  * @brief Gets the size of a special file.
