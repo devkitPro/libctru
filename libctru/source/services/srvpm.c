@@ -8,7 +8,7 @@
 #include <3ds/ipc.h>
 #include <3ds/os.h>
 
-#define IS_PRE_7X (osGetFirmVersion() < SYSTEM_VERSION(2, 39, 4))
+#define IS_PRE_7X (GET_VERSION_MINOR(osGetFirmVersion()) < 39)
 
 static Handle srvPmHandle;
 static int srvPmRefCount;

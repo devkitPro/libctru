@@ -31,7 +31,7 @@ Result srvInit(void)
 
 	if (AtomicPostIncrement(&srvRefCount)) return 0;
 
-	if(osGetFirmVersion() < SYSTEM_VERSION(2, 39, 4) && *srvPmGetSessionHandle() != 0)
+	if(GET_VERSION_MINOR(osGetKernelVersion()) < 39 && *srvPmGetSessionHandle() != 0)
 		rc = svcDuplicateHandle(&srvHandle, *srvPmGetSessionHandle()); // Prior to system version 7.0 srv:pm was a superset of srv:
 	else
 		rc = svcConnectToPort(&srvHandle, "srv:");
