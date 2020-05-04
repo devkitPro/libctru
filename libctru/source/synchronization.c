@@ -31,34 +31,46 @@ void LightLock_Init(LightLock* lock)
 void LightLock_Lock(LightLock* lock)
 {
 	s32 val;
-_begin:
+	bool bAlreadyLocked;
+
+	// Try to lock, or if that's not possible, increment the number of waiting threads
 	do
 	{
+		// Read the current lock state
 		val = __ldrex(lock);
-		if (val < 0)
+		bAlreadyLocked = val < 0;
+
+		// Calculate the desired next state of the lock
+		if (!bAlreadyLocked)
+			val = -val; // transition into locked state
+		else
+			--val; // increment the number of waiting threads (which has the sign reversed during locked state)
+	} while (__strex(lock, val));
+
+	// While the lock is held by a different thread:
+	while (bAlreadyLocked)
+	{
+		// Wait for the lock holder thread to wake us up
+		svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+
+		// Try to lock again
+		do
 		{
-			// Add ourselves to the list of threads blocked on this lock
-			if (__strex(lock, val-1))
-				goto _begin; // strex failed, try to lock again
+			// Read the current lock state
+			val = __ldrex(lock);
+			bAlreadyLocked = val < 0;
 
-		_wait:
-			// Wait for a thread to wake us up
-			svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
-
-			// Try to lock again
-			do
+			// Calculate the desired next state of the lock
+			if (!bAlreadyLocked)
+				val = -(val-1); // decrement the number of waiting threads *and* transition into locked state
+			else
 			{
-				val = __ldrex(lock);
-				if (val < 0)
-				{
-					// Lock is still locked - keep waiting
-					__clrex();
-					goto _wait;
-				}
-			} while (__strex(lock, -(val-1)));
-			return;
-		}
-	} while (__strex(lock, -val));
+				// Since the lock is still held, we need to cancel the atomic update and wait again
+				__clrex();
+				break;
+			}
+		} while (__strex(lock, val));
+	}
 }
 
 int LightLock_TryLock(LightLock* lock)
