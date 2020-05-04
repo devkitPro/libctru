@@ -131,22 +131,23 @@ static void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	s32* framebufferInfoHeader=(s32*)(gfxSharedMemory+0x200+gfxThreadID*0x80);
 	if(screen==GFX_BOTTOM)framebufferInfoHeader+=0x10;
 	GSPGPU_FramebufferInfo* framebufferInfo=(GSPGPU_FramebufferInfo*)&framebufferInfoHeader[1];
+
+	u8 pos = 1 - *(u8*)framebufferInfoHeader;
+	framebufferInfo[pos]=*framebufferInfoSt[screen];
+	__dsb();
+
 	union
 	{
 		s32 header;
 		struct { u8 swap, update; };
 	} info;
-	info.header = __ldrex(framebufferInfoHeader);
-	info.swap = !info.swap;
-	u8 pos = info.swap;
-	info.update = 1;
-	framebufferInfo[pos]=*framebufferInfoSt[screen];
-	while (__strex(framebufferInfoHeader,info.header))
+
+	do
 	{
 		info.header = __ldrex(framebufferInfoHeader);
 		info.swap = pos;
 		info.update = 1;
-	}
+	} while (__strex(framebufferInfoHeader, info.header));
 }
 
 void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bottomFormat, bool vrambuffers)
