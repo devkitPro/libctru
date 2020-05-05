@@ -1362,7 +1362,7 @@ Result FSPXI_ReadNandReport(Handle serviceHandle, void* buffer, u32 size, u32 un
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_Unknown0x56(Handle serviceHandle, u32 (*out)[4], FS_Archive archive, FS_Path path)
+Result FSPXI_Unknown0x56(Handle serviceHandle, u32 out[static 4], FS_Archive archive, FS_Path path)
 {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
@@ -1377,10 +1377,10 @@ Result FSPXI_Unknown0x56(Handle serviceHandle, u32 (*out)[4], FS_Archive archive
 
     if (R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-    (*out)[0] = cmdbuf[2];
-    (*out)[1] = cmdbuf[3];
-    (*out)[2] = cmdbuf[4];
-    (*out)[3] = cmdbuf[5];
+    out[0] = cmdbuf[2];
+    out[1] = cmdbuf[3];
+    out[2] = cmdbuf[4];
+    out[3] = cmdbuf[5];
 
     return (Result) cmdbuf[1];
 }
