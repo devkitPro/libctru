@@ -597,7 +597,7 @@ Result FSPXI_ReadNandReport(Handle serviceHandle, void* buffer, u32 size, u32 un
  * @brief Unknown command 0x56
  * @remark Called by FSUSER_ControlArchive with ArchiveAction 0x789D
  */
-Result FSPXI_Unknown0x56(Handle serviceHandle, u32 out[static 4], FS_Archive archive, FS_Path path);
+Result FSPXI_Unknown0x56(Handle serviceHandle, u32 out[4], FS_Archive archive, FS_Path path);
 
 #undef DEFINE_PXIFS_SERVICE_METHOD
 #undef DEFINE_SERVICE_METHOD
