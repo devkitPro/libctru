@@ -144,8 +144,11 @@ Result GSPGPU_ReleaseRight(void);
  */
 Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo*captureinfo);
 
-/// Sames the VRAM sys area.
+/// Saves the VRAM sys area.
 Result GSPGPU_SaveVramSysArea(void);
+
+/// Resets the GPU
+Result GSPGPU_ResetGpuCore(void);
 
 /// Restores the VRAM sys area.
 Result GSPGPU_RestoreVramSysArea(void);

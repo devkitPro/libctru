@@ -430,6 +430,17 @@ Result GSPGPU_RestoreVramSysArea(void)
 	return cmdbuf[1];
 }
 
+Result GSPGPU_ResetGpuCore(void)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+	cmdbuf[0]=IPC_MakeHeader(0x1B,0,0); // 0x001B0000
+
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
 Result GSPGPU_SetLedForceOff(bool disable)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
