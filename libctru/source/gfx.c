@@ -150,6 +150,127 @@ static void gfxWriteFramebufferInfo(gfxScreen_t screen)
 	} while (__strex(framebufferInfoHeader, info.header));
 }
 
+static inline void gfxWriteGxReg(u32 offset, u32 data)
+{
+	GSPGPU_WriteHWRegs(0x400000 + offset, &data, 4);
+}
+static inline void gfxWriteGxRegMasked(u32 offset, u32 data, u32 mask)
+{
+	GSPGPU_WriteHWRegsWithMask(0x400000 + offset, &data, 4, &mask, 4);
+}
+
+static void gfxGxHwInit(void)
+{
+	// SDK apps have this exact sequence (except for GPUREG_START_DRAW_FUNC0)
+
+	// Some GPU-internal init registers
+	gfxWriteGxReg(0x1000, 0);
+	gfxWriteGxReg(0x1080, 0x12345678);
+	gfxWriteGxReg(0x10C0, 0xFFFFFFF0);
+	gfxWriteGxReg(0x10D0, 1);
+	// Ensure GPUREG_START_DRAW_FUNC0 starts off in configuration mode
+	gfxWriteGxReg(0x1914, 1);
+
+	// Top screen LCD configuration, see https://www.3dbrew.org/wiki/GPU/External_Registers#LCD_Source_Framebuffer_Setup
+
+	// Top screen sync registers:
+	gfxWriteGxReg(0x0400, 0x1C2);
+	gfxWriteGxReg(0x0404, 0xD1);
+	gfxWriteGxReg(0x0408, 0x1C1);
+	gfxWriteGxReg(0x040C, 0x1C1);
+	gfxWriteGxReg(0x0410, 0);
+	gfxWriteGxReg(0x0414, 0xCF);
+	gfxWriteGxReg(0x0418, 0xD1);
+	gfxWriteGxReg(0x041C, (0x1C5 << 16) | 0x1C1);
+	gfxWriteGxReg(0x0420, 0x10000);
+	gfxWriteGxReg(0x0424, 0x19D);
+	gfxWriteGxReg(0x0428, 2);
+	gfxWriteGxReg(0x042C, 0x192);
+	gfxWriteGxReg(0x0430, 0x192);
+	gfxWriteGxReg(0x0434, 0x192);
+	gfxWriteGxReg(0x0438, 1);
+	gfxWriteGxReg(0x043C, 2);
+	gfxWriteGxReg(0x0440, (0x196 << 16) | 0x192);
+	gfxWriteGxReg(0x0444, 0);
+	gfxWriteGxReg(0x0448, 0);
+
+	// Top screen fb geometry
+	gfxWriteGxReg(0x045C, (400 << 16) | 240); // dimensions
+	gfxWriteGxReg(0x0460, (0x1C1 << 16) | 0xD1);
+	gfxWriteGxReg(0x0464, (0x192 << 16) | 2);
+
+	// Top screen framebuffer format (initial)
+	gfxWriteGxReg(0x0470, 0x80340);
+
+	// Top screen unknown reg @ 0x9C
+	gfxWriteGxReg(0x049C, 0);
+
+	// Bottom screen LCD configuration
+
+	// Bottom screen sync registers:
+	gfxWriteGxReg(0x0500, 0x1C2);
+	gfxWriteGxReg(0x0504, 0xD1);
+	gfxWriteGxReg(0x0508, 0x1C1);
+	gfxWriteGxReg(0x050C, 0x1C1);
+	gfxWriteGxReg(0x0510, 0xCD);
+	gfxWriteGxReg(0x0514, 0xCF);
+	gfxWriteGxReg(0x0518, 0xD1);
+	gfxWriteGxReg(0x051C, (0x1C5 << 16) | 0x1C1);
+	gfxWriteGxReg(0x0520, 0x10000);
+	gfxWriteGxReg(0x0524, 0x19D);
+	gfxWriteGxReg(0x0528, 0x52);
+	gfxWriteGxReg(0x052C, 0x192);
+	gfxWriteGxReg(0x0530, 0x192);
+	gfxWriteGxReg(0x0534, 0x4F);
+	gfxWriteGxReg(0x0538, 0x50);
+	gfxWriteGxReg(0x053C, 0x52);
+	gfxWriteGxReg(0x0540, (0x198 << 16) | 0x194);
+	gfxWriteGxReg(0x0544, 0);
+	gfxWriteGxReg(0x0548, 0x11);
+
+	// Bottom screen fb geometry
+	gfxWriteGxReg(0x055C, (320 << 16) | 240); // dimensions
+	gfxWriteGxReg(0x0560, (0x1C1 << 16) | 0xD1);
+	gfxWriteGxReg(0x0564, (0x192 << 16) | 0x52);
+
+	// Bottom screen framebuffer format (initial)
+	gfxWriteGxReg(0x0570, 0x80300);
+
+	// Bottom screen unknown reg @ 0x9C
+	gfxWriteGxReg(0x059C, 0);
+
+	// Initial, blank framebuffer (top left A/B, bottom A/B, top right A/B)
+	gfxWriteGxReg(0x0468, 0x18300000);
+	gfxWriteGxReg(0x046C, 0x18300000);
+	gfxWriteGxReg(0x0568, 0x18300000);
+	gfxWriteGxReg(0x056C, 0x18300000);
+	gfxWriteGxReg(0x0494, 0x18300000);
+	gfxWriteGxReg(0x0498, 0x18300000);
+
+	// Framebuffer select: A
+	gfxWriteGxReg(0x0478, 1);
+	gfxWriteGxReg(0x0578, 1);
+
+	// Clear DMA transfer (PPF) "transfer finished" bit
+	gfxWriteGxRegMasked(0x0C18, 0, 0xFF00);
+
+	// GX_GPU_CLK |= 0x70000 (value is 0x100 when gsp starts, enough to at least display framebuffers & have memory fill work)
+	// This enables the clock to some GPU components
+	gfxWriteGxReg(0x0004, 0x70100);
+
+	// Clear Memory Fill (PSC0 and PSC1) "busy" and "finished" bits
+	gfxWriteGxRegMasked(0x001C, 0, 0xFF);
+	gfxWriteGxRegMasked(0x002C, 0, 0xFF);
+
+	// More init registers
+	gfxWriteGxReg(0x0050, 0x22221200);
+	gfxWriteGxRegMasked(0x0054, 0xFF2, 0xFFFF);
+
+	// Enable some LCD clocks (?) (unsure)
+	gfxWriteGxReg(0x0474, 0x10501);
+	gfxWriteGxReg(0x0574, 0x10501);
+}
+
 void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bottomFormat, bool vrambuffers)
 {
 	if (vrambuffers)
@@ -167,11 +288,15 @@ void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bott
 
 	gfxSharedMemory=(u8*)mappableAlloc(0x1000);
 
-	GSPGPU_AcquireRight(0x0);
+	GSPGPU_AcquireRight(0);
 
 	//setup our gsp shared mem section
 	svcCreateEvent(&gspEvent, RESET_ONESHOT);
-	GSPGPU_RegisterInterruptRelayQueue(gspEvent, 0x1, &gspSharedMemHandle, &gfxThreadID);
+
+	// The 0x2A07 success code is returned only for the very first call to that function (globally)
+	if (GSPGPU_RegisterInterruptRelayQueue(gspEvent, 0x1, &gspSharedMemHandle, &gfxThreadID) == 0x2A07)
+		gfxGxHwInit();
+
 	svcMapMemoryBlock(gspSharedMemHandle, (u32)gfxSharedMemory, 0x3, 0x10000000);
 
 	// default gspHeap configuration :
