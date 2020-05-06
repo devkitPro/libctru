@@ -1,17 +1,14 @@
+#include <3ds/asminc.h>
+
 .arm
 .align 4
 
 .macro SVC_BEGIN name
-	.section .text.\name, "ax", %progbits
-	.global \name
-	.type \name, %function
-	.align 2
-	.cfi_startproc
-\name:
+	BEGIN_ASM_FUNC \name
 .endm
 
 .macro SVC_END
-	.cfi_endproc
+	END_ASM_FUNC
 .endm
 
 SVC_BEGIN svcControlMemory
