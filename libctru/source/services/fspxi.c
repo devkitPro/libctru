@@ -361,7 +361,7 @@ Result FSPXI_OpenArchive(Handle serviceHandle, FSPXI_Archive* archive, FS_Archiv
     return (Result) cmdbuf[1];
 }
 
-Result FSPXI_Unknown0x13(Handle serviceHandle, FSPXI_Archive archive, u8* out, FS_Path path)
+Result FSPXI_HasFile(Handle serviceHandle, FSPXI_Archive archive, bool* out, FS_Path path)
 {
     Result ret = 0;
     u32* cmdbuf = getThreadCommandBuffer();
@@ -376,12 +376,12 @@ Result FSPXI_Unknown0x13(Handle serviceHandle, FSPXI_Archive archive, u8* out, F
 
     if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-    if (out) *out = (u8)cmdbuf[2];
+    if (out) *out = (bool)cmdbuf[2];
 
     return (Result) cmdbuf[1];
 }
 
-Result FSPXI_Unknown0x14(Handle serviceHandle, FSPXI_Archive archive, u32* out, FS_Path path)
+Result FSPXI_HasDirectory(Handle serviceHandle, FSPXI_Archive archive, bool* out, FS_Path path)
 {
     Result ret = 0;
     u32* cmdbuf = getThreadCommandBuffer();
@@ -396,7 +396,7 @@ Result FSPXI_Unknown0x14(Handle serviceHandle, FSPXI_Archive archive, u32* out, 
 
     if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-    if (out) *out = (u8)cmdbuf[2];
+    if (out) *out = (bool)cmdbuf[2];
 
     return (Result) cmdbuf[1];
 }
@@ -1003,7 +1003,7 @@ Result FSPXI_GetLegacyBannerData(Handle serviceHandle, FS_MediaType mediaType, u
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_Unknown0x3D(Handle serviceHandle, u32 unk)
+Result FSPXI_FormatCardNorDevice(Handle serviceHandle, u32 unk)
 {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
@@ -1141,7 +1141,7 @@ Result FSPXI_GetLegacySubBannerData(Handle serviceHandle, u32 bannerSize, FS_Med
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_Unknown0x47(Handle serviceHandle, void* buf, u32 size)
+Result FSPXI_GenerateRandomBytes(Handle serviceHandle, void* buf, u32 size)
 {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
@@ -1289,14 +1289,14 @@ Result FSPXI_WriteFileSHA256(Handle serviceHandle, FSPXI_File file, u32* bytesWr
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_Unknown0x4F(Handle serviceHandle, u64 unk)
+Result FSPXI_SetCtrCardLatencyParameter(Handle serviceHandle, u64 latency)
 {
 	Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
 
     cmdbuf[0] = IPC_MakeHeader(0x4F, 2, 0); // 0x004F0080
-    cmdbuf[1] = (u32) unk;
-    cmdbuf[2] = (u32) (unk >> 32);
+    cmdbuf[1] = (u32) latency;
+    cmdbuf[2] = (u32) (latency >> 32);
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 

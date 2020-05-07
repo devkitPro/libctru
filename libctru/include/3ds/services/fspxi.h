@@ -161,14 +161,20 @@ Result FSPXI_CloseDirectory(Handle serviceHandle, FSPXI_Directory directory);
 Result FSPXI_OpenArchive(Handle serviceHandle, FSPXI_Archive* archive, FS_ArchiveID archiveID, FS_Path path);
 
 /**
- * @brief Unknown 0x13
+ * @brief Checks if the archive contains a file at path.
+ * @param archive Archive to check.
+ * @param out Pointer to output existence to.
+ * @param path Path to check for file
  */
-Result FSPXI_Unknown0x13(Handle serviceHandle, FSPXI_Archive archive, u8* out, FS_Path path);
+Result FSPXI_HasFile(Handle serviceHandle, FSPXI_Archive archive, bool* out, FS_Path path);
 
 /**
- * @brief Unknown 0x14
+ * @brief Checks if the archive contains a directory at path.
+ * @param archive Archive to check.
+ * @param out Pointer to output existence to.
+ * @param path Path to check for directory
  */
-Result FSPXI_Unknown0x14(Handle serviceHandle, FSPXI_Archive archive, u32* out, FS_Path path);
+Result FSPXI_HasDirectory(Handle serviceHandle, FSPXI_Archive archive, bool* out, FS_Path path);
 
 /**
  * @brief Commits an archive's save data.
@@ -443,10 +449,10 @@ Result FSPXI_GetLegacyRomHeader(Handle serviceHandle, FS_MediaType mediaType, u6
 Result FSPXI_GetLegacyBannerData(Handle serviceHandle, FS_MediaType mediaType, u64 programId, void* banner, u8 unk);
 
 /**
- * Unknown command 3D
+ * @brief Formats the CARDNOR device.
  * @param unk Unknown. Transaction?
  */
-Result FSPXI_Unknown0x3D(Handle serviceHandle, u32 unk);
+Result FSPXI_FormatCardNorDevice(Handle serviceHandle, u32 unk);
 
 /// Deletes the 3DS SDMC root.
 Result FSPXI_DeleteSdmcRoot(Handle serviceHandle);
@@ -495,8 +501,12 @@ Result FSPXI_ImportIntegrityVerificationSeed(Handle serviceHandle, const FS_Inte
  */
 Result FSPXI_GetLegacySubBannerData(Handle serviceHandle, u32 bannerSize, FS_MediaType mediaType, u64 programId, void* banner);
 
-/// Unknown command 47
-Result FSPXI_Unknown0x47(Handle serviceHandle, void* buf, u32 size);
+/**
+ * @brief Generates random bytes. Uses same code as PSPXI_GenerateRandomBytes
+ * @param buf Buffer to output random bytes to.
+ * @param size Size of buffer.
+ */
+Result FSPXI_GenerateRandomBytes(Handle serviceHandle, void* buffer, u32 size);
 
 /**
  * @brief Gets the last modified time of a file in an archive.
@@ -562,8 +572,11 @@ Result FSPXI_ReadFileSHA256(Handle serviceHandle, FSPXI_File file, u32* bytesRea
  */
 Result FSPXI_WriteFileSHA256(Handle serviceHandle, FSPXI_File file, u32* bytesWritten, u64 offset, const void* writeBuffer, u32 writeBufferSize, void* hashtable, u32 hashtableSize, u32 unk1, u32 unk2);
 
-/// Unknown command 4F
-Result FSPXI_Unknown0x4F(Handle serviceHandle, u64 unk);
+/**
+ * @brief Configures CTRCARD latency emulation.
+ * @param latency Latency to apply.
+ */
+Result FSPXI_SetCtrCardLatencyParameter(Handle serviceHandle, u64 latency);
 
 /**
  * @brief Sets the file system priority.
