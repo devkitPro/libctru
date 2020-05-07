@@ -94,7 +94,7 @@ Result FSPXI_ReadFile(Handle serviceHandle, FSPXI_File file, u32* bytesRead, u64
  * @param buffer Buffer to output the hash to.
  * @param size Size of the buffer.
  */
-Result FSPXI_CalculateFileHashSHA256(Handle serviceHandle, FSPXI_File file, u32* buffer, u32 size);
+Result FSPXI_CalculateFileHashSHA256(Handle serviceHandle, FSPXI_File file, void* buffer, u32 size);
 
 /**
  * @brief Writes to a file.
