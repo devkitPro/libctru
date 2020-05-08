@@ -57,6 +57,8 @@ typedef enum {
 	MEMPERM_READ     = 1,          ///< Readable
 	MEMPERM_WRITE    = 2,          ///< Writable
 	MEMPERM_EXECUTE  = 4,          ///< Executable
+	MEMPERM_READWRITE = MEMPERM_READ | MEMPERM_WRITE, ///< Readable and writable
+	MEMPERM_READEXECUTE = MEMPERM_READ | MEMPERM_EXECUTE, ///< Readable and executable
 	MEMPERM_DONTCARE = 0x10000000, ///< Don't care
 } MemPerm;
 
