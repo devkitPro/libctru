@@ -135,6 +135,7 @@ typedef enum
 {
 	ARCHIVE_ACTION_COMMIT_SAVE_DATA = 0, ///< Commits save data changes. No inputs/outputs.
 	ARCHIVE_ACTION_GET_TIMESTAMP    = 1, ///< Retrieves a file's last-modified timestamp. In: "u16*, UTF-16 Path", Out: "u64, Time Stamp".
+	ARCHIVE_ACTION_UNKNOWN          = 0x789D, //< Unknown action; calls FSPXI command 0x56. In: "FS_Path instance", Out: "u32[4], Unknown"
 } FS_ArchiveAction;
 
 /// Secure save control actions.
@@ -444,7 +445,7 @@ Result FSUSER_IsSdmcDetected(bool *detected);
 
 /**
  * @brief Gets whether the SD card is writable.
- * @param detected Pointer to output the writable status to.
+ * @param writable Pointer to output the writable status to.
  */
 Result FSUSER_IsSdmcWritable(bool *writable);
 
@@ -537,7 +538,7 @@ Result FSUSER_CardNorDirectCommandWithAddress(u8 commandId, u32 address);
  * @param size Size of the output buffer.
  * @param output Output buffer.
  */
-Result FSUSER_CardNorDirectRead(u8 commandId, u32 size, u8* output);
+Result FSUSER_CardNorDirectRead(u8 commandId, u32 size, void* output);
 
 /**
  * @brief Executes a CARDNOR direct read with an address.
@@ -546,7 +547,7 @@ Result FSUSER_CardNorDirectRead(u8 commandId, u32 size, u8* output);
  * @param size Size of the output buffer.
  * @param output Output buffer.
  */
-Result FSUSER_CardNorDirectReadWithAddress(u8 commandId, u32 address, u32 size, u8* output);
+Result FSUSER_CardNorDirectReadWithAddress(u8 commandId, u32 address, u32 size, void* output);
 
 /**
  * @brief Executes a CARDNOR direct write.
@@ -554,7 +555,7 @@ Result FSUSER_CardNorDirectReadWithAddress(u8 commandId, u32 address, u32 size, 
  * @param size Size of the input buffer.
  * @param output Input buffer.
  */
-Result FSUSER_CardNorDirectWrite(u8 commandId, u32 size, u8* input);
+Result FSUSER_CardNorDirectWrite(u8 commandId, u32 size, const void* input);
 
 /**
  * @brief Executes a CARDNOR direct write with an address.
@@ -563,7 +564,7 @@ Result FSUSER_CardNorDirectWrite(u8 commandId, u32 size, u8* input);
  * @param size Size of the input buffer.
  * @param input Input buffer.
  */
-Result FSUSER_CardNorDirectWriteWithAddress(u8 commandId, u32 address, u32 size, u8* input);
+Result FSUSER_CardNorDirectWriteWithAddress(u8 commandId, u32 address, u32 size, const void* input);
 
 /**
  * @brief Executes a CARDNOR 4xIO direct read.
@@ -572,7 +573,7 @@ Result FSUSER_CardNorDirectWriteWithAddress(u8 commandId, u32 address, u32 size,
  * @param size Size of the output buffer.
  * @param output Output buffer.
  */
-Result FSUSER_CardNorDirectRead_4xIO(u8 commandId, u32 address, u32 size, u8* output);
+Result FSUSER_CardNorDirectRead_4xIO(u8 commandId, u32 address, u32 size, void* output);
 
 /**
  * @brief Executes a CARDNOR direct CPU write without verify.
@@ -580,7 +581,7 @@ Result FSUSER_CardNorDirectRead_4xIO(u8 commandId, u32 address, u32 size, u8* ou
  * @param size Size of the input buffer.
  * @param output Input buffer.
  */
-Result FSUSER_CardNorDirectCpuWriteWithoutVerify(u32 address, u32 size, u8* input);
+Result FSUSER_CardNorDirectCpuWriteWithoutVerify(u32 address, u32 size, const void* input);
 
 /**
  * @brief Executes a CARDNOR direct sector erase without verify.
@@ -610,7 +611,7 @@ Result FSUSER_SetCardSpiBaudRate(FS_CardSpiBaudRate baudRate);
 
 /**
  * @brief Sets the CARDSPI bus mode.
- * @param baudRate Bus mode to set.
+ * @param busMode Bus mode to set.
  */
 Result FSUSER_SetCardSpiBusMode(FS_CardSpiBusMode busMode);
 
@@ -632,7 +633,7 @@ Result FSUSER_GetSpecialContentIndex(u16* index, FS_MediaType mediaType, u64 pro
  * @param programId ID of the program.
  * @param header Pointer to output the legacy ROM header to. (size = 0x3B4)
  */
-Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, u8* header);
+Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, void* header);
 
 /**
  * @brief Gets the legacy banner data of a program.
@@ -640,7 +641,7 @@ Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, u8* head
  * @param programId ID of the program.
  * @param header Pointer to output the legacy banner data to. (size = 0x23C0)
  */
-Result FSUSER_GetLegacyBannerData(FS_MediaType mediaType, u64 programId, u8* banner);
+Result FSUSER_GetLegacyBannerData(FS_MediaType mediaType, u64 programId, void* banner);
 
 /**
  * @brief Checks a process's authority to access a save data archive.
@@ -697,7 +698,7 @@ Result FSUSER_GetFormatInfo(u32* totalSize, u32* directories, u32* files, bool* 
  * @param programId ID of the program.
  * @param header Pointer to output the legacy ROM header to.
  */
-Result FSUSER_GetLegacyRomHeader2(u32 headerSize, FS_MediaType mediaType, u64 programId, u8* header);
+Result FSUSER_GetLegacyRomHeader2(u32 headerSize, FS_MediaType mediaType, u64 programId, void* header);
 
 /**
  * @brief Gets the CTR SDMC root path.
@@ -745,7 +746,7 @@ Result FSUSER_FormatSaveData(FS_ArchiveID archiveId, FS_Path path, u32 blocks, u
  * @param programId ID of the program.
  * @param header Pointer to output the legacy sub banner data to.
  */
-Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64 programId, u8* banner);
+Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64 programId, void* banner);
 
 /**
  * @brief Hashes the given data and outputs a SHA256 hash.
@@ -762,7 +763,7 @@ Result FSUSER_UpdateSha256Context(const void* data, u32 inputSize, u8* hash);
  * @param size Size of the buffer.
  * @param data Buffer to read to.
  */
-Result FSUSER_ReadSpecialFile(u32* bytesRead, u64 fileOffset, u32 size, u8* data);
+Result FSUSER_ReadSpecialFile(u32* bytesRead, u64 fileOffset, u32 size, void* data);
 
 /**
  * @brief Gets the size of a special file.
@@ -871,7 +872,7 @@ Result FSUSER_SetCtrCardLatencyParameter(u64 latency, bool emulateEndurance);
 
 /**
  * @brief Toggles cleaning up invalid save data.
- * @param Whether to enable cleaning up invalid save data.
+ * @param enable Whether to enable cleaning up invalid save data.
  */
 Result FSUSER_SwitchCleanupInvalidSaveData(bool enable);
 

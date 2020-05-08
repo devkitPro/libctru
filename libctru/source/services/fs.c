@@ -731,7 +731,7 @@ Result FSUSER_CardNorDirectCommandWithAddress(u8 commandId, u32 address)
 	return cmdbuf[1];
 }
 
-Result FSUSER_CardNorDirectRead(u8 commandId, u32 size, u8* output)
+Result FSUSER_CardNorDirectRead(u8 commandId, u32 size, void* output)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -747,7 +747,7 @@ Result FSUSER_CardNorDirectRead(u8 commandId, u32 size, u8* output)
 	return cmdbuf[1];
 }
 
-Result FSUSER_CardNorDirectReadWithAddress(u8 commandId, u32 address, u32 size, u8* output)
+Result FSUSER_CardNorDirectReadWithAddress(u8 commandId, u32 address, u32 size, void* output)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -764,7 +764,7 @@ Result FSUSER_CardNorDirectReadWithAddress(u8 commandId, u32 address, u32 size, 
 	return cmdbuf[1];
 }
 
-Result FSUSER_CardNorDirectWrite(u8 commandId, u32 size, u8* input)
+Result FSUSER_CardNorDirectWrite(u8 commandId, u32 size, const void* input)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -780,7 +780,7 @@ Result FSUSER_CardNorDirectWrite(u8 commandId, u32 size, u8* input)
 	return cmdbuf[1];
 }
 
-Result FSUSER_CardNorDirectWriteWithAddress(u8 commandId, u32 address, u32 size, u8* input)
+Result FSUSER_CardNorDirectWriteWithAddress(u8 commandId, u32 address, u32 size, const void* input)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -797,7 +797,7 @@ Result FSUSER_CardNorDirectWriteWithAddress(u8 commandId, u32 address, u32 size,
 	return cmdbuf[1];
 }
 
-Result FSUSER_CardNorDirectRead_4xIO(u8 commandId, u32 address, u32 size, u8* output)
+Result FSUSER_CardNorDirectRead_4xIO(u8 commandId, u32 address, u32 size, void* output)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -814,7 +814,7 @@ Result FSUSER_CardNorDirectRead_4xIO(u8 commandId, u32 address, u32 size, u8* ou
 	return cmdbuf[1];
 }
 
-Result FSUSER_CardNorDirectCpuWriteWithoutVerify(u32 address, u32 size, u8* input)
+Result FSUSER_CardNorDirectCpuWriteWithoutVerify(u32 address, u32 size, const void* input)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -929,7 +929,7 @@ Result FSUSER_GetSpecialContentIndex(u16* index, FS_MediaType mediaType, u64 pro
 	return cmdbuf[1];
 }
 
-Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, u8* header)
+Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, void* header)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -946,7 +946,7 @@ Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, u8* head
 	return cmdbuf[1];
 }
 
-Result FSUSER_GetLegacyBannerData(FS_MediaType mediaType, u64 programId, u8* banner)
+Result FSUSER_GetLegacyBannerData(FS_MediaType mediaType, u64 programId, void* banner)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -1084,7 +1084,7 @@ Result FSUSER_GetFormatInfo(u32* totalSize, u32* directories, u32* files, bool* 
 	return cmdbuf[1];
 }
 
-Result FSUSER_GetLegacyRomHeader2(u32 headerSize, FS_MediaType mediaType, u64 programId, u8* header)
+Result FSUSER_GetLegacyRomHeader2(u32 headerSize, FS_MediaType mediaType, u64 programId, void* header)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -1183,7 +1183,7 @@ Result FSUSER_FormatSaveData(FS_ArchiveID archiveId, FS_Path path, u32 blocks, u
 	return cmdbuf[1];
 }
 
-Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64 programId, u8* banner)
+Result FSUSER_GetLegacySubBannerData(u32 bannerSize, FS_MediaType mediaType, u64 programId, void* banner)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -1246,7 +1246,7 @@ Result FSUSER_UpdateSha256Context(const void* data, u32 inputSize, u8* hash)
 	return cmdbuf[1];
 }
 
-Result FSUSER_ReadSpecialFile(u32* bytesRead, u64 fileOffset, u32 size, u8* data)
+Result FSUSER_ReadSpecialFile(u32* bytesRead, u64 fileOffset, u32 size, void* data)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
