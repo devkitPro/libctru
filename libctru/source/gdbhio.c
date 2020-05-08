@@ -206,19 +206,19 @@ static int _gdbExportSeekFlag(int flag)
 typedef u32 gdbhio_time_t;
 
 struct PACKED ALIGN(4) gdbhio_stat {
-	u32  st_dev;               /* device */
-	u32  st_ino;               /* inode */
-	gdbhio_mode_t st_mode;     /* protection */
-	u32 st_nlink;              /* number of hard links */
-	u32 st_uid;                /* user ID of owner */
-	u32 st_gid;                /* group ID of owner */
-	u32 st_rdev;               /* device type (if inode device) */
-	u64 st_size;               /* total size, in bytes */
-	u64 st_blksize;            /* blocksize for filesystem I/O */
-	u64 st_blocks;             /* number of blocks allocated */
-	gdbhio_time_t st_atime;    /* time of last access */
-	gdbhio_time_t st_mtime;    /* time of last modification */
-	gdbhio_time_t st_ctime;    /* time of last change */
+	u32  gst_dev;               /* device */
+	u32  gst_ino;               /* inode */
+	gdbhio_mode_t gst_mode;     /* protection */
+	u32 gst_nlink;              /* number of hard links */
+	u32 gst_uid;                /* user ID of owner */
+	u32 gst_gid;                /* group ID of owner */
+	u32 gst_rdev;               /* device type (if inode device) */
+	u64 gst_size;               /* total size, in bytes */
+	u64 gst_blksize;            /* blocksize for filesystem I/O */
+	u64 gst_blocks;             /* number of blocks allocated */
+	gdbhio_time_t gst_atime;    /* time of last access */
+	gdbhio_time_t gst_mtime;    /* time of last modification */
+	gdbhio_time_t gst_ctime;    /* time of last change */
 };
 
 static inline u32 _gdbHioImportScalar32(u32 v)
@@ -234,19 +234,19 @@ static inline u64 _gdbHioImportScalar64(u64 v)
 static void _gdbHioImportStructStat(struct stat *out, const struct gdbhio_stat *in)
 {
 	memset(out, 0, sizeof(struct stat));
-	out->st_dev = _gdbHioImportScalar32(in->st_dev);
-	out->st_ino = _gdbHioImportScalar32(in->st_ino);
-	out->st_mode = _gdbHioImportFileMode(_gdbHioImportScalar32(in->st_mode));
-	out->st_nlink = _gdbHioImportScalar32(in->st_nlink);
-	out->st_uid = _gdbHioImportScalar32(in->st_uid);
-	out->st_gid = _gdbHioImportScalar32(in->st_gid);
-	out->st_rdev = _gdbHioImportScalar32(in->st_rdev);
-	out->st_size = (off_t)_gdbHioImportScalar64(in->st_size);
-	out->st_blksize = (blksize_t)_gdbHioImportScalar64(in->st_blksize);
-	out->st_blocks = (blkcnt_t)_gdbHioImportScalar64(in->st_blocks);
-	out->st_atime = _gdbHioImportScalar32(in->st_atime);
-	out->st_mtime = _gdbHioImportScalar32(in->st_mtime);
-	out->st_ctime = _gdbHioImportScalar32(in->st_ctime);
+	out->st_dev = _gdbHioImportScalar32(in->gst_dev);
+	out->st_ino = _gdbHioImportScalar32(in->gst_ino);
+	out->st_mode = _gdbHioImportFileMode(_gdbHioImportScalar32(in->gst_mode));
+	out->st_nlink = _gdbHioImportScalar32(in->gst_nlink);
+	out->st_uid = _gdbHioImportScalar32(in->gst_uid);
+	out->st_gid = _gdbHioImportScalar32(in->gst_gid);
+	out->st_rdev = _gdbHioImportScalar32(in->gst_rdev);
+	out->st_size = (off_t)_gdbHioImportScalar64(in->gst_size);
+	out->st_blksize = (blksize_t)_gdbHioImportScalar64(in->gst_blksize);
+	out->st_blocks = (blkcnt_t)_gdbHioImportScalar64(in->gst_blocks);
+	out->st_atime = _gdbHioImportScalar32(in->gst_atime);
+	out->st_mtime = _gdbHioImportScalar32(in->gst_mtime);
+	out->st_ctime = _gdbHioImportScalar32(in->gst_ctime);
 }
 
 struct gdbhio_timeval {
