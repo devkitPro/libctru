@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 1.7.0
+
+- fix FIONBIO ioctl
+- Fix CAMU_GetLatestVsyncTiming
+- Add archive STDIO device driver
+- Add AC commands that allow forcing a wifi connection
+- Fix dspInit() error handling in ndspInit()
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.6.0
 
 - Major overhaul to font loading code in order to support loading external fonts.
