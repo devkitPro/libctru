@@ -103,6 +103,18 @@ static inline u32 osGetKernelVersion(void)
 	return (*(vu32*)0x1FF80000) & ~0xFF;
 }
 
+/// Gets the system's "core version" (2 on NATIVE_FIRM, 3 on SAFE_FIRM, etc.)
+static inline u32 osGetSystemCoreVersion(void)
+{
+	return *(vu32*)0x1FF80010;
+}
+
+/// Gets the system's memory layout ID (0-5 on Old 3DS, 6-8 on New 3DS)
+static inline u32 osGetApplicationMemType(void)
+{
+	return *(vu32*)0x1FF80030;
+}
+
 /**
  * @brief Gets the size of the specified memory region.
  * @param region Memory region to check.
