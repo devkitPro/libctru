@@ -10,7 +10,7 @@ char** __system_argv;
 extern char* fake_heap_start;
 extern char* fake_heap_end;
 
-void __system_initArgv(void)
+void __attribute__((weak)) __system_initArgv(void)
 {
 	int i;
 	const char* arglist = envGetSystemArgList();
