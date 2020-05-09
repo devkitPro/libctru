@@ -37,7 +37,7 @@ static int __name_cmp(const char* a, const char* b) {
 	return 0;
 }
 
-Handle envGetHandle(const char* name) {
+Handle __attribute__((weak)) envGetHandle(const char* name) {
 	if(__service_ptr == NULL)
 		return 0;
 
@@ -52,7 +52,7 @@ Handle envGetHandle(const char* name) {
 	return 0;
 }
 
-void envDestroyHandles(void) {
+void __attribute__((weak)) envDestroyHandles(void) {
 	if(__service_ptr == NULL)
 		return;
 

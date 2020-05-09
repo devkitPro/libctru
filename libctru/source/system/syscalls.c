@@ -35,7 +35,7 @@ static int __libctru_nanosleep(const struct timespec *req, struct timespec *rem)
 }
 
 
-void __system_initSyscalls(void)
+void __attribute__((weak)) __system_initSyscalls(void)
 {
 	// Register newlib syscalls
 	__syscalls.exit     = __ctru_exit;
