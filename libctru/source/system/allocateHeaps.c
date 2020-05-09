@@ -3,6 +3,8 @@
 #include <3ds/env.h>
 #include <3ds/os.h>
 
+#define DEFAULT_LINEAR_HEAP_SIZE (32 << 20) // 32MB
+
 extern char* fake_heap_start;
 extern char* fake_heap_end;
 
@@ -10,17 +12,24 @@ u32 __ctru_heap;
 u32 __ctru_linear_heap;
 
 __attribute__((weak)) u32 __ctru_heap_size        = 0;
-__attribute__((weak)) u32 __ctru_linear_heap_size = 32*1024*1024;
+__attribute__((weak)) u32 __ctru_linear_heap_size = 0;
 
 void __attribute__((weak)) __system_allocateHeaps(void) {
-	u32 tmp=0;
+	u32 tmp = 0;
+	u32 remaining = osGetMemRegionFree(MEMREGION_APPLICATION) &~ 0xFFF;
 
-	if (!__ctru_heap_size) {
-		// Automatically allocate all remaining free memory, aligning to page size.
-		__ctru_heap_size = osGetMemRegionFree(MEMREGION_APPLICATION) &~ 0xFFF;
-		if (__ctru_heap_size <= __ctru_linear_heap_size)
-			svcBreak(USERBREAK_PANIC);
-		__ctru_heap_size -= __ctru_linear_heap_size;
+	if (__ctru_heap_size + __ctru_linear_heap_size > remaining)
+		svcBreak(USERBREAK_PANIC);
+
+	if (__ctru_heap_size == 0 && __ctru_linear_heap_size == 0) {
+		// By default, automatically allocate all remaining free memory, aligning to page size.
+		__ctru_linear_heap_size = (remaining / 2) & ~0xFFF;
+		__ctru_linear_heap_size = __ctru_linear_heap_size <= DEFAULT_LINEAR_HEAP_SIZE ? __ctru_linear_heap_size : DEFAULT_LINEAR_HEAP_SIZE;
+		__ctru_heap_size = remaining - __ctru_linear_heap_size;
+	} else if (__ctru_heap_size == 0) {
+		__ctru_heap_size = remaining - __ctru_linear_heap_size;
+	} else if (__ctru_linear_heap_size == 0) {
+		__ctru_linear_heap_size = remaining - __ctru_heap_size;
 	}
 
 	// Allocate the application heap
