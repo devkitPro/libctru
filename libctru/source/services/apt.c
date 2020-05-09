@@ -14,6 +14,7 @@
 #include <3ds/ipc.h>
 #include <3ds/env.h>
 #include <3ds/thread.h>
+#include <3ds/os.h>
 
 #define APT_HANDLER_STACKSIZE (0x1000)
 
@@ -188,6 +189,8 @@ Result aptInit(void)
 
 	if (AtomicPostIncrement(&aptRefCount)) return 0;
 
+	aptHomeAllowed = osGetSystemCoreVersion() == 2;
+
 	// Retrieve APT lock
 	ret = APT_GetLockHandle(0x0, &aptLockHandle);
 	if (R_FAILED(ret)) goto _fail;
@@ -309,10 +312,22 @@ void aptExit(void)
 		{
 			if (!exited && aptIsChainload())
 			{
-				u8 param[0x300] = {0};
-				u8 hmac[0x20] = {0};
-				APT_PrepareToDoApplicationJump(0, aptChainloadTid, aptChainloadMediatype);
-				APT_DoApplicationJump(param, sizeof(param), hmac);
+				// Check if Home Menu exists and has been launched
+				bool hmRegistered;
+				if (R_SUCCEEDED(APT_IsRegistered(APPID_HOMEMENU, &hmRegistered)) && hmRegistered)
+				{
+					// Normal, sane chainload
+					u8 param[0x300] = {0};
+					u8 hmac[0x20] = {0};
+					APT_PrepareToDoApplicationJump(0, aptChainloadTid, aptChainloadMediatype);
+					APT_DoApplicationJump(param, sizeof(param), hmac);
+				}
+				else
+				{
+					// Dirty workaround w/ custom notification
+					APT_Finalize(envGetAptAppId());
+					srvPublishToSubscriber(0x3000, 0);
+				}
 				while (aptMainLoop())
 					svcSleepThread(25*1000*1000);
 			}
