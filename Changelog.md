@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.8.0
+
+- Added support for environments where the home menu is not launched (such as running under SAFE_FIRM)
+- Added FSPXI service wrappers
+- Changed heap allocation logic to be more flexible; this fixes support for certain system memory layouts
+- Cleaned up and optimized light lock locking code
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.7.0
 
 - fix FIONBIO ioctl
