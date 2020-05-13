@@ -146,6 +146,14 @@ void hidGyroRead(angularRate* rate);
  */
 void hidWaitForEvent(HID_Event id, bool nextEvent);
 
+/**
+ * @brief Waits for any HID or IRRST event.
+ * @param nextEvents Whether to discard the current events and wait for the next events.
+ * @param cancelEvent Optional additional handle to wait on, otherwise 0.
+ * @param timeout Timeout.
+ */
+Result hidWaitForAnyEvent(bool nextEvents, Handle cancelEvent, s64 timeout);
+
 /// Compatibility macro for hidScanInput.
 #define scanKeys   hidScanInput
 /// Compatibility macro for hidKeysHeld.

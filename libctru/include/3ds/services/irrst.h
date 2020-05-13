@@ -14,6 +14,9 @@ extern Handle irrstMemHandle;
 /// IRRST's shared memory.
 extern vu32* irrstSharedMem;
 
+/// IRRST's state update event
+extern Handle irrstEvent;
+
 /// Initializes IRRST.
 Result irrstInit(void);
 
