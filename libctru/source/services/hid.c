@@ -21,7 +21,8 @@ Handle hidEvents[5];
 
 vu32* hidSharedMem;
 
-static u32 kOld, kHeld, kDown, kUp;
+static u32 kOld, kHeld, kDown, kUp, kRepeat;
+static u32 kDelay = 30, kInterval = 15, kCount = 30;
 static touchPosition tPos;
 static circlePosition cPos;
 static accelVector aVec;
@@ -102,6 +103,14 @@ void hidExit(void)
 		mappableFree((void*) hidSharedMem);
 		hidSharedMem = NULL;
 	}
+}
+
+void hidSetRepeatParameters(u32 delay, u32 interval)
+{
+	kDelay = delay;
+	kInterval = interval;
+	kCount = kDelay;
+	kRepeat = 0;
 }
 
 void hidWaitForEvent(HID_Event id, bool nextEvent)
@@ -195,6 +204,21 @@ void hidScanInput(void)
 	kDown = (~kOld) & kHeld;
 	kUp = kOld & (~kHeld);
 
+	if (kDelay)
+	{
+		if (kHeld != kOld)
+		{
+			kCount = kDelay;
+			kRepeat = kDown;
+		}
+
+		if (--kCount == 0)
+		{
+			kCount = kInterval;
+			kRepeat = kHeld;
+		}
+	}
+
 	Id = hidSharedMem[66 + 4];//Accelerometer
 	if(Id>7)Id=7;
 	if(hidCheckSectionUpdateTime(&hidSharedMem[66], Id)==0)
@@ -218,6 +242,13 @@ u32 hidKeysHeld(void)
 u32 hidKeysDown(void)
 {
 	return kDown;
+}
+
+u32 hidKeysDownRepeat(void)
+{
+	u32 tmp = kRepeat;
+	kRepeat = 0;
+	return tmp;
 }
 
 u32 hidKeysUp(void)
