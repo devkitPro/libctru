@@ -11,6 +11,7 @@
 #include <3ds/synchronization.h>
 #include <3ds/services/apt.h>
 #include <3ds/services/gspgpu.h>
+#include <3ds/services/ptmsysm.h> // for PtmWakeEvents
 #include <3ds/ipc.h>
 #include <3ds/env.h>
 #include <3ds/thread.h>
@@ -809,6 +810,15 @@ Result APT_JumpToApplication(const void* param, size_t paramSize, Handle handle)
 	cmdbuf[3]=handle;
 	cmdbuf[4]=IPC_Desc_StaticBuffer(cmdbuf[1],0);
 	cmdbuf[5]= (u32) param;
+
+	return aptSendCommand(cmdbuf);
+}
+
+Result APT_SleepSystem(const PtmWakeEvents *wakeEvents)
+{
+	u32 cmdbuf[16];
+	cmdbuf[0]=IPC_MakeHeader(0x42, 2, 0);
+	memcpy(&cmdbuf[1], wakeEvents, sizeof(PtmWakeEvents));
 
 	return aptSendCommand(cmdbuf);
 }
