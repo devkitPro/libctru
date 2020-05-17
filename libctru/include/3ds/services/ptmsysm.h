@@ -81,6 +81,21 @@ Result PTMSYSM_GetWakeReason(PtmSleepConfig *outSleepConfig);
 /// Cancels the "half-awake" state and fully wakes up the 3DS after some delay.
 Result PTMSYSM_Awaken(void);
 
+/// Invalidates the "system time" (cfg block 0x30002)
+Result PTMSYSM_InvalidateSystemTime(void);
+
+/**
+ * @brief Reads the time and date coming from the RTC and converts the result.
+ * @returns The number of milliseconds since 01/01/2000.
+ */
+Result PTMSYSM_GetRtcTime(s64 *outMsY2k);
+
+/**
+ * @brief Writes the time and date coming to the RTC, after conversion.
+ * @param msY2k The number of milliseconds since 01/01/2000.
+ */
+Result PTMSYSM_SetRtcTime(s64 msY2k);
+
 /**
  * @brief Returns 1 if it's a New 3DS, otherwise 0.
  */
