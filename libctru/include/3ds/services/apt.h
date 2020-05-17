@@ -45,6 +45,8 @@ typedef enum {
 
 typedef u8 APT_AppletAttr;
 
+struct PtmWakeEvents;
+
 /// Create an APT_AppletAttr bitfield from its components.
 static inline APT_AppletAttr aptMakeAppletAttr(APT_AppletPos pos, bool manualGpuRights, bool manualDspRights)
 {
@@ -343,6 +345,13 @@ Result APT_IsRegistered(NS_APPID appID, bool* out);
  * @param signalType Pointer to output the signal type to.
  */
 Result APT_InquireNotification(u32 appID, APT_Signal* signalType);
+
+/**
+ * @brief Requests to enter sleep mode, and later sets wake events if allowed to.
+ * @param wakeEvents The wake events. Limited to "shell" (bit 1) for the PDN wake events part
+ * and "shell opened", "shell closed" and "HOME button pressed" for the MCU interrupts part.
+ */
+Result APT_SleepSystem(const struct PtmWakeEvents *wakeEvents);
 
 /**
  * @brief Notifies an application to wait.
