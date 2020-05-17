@@ -143,3 +143,36 @@ Result PTMSYSM_RebootAsync(u64 timeout)
 
 	return (Result)cmdbuf[1];
 }
+
+Result PTMSYSM_InvalidateSystemTime(void)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x080D,0,0); // 0x080D0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result PTMSYSM_GetRtcTime(s64 *outMsY2k)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x0816,0,0); // 0x08160000
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
+	memcpy(outMsY2k, &cmdbuf[2], 8);
+
+	return (Result)cmdbuf[1];
+}
+
+Result PTMSYSM_SetRtcTime(s64 msY2k)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x0817,2,0); // 0x08170080
+	memcpy(&cmdbuf[1], &msY2k, 8);
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
