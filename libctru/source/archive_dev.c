@@ -839,6 +839,13 @@ archive_stat(struct _reent *r,
     archive_file_t tmpfd = { .fd = fd };
     rc = archive_fstat(r, &tmpfd, st);
     FSFILE_Close(fd);
+    if (R_SUCCEEDED(rc))
+    {
+      u64 mtime;
+      rc = archive_getmtime(file, &mtime);
+      st->st_mtim.tv_sec = mtime;
+      st->st_mtim.tv_nsec = 0;
+    }
 
     return rc;
   }
