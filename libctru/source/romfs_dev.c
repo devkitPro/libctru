@@ -95,6 +95,7 @@ static devoptab_t romFS_devoptab =
 	.seek_r       = romfs_seek,
 	.fstat_r      = romfs_fstat,
 	.stat_r       = romfs_stat,
+	.lstat_r      = romfs_stat,
 	.chdir_r      = romfs_chdir,
 	.dirStateSize = sizeof(romfs_diriter),
 	.diropen_r    = romfs_diropen,

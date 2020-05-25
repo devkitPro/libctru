@@ -73,6 +73,7 @@ archive_devoptab =
   .seek_r       = archive_seek,
   .fstat_r      = archive_fstat,
   .stat_r       = archive_stat,
+  .lstat_r      = archive_stat,
   .link_r       = archive_link,
   .unlink_r     = archive_unlink,
   .chdir_r      = archive_chdir,
