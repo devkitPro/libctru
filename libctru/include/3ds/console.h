@@ -166,7 +166,7 @@ PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console);
  */
 void consoleDebugInit(debugDevice device);
 
-/// Clears the screan by using iprintf("\x1b[2J");
+/// Clears the screen by using iprintf("\x1b[2J");
 void consoleClear(void);
 
 #ifdef __cplusplus
