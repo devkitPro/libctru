@@ -495,11 +495,8 @@ static int navigateToDir(romfs_mount *mount, romfs_dir** ppDir, const char** pPa
 
 		*ppDir = searchForDir(mount, *ppDir, __utf16path, units);
 		if (!*ppDir)
-			return EEXIST;
+			return ENOENT;
 	}
-
-	if (!isDir && !**pPath)
-		return EILSEQ;
 
 	return 0;
 }
@@ -540,6 +537,30 @@ static nlink_t dir_nlink(romfs_mount *mount, romfs_dir *dir)
 static ino_t file_inode(romfs_mount *mount, romfs_file *file)
 {
 	return ((uint32_t*)file - (uint32_t*)mount->fileTable) + mount->header.dirTableSize/4;
+}
+
+static void fill_dir(struct stat *st, romfs_mount *mount, romfs_dir *dir)
+{
+	memset(st, 0, sizeof(*st));
+	st->st_ino     = dir_inode(mount, dir);
+	st->st_mode    = romFS_dir_mode;
+	st->st_nlink   = dir_nlink(mount, dir);
+	st->st_size    = dir_size(dir);
+	st->st_blksize = 512;
+	st->st_blocks  = (st->st_blksize + 511) / 512;
+	st->st_atime   = st->st_mtime = st->st_ctime = mount->mtime;
+}
+
+static void fill_file(struct stat *st, romfs_mount *mount, romfs_file *file)
+{
+	memset(st, 0, sizeof(*st));
+	st->st_ino     = file_inode(mount, file);
+	st->st_mode    = romFS_file_mode;
+	st->st_nlink   = 1;
+	st->st_size    = (off_t)file->dataSize;
+	st->st_blksize = 512;
+	st->st_blocks  = (st->st_blksize + 511) / 512;
+	st->st_atime   = st->st_mtime = st->st_ctime = mount->mtime;
 }
 
 //-----------------------------------------------------------------------------
@@ -670,16 +691,8 @@ off_t romfs_seek(struct _reent *r, void *fd, off_t pos, int dir)
 
 int romfs_fstat(struct _reent *r, void *fd, struct stat *st)
 {
-	romfs_fileobj* file = (romfs_fileobj*)fd;
-	memset(st, 0, sizeof(struct stat));
-	st->st_ino   = file_inode(file->mount, file->file);
-	st->st_mode  = romFS_file_mode;
-	st->st_nlink = 1;
-	st->st_size  = (off_t)file->file->dataSize;
-	st->st_blksize = 512;
-	st->st_blocks  = (st->st_blksize + 511) / 512;
-	st->st_atime = st->st_mtime = st->st_ctime = file->mount->mtime;
-
+	romfs_fileobj* fileobj = (romfs_fileobj*)fd;
+	fill_file(st, fileobj->mount, fileobj->file);
 	return 0;
 }
 
@@ -690,6 +703,12 @@ int romfs_stat(struct _reent *r, const char *path, struct stat *st)
 	r->_errno = navigateToDir(mount, &curDir, &path, false);
 	if(r->_errno != 0)
 		return -1;
+
+	if (!*path)
+	{
+		fill_dir(st, mount, curDir);
+		return 0;
+	}
 
 	ssize_t units = utf8_to_utf16(__utf16path, (const uint8_t*)path, PATH_MAX);
 	if (units <= 0)
@@ -706,30 +725,14 @@ int romfs_stat(struct _reent *r, const char *path, struct stat *st)
 	romfs_dir* dir = searchForDir(mount, curDir, __utf16path, units);
 	if(dir)
 	{
-		memset(st, 0, sizeof(*st));
-		st->st_ino     = dir_inode(mount, dir);
-		st->st_mode    = romFS_dir_mode;
-		st->st_nlink   = dir_nlink(mount, dir);
-		st->st_size    = dir_size(dir);
-		st->st_blksize = 512;
-		st->st_blocks  = (st->st_blksize + 511) / 512;
-		st->st_atime = st->st_mtime = st->st_ctime = mount->mtime;
-
+		fill_dir(st, mount, dir);
 		return 0;
 	}
 
 	romfs_file* file = searchForFile(mount, curDir, __utf16path, units);
 	if(file)
 	{
-		memset(st, 0, sizeof(*st));
-		st->st_ino   = file_inode(mount, file);
-		st->st_mode  = romFS_file_mode;
-		st->st_nlink = 1;
-		st->st_size  = file->dataSize;
-		st->st_blksize = 512;
-		st->st_blocks  = (st->st_blksize + 511) / 512;
-		st->st_atime = st->st_mtime = st->st_ctime = mount->mtime;
-
+		fill_file(st, mount, file);
 		return 0;
 	}
 
