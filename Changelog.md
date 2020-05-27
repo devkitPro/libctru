@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 1.9.0
+
+- hid: Added hidKeysDownRepeat, hidWaitForAnyEvent. Allow user override of irsst usage.
+- Add ptm rtc time commands
+- Add sleep state FSM handling service commands
+- Revamp mappableAlloc
+- Fixed stat on romfs for directories, implemented lstat via stat (FAT32 has no symlinks)
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.8.0
 
 - Added support for environments where the home menu is not launched (such as running under SAFE_FIRM)
