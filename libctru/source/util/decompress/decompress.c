@@ -9,7 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define BUFFERSIZE 4096
+#define BUFFERSIZE 16384
 
 /** @brief Buffer */
 typedef struct buffer_t
