@@ -15,7 +15,7 @@ You may find instructions on how to install devkitARM on [the devkitPro Wiki](ht
 
 # Documentation
 
-The documentation is automatically built upon release and can be found at the following url: [http://smealum.github.io/ctrulib](http://smealum.github.io/ctrulib)
+The documentation is automatically built upon release and can be found at the following url: [http://devkitpro.github.io/libctru/](http://devkitpro.github.io/libctru/)
 
 # License
 
