@@ -50,7 +50,7 @@ void ndspChnReset(int id)
 	ndspChnSt* chn = &ndspChn[id];
 	LightLock_Lock(&chn->lock);
 	chn->flags = ~0;
-	chn->syncCount = 1;
+	chn->syncCount ++;
 	chn->waveBufSeqPos = 0;
 	chn->samplePos = 0;
 	chn->waveBuf = NULL;
@@ -274,6 +274,7 @@ void ndspiInitChn(void)
 	for (i = 0; i < 24; i ++)
 	{
 		LightLock_Init(&ndspChn[i].lock);
+		ndspChn[i].syncCount = 0;
 		ndspChnReset(i);
 	}
 }
