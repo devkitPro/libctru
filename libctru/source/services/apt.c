@@ -21,9 +21,10 @@
 
 static int aptRefCount = 0;
 static Handle aptLockHandle;
-static Handle aptEvents[3];
+static Handle aptEvents[2];
 static LightEvent aptSleepEvent;
 static Thread aptEventHandlerThread;
+static bool aptEventHandlerThreadQuit;
 static aptHookCookie aptFirstHook;
 static aptMessageCb aptMessageFunc;
 static void* aptMessageFuncData;
@@ -150,7 +151,7 @@ static void aptClearParamQueue(void)
 		Result res = APT_GlanceParameter(envGetAptAppId(), aptParameters, sizeof(aptParameters), NULL, &cmd, NULL, NULL);
 		if (R_FAILED(res) || cmd==APTCMD_NONE) break;
 		_aptDebug(2, cmd);
-		svcClearEvent(aptEvents[2]);
+		svcClearEvent(aptEvents[1]);
 		APT_CancelParameter(APPID_NONE, envGetAptAppId(), NULL);
 	}
 }
@@ -199,23 +200,20 @@ Result aptInit(void)
 
 	// Initialize APT
 	APT_AppletAttr attr = aptMakeAppletAttr(APTPOS_APP, false, false);
-	ret = APT_Initialize(envGetAptAppId(), attr, &aptEvents[1], &aptEvents[2]);
+	ret = APT_Initialize(envGetAptAppId(), attr, &aptEvents[0], &aptEvents[1]);
 	if (R_FAILED(ret)) goto _fail2;
 
 	// Enable APT
 	ret = APT_Enable(attr);
 	if (R_FAILED(ret)) goto _fail3;
 
-	// Create APT close event
-	ret = svcCreateEvent(&aptEvents[0], RESET_STICKY);
-	if (R_FAILED(ret)) goto _fail3;
-
 	// Initialize APT sleep event
 	LightEvent_Init(&aptSleepEvent, RESET_ONESHOT);
 
 	// Create APT event handler thread
+	aptEventHandlerThreadQuit = false;
 	aptEventHandlerThread = threadCreate(aptEventHandler, 0x0, APT_HANDLER_STACKSIZE, 0x31, -2, true);
-	if (!aptEventHandlerThread) goto _fail4;
+	if (!aptEventHandlerThread) goto _fail3;
 
 	// Get information about ourselves
 	APT_GetAppletInfo(envGetAptAppId(), &aptChainloadTid, &aptChainloadMediatype, NULL, NULL, NULL);
@@ -241,11 +239,9 @@ Result aptInit(void)
 	aptWaitForWakeUp(transition);
 	return 0;
 
-_fail4:
-	svcCloseHandle(aptEvents[0]);
 _fail3:
+	svcCloseHandle(aptEvents[0]);
 	svcCloseHandle(aptEvents[1]);
-	svcCloseHandle(aptEvents[2]);
 _fail2:
 	svcCloseHandle(aptLockHandle);
 _fail:
@@ -345,10 +341,11 @@ void aptExit(void)
 			aptClearParamQueue();
 		}
 
+		aptEventHandlerThreadQuit = true;
 		svcSignalEvent(aptEvents[0]);
 		threadJoin(aptEventHandlerThread, U64_MAX);
 		int i;
-		for (i = 0; i < 3; i ++)
+		for (i = 0; i < 2; i ++)
 			svcCloseHandle(aptEvents[i]);
 	}
 
@@ -358,16 +355,25 @@ void aptExit(void)
 
 void aptEventHandler(void *arg)
 {
-	for (;;)
+	while (!aptEventHandlerThreadQuit)
 	{
 		s32 id = 0;
-		svcWaitSynchronizationN(&id, aptEvents, 2, 0, U64_MAX);
+		svcWaitSynchronizationN(&id, aptEvents, 1, 0, U64_MAX);
+
+		if (aptEventHandlerThreadQuit)
+			break;
+
+		// This is done by official sw, even though APT events are oneshot...
 		svcClearEvent(aptEvents[id]);
-		if (id != 1) break;
+
+		if (id != 0)
+			continue;
 
 		APT_Signal signal;
 		Result res = APT_InquireNotification(envGetAptAppId(), &signal);
-		if (R_FAILED(res)) break;
+		if (R_FAILED(res))
+			continue;
+
 		switch (signal)
 		{
 			case APTSIGNAL_HOMEBUTTON:
@@ -417,8 +423,8 @@ static Result aptReceiveParameter(APT_Command* cmd, size_t* actualSize, Handle* 
 	size_t temp_actualSize;
 	if (!actualSize) actualSize = &temp_actualSize;
 
-	svcWaitSynchronization(aptEvents[2], U64_MAX);
-	svcClearEvent(aptEvents[2]);
+	svcWaitSynchronization(aptEvents[1], U64_MAX);
+	svcClearEvent(aptEvents[1]);
 	Result res = APT_ReceiveParameter(envGetAptAppId(), aptParameters, sizeof(aptParameters), &sender, cmd, actualSize, handle);
 	if (R_SUCCEEDED(res) && *cmd == APTCMD_MESSAGE && aptMessageFunc)
 		aptMessageFunc(aptMessageFuncData, sender, aptParameters, *actualSize);
