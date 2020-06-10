@@ -12,10 +12,14 @@
 #include <3ds/services/apt.h>
 #include <3ds/services/gspgpu.h>
 #include <3ds/services/ptmsysm.h> // for PtmWakeEvents
+#include <3ds/allocator/mappable.h>
 #include <3ds/ipc.h>
 #include <3ds/env.h>
 #include <3ds/thread.h>
 #include <3ds/os.h>
+
+// TODO: find a better place for this function (currently defined in gfx.c)
+u32 __get_bytes_per_pixel(GSPGPU_FramebufferFormats format);
 
 #define APT_HANDLER_STACKSIZE (0x1000)
 
@@ -146,23 +150,16 @@ Result aptSendCommand(u32* aptcmdbuf)
 	return res;
 }
 
-static void aptInitCaptureInfo(aptCaptureBufInfo* capinfo)
+static void aptInitCaptureInfo(aptCaptureBufInfo* capinfo, const GSPGPU_CaptureInfo* gspcapinfo)
 {
-	GSPGPU_CaptureInfo gspcapinfo;
-	memset(&gspcapinfo, 0, sizeof(gspcapinfo));
-
-	// Get display-capture info from GSP.
-	GSPGPU_ImportDisplayCaptureInfo(&gspcapinfo);
-
 	// Fill in display-capture info for NS.
-	capinfo->is3D = (gspcapinfo.screencapture[0].format & 0x20) != 0;
+	capinfo->is3D = (gspcapinfo->screencapture[0].format & 0x20) != 0;
 
-	capinfo->top.format    = gspcapinfo.screencapture[0].format & 0x7;
-	capinfo->bottom.format = gspcapinfo.screencapture[1].format & 0x7;
+	capinfo->top.format    = gspcapinfo->screencapture[0].format & 0x7;
+	capinfo->bottom.format = gspcapinfo->screencapture[1].format & 0x7;
 
-	u32 __get_bytes_per_pixel(u32 format);
-	u32 main_pixsz = __get_bytes_per_pixel(capinfo->top.format);
-	u32 sub_pixsz  = __get_bytes_per_pixel(capinfo->bottom.format);
+	u32 main_pixsz = __get_bytes_per_pixel((GSPGPU_FramebufferFormats)capinfo->top.format);
+	u32 sub_pixsz  = __get_bytes_per_pixel((GSPGPU_FramebufferFormats)capinfo->bottom.format);
 
 	capinfo->bottom.leftOffset  = 0;
 	capinfo->bottom.rightOffset = 0;
@@ -532,14 +529,47 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 	return cmd;
 }
 
+static void aptConvertScreenForCapture(void* dst, const void* src, u32 height, GSPGPU_FramebufferFormats format)
+{
+	const u32 width = 240;
+	const u32 width_po2 = 1U << (32 - __builtin_clz(width-1)); // next_po2(240) = 256
+	const u32 bpp = __get_bytes_per_pixel(format);
+	const u32 tilesize = 8*8*bpp;
+
+	// Terrible conversion code that is also probably really slow
+	u8* out = (u8*)dst;
+	const u8* in = (u8*)src;
+	for (u32 tiley = 0; tiley < height; tiley += 8)
+	{
+		u32 tilex = 0;
+		for (tilex = 0; tilex < width; tilex += 8)
+		{
+			for (u32 y = 0; y < 8; y ++)
+			{
+				for (u32 x = 0; x < 8; x ++)
+				{
+					static const u8 morton_x[] = { 0x00, 0x01, 0x04, 0x05, 0x10, 0x11, 0x14, 0x15 };
+					static const u8 morton_y[] = { 0x00, 0x02, 0x08, 0x0a, 0x20, 0x22, 0x28, 0x2a };
+					unsigned inoff = bpp*(width*(tiley+y)+(tilex+x));
+					unsigned outoff = bpp*(morton_x[x] + morton_y[y]);
+					for (u32 c = 0; c < bpp; c ++)
+						out[outoff+c] = in[inoff+c];
+				}
+			}
+			out += tilesize;
+		}
+		for (; tilex < width_po2; tilex += 8)
+			out += tilesize;
+	}
+}
+
 static void aptScreenTransfer(NS_APPID appId, bool sysApplet)
 {
-	aptCallHook(APTHOOK_ONSUSPEND);
-	GSPGPU_SaveVramSysArea();
+	// Retrieve display capture info from GSP
+	GSPGPU_CaptureInfo gspcapinfo = {0};
+	GSPGPU_ImportDisplayCaptureInfo(&gspcapinfo);
 
-	aptCaptureBufInfo capinfo;
-	aptInitCaptureInfo(&capinfo);
-
+	// Wait for the target applet to be registered
 	for (;;)
 	{
 		bool tmp;
@@ -548,6 +578,11 @@ static void aptScreenTransfer(NS_APPID appId, bool sysApplet)
 		svcSleepThread(10000000);
 	}
 
+	// Calculate the layout/size of the capture memory block
+	aptCaptureBufInfo capinfo;
+	aptInitCaptureInfo(&capinfo, &gspcapinfo);
+
+	// Request the capture memory block to be allocated
 	for (;;)
 	{
 		Result res = APT_SendParameter(envGetAptAppId(), appId, sysApplet ? APTCMD_SYSAPPLET_REQUEST : APTCMD_REQUEST, &capinfo, sizeof(capinfo), 0);
@@ -555,16 +590,51 @@ static void aptScreenTransfer(NS_APPID appId, bool sysApplet)
 		svcSleepThread(10000000);
 	}
 
+	// Receive the response from APT
+	Handle hCapMemBlk = 0;
 	for (;;)
 	{
 		APT_Command cmd;
-		Result res = aptReceiveParameter(&cmd, NULL, NULL);
+		Result res = aptReceiveParameter(&cmd, NULL, &hCapMemBlk);
 		if (R_SUCCEEDED(res) && cmd==APTCMD_RESPONSE)
 			break;
 	}
 
+	// For library applets, we need to manually do the capture ourselves
+	// (this involves mapping the memory block and doing the conversion)
+	if (!sysApplet)
+	{
+		void* map = mappableAlloc(capinfo.size);
+		if (map)
+		{
+			Result res = svcMapMemoryBlock(hCapMemBlk, (u32)map, MEMPERM_READWRITE, MEMPERM_READWRITE);
+			if (R_SUCCEEDED(res))
+			{
+				aptConvertScreenForCapture( // Bottom screen
+					(u8*)map + capinfo.bottom.leftOffset,
+					gspcapinfo.screencapture[1].framebuf0_vaddr,
+					320, (GSPGPU_FramebufferFormats)capinfo.bottom.format);
+				aptConvertScreenForCapture( // Top screen (Left eye)
+					(u8*)map + capinfo.top.leftOffset,
+					gspcapinfo.screencapture[0].framebuf0_vaddr,
+					400, (GSPGPU_FramebufferFormats)capinfo.top.format);
+				if (capinfo.is3D)
+					aptConvertScreenForCapture( // Top screen (Right eye)
+						(u8*)map + capinfo.top.rightOffset,
+						gspcapinfo.screencapture[0].framebuf1_vaddr,
+						400, (GSPGPU_FramebufferFormats)capinfo.top.format);
+				svcUnmapMemoryBlock(hCapMemBlk, (u32)map);
+			}
+			mappableFree(map);
+		}
+	}
+
+	// Close the capture memory block handle
+	if (hCapMemBlk)
+		svcCloseHandle(hCapMemBlk);
+
+	// Send capture buffer information back to APT
 	APT_SendCaptureBufferInfo(&capinfo);
-	GSPGPU_ReleaseRight();
 }
 
 static void aptProcessJumpToMenu(void)
@@ -574,7 +644,12 @@ static void aptProcessJumpToMenu(void)
 
 	aptFlags &= ~FLAG_SPURIOUS; // If we haven't received a spurious wakeup by now, we probably never will (see aptInit)
 	APT_PrepareToJumpToHomeMenu();
+
+	aptCallHook(APTHOOK_ONSUSPEND);
+
+	GSPGPU_SaveVramSysArea();
 	aptScreenTransfer(aptGetMenuAppID(), true);
+	GSPGPU_ReleaseRight();
 
 	APT_JumpToHomeMenu(NULL, 0, 0);
 	aptFlags &= ~FLAG_ACTIVE;
@@ -664,7 +739,11 @@ bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle ha
 	APT_PrepareToStartLibraryApplet(appId);
 	aptSetSleepAllowed(sleep);
 
+	aptCallHook(APTHOOK_ONSUSPEND);
+
+	GSPGPU_SaveVramSysArea();
 	aptScreenTransfer(appId, false);
+	GSPGPU_ReleaseRight();
 
 	aptSetSleepAllowed(false);
 	APT_StartLibraryApplet(appId, buf, bufsize, handle);
