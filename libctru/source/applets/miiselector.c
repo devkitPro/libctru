@@ -18,7 +18,7 @@ void miiSelectorInit(MiiSelectorConf *conf)
 		conf->mii_whitelist[i] = 1;
 }
 
-Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn *returnbuf)
+void miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn *returnbuf)
 {
 	union {
 		MiiSelectorConf config;
@@ -28,11 +28,9 @@ Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn *returnb
 	memcpy(&ctx.config, conf, sizeof(MiiSelectorConf));
 	ctx.config.magic = MIISELECTOR_MAGIC;
 
-	Result ret = aptLaunchLibraryApplet(APPID_APPLETED, &ctx.config, sizeof(MiiSelectorConf), 0);
-	if(R_SUCCEEDED(ret) && returnbuf)
+	aptLaunchLibraryApplet(APPID_APPLETED, &ctx.config, sizeof(MiiSelectorConf), 0);
+	if(returnbuf)
 		memcpy(returnbuf, &ctx.ret, sizeof(MiiSelectorReturn));
-
-	return ret;
 }
 
 static void miiSelectorConvertToUTF8(char* out, const u16* in, int max)

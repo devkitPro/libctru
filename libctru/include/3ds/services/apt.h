@@ -211,9 +211,8 @@ void aptSetMessageCallback(aptMessageCb callback, void* user);
  * @param buf Input/output buffer that contains launch parameters on entry and result data on exit.
  * @param bufsize Size of the buffer.
  * @param handle Handle to pass to the library applet.
- * @return Whether the application should continue running after the library applet launch.
  */
-bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
+void aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
 
 /**
  * @brief Sets the chainloader target.

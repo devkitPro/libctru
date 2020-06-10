@@ -238,38 +238,34 @@ SwkbdButton swkbdInputText(SwkbdState* swkbd, char* buf, size_t bufsize)
 	// Launch swkbd
 	memset(swkbd->reserved, 0, sizeof(swkbd->reserved));
 	if (extra.callback) aptSetMessageCallback(swkbdMessageCallback, &extra);
-	bool ret = aptLaunchLibraryApplet(APPID_SOFTWARE_KEYBOARD, swkbd, sizeof(*swkbd), swkbdSharedMemHandle);
+	aptLaunchLibraryApplet(APPID_SOFTWARE_KEYBOARD, swkbd, sizeof(*swkbd), swkbdSharedMemHandle);
 	if (extra.callback) aptSetMessageCallback(NULL, NULL);
 	svcCloseHandle(swkbdSharedMemHandle);
 
 	SwkbdButton button = SWKBD_BUTTON_NONE;
-
-	if (ret)
+	switch (swkbd->result)
 	{
-		u16* text16 = (u16*)(swkbdSharedMem+swkbd->text_offset);
-		text16[swkbd->text_length] = 0;
-		swkbdConvertToUTF8(buf, text16, bufsize-1);
-		if (swkbd->save_state_flags & BIT(0)) memcpy(extra.status_data, swkbdSharedMem+swkbd->status_offset, sizeof(SwkbdStatusData));
-		if (swkbd->save_state_flags & BIT(1)) memcpy(extra.learning_data, swkbdSharedMem+swkbd->learning_offset, sizeof(SwkbdLearningData));
-
-		switch (swkbd->result)
-		{
-			case SWKBD_D1_CLICK0:
-			case SWKBD_D2_CLICK0:
-				button = SWKBD_BUTTON_LEFT;
-				break;
-			case SWKBD_D2_CLICK1:
-				button = SWKBD_BUTTON_MIDDLE;
-				break;
-			case SWKBD_D0_CLICK:
-			case SWKBD_D1_CLICK1:
-			case SWKBD_D2_CLICK2:
-				button = SWKBD_BUTTON_RIGHT;
-				break;
-			default:
-				break;
-		}
+		case SWKBD_D1_CLICK0:
+		case SWKBD_D2_CLICK0:
+			button = SWKBD_BUTTON_LEFT;
+			break;
+		case SWKBD_D2_CLICK1:
+			button = SWKBD_BUTTON_MIDDLE;
+			break;
+		case SWKBD_D0_CLICK:
+		case SWKBD_D1_CLICK1:
+		case SWKBD_D2_CLICK2:
+			button = SWKBD_BUTTON_RIGHT;
+			break;
+		default:
+			break;
 	}
+
+	u16* text16 = (u16*)(swkbdSharedMem+swkbd->text_offset);
+	text16[swkbd->text_length] = 0;
+	swkbdConvertToUTF8(buf, text16, bufsize-1);
+	if (swkbd->save_state_flags & BIT(0)) memcpy(extra.status_data, swkbdSharedMem+swkbd->status_offset, sizeof(SwkbdStatusData));
+	if (swkbd->save_state_flags & BIT(1)) memcpy(extra.learning_data, swkbdSharedMem+swkbd->learning_offset, sizeof(SwkbdLearningData));
 
 	free(swkbdSharedMem);
 	return button;

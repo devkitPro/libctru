@@ -730,7 +730,7 @@ void aptSetMessageCallback(aptMessageCb callback, void* user)
 	aptMessageFuncData = user;
 }
 
-bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle)
+void aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle)
 {
 	bool sleep = aptIsSleepAllowed();
 
@@ -752,8 +752,6 @@ bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle ha
 	aptWaitForWakeUp(TR_LIBAPPLET);
 	memcpy(buf, aptParameters, bufsize);
 	aptSetSleepAllowed(sleep);
-
-	return aptMainLoop();
 }
 
 Result APT_GetLockHandle(u16 flags, Handle* lockHandle)

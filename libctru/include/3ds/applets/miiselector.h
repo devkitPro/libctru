@@ -89,9 +89,8 @@ void miiSelectorInit(MiiSelectorConf *conf);
  * @brief Launch the Mii selector library applet
  *
  * @param conf Configuration determining how the applet should behave
- * @param returnbuf Data returned by the applet
  */
-Result miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn* returnbuf);
+void miiSelectorLaunch(const MiiSelectorConf *conf, MiiSelectorReturn* returnbuf);
 
 /**
  * @brief Sets title of the Mii selector library applet
