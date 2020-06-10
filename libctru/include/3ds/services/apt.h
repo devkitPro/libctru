@@ -372,9 +372,15 @@ Result APT_AppletUtility(int id, void* out, size_t outSize, const void* in, size
 Result APT_SleepIfShellClosed(void);
 
 /**
+ * @brief Locks a transition (?).
+ * @param transition Transition ID.
+ * @param flag Flag (?)
+ */
+Result APT_LockTransition(u32 transition, bool flag);
+
+/**
  * @brief Tries to lock a transition (?).
  * @param transition Transition ID.
- * @param succeeded Pointer to output whether the lock was successfully applied.
  */
 Result APT_TryLockTransition(u32 transition, bool* succeeded);
 

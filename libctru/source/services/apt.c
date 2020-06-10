@@ -480,9 +480,9 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 {
 	APT_Command cmd;
 	APT_NotifyToWait(envGetAptAppId());
+	aptFlags &= ~FLAG_ACTIVE;
 	if (transition != TR_ENABLE)
 		APT_SleepIfShellClosed();
-	aptFlags &= ~FLAG_ACTIVE;
 	for (;;)
 	{
 		Result res = aptReceiveParameter(&cmd, NULL, NULL);
@@ -512,8 +512,8 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 		APT_SleepIfShellClosed();
 	} else
 	{
-		bool dummy;
-		APT_TryLockTransition(0x01, &dummy);
+		aptHomeButtonState = 1;
+		APT_LockTransition(0x01, true);
 	}
 
 	if (transition == TR_JUMPTOMENU || transition == TR_LIBAPPLET || transition == TR_SYSAPPLET || transition == TR_APPJUMP)
@@ -989,6 +989,18 @@ Result APT_SleepIfShellClosed(void)
 {
 	u8 out, in = 0;
 	return APT_AppletUtility(4, &out, sizeof(out), &in, sizeof(in));
+}
+
+Result APT_LockTransition(u32 transition, bool flag)
+{
+	const struct
+	{
+		u32 transition;
+		bool flag;
+		u8 padding[3];
+	} in = { transition, flag, {0} };
+	u8 out;
+	return APT_AppletUtility(5, &out, sizeof(out), &in, sizeof(in));
 }
 
 Result APT_TryLockTransition(u32 transition, bool* succeeded)
