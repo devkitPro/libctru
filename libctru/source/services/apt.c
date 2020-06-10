@@ -22,6 +22,7 @@
 static int aptRefCount = 0;
 static Handle aptLockHandle;
 static Handle aptEvents[2];
+static LightEvent aptReceiveEvent;
 static LightEvent aptSleepEvent;
 static Thread aptEventHandlerThread;
 static bool aptEventHandlerThreadQuit;
@@ -39,12 +40,13 @@ enum
 	FLAG_WKUPBYCANCEL = BIT(5),
 	FLAG_WANTSTOSLEEP = BIT(6),
 	FLAG_SLEEPING     = BIT(7),
+	FLAG_SPURIOUS     = BIT(30),
 	FLAG_EXITED       = BIT(31),
 };
 
 static u8 aptHomeButtonState;
 static u8 aptRecentHomeButtonState;
-static u32 aptFlags = FLAG_ALLOWSLEEP;
+static u32 aptFlags;
 static bool aptHomeAllowed = true;
 static u32 aptParameters[0x1000/4];
 static u64 aptChainloadTid;
@@ -64,10 +66,12 @@ typedef enum
 static void aptEventHandler(void *arg);
 static APT_Command aptWaitForWakeUp(APT_Transition transition);
 
-// The following function can be overriden in order to log APT signals and notifications for debugging purposes
-__attribute__((weak)) void _aptDebug(int a, int b)
-{
-}
+// The following function can be overridden in order to log APT signals and notifications for debugging purposes
+#ifdef LIBCTRU_APT_DEBUG
+__attribute__((weak)) void _aptDebug(int a, int b) { }
+#else
+#define _aptDebug(a,b) ((void)0)
+#endif
 
 static void aptCallHook(APT_HookType hookType)
 {
@@ -133,27 +137,13 @@ Result aptSendCommand(u32* aptcmdbuf)
 		res = svcSendSyncRequest(aptuHandle);
 		if (R_SUCCEEDED(res))
 		{
-			memcpy(aptcmdbuf, cmdbuf, 4*16);//4*countPrmWords(cmdbuf[0])); // Workaround for Citra failing to emulate response cmdheaders
+			memcpy(aptcmdbuf, cmdbuf, 4*countPrmWords(cmdbuf[0]));
 			res = aptcmdbuf[1];
 		}
 		svcCloseHandle(aptuHandle);
 	}
 	if (aptLockHandle) svcReleaseMutex(aptLockHandle);
 	return res;
-}
-
-static void aptClearParamQueue(void)
-{
-	// Check for parameters?
-	for (;;)
-	{
-		APT_Command cmd;
-		Result res = APT_GlanceParameter(envGetAptAppId(), aptParameters, sizeof(aptParameters), NULL, &cmd, NULL, NULL);
-		if (R_FAILED(res) || cmd==APTCMD_NONE) break;
-		_aptDebug(2, cmd);
-		svcClearEvent(aptEvents[1]);
-		APT_CancelParameter(APPID_NONE, envGetAptAppId(), NULL);
-	}
 }
 
 static void aptInitCaptureInfo(aptCaptureBufInfo* capinfo)
@@ -203,11 +193,8 @@ Result aptInit(void)
 	ret = APT_Initialize(envGetAptAppId(), attr, &aptEvents[0], &aptEvents[1]);
 	if (R_FAILED(ret)) goto _fail2;
 
-	// Enable APT
-	ret = APT_Enable(attr);
-	if (R_FAILED(ret)) goto _fail3;
-
-	// Initialize APT sleep event
+	// Initialize light events
+	LightEvent_Init(&aptReceiveEvent, RESET_STICKY);
 	LightEvent_Init(&aptSleepEvent, RESET_ONESHOT);
 
 	// Create APT event handler thread
@@ -215,28 +202,23 @@ Result aptInit(void)
 	aptEventHandlerThread = threadCreate(aptEventHandler, 0x0, APT_HANDLER_STACKSIZE, 0x31, -2, true);
 	if (!aptEventHandlerThread) goto _fail3;
 
+	// Enable APT
+	aptFlags = FLAG_ALLOWSLEEP;
+	ret = APT_Enable(attr);
+	if (R_FAILED(ret)) goto _fail3;
+
 	// Get information about ourselves
 	APT_GetAppletInfo(envGetAptAppId(), &aptChainloadTid, &aptChainloadMediatype, NULL, NULL, NULL);
 
-	// Special handling for aptReinit (aka hax)
-	APT_Transition transition = TR_ENABLE;
-	if (aptIsReinit())
-	{
-		transition = TR_JUMPTOMENU;
-
-		// Clear out any pending parameters
-		bool success = false;
-		do
-			ret = APT_CancelParameter(APPID_NONE, envGetAptAppId(), &success);
-		while (success);
-
-		// APT thinks the application is suspended, so we need to tell it to unsuspend us.
-		APT_PrepareToJumpToApplication(false);
-		APT_JumpToApplication(NULL, 0, 0);
-	}
-
 	// Wait for wakeup
-	aptWaitForWakeUp(transition);
+	aptWaitForWakeUp(TR_ENABLE);
+
+	// Special handling for aptReinit (aka hax 2.x):
+	//   In certain cases when running under hax 2.x, we may receive a spurious
+	//   second wakeup command. Therefore we must silently drop it in order to
+	//   avoid keeping stale commands in APT's internal buffer.
+	if (aptIsReinit())
+		aptFlags |= FLAG_SPURIOUS;
 	return 0;
 
 _fail3:
@@ -336,10 +318,7 @@ void aptExit(void)
 			closeAptLock = false;
 			srvInit(); // Keep srv initialized
 		} else
-		{
 			APT_Finalize(envGetAptAppId());
-			aptClearParamQueue();
-		}
 
 		aptEventHandlerThreadQuit = true;
 		svcSignalEvent(aptEvents[0]);
@@ -358,22 +337,59 @@ void aptEventHandler(void *arg)
 	while (!aptEventHandlerThreadQuit)
 	{
 		s32 id = 0;
-		svcWaitSynchronizationN(&id, aptEvents, 1, 0, U64_MAX);
+		svcWaitSynchronizationN(&id, aptEvents, 2, 0, U64_MAX);
 
 		if (aptEventHandlerThreadQuit)
 			break;
 
+		// If the receive event is still signaled, sleep for a bit and retry
+		if (LightEvent_TryWait(&aptReceiveEvent))
+		{
+			_aptDebug(222, 0);
+			svcSleepThread(10000000); // 10ms
+			svcSignalEvent(aptEvents[id]);
+			continue;
+		}
+
 		// This is done by official sw, even though APT events are oneshot...
 		svcClearEvent(aptEvents[id]);
 
-		if (id != 0)
+		// Relay receive events to our light event
+		if (id == 1)
+		{
+			NS_APPID sender;
+			APT_Command cmd;
+			Result res = APT_GlanceParameter(envGetAptAppId(), aptParameters, sizeof(aptParameters), &sender, &cmd, NULL, NULL);
+			if (R_FAILED(res))
+				continue; // Official sw panics here - we instead swallow the (non-)event.
+
+			_aptDebug(2, cmd); _aptDebug(22, sender);
+
+			// NOTE: Official software handles the following parameter types here:
+			//   - APTCMD_MESSAGE    (cancelled afterwards) (we handle it in aptReceiveParameter instead)
+			//   - APTCMD_REQUEST    (cancelled afterwards) (only sent to and handled by libapplets?)
+			//   - APTCMD_DSP_SLEEP  (*NOT* cancelled afterwards)
+			//   - APTCMD_DSP_WAKEUP (*NOT* cancelled afterwards)
+
+			// We will instead only handle spurious APTCMD_WAKEUP_PAUSE parameters
+			// (see aptInit for more details on the hax 2.x spurious wakeup problem)
+			if (cmd == APTCMD_WAKEUP_PAUSE && (aptFlags & FLAG_SPURIOUS))
+			{
+				APT_CancelParameter(APPID_NONE, envGetAptAppId(), NULL);
+				aptFlags &= ~FLAG_SPURIOUS;
+				continue;
+			}
+
+			LightEvent_Signal(&aptReceiveEvent);
 			continue;
+		}
 
 		APT_Signal signal;
 		Result res = APT_InquireNotification(envGetAptAppId(), &signal);
 		if (R_FAILED(res))
 			continue;
 
+		_aptDebug(1, signal);
 		switch (signal)
 		{
 			case APTSIGNAL_HOMEBUTTON:
@@ -383,15 +399,38 @@ void aptEventHandler(void *arg)
 				if (!aptHomeButtonState) aptHomeButtonState = 2;
 				break;
 			case APTSIGNAL_SLEEP_QUERY:
-				APT_ReplySleepQuery(envGetAptAppId(), aptIsSleepAllowed() ? APTREPLY_ACCEPT : APTREPLY_REJECT);
+			{
+				APT_QueryReply reply;
+				if (aptFlags & (FLAG_ORDERTOCLOSE|FLAG_WKUPBYCANCEL))
+					// Reject sleep if we are expected to close
+					reply = APTREPLY_REJECT;
+				else if (aptFlags & FLAG_ACTIVE)
+					// Accept sleep based on user setting if we are active
+					reply = aptIsSleepAllowed() ? APTREPLY_ACCEPT : APTREPLY_REJECT;
+				else
+					// Accept sleep if we are inactive regardless of user setting
+					reply = APTREPLY_ACCEPT;
+
+				_aptDebug(10, aptFlags);
+				_aptDebug(11, reply);
+				APT_ReplySleepQuery(envGetAptAppId(), reply);
 				break;
+			}
 			case APTSIGNAL_SLEEP_CANCEL:
-				// Do something maybe?
+				if (aptFlags & FLAG_ACTIVE)
+					aptFlags &= ~FLAG_WANTSTOSLEEP;
 				break;
 			case APTSIGNAL_SLEEP_ENTER:
-				aptFlags |= FLAG_WANTSTOSLEEP;
+				_aptDebug(10, aptFlags);
+				if (aptFlags & FLAG_ACTIVE)
+					aptFlags |= FLAG_WANTSTOSLEEP;
+				else
+					// Since we are not active, this must be handled here.
+					APT_ReplySleepNotificationComplete(envGetAptAppId());
 				break;
 			case APTSIGNAL_SLEEP_WAKEUP:
+				if (!(aptFlags & FLAG_ACTIVE))
+					break;
 				if (aptFlags & FLAG_SLEEPING)
 					LightEvent_Signal(&aptSleepEvent);
 				else
@@ -407,7 +446,16 @@ void aptEventHandler(void *arg)
 				aptFlags &= ~FLAG_POWERBUTTON;
 				break;
 			case APTSIGNAL_TRY_SLEEP:
+			{
+				// Official software performs this APT_SleepSystem command here, although
+				// its purpose is unclear. For completeness' sake, we'll do it as well.
+				static const struct PtmWakeEvents s_sleepWakeEvents = {
+					.pdn_wake_events = 0,
+					.mcu_interupt_mask = BIT(6),
+				};
+				APT_SleepSystem(&s_sleepWakeEvents);
 				break;
+			}
 			case APTSIGNAL_ORDERTOCLOSE:
 				aptFlags |= FLAG_ORDERTOCLOSE;
 				break;
@@ -423,8 +471,8 @@ static Result aptReceiveParameter(APT_Command* cmd, size_t* actualSize, Handle* 
 	size_t temp_actualSize;
 	if (!actualSize) actualSize = &temp_actualSize;
 
-	svcWaitSynchronization(aptEvents[1], U64_MAX);
-	svcClearEvent(aptEvents[1]);
+	LightEvent_Wait(&aptReceiveEvent);
+	LightEvent_Clear(&aptReceiveEvent);
 	Result res = APT_ReceiveParameter(envGetAptAppId(), aptParameters, sizeof(aptParameters), &sender, cmd, actualSize, handle);
 	if (R_SUCCEEDED(res) && *cmd == APTCMD_MESSAGE && aptMessageFunc)
 		aptMessageFunc(aptMessageFuncData, sender, aptParameters, *actualSize);
@@ -524,7 +572,7 @@ static void aptProcessJumpToMenu(void)
 	bool sleep = aptIsSleepAllowed();
 	aptSetSleepAllowed(false);
 
-	aptClearParamQueue();
+	aptFlags &= ~FLAG_SPURIOUS; // If we haven't received a spurious wakeup by now, we probably never will (see aptInit)
 	APT_PrepareToJumpToHomeMenu();
 	aptScreenTransfer(aptGetMenuAppID(), true);
 
@@ -563,6 +611,7 @@ bool aptMainLoop(void)
 			aptRecentHomeButtonState = aptHomeButtonState;
 			aptHomeButtonState = 0;
 			APT_UnlockTransition(0x01);
+			APT_SleepIfShellClosed();
 		}
 	}
 
@@ -611,7 +660,7 @@ bool aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle ha
 	bool sleep = aptIsSleepAllowed();
 
 	aptSetSleepAllowed(false);
-	aptClearParamQueue();
+	aptFlags &= ~FLAG_SPURIOUS; // If we haven't received a spurious wakeup by now, we probably never will (see aptInit)
 	APT_PrepareToStartLibraryApplet(appId);
 	aptSetSleepAllowed(sleep);
 
@@ -769,10 +818,7 @@ Result APT_InquireNotification(u32 appID, APT_Signal* signalType)
 
 	Result ret = aptSendCommand(cmdbuf);
 	if (R_SUCCEEDED(ret))
-	{
-		_aptDebug(1, cmdbuf[2]);
 		*signalType=cmdbuf[2];
-	}
 
 	return ret;
 }
@@ -929,7 +975,6 @@ Result APT_ReceiveParameter(NS_APPID appID, void* buffer, size_t bufferSize, NS_
 
 	if (R_SUCCEEDED(ret))
 	{
-		_aptDebug(2, cmdbuf[3]);
 		if (sender)     *sender    =cmdbuf[2];
 		if (command)    *command   =cmdbuf[3];
 		if (actualSize) *actualSize=cmdbuf[4];
