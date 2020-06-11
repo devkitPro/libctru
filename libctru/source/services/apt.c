@@ -58,12 +58,14 @@ enum
 	FLAG_CANCELLED    = BIT(10),
 
 	// Miscellaneous
+	FLAG_CHAINLOAD    = BIT(30),
 	FLAG_SPURIOUS     = BIT(31),
 };
 
 static u8 aptHomeButtonState;
 static u32 aptFlags;
 static u32 aptParameters[0x1000/4];
+static u8 aptChainloadFlags;
 static u64 aptChainloadTid;
 static u8 aptChainloadMediatype;
 
@@ -217,8 +219,9 @@ Result aptInit(void)
 	ret = APT_Enable(attr);
 	if (R_FAILED(ret)) goto _fail3;
 
-	// Get information about ourselves
-	APT_GetAppletInfo(envGetAptAppId(), &aptChainloadTid, &aptChainloadMediatype, NULL, NULL, NULL);
+	// If the homebrew environment requires it, chainload-to-self by default
+	if (aptIsChainload())
+		aptSetChainloaderToSelf();
 
 	// Wait for wakeup
 	aptWaitForWakeUp(TR_ENABLE);
@@ -306,16 +309,32 @@ static void aptClearJumpToHome(void)
 	APT_SleepIfShellClosed();
 }
 
+void aptClearChainloader(void)
+{
+	aptFlags &= ~FLAG_CHAINLOAD;
+}
+
 void aptSetChainloader(u64 programID, u8 mediatype)
 {
+	aptFlags |= FLAG_CHAINLOAD;
+	aptChainloadFlags = 0;
 	aptChainloadTid = programID;
 	aptChainloadMediatype = mediatype;
 }
 
+void aptSetChainloaderToSelf(void)
+{
+	aptFlags |= FLAG_CHAINLOAD;
+	aptChainloadFlags = 2;
+	aptChainloadTid = 0;
+	aptChainloadMediatype = 0;
+}
+
+extern void (*__system_retAddr)(void);
+
 static void aptExitProcess(void)
 {
 	APT_CloseApplication(NULL, 0, 0);
-	svcExitProcess();
 }
 
 void aptExit(void)
@@ -326,41 +345,60 @@ void aptExit(void)
 
 	if (!aptIsCrippled())
 	{
-		bool closing = aptShouldClose();
-		if (closing)
-			aptCallHook(APTHOOK_ONEXIT);
-		if (closing || !aptIsReinit())
+		bool doClose;
+		if (aptShouldClose())
 		{
-			if (!closing && aptIsChainload())
+			// The system instructed us to close, so do just that
+			aptCallHook(APTHOOK_ONEXIT);
+			doClose = true;
+		}
+		else if (aptIsReinit())
+		{
+			// The homebrew environment expects APT to be reinitializable, so unregister ourselves without closing
+			APT_Finalize(envGetAptAppId());
+			doClose = false;
+		}
+		else if (aptFlags & FLAG_CHAINLOAD)
+		{
+			// A chainload target is configured, so perform a jump to it
+			// Doing this requires help from HOME menu, so ensure that it is running
+			bool hmRegistered;
+			if (R_SUCCEEDED(APT_IsRegistered(aptGetMenuAppID(), &hmRegistered)) && hmRegistered)
 			{
-				// Check if Home Menu exists and has been launched
-				bool hmRegistered;
-				if (R_SUCCEEDED(APT_IsRegistered(APPID_HOMEMENU, &hmRegistered)) && hmRegistered)
-				{
-					// Normal, sane chainload
-					u8 param[0x300] = {0};
-					u8 hmac[0x20] = {0};
-					APT_PrepareToDoApplicationJump(0, aptChainloadTid, aptChainloadMediatype);
-					APT_DoApplicationJump(param, sizeof(param), hmac);
-				}
-				else
-				{
-					// Dirty workaround w/ custom notification
-					APT_Finalize(envGetAptAppId());
-					srvPublishToSubscriber(0x3000, 0);
-				}
-				while (aptMainLoop())
-					svcSleepThread(25*1000*1000);
+				// Normal, sane chainload
+				u8 param[0x300] = {0};
+				u8 hmac[0x20] = {0};
+				APT_PrepareToDoApplicationJump(aptChainloadFlags, aptChainloadTid, aptChainloadMediatype);
+				APT_DoApplicationJump(param, sizeof(param), hmac);
+			}
+			else
+			{
+				// XX: HOME menu doesn't exist, so we need to use a workaround provided by Luma3DS
+				APT_Finalize(envGetAptAppId());
+				srvPublishToSubscriber(0x3000, 0);
 			}
 
+			// After a chainload has been applied, we don't need to manually close
+			doClose = false;
+			__system_retAddr = NULL;
+		}
+		else
+		{
+			// None of the other situations apply, so close anyway by default
+			doClose = true;
+		}
+
+		// If needed, perform the APT application closing sequence
+		if (doClose)
+		{
 			APT_PrepareToCloseApplication(true);
 
-			extern void (*__system_retAddr)(void);
+			// APT_CloseApplication kills us if we aren't signed up for srv closing notifications, so
+			// defer APT_CloseApplication for as long as possible (TODO: actually use srv notif instead)
 			__system_retAddr = aptExitProcess;
 			closeAptLock = false;
 			srvInit(); // Keep srv initialized
-		} else
-			APT_Finalize(envGetAptAppId());
+		}
 
 		aptEventHandlerThreadQuit = true;
 		svcSignalEvent(aptEvents[0]);

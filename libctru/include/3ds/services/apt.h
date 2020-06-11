@@ -227,12 +227,18 @@ void aptSetMessageCallback(aptMessageCb callback, void* user);
  */
 void aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
 
+/// Clears the chainloader state.
+void aptClearChainloader(void);
+
 /**
- * @brief Sets the chainloader target.
+ * @brief Configures the chainloader to launch a specific application.
  * @param programID ID of the program to chainload to.
  * @param mediatype Media type of the program to chainload to.
  */
 void aptSetChainloader(u64 programID, u8 mediatype);
+
+/// Configures the chainloader to relaunch the current application (i.e. soft-reset)
+void aptSetChainloaderToSelf(void);
 
 /**
  * @brief Gets an APT lock handle.
@@ -394,6 +400,7 @@ Result APT_LockTransition(u32 transition, bool flag);
 /**
  * @brief Tries to lock a transition (?).
  * @param transition Transition ID.
+ * @param succeeded Pointer to output whether the lock was successfully applied.
  */
 Result APT_TryLockTransition(u32 transition, bool* succeeded);
 
