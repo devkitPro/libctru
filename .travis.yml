@@ -1,22 +1,19 @@
-language: c
-
 os: linux
 dist: xenial
-sudo: required
 
-services: docker 
+services: docker
 
 #Cache doxygen
 cache:
   directories:
-    - /home/travis/doxygen/doxygen-1.8.15/bin
+    - /home/travis/doxygen/doxygen-1.8.18/bin
 
 before_install:
   # Travis has an OLD doxygen build, so we fetch a recent one
-  - export DOXY_BINPATH=/home/travis/doxygen/doxygen-1.8.15/bin
+  - export DOXY_BINPATH=/home/travis/doxygen/doxygen-1.8.18/bin
   - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then mkdir -p ~/doxygen && cd ~/doxygen; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then wget http://doxygen.nl/files/doxygen-1.8.15.linux.bin.tar.gz; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then tar xzf doxygen-1.8.15.linux.bin.tar.gz; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then wget http://doxygen.nl/files/doxygen-1.8.18.linux.bin.tar.gz; fi
+  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then tar xzf doxygen-1.8.18.linux.bin.tar.gz; fi
   - export PATH=$PATH:$DOXY_BINPATH
 
 install:
@@ -30,8 +27,8 @@ before_deploy:
 
 deploy:
   provider: pages
-  skip_cleanup: true
-  github_token: $GITHUB_TOKEN
+  strategy: git
+  token: $GITHUB_TOKEN
   local_dir: libctru/docs/html
   on:
     tags: true
