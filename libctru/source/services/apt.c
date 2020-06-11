@@ -36,22 +36,33 @@ static void* aptMessageFuncData;
 
 enum
 {
+	// Current applet state
 	FLAG_ACTIVE       = BIT(0),
-	FLAG_ALLOWSLEEP   = BIT(1),
-	FLAG_ORDERTOCLOSE = BIT(2),
-	FLAG_SHUTDOWN     = BIT(3),
-	FLAG_POWERBUTTON  = BIT(4),
-	FLAG_WKUPBYCANCEL = BIT(5),
-	FLAG_WANTSTOSLEEP = BIT(6),
-	FLAG_SLEEPING     = BIT(7),
-	FLAG_SPURIOUS     = BIT(30),
-	FLAG_EXITED       = BIT(31),
+	FLAG_SLEEPING     = BIT(1),
+
+	// Sleep handling flags
+	FLAG_ALLOWSLEEP   = BIT(2),
+	FLAG_SHOULDSLEEP  = BIT(3),
+
+	// Home button flags
+	FLAG_ALLOWHOME    = BIT(4),
+	FLAG_SHOULDHOME   = BIT(5),
+	FLAG_HOMEREJECTED = BIT(6),
+
+	// Power button flags
+	FLAG_POWERBUTTON  = BIT(7),
+	FLAG_SHUTDOWN     = BIT(8),
+
+	// Close handling flags
+	FLAG_ORDERTOCLOSE = BIT(9),
+	FLAG_CANCELLED    = BIT(10),
+
+	// Miscellaneous
+	FLAG_SPURIOUS     = BIT(31),
 };
 
 static u8 aptHomeButtonState;
-static u8 aptRecentHomeButtonState;
 static u32 aptFlags;
-static bool aptHomeAllowed = true;
 static u32 aptParameters[0x1000/4];
 static u64 aptChainloadTid;
 static u8 aptChainloadMediatype;
@@ -178,8 +189,6 @@ Result aptInit(void)
 
 	if (AtomicPostIncrement(&aptRefCount)) return 0;
 
-	aptHomeAllowed = osGetSystemCoreVersion() == 2;
-
 	// Retrieve APT lock
 	ret = APT_GetLockHandle(0x0, &aptLockHandle);
 	if (R_FAILED(ret)) goto _fail;
@@ -199,8 +208,12 @@ Result aptInit(void)
 	aptEventHandlerThread = threadCreate(aptEventHandler, 0x0, APT_HANDLER_STACKSIZE, 0x31, -2, true);
 	if (!aptEventHandlerThread) goto _fail3;
 
-	// Enable APT
+	// By default allow sleep mode and home button presses
 	aptFlags = FLAG_ALLOWSLEEP;
+	if (osGetSystemCoreVersion() == 2) // ... except in safe mode, which doesn't have home menu running
+		aptFlags |= FLAG_ALLOWHOME;
+
+	// Enable APT
 	ret = APT_Enable(attr);
 	if (R_FAILED(ret)) goto _fail3;
 
@@ -228,6 +241,16 @@ _fail:
 	return ret;
 }
 
+bool aptIsActive(void)
+{
+	return (aptFlags & FLAG_ACTIVE) != 0;
+}
+
+bool aptShouldClose(void)
+{
+	return (aptFlags & (FLAG_ORDERTOCLOSE|FLAG_CANCELLED)) != 0;
+}
+
 bool aptIsSleepAllowed(void)
 {
 	return (aptFlags & FLAG_ALLOWSLEEP) != 0;
@@ -250,17 +273,37 @@ void aptSetSleepAllowed(bool allowed)
 
 bool aptIsHomeAllowed(void)
 {
-	return aptHomeAllowed;
+	return (aptFlags & FLAG_ALLOWHOME) != 0;
 }
 
 void aptSetHomeAllowed(bool allowed)
 {
-	aptHomeAllowed = allowed;
+	if (allowed)
+		aptFlags |= FLAG_ALLOWHOME;
+	else
+		aptFlags &= ~FLAG_ALLOWHOME;
 }
 
-bool aptIsHomePressed(void)
+bool aptShouldJumpToHome(void)
 {
-	return aptRecentHomeButtonState;
+	return aptHomeButtonState || (aptFlags & (FLAG_SHOULDHOME|FLAG_POWERBUTTON)) != 0;
+}
+
+bool aptCheckHomePressRejected(void)
+{
+	if (aptFlags & FLAG_HOMEREJECTED)
+	{
+		aptFlags &= ~FLAG_HOMEREJECTED;
+		return true;
+	}
+	return false;
+}
+
+static void aptClearJumpToHome(void)
+{
+	aptHomeButtonState = 0;
+	APT_UnlockTransition(0x01);
+	APT_SleepIfShellClosed();
 }
 
 void aptSetChainloader(u64 programID, u8 mediatype)
@@ -283,10 +326,12 @@ void aptExit(void)
 
 	if (!aptIsCrippled())
 	{
-		bool exited = (aptFlags & FLAG_EXITED) != 0;
-		if (exited || !aptIsReinit())
+		bool closing = aptShouldClose();
+		if (closing)
+			aptCallHook(APTHOOK_ONEXIT);
+		if (closing || !aptIsReinit())
 		{
-			if (!exited && aptIsChainload())
+			if (!closing && aptIsChainload())
 			{
 				// Check if Home Menu exists and has been launched
 				bool hmRegistered;
@@ -390,18 +435,24 @@ void aptEventHandler(void *arg)
 		switch (signal)
 		{
 			case APTSIGNAL_HOMEBUTTON:
-				if (!aptHomeButtonState) aptHomeButtonState = 1;
-				break;
 			case APTSIGNAL_HOMEBUTTON2:
-				if (!aptHomeButtonState) aptHomeButtonState = 2;
+				if (!aptIsActive())
+					break;
+				else if (!aptIsHomeAllowed())
+				{
+					aptFlags |= FLAG_HOMEREJECTED;
+					aptClearJumpToHome();
+				}
+				else if (!aptHomeButtonState)
+					aptHomeButtonState = signal == APTSIGNAL_HOMEBUTTON ? 1 : 2;
 				break;
 			case APTSIGNAL_SLEEP_QUERY:
 			{
 				APT_QueryReply reply;
-				if (aptFlags & (FLAG_ORDERTOCLOSE|FLAG_WKUPBYCANCEL))
+				if (aptShouldClose())
 					// Reject sleep if we are expected to close
 					reply = APTREPLY_REJECT;
-				else if (aptFlags & FLAG_ACTIVE)
+				else if (aptIsActive())
 					// Accept sleep based on user setting if we are active
 					reply = aptIsSleepAllowed() ? APTREPLY_ACCEPT : APTREPLY_REJECT;
 				else
@@ -414,24 +465,24 @@ void aptEventHandler(void *arg)
 				break;
 			}
 			case APTSIGNAL_SLEEP_CANCEL:
-				if (aptFlags & FLAG_ACTIVE)
-					aptFlags &= ~FLAG_WANTSTOSLEEP;
+				if (aptIsActive())
+					aptFlags &= ~FLAG_SHOULDSLEEP;
 				break;
 			case APTSIGNAL_SLEEP_ENTER:
 				_aptDebug(10, aptFlags);
-				if (aptFlags & FLAG_ACTIVE)
-					aptFlags |= FLAG_WANTSTOSLEEP;
+				if (aptIsActive())
+					aptFlags |= FLAG_SHOULDSLEEP;
 				else
 					// Since we are not active, this must be handled here.
 					APT_ReplySleepNotificationComplete(envGetAptAppId());
 				break;
 			case APTSIGNAL_SLEEP_WAKEUP:
-				if (!(aptFlags & FLAG_ACTIVE))
+				if (!aptIsActive())
 					break;
 				if (aptFlags & FLAG_SLEEPING)
 					LightEvent_Signal(&aptSleepEvent);
 				else
-					aptFlags &= ~FLAG_WANTSTOSLEEP;
+					aptFlags &= ~FLAG_SHOULDSLEEP;
 				break;
 			case APTSIGNAL_SHUTDOWN:
 				aptFlags |= FLAG_ORDERTOCLOSE | FLAG_SHUTDOWN;
@@ -504,7 +555,7 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 	}
 
 	if (cmd == APTCMD_WAKEUP_CANCEL)
-		aptFlags |= FLAG_WKUPBYCANCEL;
+		aptFlags |= FLAG_CANCELLED;
 
 	if (cmd != APTCMD_WAKEUP_JUMPTOHOME)
 	{
@@ -512,6 +563,7 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 		APT_SleepIfShellClosed();
 	} else
 	{
+		aptFlags |= FLAG_SHOULDHOME;
 		aptHomeButtonState = 1;
 		APT_LockTransition(0x01, true);
 	}
@@ -519,11 +571,7 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 	if (transition == TR_JUMPTOMENU || transition == TR_LIBAPPLET || transition == TR_SYSAPPLET || transition == TR_APPJUMP)
 	{
 		if (cmd != APTCMD_WAKEUP_JUMPTOHOME)
-		{
-			aptHomeButtonState = 0;
-			APT_UnlockTransition(0x01);
-			APT_SleepIfShellClosed();
-		}
+			aptClearJumpToHome();
 	}
 
 	return cmd;
@@ -637,12 +685,12 @@ static void aptScreenTransfer(NS_APPID appId, bool sysApplet)
 	APT_SendCaptureBufferInfo(&capinfo);
 }
 
-static void aptProcessJumpToMenu(void)
+void aptJumpToHomeMenu(void)
 {
 	bool sleep = aptIsSleepAllowed();
 	aptSetSleepAllowed(false);
 
-	aptFlags &= ~FLAG_SPURIOUS; // If we haven't received a spurious wakeup by now, we probably never will (see aptInit)
+	aptFlags &= ~(FLAG_SHOULDHOME|FLAG_SPURIOUS); // If we haven't received a spurious wakeup by now, we probably never will (see aptInit)
 	APT_PrepareToJumpToHomeMenu();
 
 	aptCallHook(APTHOOK_ONSUSPEND);
@@ -658,46 +706,27 @@ static void aptProcessJumpToMenu(void)
 	aptSetSleepAllowed(sleep);
 }
 
+void aptHandleSleep(void)
+{
+	if (!(aptFlags & FLAG_SHOULDSLEEP))
+		return;
+
+	aptFlags = (aptFlags &~ FLAG_SHOULDSLEEP) | FLAG_SLEEPING;
+	aptCallHook(APTHOOK_ONSLEEP);
+	APT_ReplySleepNotificationComplete(envGetAptAppId());
+	LightEvent_Wait(&aptSleepEvent);
+	aptFlags &= ~FLAG_SLEEPING;
+
+	if (aptIsActive())
+		GSPGPU_SetLcdForceBlack(0);
+	aptCallHook(APTHOOK_ONWAKEUP);
+}
+
 bool aptMainLoop(void)
 {
-	if (aptIsCrippled()) return true;
-	if (aptFlags & FLAG_EXITED) return false;
-
-	if (aptRecentHomeButtonState) aptRecentHomeButtonState = 0;
-
-	if (aptFlags & FLAG_WANTSTOSLEEP)
-	{
-		aptFlags = (aptFlags &~ FLAG_WANTSTOSLEEP) | FLAG_SLEEPING;
-		aptCallHook(APTHOOK_ONSLEEP);
-		APT_ReplySleepNotificationComplete(envGetAptAppId());
-		LightEvent_Wait(&aptSleepEvent);
-		aptFlags &= ~FLAG_SLEEPING;
-
-		if (aptFlags & FLAG_ACTIVE)
-			GSPGPU_SetLcdForceBlack(0);
-		aptCallHook(APTHOOK_ONWAKEUP);
-	}
-	else if ((aptFlags & FLAG_POWERBUTTON) || aptHomeButtonState)
-	{
-		if (aptHomeAllowed || (aptFlags & FLAG_POWERBUTTON))
-			aptProcessJumpToMenu();
-		else
-		{
-			aptRecentHomeButtonState = aptHomeButtonState;
-			aptHomeButtonState = 0;
-			APT_UnlockTransition(0x01);
-			APT_SleepIfShellClosed();
-		}
-	}
-
-	if (aptFlags & (FLAG_ORDERTOCLOSE|FLAG_WKUPBYCANCEL))
-	{
-		aptFlags |= FLAG_EXITED;
-		aptCallHook(APTHOOK_ONEXIT);
-		return false;
-	}
-
-	return true;
+	aptHandleSleep();
+	aptHandleJumpToHome();
+	return !aptShouldClose();
 }
 
 void aptHook(aptHookCookie* cookie, aptHookFn callback, void* param)

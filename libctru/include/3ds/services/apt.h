@@ -148,39 +148,52 @@ void aptExit(void);
  */
 Result aptSendCommand(u32* aptcmdbuf);
 
-/**
- * @brief Gets whether to allow the system to enter sleep mode.
- * @return Whether sleep mode is allowed.
- */
+/// Returns true if the application is currently in the foreground.
+bool aptIsActive(void);
+
+/// Returns true if the system has told the application to close.
+bool aptShouldClose(void);
+
+/// Returns true if the system can enter sleep mode while the application is active.
 bool aptIsSleepAllowed(void);
 
-/**
- * @brief Sets whether to allow the system to enter sleep mode.
- * @param allowed Whether to allow sleep mode.
- */
+/// Configures whether the system can enter sleep mode while the application is active.
 void aptSetSleepAllowed(bool allowed);
 
-/**
- * @brief Gets whether to allow the system to go back to HOME menu.
- * @return Whether going back to HOME menu is allowed.
- */
+/// Handles incoming sleep mode requests.
+void aptHandleSleep(void);
+
+/// Returns true if the user can press the HOME button to jump back to the HOME menu while the application is active.
 bool aptIsHomeAllowed(void);
 
-/**
- * @brief Sets whether to allow the system to go back to HOME menu.
- * @param allowed Whether going back to HOME menu is allowed.
- */
+/// Configures whether the user can press the HOME button to jump back to the HOME menu while the application is active.
 void aptSetHomeAllowed(bool allowed);
 
-/**
- * @brief Returns when the HOME button is pressed.
- * @return Whether the HOME button is being pressed.
- */
-bool aptIsHomePressed(void);
+/// Returns true if the system requires the application to jump back to the HOME menu.
+bool aptShouldJumpToHome(void);
+
+/// Returns true if there is an incoming HOME button press rejected by the policy set by \ref aptSetHomeAllowed (use this to show a "no HOME allowed" icon).
+bool aptCheckHomePressRejected(void);
+
+/// \deprecated Alias for \ref aptCheckHomePressRejected.
+static inline DEPRECATED bool aptIsHomePressed(void)
+{
+	return aptCheckHomePressRejected();
+}
+
+/// Jumps back to the HOME menu.
+void aptJumpToHomeMenu(void);
+
+/// Handles incoming jump-to-HOME requests.
+static inline void aptHandleJumpToHome(void)
+{
+	if (aptShouldJumpToHome())
+		aptJumpToHomeMenu();
+}
 
 /**
- * @brief Processes the current APT status. Generally used within a main loop.
- * @return Whether the application should continue running.
+ * @brief Main function which handles sleep mode and HOME/power buttons - call this at the beginning of every frame.
+ * @return true if the application should keep running, false otherwise (see \ref aptShouldClose).
  */
 bool aptMainLoop(void);
 
