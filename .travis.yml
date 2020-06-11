@@ -1,3 +1,5 @@
+language: c
+
 os: linux
 dist: xenial
 

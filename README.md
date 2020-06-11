@@ -1,5 +1,7 @@
 # libctru - CTR User Library
 
+[![Build Status](https://travis-ci.org/devkitPro/libctru.svg?branch=master)](https://travis-ci.org/devkitPro/libctru)
+
 Library for writing user mode ARM11 code for the 3DS (CTR)
 
 This library aims to provide the foundations necessary to write 3DS Homebrew, and straightforwardly access the different functionalities provided by the 3DS operating system.
