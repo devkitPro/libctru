@@ -126,10 +126,36 @@ static inline bool __strexb(u8* addr, u8 val)
 #define AtomicSwap(ptr, value) __atomic_exchange_n((u32*)(ptr), (value), __ATOMIC_SEQ_CST)
 
 /**
- * @brief Retrieves the synchronization subsystem's address arbiter handle.
- * @return The synchronization subsystem's address arbiter handle.
+ * @brief Function used to implement user-mode synchronization primitives.
+ * @param addr Pointer to a signed 32-bit value whose address will be used to identify waiting threads.
+ * @param type Type of action to be performed by the arbiter
+ * @param value Number of threads to signal if using @ref ARBITRATION_SIGNAL, or the value used for comparison.
+ *
+ * This will perform an arbitration based on #type. The comparisons are done between #value and the value at the address #addr.
+ *
+ * @code
+ * s32 val=0;
+ * // Does *nothing* since val >= 0
+ * syncArbitrateAddress(&val,ARBITRATION_WAIT_IF_LESS_THAN,0);
+ * @endcode
  */
-Handle __sync_get_arbiter(void);
+Result syncArbitrateAddress(s32* addr, ArbitrationType type, s32 value);
+
+/**
+ * @brief Function used to implement user-mode synchronization primitives (with timeout).
+ * @param addr Pointer to a signed 32-bit value whose address will be used to identify waiting threads.
+ * @param type Type of action to be performed by the arbiter (must use \ref ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT or \ref ARBITRATION_DECREMENT_AND_WAIT_IF_LESS_THAN_TIMEOUT)
+ * @param value Number of threads to signal if using @ref ARBITRATION_SIGNAL, or the value used for comparison.
+ *
+ * This will perform an arbitration based on #type. The comparisons are done between #value and the value at the address #addr.
+ *
+ * @code
+ * s32 val=0;
+ * // Thread will wait for a signal or wake up after 10000000 nanoseconds because val < 1.
+ * syncArbitrateAddressWithTimeout(&val,ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT,1,10000000LL);
+ * @endcode
+ */
+Result syncArbitrateAddressWithTimeout(s32* addr, ArbitrationType type, s32 value, s64 timeout_ns);
 
 /**
  * @brief Initializes a light lock.

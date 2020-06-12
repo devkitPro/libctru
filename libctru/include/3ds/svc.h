@@ -915,16 +915,7 @@ Result svcCreateAddressArbiter(Handle *arbiter);
  * @param addr A pointer to a s32 value.
  * @param type Type of action to be performed by the arbiter
  * @param value Number of threads to signal if using @ref ARBITRATION_SIGNAL, or the value used for comparison.
- *
- * This will perform an arbitration based on #type. The comparisons are done between #value and the value at the address #addr.
- *
- * @code
- * s32 val=0;
- * // Does *nothing* since val >= 0
- * svcCreateAddressArbiter(arbiter,&val,ARBITRATION_WAIT_IF_LESS_THAN,0,0);
- * // Thread will wait for a signal or wake up after 10000000 nanoseconds because val < 1.
- * svcCreateAddressArbiter(arbiter,&val,ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT,1,10000000ULL);
- * @endcode
+ * @warning Please use \ref syncArbitrateAddress or \ref syncArbitrateAddressWithTimeout instead.
  */
 Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
 

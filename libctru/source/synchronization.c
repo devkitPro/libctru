@@ -16,9 +16,14 @@ void __sync_fini(void)
 		svcCloseHandle(arbiter);
 }
 
-Handle __sync_get_arbiter(void)
+Result syncArbitrateAddress(s32* addr, ArbitrationType type, s32 value)
 {
-	return arbiter;
+	return svcArbitrateAddress(arbiter, (u32)addr, type, value, 0);
+}
+
+Result syncArbitrateAddressWithTimeout(s32* addr, ArbitrationType type, s32 value, s64 timeout_ns)
+{
+	return svcArbitrateAddress(arbiter, (u32)addr, type, value, timeout_ns);
 }
 
 void LightLock_Init(LightLock* lock)
@@ -51,7 +56,7 @@ void LightLock_Lock(LightLock* lock)
 	while (bAlreadyLocked)
 	{
 		// Wait for the lock holder thread to wake us up
-		svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+		syncArbitrateAddress(lock, ARBITRATION_WAIT_IF_LESS_THAN, 0);
 
 		// Try to lock again
 		do
@@ -97,7 +102,7 @@ void LightLock_Unlock(LightLock* lock)
 
 	if (val > 1)
 		// Wake up exactly one thread
-		svcArbitrateAddress(arbiter, (u32)lock, ARBITRATION_SIGNAL, 1, 0);
+		syncArbitrateAddress(lock, ARBITRATION_SIGNAL, 1);
 }
 
 void RecursiveLock_Init(RecursiveLock* lock)
@@ -180,9 +185,9 @@ void LightEvent_Clear(LightEvent* event)
 void LightEvent_Pulse(LightEvent* event)
 {
 	if (event->state == -2)
-		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, -1, 0);
+		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, -1);
 	else if (event->state == -1)
-		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, 1, 0);
+		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, 1);
 	else
 		LightEvent_Clear(event);
 }
@@ -192,12 +197,12 @@ void LightEvent_Signal(LightEvent* event)
 	if (event->state == -1)
 	{
 		LightEvent_SetState(event, 0);
-		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, 1, 0);
+		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, 1);
 	} else if (event->state == -2)
 	{
 		LightLock_Lock(&event->lock);
 		LightEvent_SetState(event, 1);
-		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_SIGNAL, -1, 0);
+		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, -1);
 		LightLock_Unlock(&event->lock);
 	}
 }
@@ -215,7 +220,7 @@ void LightEvent_Wait(LightEvent* event)
 	{
 		if (event->state == -2)
 		{
-			svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+			syncArbitrateAddress(&event->state, ARBITRATION_WAIT_IF_LESS_THAN, 0);
 			return;
 		}
 		if (event->state != -1)
@@ -225,7 +230,7 @@ void LightEvent_Wait(LightEvent* event)
 			if (event->state == 0 && LightEvent_TryReset(event))
 				return;
 		}
-		svcArbitrateAddress(arbiter, (u32)event, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+		syncArbitrateAddress(&event->state, ARBITRATION_WAIT_IF_LESS_THAN, 0);
 	}
 }
 
@@ -254,7 +259,7 @@ void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count)
 				num_threads_acq = (s16)__ldrexh((u16 *)&semaphore->num_threads_acq);
 			while (__strexh((u16 *)&semaphore->num_threads_acq, num_threads_acq + 1));
 
-			svcArbitrateAddress(arbiter, (u32)semaphore, ARBITRATION_WAIT_IF_LESS_THAN, count, 0);
+			syncArbitrateAddress(&semaphore->current_count, ARBITRATION_WAIT_IF_LESS_THAN, count);
 
 			do
 				num_threads_acq = (s16)__ldrexh((u16 *)&semaphore->num_threads_acq);
@@ -275,5 +280,5 @@ void LightSemaphore_Release(LightSemaphore* semaphore, s32 count)
 	} while (__strex(&semaphore->current_count, new_count));
 
 	if(old_count <= 0 || semaphore->num_threads_acq > 0)
-		svcArbitrateAddress(arbiter, (u32)semaphore, ARBITRATION_SIGNAL, count, 0);
+		syncArbitrateAddress(&semaphore->current_count, ARBITRATION_SIGNAL, count);
 }

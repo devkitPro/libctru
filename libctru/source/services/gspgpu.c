@@ -28,8 +28,6 @@ static vu8* gspEventData;
 
 static void gspEventThreadMain(void *arg);
 
-Handle __sync_get_arbiter(void);
-
 Result gspInit(void)
 {
 	Result res=0;
@@ -103,7 +101,7 @@ GSPGPU_Event gspWaitForAnyEvent(void)
 			}
 		} while (__strex(&gspLastEvent, -1));
 		if (x < 0)
-			svcArbitrateAddress(__sync_get_arbiter(), (u32)&gspLastEvent, ARBITRATION_WAIT_IF_LESS_THAN, 0, 0);
+			syncArbitrateAddress(&gspLastEvent, ARBITRATION_WAIT_IF_LESS_THAN, 0);
 	} while (x < 0);
 	return (GSPGPU_Event)x;
 }
@@ -177,7 +175,7 @@ void gspEventThreadMain(void *arg)
 				do
 					__ldrex(&gspLastEvent);
 				while (__strex(&gspLastEvent, curEvt));
-				svcArbitrateAddress(__sync_get_arbiter(), (u32)&gspLastEvent, ARBITRATION_SIGNAL, 1, 0);
+				syncArbitrateAddress(&gspLastEvent, ARBITRATION_SIGNAL, 1);
 				gspEventCounts[curEvt]++;
 			}
 		}
