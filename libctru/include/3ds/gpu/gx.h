@@ -13,7 +13,7 @@
 
 /**
  * @brief Supported transfer pixel formats.
- * @sa GSPGPU_FramebufferFormats
+ * @sa GSPGPU_FramebufferFormat
  */
 typedef enum
 {

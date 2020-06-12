@@ -26,7 +26,7 @@ typedef enum
 	GSP_RGB565_OES=2,  ///< RGB565. (2 bytes)
 	GSP_RGB5_A1_OES=3, ///< RGB5A1. (2 bytes)
 	GSP_RGBA4_OES=4    ///< RGBA4. (2 bytes)
-} GSPGPU_FramebufferFormats;
+} GSPGPU_FramebufferFormat;
 
 /// Capture info entry.
 typedef struct
@@ -56,6 +56,27 @@ typedef enum
 
 	GSPGPU_EVENT_MAX,      ///< Used to know how many events there are.
 } GSPGPU_Event;
+
+/**
+ * @brief Gets the number of bytes per pixel for the specified format.
+ * @param format See \ref GSPGPU_FramebufferFormat.
+ * @return Bytes per pixel.
+ */
+static inline unsigned gspGetBytesPerPixel(GSPGPU_FramebufferFormat format)
+{
+	switch (format)
+	{
+		case GSP_RGBA8_OES:
+			return 4;
+		default:
+		case GSP_BGR8_OES:
+			return 3;
+		case GSP_RGB565_OES:
+		case GSP_RGB5_A1_OES:
+		case GSP_RGBA4_OES:
+			return 2;
+	}
+}
 
 /// Initializes GSPGPU.
 Result gspInit(void);

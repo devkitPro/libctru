@@ -18,9 +18,6 @@
 #include <3ds/thread.h>
 #include <3ds/os.h>
 
-// TODO: find a better place for this function (currently defined in gfx.c)
-u32 __get_bytes_per_pixel(GSPGPU_FramebufferFormats format);
-
 #define APT_HANDLER_STACKSIZE (0x1000)
 
 static int aptRefCount = 0;
@@ -171,8 +168,8 @@ static void aptInitCaptureInfo(aptCaptureBufInfo* capinfo, const GSPGPU_CaptureI
 	capinfo->top.format    = gspcapinfo->screencapture[0].format & 0x7;
 	capinfo->bottom.format = gspcapinfo->screencapture[1].format & 0x7;
 
-	u32 main_pixsz = __get_bytes_per_pixel((GSPGPU_FramebufferFormats)capinfo->top.format);
-	u32 sub_pixsz  = __get_bytes_per_pixel((GSPGPU_FramebufferFormats)capinfo->bottom.format);
+	u32 main_pixsz = gspGetBytesPerPixel((GSPGPU_FramebufferFormat)capinfo->top.format);
+	u32 sub_pixsz  = gspGetBytesPerPixel((GSPGPU_FramebufferFormat)capinfo->bottom.format);
 
 	capinfo->bottom.leftOffset  = 0;
 	capinfo->bottom.rightOffset = 0;
@@ -615,11 +612,11 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 	return cmd;
 }
 
-static void aptConvertScreenForCapture(void* dst, const void* src, u32 height, GSPGPU_FramebufferFormats format)
+static void aptConvertScreenForCapture(void* dst, const void* src, u32 height, GSPGPU_FramebufferFormat format)
 {
 	const u32 width = 240;
 	const u32 width_po2 = 1U << (32 - __builtin_clz(width-1)); // next_po2(240) = 256
-	const u32 bpp = __get_bytes_per_pixel(format);
+	const u32 bpp = gspGetBytesPerPixel(format);
 	const u32 tilesize = 8*8*bpp;
 
 	// Terrible conversion code that is also probably really slow
@@ -699,16 +696,16 @@ static void aptScreenTransfer(NS_APPID appId, bool sysApplet)
 				aptConvertScreenForCapture( // Bottom screen
 					(u8*)map + capinfo.bottom.leftOffset,
 					gspcapinfo.screencapture[1].framebuf0_vaddr,
-					320, (GSPGPU_FramebufferFormats)capinfo.bottom.format);
+					320, (GSPGPU_FramebufferFormat)capinfo.bottom.format);
 				aptConvertScreenForCapture( // Top screen (Left eye)
 					(u8*)map + capinfo.top.leftOffset,
 					gspcapinfo.screencapture[0].framebuf0_vaddr,
-					400, (GSPGPU_FramebufferFormats)capinfo.top.format);
+					400, (GSPGPU_FramebufferFormat)capinfo.top.format);
 				if (capinfo.is3D)
 					aptConvertScreenForCapture( // Top screen (Right eye)
 						(u8*)map + capinfo.top.rightOffset,
 						gspcapinfo.screencapture[0].framebuf1_vaddr,
-						400, (GSPGPU_FramebufferFormats)capinfo.top.format);
+						400, (GSPGPU_FramebufferFormat)capinfo.top.format);
 				svcUnmapMemoryBlock(hCapMemBlk, (u32)map);
 			}
 			mappableFree(map);

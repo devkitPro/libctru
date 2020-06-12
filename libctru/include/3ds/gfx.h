@@ -42,7 +42,7 @@ typedef enum
 /**
  * @brief Initializes the LCD framebuffers with default parameters
  *
- * By default ctrulib will configure the LCD framebuffers with the @ref GSP_BGR8_OES format in linear memory.
+ * By default libctru will configure the LCD framebuffers with the @ref GSP_BGR8_OES format in linear memory.
  * This is the same as calling : @code gfxInit(GSP_BGR8_OES,GSP_BGR8_OES,false); @endcode
  *
  * @note You should always call @ref gfxExit once done to free the memory and services
@@ -63,7 +63,7 @@ void gfxInitDefault(void);
  * @note Even if the double buffering is disabled, it will allocate two buffer per screen.
  * @note You should always call @ref gfxExit once done to free the memory and services
  */
-void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bottomFormat, bool vrambuffers);
+void gfxInit(GSPGPU_FramebufferFormat topFormat, GSPGPU_FramebufferFormat bottomFormat, bool vrambuffers);
 
 /**
  * @brief Closes the gsp service and frees the framebuffers.
@@ -92,21 +92,21 @@ bool gfxIs3D(void);
  * @param screen The screen of which format should be changed
  * @param format One of the gsp pixel formats.
  */
-void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormats format);
+void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormat format);
 
 /**
  * @brief Gets a screen pixel format.
  * @param screen Screen to get the pixel format of.
- * @return the pixel format of the chosen screen set by ctrulib.
+ * @return the pixel format of the chosen screen set by libctru.
  */
-GSPGPU_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen);
+GSPGPU_FramebufferFormat gfxGetScreenFormat(gfxScreen_t screen);
 
 /**
- * @brief Sets whether to use ctrulib's double buffering
+ * @brief Sets whether to use libctru's double buffering
  * @param screen Screen to toggle double buffering for.
  * @param doubleBuffering Whether to use double buffering.
  *
- * ctrulib is by default using a double buffering scheme.
+ * libctru is by default using a double buffering scheme.
  * If you do not want to swap one of the screen framebuffers when @ref gfxSwapBuffers or @ref gfxSwapBuffers is called,
  * then you have to disable double buffering.
  *

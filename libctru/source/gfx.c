@@ -26,8 +26,8 @@ static int doubleBuf[2] = {1,1};
 
 Handle gspEvent, gspSharedMemHandle;
 
-static GSPGPU_FramebufferFormats topFormat = GSP_BGR8_OES;
-static GSPGPU_FramebufferFormats botFormat = GSP_BGR8_OES;
+static GSPGPU_FramebufferFormat topFormat = GSP_BGR8_OES;
+static GSPGPU_FramebufferFormat botFormat = GSP_BGR8_OES;
 
 static GSPGPU_FramebufferInfo* const framebufferInfoSt[] = { &topFramebufferInfo, &bottomFramebufferInfo };
 
@@ -44,26 +44,11 @@ bool gfxIs3D(void)
 	return enable3d;
 }
 
-u32 __get_bytes_per_pixel(GSPGPU_FramebufferFormats format) {
-	switch(format) {
-	case GSP_RGBA8_OES:
-		return 4;
-	case GSP_BGR8_OES:
-		return 3;
-	case GSP_RGB565_OES:
-	case GSP_RGB5_A1_OES:
-	case GSP_RGBA4_OES:
-		return 2;
-	}
-
-	return 3;
-}
-
-void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormats format) {
+void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormat format) {
 	if (screenAlloc == NULL || screenFree == NULL) return;
 	if(screen==GFX_TOP)
 	{
-		u32 topSize = 400 * 240 * __get_bytes_per_pixel(format);
+		u32 topSize = 400 * 240 * gspGetBytesPerPixel(format);
 		if (gfxTopFramebufferMaxSize < topSize)
 		{
 			screenFree(gfxTopLeftFramebuffers[0]);
@@ -78,7 +63,7 @@ void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormats format) {
 		}
 		topFormat = format;
 	}else{
-		u32 bottomSize = 320 * 240 * __get_bytes_per_pixel(format);
+		u32 bottomSize = 320 * 240 * gspGetBytesPerPixel(format);
 		if (gfxBottomFramebufferMaxSize < bottomSize)
 		{
 			screenFree(gfxBottomFramebuffers[0]);
@@ -91,7 +76,7 @@ void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormats format) {
 	}
 }
 
-GSPGPU_FramebufferFormats gfxGetScreenFormat(gfxScreen_t screen) {
+GSPGPU_FramebufferFormat gfxGetScreenFormat(gfxScreen_t screen) {
 	if(screen==GFX_TOP)
 		return topFormat;
 	else
@@ -110,7 +95,7 @@ static void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 		topFramebufferInfo.framebuf0_vaddr=(u32*)gfxTopLeftFramebuffers[id];
 		if(enable3d)topFramebufferInfo.framebuf1_vaddr=(u32*)gfxTopRightFramebuffers[id];
 		else topFramebufferInfo.framebuf1_vaddr=topFramebufferInfo.framebuf0_vaddr;
-		topFramebufferInfo.framebuf_widthbytesize=240*__get_bytes_per_pixel(topFormat);
+		topFramebufferInfo.framebuf_widthbytesize=240*gspGetBytesPerPixel(topFormat);
 		u8 bit5=(enable3d!=0);
 		topFramebufferInfo.format=((1)<<8)|((1^bit5)<<6)|((bit5)<<5)|topFormat;
 		topFramebufferInfo.framebuf_dispselect=id;
@@ -119,7 +104,7 @@ static void gfxSetFramebufferInfo(gfxScreen_t screen, u8 id)
 		bottomFramebufferInfo.active_framebuf=id;
 		bottomFramebufferInfo.framebuf0_vaddr=(u32*)gfxBottomFramebuffers[id];
 		bottomFramebufferInfo.framebuf1_vaddr=0x00000000;
-		bottomFramebufferInfo.framebuf_widthbytesize=240*__get_bytes_per_pixel(botFormat);
+		bottomFramebufferInfo.framebuf_widthbytesize=240*gspGetBytesPerPixel(botFormat);
 		bottomFramebufferInfo.format=botFormat;
 		bottomFramebufferInfo.framebuf_dispselect=id;
 		bottomFramebufferInfo.unk=0x00000000;
@@ -271,7 +256,7 @@ static void gfxGxHwInit(void)
 	gfxWriteGxReg(0x0574, 0x10501);
 }
 
-void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bottomFormat, bool vrambuffers)
+void gfxInit(GSPGPU_FramebufferFormat topFormat, GSPGPU_FramebufferFormat bottomFormat, bool vrambuffers)
 {
 	if (vrambuffers)
 	{
@@ -307,8 +292,8 @@ void gfxInit(GSPGPU_FramebufferFormats topFormat, GSPGPU_FramebufferFormats bott
 	//	 if 3d enabled :
 	//		topright1 0x000FD200-0x00143700
 	//		topright2 0x00143700-0x00189C00
-	u32 topSize = 400 * 240 * __get_bytes_per_pixel(topFormat);
-	u32 bottomSize = 320 * 240 * __get_bytes_per_pixel(bottomFormat);
+	u32 topSize = 400 * 240 * gspGetBytesPerPixel(topFormat);
+	u32 bottomSize = 320 * 240 * gspGetBytesPerPixel(bottomFormat);
 
 	gfxTopLeftFramebuffers[0]=screenAlloc(topSize);
 	gfxTopLeftFramebuffers[1]=screenAlloc(topSize);
@@ -398,8 +383,8 @@ u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* hei
 
 void gfxFlushBuffers(void)
 {
-	u32 topSize = 400 * 240 * __get_bytes_per_pixel(gfxGetScreenFormat(GFX_TOP));
-	u32 bottomSize = 320 * 240 * __get_bytes_per_pixel(gfxGetScreenFormat(GFX_BOTTOM));
+	u32 topSize = 400 * 240 * gspGetBytesPerPixel(gfxGetScreenFormat(GFX_TOP));
+	u32 bottomSize = 320 * 240 * gspGetBytesPerPixel(gfxGetScreenFormat(GFX_BOTTOM));
 
 	GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), topSize);
 	if(enable3d)GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), topSize);
