@@ -29,7 +29,7 @@ before_deploy:
   - sh .travis/exportdoc.sh
 
 deploy:
-  provider: pages:git
+  provider: pages
   deploy_key: .travis/id_travis_deploy
   edge: true
   keep_history: false

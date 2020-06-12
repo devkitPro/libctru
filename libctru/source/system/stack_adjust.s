@@ -1,7 +1,5 @@
 #include <3ds/asminc.h>
 
-	.arm
-
 BEGIN_ASM_FUNC initSystem, weak
 	ldr	r2, =saved_stack
 	str	sp, [r2]
@@ -18,7 +16,6 @@ BEGIN_ASM_FUNC initSystem, weak
 	add	sp, sp, #7
 	bics	sp, sp, #7
 	str	sp, [r2]
-
 
 	bl	__appInit
 	bl	__libc_init_array
@@ -37,16 +34,13 @@ BEGIN_ASM_FUNC __ctru_exit, weak
 	b	__libctru_exit
 END_ASM_FUNC
 
-	.data
+	.section .data.__stacksize__, "aw"
 	.align 2
 __stacksize__:
 	.word	32 * 1024
 	.weak	__stacksize__
 
-
-	.bss
+	.section .bss.saved_stack.42, "aw", %nobits
 	.align 2
 saved_stack:
 	.space 8
-
-

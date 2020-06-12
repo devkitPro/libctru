@@ -17,7 +17,7 @@ extern const u8 __tdata_lma[];
 extern const u8 __tdata_lma_end[];
 extern u8 __tls_start[];
 
-static struct _reent* __ctru_get_reent()
+static struct _reent* __libctru_get_reent()
 {
 	ThreadVars* tv = getThreadVars();
 	if (tv->magic != THREADVARS_MAGIC)
@@ -34,13 +34,12 @@ static int __libctru_nanosleep(const struct timespec *req, struct timespec *rem)
 	return 0;
 }
 
-
-void __attribute__((weak)) __system_initSyscalls(void)
+void __system_initSyscalls(void)
 {
 	// Register newlib syscalls
 	__syscalls.exit     = __ctru_exit;
 	__syscalls.gettod_r = __libctru_gtod;
-	__syscalls.getreent = __ctru_get_reent;
+	__syscalls.getreent = __libctru_get_reent;
 	__syscalls.nanosleep = __libctru_nanosleep;
 
 	// Register locking syscalls

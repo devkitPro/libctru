@@ -10,12 +10,7 @@ extern u32 __ctru_linear_heap_size;
 extern void (*__system_retAddr)(void);
 
 void envDestroyHandles(void);
-
-void __appExit();
-
-void __libc_fini_array(void);
-
-Result __sync_fini(void) __attribute__((weak));
+Result __sync_fini(void);
 
 void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 {
@@ -30,8 +25,8 @@ void __attribute__((weak)) __attribute__((noreturn)) __libctru_exit(int rc)
 	// Close some handles
 	envDestroyHandles();
 
-	if (__sync_fini)
-		__sync_fini();
+	// Finalize the synchronization subsystem
+	__sync_fini();
 
 	// Jump to the loader if it provided a callback
 	if (__system_retAddr)
