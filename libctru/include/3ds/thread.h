@@ -33,9 +33,9 @@ typedef void (*ExceptionHandler)(ERRF_ExceptionInfo* excep, CpuRegisters* regs);
  *             For userland apps, this has to be within the range [0x18;0x3F].
  *             The main thread usually has a priority of 0x30, but not always. Use svcGetThreadPriority() if you need
  *             to create a thread with a priority that is explicitly greater or smaller than that of the main thread.
- * @param affinity The ID of the processor the thread should be ran on. Processor IDs are labeled starting from 0.
- *                 On Old3DS it must be <2, and on New3DS it must be <4.
- *                 Pass -1 to execute the thread on all CPUs and -2 to execute the thread on the default CPU (read from the Exheader).
+ * @param core_id The ID of the processor the thread should be ran on. Processor IDs are labeled starting from 0.
+ *                On Old3DS it must be <2, and on New3DS it must be <4.
+ *                Pass -1 to execute the thread on all CPUs and -2 to execute the thread on the default CPU (read from the Exheader).
  * @param detached When set to true, the thread is automatically freed when it finishes.
  * @return The libctru thread handle on success, NULL on failure.
  *
@@ -48,7 +48,7 @@ typedef void (*ExceptionHandler)(ERRF_ExceptionInfo* excep, CpuRegisters* regs);
  * @note Default exit code of a thread is 0.
  * @warning @ref svcExitThread should never be called from the thread, use @ref threadExit instead.
  */
-Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int prio, int affinity, bool detached);
+Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int prio, int core_id, bool detached);
 
 /**
  * @brief Retrieves the OS thread handle of a libctru thread.
@@ -105,7 +105,7 @@ void threadExit(int rc) __attribute__((noreturn));
  *
  * To have CPU exceptions reported through this mechanism, it is normally necessary that UNITINFO is set to a non-zero value when Kernel11 starts,
  * and this mechanism is also controlled by @ref svcKernelSetState type 6, see 3dbrew.
- * 
+ *
  * VFP exceptions are always reported this way even if the process is being debugged using the debug SVCs.
  *
  * The current thread need not be a libctru thread.

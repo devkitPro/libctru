@@ -38,7 +38,7 @@ static void _thread_begin(void* arg)
 	threadExit(0);
 }
 
-Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int prio, int affinity, bool detached)
+Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int prio, int core_id, bool detached)
 {
 	size_t stackoffset = (sizeof(struct Thread_tag)+7)&~7;
 	size_t allocsize   = stackoffset + ((stack_size+7)&~7);
@@ -73,7 +73,7 @@ Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int pri
 	t->reent._stderr = cur->_stderr;
 
 	Result rc;
-	rc = svcCreateThread(&t->handle, _thread_begin, (u32)t, (u32*)t->stacktop, prio, affinity);
+	rc = svcCreateThread(&t->handle, _thread_begin, (u32)t, (u32*)t->stacktop, prio, core_id);
 	if (R_FAILED(rc))
 	{
 		free(t);
