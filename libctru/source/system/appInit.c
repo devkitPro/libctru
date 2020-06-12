@@ -6,7 +6,10 @@
 #include <3ds/services/fs.h>
 #include <3ds/services/hid.h>
 
-void __attribute__((weak)) __appInit(void) {
+void __attribute__((weak)) userAppInit(void);
+
+void __attribute__((weak)) __appInit(void)
+{
 	// Initialize services
 	srvInit();
 	aptInit();
@@ -14,4 +17,6 @@ void __attribute__((weak)) __appInit(void) {
 
 	fsInit();
 	archiveMountSdmc();
+
+	if (&userAppInit) userAppInit();
 }

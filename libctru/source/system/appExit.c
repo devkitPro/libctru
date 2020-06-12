@@ -6,7 +6,12 @@
 #include <3ds/services/fs.h>
 #include <3ds/services/hid.h>
 
-void __attribute__((weak)) __appExit(void) {
+void __attribute__((weak)) userAppExit(void);
+
+void __attribute__((weak)) __appExit(void)
+{
+	if (&userAppExit) userAppExit();
+
 	// Exit services
 	archiveUnmountAll();
 	fsExit();
