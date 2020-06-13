@@ -167,6 +167,13 @@ void gfxExit(void)
 	if (screenFree == NULL)
 		return;
 
+	if (gspHasGpuRight())
+	{
+		// Wait for VBlank and turn the LCD off
+		gspWaitForVBlank();
+		GSPGPU_SetLcdForceBlack(0x1);
+	}
+
 	// Free framebuffers
 	screenFree(gfxTopFramebuffers[0]);
 	screenFree(gfxTopFramebuffers[1]);
