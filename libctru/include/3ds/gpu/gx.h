@@ -65,8 +65,6 @@ typedef enum
 /// Flushes the command list.
 #define GX_CMDLIST_FLUSH          BIT(1)
 
-extern u32* gxCmdBuf; ///< GX command buffer.
-
 /// GX command entry
 typedef union
 {

@@ -3,13 +3,14 @@
  * @brief GSPLCD service.
  */
 #pragma once
-#include <3ds/gfx.h> // For gfxScreen_t
+#include <3ds/types.h>
+#include <3ds/services/gspgpu.h>
 
 /// LCD screens.
 enum
 {
-	GSPLCD_SCREEN_TOP    = BIT(GFX_TOP),                             ///< Top screen.
-	GSPLCD_SCREEN_BOTTOM = BIT(GFX_BOTTOM),                          ///< Bottom screen.
+	GSPLCD_SCREEN_TOP    = BIT(GSP_SCREEN_TOP),                      ///< Top screen.
+	GSPLCD_SCREEN_BOTTOM = BIT(GSP_SCREEN_BOTTOM),                   ///< Bottom screen.
 	GSPLCD_SCREEN_BOTH   = GSPLCD_SCREEN_TOP | GSPLCD_SCREEN_BOTTOM, ///< Both screens.
 };
 

@@ -8,7 +8,6 @@
 
 #define MAX_PARALLEL_CMDS 3
 
-extern u32* gxCmdBuf;
 static gxCmdQueue_s* curQueue;
 static bool isActive, isRunning, shouldStop;
 static LightLock queueLock = 1;
@@ -21,7 +20,7 @@ static void gxCmdQueueDoCommands(void)
 	while (curQueue->curEntry < curQueue->numEntries && batchSize--)
 	{
 		gxCmdEntry_s* entry = &curQueue->entries[curQueue->curEntry++];
-		gspSubmitGxCommand(gxCmdBuf, entry->data);
+		gspSubmitGxCommand(entry->data);
 	}
 }
 

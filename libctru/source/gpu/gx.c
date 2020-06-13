@@ -9,7 +9,6 @@
 #include <3ds/gpu/gx.h>
 #include <3ds/services/gspgpu.h>
 
-u32* gxCmdBuf;
 static gxCmdQueue_s* boundQueue;
 
 // Dummy version to avoid linking in gxqueue.c if not actually used
@@ -30,7 +29,7 @@ static Result submitGxCommand(u32 gxCommand[0x8])
 		return 0;
 	}
 	else
-		return gspSubmitGxCommand(gxCmdBuf, gxCommand);
+		return gspSubmitGxCommand(gxCommand);
 }
 
 Result GX_RequestDma(u32* src, u32* dst, u32 length)
@@ -115,5 +114,5 @@ Result GX_FlushCacheRegions(u32* buf0a, u32 buf0s, u32* buf1a, u32 buf1s, u32* b
 	gxCommand[6]=(u32)buf2s; //buf2 size
 	gxCommand[7]=0x0;
 
-	return gspSubmitGxCommand(gxCmdBuf, gxCommand);
+	return gspSubmitGxCommand(gxCommand);
 }
