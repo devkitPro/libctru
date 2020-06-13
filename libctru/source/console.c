@@ -554,10 +554,10 @@ PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console) {
 	console->frameBuffer = (u16*)gfxGetFramebuffer(screen, GFX_LEFT, NULL, NULL);
 
 	if(screen==GFX_TOP) {
-		console->consoleWidth = 50;
-		console->windowWidth = 50;
+		bool isWide = gfxIsWide();
+		console->consoleWidth = isWide ? 100 : 50;
+		console->windowWidth = isWide ? 100 : 50;
 	}
-
 
 	consoleCls('2');
 
