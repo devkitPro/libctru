@@ -1,7 +1,7 @@
 language: c
 
 os: linux
-dist: xenial
+dist: bionic
 
 services: docker
 
@@ -13,11 +13,9 @@ cache:
 before_install:
   # Travis has an OLD doxygen build, so we fetch a recent one
   - export DOXY_BINPATH=/home/travis/doxygen/doxygen-1.8.18/bin
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ -n "$TRAVIS_TAG" ]; then mkdir -p ~/doxygen && cd ~/doxygen; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ -n "$TRAVIS_TAG" ]; then wget http://doxygen.nl/files/doxygen-1.8.18.linux.bin.tar.gz; fi
-  - if [ ! -e "$DOXY_BINPATH/doxygen" ] && [ -n "$TRAVIS_TAG" ]; then tar xzf doxygen-1.8.18.linux.bin.tar.gz; fi
-  - if [ -n "$TRAVIS_TAG" ]; then openssl aes-256-cbc -K $encrypted_1b844421d50b_key -iv $encrypted_1b844421d50b_iv -in .travis/id_travis_deploy.enc -out .travis/id_travis_deploy -d; fi
   - export PATH=$PATH:$DOXY_BINPATH
+  - if [ -n "$TRAVIS_TAG" ]; then bash .travis/doxyprep.sh; fi
+  - if [ -n "$TRAVIS_TAG" ]; then openssl aes-256-cbc -K $encrypted_1b844421d50b_key -iv $encrypted_1b844421d50b_iv -in .travis/id_travis_deploy.enc -out .travis/id_travis_deploy -d; fi
 
 install:
   - docker pull devkitpro/devkitarm
