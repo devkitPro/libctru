@@ -19,6 +19,8 @@ static Handle gspSharedMemHandle;
 static void* gspSharedMem;
 static u8 gspThreadId;
 
+static bool gspGpuRight;
+
 static Handle gspEvent;
 static Thread gspEventThread;
 static volatile bool gspRunEvents;
@@ -217,6 +219,11 @@ void gspExit(void)
 	// Release GPU rights and close the service handle
 	GSPGPU_ReleaseRight();
 	svcCloseHandle(gspGpuHandle);
+}
+
+bool gspHasGpuRight(void)
+{
+	return gspGpuRight;
 }
 
 void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode)
@@ -554,6 +561,8 @@ Result GSPGPU_UnregisterInterruptRelayQueue(void)
 
 Result GSPGPU_AcquireRight(u8 flags)
 {
+	if(gspGpuRight) return 0;
+
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=IPC_MakeHeader(0x16,1,2); // 0x160042
 	cmdbuf[1]=flags;
@@ -562,17 +571,21 @@ Result GSPGPU_AcquireRight(u8 flags)
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_SUCCEEDED(cmdbuf[1])) gspGpuRight=true;
 
 	return cmdbuf[1];
 }
 
 Result GSPGPU_ReleaseRight(void)
 {
+	if(!gspGpuRight) return 0;
+
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=IPC_MakeHeader(0x17,0,0); // 0x170000
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(gspGpuHandle)))return ret;
+	if(R_SUCCEEDED(cmdbuf[1])) gspGpuRight=false;
 
 	return cmdbuf[1];
 }
