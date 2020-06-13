@@ -10,7 +10,12 @@ static u32 gfxTopFramebufferMaxSize;
 static u32 gfxBottomFramebufferMaxSize;
 static GSPGPU_FramebufferFormat gfxFramebufferFormats[2];
 
-static bool gfxEnable3D, gfxIsVram;
+static enum {
+	MODE_2D   = 0,
+	MODE_3D   = 1,
+	MODE_WIDE = 2,
+} gfxTopMode;
+static bool gfxIsVram;
 static u8 gfxCurBuf[2];
 static u8 gfxIsDoubleBuf[2];
 
@@ -19,12 +24,22 @@ static void *(*screenAlloc)(size_t);
 
 void gfxSet3D(bool enable)
 {
-	gfxEnable3D = enable;
+	gfxTopMode = enable ? MODE_3D : MODE_2D;
 }
 
 bool gfxIs3D(void)
 {
-	return gfxEnable3D;
+	return gfxTopMode == MODE_3D;
+}
+
+void gfxSetWide(bool enable)
+{
+	gfxTopMode = enable ? MODE_WIDE : MODE_2D;
+}
+
+bool gfxIsWide(void)
+{
+	return gfxTopMode == MODE_WIDE;
 }
 
 void gfxSetScreenFormat(gfxScreen_t screen, GSPGPU_FramebufferFormat format)
@@ -77,15 +92,20 @@ static void gfxPresentFramebuffer(gfxScreen_t screen, u8 id)
 	if (screen == GFX_TOP)
 	{
 		fb_a = gfxTopFramebuffers[id];
-		if (gfxEnable3D)
+		switch (gfxTopMode)
 		{
-			mode |= BIT(5);
-			fb_b = fb_a + gfxTopFramebufferMaxSize/2;
-		}
-		else
-		{
-			mode |= BIT(6);
-			fb_b = fb_a;
+			default:
+			case MODE_2D:
+				mode |= BIT(6);
+				fb_b = fb_a;
+				break;
+			case MODE_3D:
+				mode |= BIT(5);
+				fb_b = fb_a + gfxTopFramebufferMaxSize/2;
+				break;
+			case MODE_WIDE:
+				fb_b = fb_a;
+				break;
 		}
 	}
 	else
@@ -173,8 +193,19 @@ u8* gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16* width, u16* hei
 	{
 		fb = gfxTopFramebuffers[id];
 		scr_height = GSP_SCREEN_HEIGHT_TOP;
-		if (gfxEnable3D && side != GFX_LEFT)
-			fb += gfxTopFramebufferMaxSize/2;
+		switch (gfxTopMode)
+		{
+			default:
+			case MODE_2D:
+				break;
+			case MODE_3D:
+				if (side != GFX_LEFT)
+					fb += gfxTopFramebufferMaxSize/2;
+				break;
+			case MODE_WIDE:
+				scr_height = GSP_SCREEN_HEIGHT_TOP_2X;
+				break;
+		}
 	}
 	else // GFX_BOTTOM
 	{
@@ -194,10 +225,12 @@ void gfxFlushBuffers(void)
 {
 	const u32 baseSize   = GSP_SCREEN_WIDTH * gspGetBytesPerPixel(gfxGetScreenFormat(GFX_TOP));
 	const u32 topSize    = GSP_SCREEN_HEIGHT_TOP * baseSize;
+	const u32 topSize2x  = GSP_SCREEN_HEIGHT_TOP_2X * baseSize;
 	const u32 bottomSize = GSP_SCREEN_HEIGHT_BOTTOM * baseSize;
 
-	GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), topSize);
-	if(gfxEnable3D)GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), topSize);
+	GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), gfxTopMode == MODE_WIDE ? topSize2x : topSize);
+	if (gfxTopMode == MODE_3D)
+		GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL), topSize);
 	GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), bottomSize);
 }
 
