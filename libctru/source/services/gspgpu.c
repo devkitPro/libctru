@@ -219,7 +219,7 @@ void gspExit(void)
 	svcCloseHandle(gspGpuHandle);
 }
 
-void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, unsigned stride, u32 mode)
+void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode)
 {
 	GSPGPU_FramebufferInfo info;
 	info.active_framebuf = swap;

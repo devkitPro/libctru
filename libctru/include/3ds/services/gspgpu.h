@@ -99,7 +99,7 @@ void gspExit(void);
  * @param mode Mode configuration to be written to LCD register
  * @note The most recently presented buffer is processed and configured during the specified screen's next VBlank event.
  */
-void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, unsigned stride, u32 mode);
+void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode);
 
 /**
  * @brief Configures a callback to run when a GSPGPU event occurs.
