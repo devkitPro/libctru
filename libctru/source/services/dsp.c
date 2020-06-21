@@ -9,6 +9,20 @@
 static Handle dspHandle;
 static int dspRefCount;
 
+static dspHookCookie dspFirstHook;
+static bool dspComponentLoaded, dspSleeping;
+
+static const void* dspSavedCompBin;
+static u32 dspSavedCompSize;
+static u16 dspSavedCompProgMask, dspSavedCompDataMask;
+
+static void dspCallHook(DSP_HookType hookType)
+{
+	dspHookCookie* c;
+	for (c = &dspFirstHook; c && c->callback; c = c->next)
+		c->callback(hookType);
+}
+
 Result dspInit(void)
 {
 	Result ret = 0;
@@ -16,16 +30,89 @@ Result dspInit(void)
 	if (AtomicPostIncrement(&dspRefCount)) return 0;
 
 	ret = srvGetServiceHandle(&dspHandle, "dsp::DSP");
-	if (R_SUCCEEDED(ret)) DSP_UnloadComponent();
-	else                  AtomicDecrement(&dspRefCount);
+	if (R_FAILED(ret))
+	{
+		AtomicDecrement(&dspRefCount);
+		return ret;
+	}
 
-	return ret;
+	// Force unload component (if exists)
+	dspComponentLoaded = true;
+	DSP_UnloadComponent();
+
+	dspSleeping = false;
+	dspSavedCompBin = NULL;
+	dspSavedCompSize = 0;
+	dspSavedCompProgMask = 0;
+	dspSavedCompDataMask = 0;
+	return 0;
 }
 
 void dspExit(void)
 {
 	if (AtomicDecrement(&dspRefCount)) return;
+	DSP_UnloadComponent();
 	svcCloseHandle(dspHandle);
+}
+
+bool dspIsComponentLoaded(void)
+{
+	return dspComponentLoaded;
+}
+
+void dspHook(dspHookCookie* cookie, dspHookFn callback)
+{
+	if (!callback) return;
+
+	dspHookCookie* hook = &dspFirstHook;
+	*cookie = *hook; // Structure copy.
+	hook->next = cookie;
+	hook->callback = callback;
+}
+
+void dspUnhook(dspHookCookie* cookie)
+{
+	dspHookCookie* hook;
+	for (hook = &dspFirstHook; hook; hook = hook->next)
+	{
+		if (hook->next == cookie)
+		{
+			*hook = *cookie; // Structure copy.
+			break;
+		}
+	}
+}
+
+bool aptDspSleep(void)
+{
+	if (!dspComponentLoaded || dspSleeping)
+		return false;
+
+	dspCallHook(DSPHOOK_ONSLEEP);
+	DSP_UnloadComponent();
+	dspSleeping = true;
+	return true;
+}
+
+void aptDspWakeup(void)
+{
+	if (!dspSleeping)
+		return;
+
+	Result ret = DSP_LoadComponent(dspSavedCompBin, dspSavedCompSize, dspSavedCompProgMask, dspSavedCompDataMask, NULL);
+	if (R_FAILED(ret))
+		svcBreak(USERBREAK_PANIC); // Shouldn't happen.
+
+	dspCallHook(DSPHOOK_ONWAKEUP);
+	dspSleeping = false;
+}
+
+void aptDspCancel(void)
+{
+	if (!dspSleeping)
+		return;
+
+	dspCallHook(DSPHOOK_ONCANCEL);
 }
 
 Result DSP_GetHeadphoneStatus(bool* is_inserted)
@@ -96,6 +183,17 @@ Result DSP_GetSemaphoreHandle(Handle* semaphore)
 
 Result DSP_LoadComponent(const void* component, u32 size, u16 prog_mask, u16 data_mask, bool* is_loaded)
 {
+	if (dspComponentLoaded)
+	{
+		if (is_loaded) *is_loaded = dspComponentLoaded;
+		return 0;
+	}
+
+	dspSavedCompBin = component;
+	dspSavedCompSize = size;
+	dspSavedCompProgMask = prog_mask;
+	dspSavedCompDataMask = data_mask;
+
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x11,3,2);
@@ -105,12 +203,18 @@ Result DSP_LoadComponent(const void* component, u32 size, u16 prog_mask, u16 dat
 	cmdbuf[4] = IPC_Desc_Buffer(size,IPC_BUFFER_R);
 	cmdbuf[5] = (u32) component;
 	if (R_FAILED(ret = svcSendSyncRequest(dspHandle))) return ret;
-	*is_loaded = cmdbuf[2] & 0xFF;
+	dspComponentLoaded = cmdbuf[2] & 0xFF;
+	if (is_loaded) *is_loaded = dspComponentLoaded;
 	return cmdbuf[1];
 }
 
 Result DSP_UnloadComponent(void)
 {
+	if (!dspComponentLoaded)
+		return 0;
+
+	dspComponentLoaded = false;
+
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x12,0,0);

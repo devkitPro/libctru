@@ -9,7 +9,7 @@
 u16 ndspFrameId, ndspBufferCurId, ndspBufferId;
 void* ndspVars[16][2];
 
-static bool bComponentLoaded = false, bDspReady = false, bSleeping = false, bActuallySleeping = false, bNeedsSync = false;
+static bool bDspReady = false, bSleeping = false, bActuallySleeping = false, bNeedsSync = false;
 static u32 droppedFrames, frameCount;
 
 static const void* componentBin;
@@ -17,7 +17,7 @@ static u32 componentSize;
 static u16 componentProgMask, componentDataMask;
 static bool componentFree;
 
-static aptHookCookie aptCookie;
+static dspHookCookie ndspHookCookie;
 
 static Handle irqEvent, dspSem;
 static LightEvent sleepEvent;
@@ -27,12 +27,6 @@ static u8 dspVar5Backup[0x1080];
 
 static volatile bool ndspThreadRun;
 static Thread ndspThread;
-
-static Result ndspLoadComponent(void)
-{
-	if (!componentBin) return 1;
-	return DSP_LoadComponent(componentBin, componentSize, componentProgMask, componentDataMask, &bComponentLoaded);
-}
 
 static inline void ndspWaitForIrq(void)
 {
@@ -209,9 +203,6 @@ static Result ndspInitialize(bool resume)
 {
 	Result rc;
 
-	rc = ndspLoadComponent();
-	if (R_FAILED(rc)) return rc;
-
 	rc = svcCreateEvent(&irqEvent, RESET_STICKY);
 	if (R_FAILED(rc)) goto _fail1;
 
@@ -266,7 +257,6 @@ _fail3:
 _fail2:
 	svcCloseHandle(irqEvent);
 _fail1:
-	DSP_UnloadComponent();
 	return rc;
 }
 
@@ -292,20 +282,20 @@ static void ndspFinalize(bool suspend)
 	DSP_RegisterInterruptEvents(0, 2, 2);
 	svcCloseHandle(irqEvent);
 	svcCloseHandle(dspSem);
-	DSP_UnloadComponent();
-	bComponentLoaded = false;
+
 	bDspReady = false;
 	LightLock_Unlock(&ndspMutex);
 }
 
-static void ndspAptHook(APT_HookType hook, void* param)
+static void ndspHookCallback(DSP_HookType hook)
 {
 	switch (hook)
 	{
-		case APTHOOK_ONRESTORE:
-		case APTHOOK_ONWAKEUP:
+		case DSPHOOK_ONWAKEUP:
 			bSleeping = false;
-			ndspInitialize(true);
+			Result res = ndspInitialize(true);
+			if (R_FAILED(res))
+				svcBreak(USERBREAK_PANIC); // Shouldn't happen.
 			if (bActuallySleeping)
 			{
 				bActuallySleeping = false;
@@ -313,8 +303,7 @@ static void ndspAptHook(APT_HookType hook, void* param)
 			}
 			break;
 
-		case APTHOOK_ONSUSPEND:
-		case APTHOOK_ONSLEEP:
+		case DSPHOOK_ONSLEEP:
 			bSleeping = true;
 			ndspFinalize(true);
 			break;
@@ -481,6 +470,9 @@ Result ndspInit(void)
 	rc = dspInit();
 	if (R_FAILED(rc)) goto _fail1;
 
+	rc = DSP_LoadComponent(componentBin, componentSize, componentProgMask, componentDataMask, NULL);
+	if (R_FAILED(rc)) goto _fail2;
+
 	rc = ndspInitialize(false);
 	if (R_FAILED(rc)) goto _fail2;
 
@@ -489,7 +481,7 @@ Result ndspInit(void)
 	ndspThread = threadCreate(ndspThreadMain, 0x0, NDSP_THREAD_STACK_SIZE, 0x18, -2, true);
 	if (!ndspThread) goto _fail3;
 
-	aptHook(&aptCookie, ndspAptHook, NULL);
+	dspHook(&ndspHookCookie, ndspHookCallback);
 	return 0;
 
 _fail3:
@@ -518,7 +510,7 @@ void ndspExit(void)
 		LightEvent_Signal(&sleepEvent);
 	}
 	threadJoin(ndspThread, U64_MAX);
-	aptUnhook(&aptCookie);
+	dspUnhook(&ndspHookCookie);
 	if (!bSleeping)
 		ndspFinalize(false);
 	bSleeping = false;

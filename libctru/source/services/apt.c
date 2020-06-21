@@ -55,6 +55,7 @@ enum
 	FLAG_CANCELLED    = BIT(10),
 
 	// Miscellaneous
+	FLAG_DSPWAKEUP    = BIT(29),
 	FLAG_CHAINLOAD    = BIT(30),
 	FLAG_SPURIOUS     = BIT(31),
 };
@@ -86,6 +87,11 @@ __attribute__((weak)) void _aptDebug(int a, int b) { }
 #else
 #define _aptDebug(a,b) ((void)0)
 #endif
+
+// APT<->DSP interaction functions (stubbed when not using DSP)
+__attribute__((weak)) bool aptDspSleep(void) { return false; }
+__attribute__((weak)) void aptDspWakeup(void) { }
+__attribute__((weak)) void aptDspCancel(void) { }
 
 static void aptCallHook(APT_HookType hookType)
 {
@@ -448,16 +454,34 @@ void aptEventHandler(void *arg)
 			//   - APTCMD_DSP_SLEEP  (*NOT* cancelled afterwards)
 			//   - APTCMD_DSP_WAKEUP (*NOT* cancelled afterwards)
 
-			// We will instead only handle spurious APTCMD_WAKEUP_PAUSE parameters
-			// (see aptInit for more details on the hax 2.x spurious wakeup problem)
-			if (cmd == APTCMD_WAKEUP_PAUSE && (aptFlags & FLAG_SPURIOUS))
+			// We will handle the following:
+			switch (cmd)
 			{
-				APT_CancelParameter(APPID_NONE, envGetAptAppId(), NULL);
-				aptFlags &= ~FLAG_SPURIOUS;
-				continue;
+				case APTCMD_DSP_SLEEP:
+					// Handle DSP sleep requests
+					aptDspSleep();
+					break;
+				case APTCMD_DSP_WAKEUP:
+					// Handle DSP wakeup requests
+					aptFlags &= ~FLAG_DSPWAKEUP;
+					aptDspWakeup();
+					break;
+				case APTCMD_WAKEUP_PAUSE:
+					// Handle spurious APTCMD_WAKEUP_PAUSE parameters
+					// (see aptInit for more details on the hax 2.x spurious wakeup problem)
+					if (aptFlags & FLAG_SPURIOUS)
+					{
+						APT_CancelParameter(APPID_NONE, envGetAptAppId(), NULL);
+						aptFlags &= ~FLAG_SPURIOUS;
+						break;
+					}
+					// Fallthrough otherwise
+				default:
+					// Others not accounted for -> pass it on to aptReceiveParameter
+					LightEvent_Signal(&aptReceiveEvent);
+					break;
 			}
 
-			LightEvent_Signal(&aptReceiveEvent);
 			continue;
 		}
 
@@ -505,6 +529,8 @@ void aptEventHandler(void *arg)
 				break;
 			case APTSIGNAL_SLEEP_ENTER:
 				_aptDebug(10, aptFlags);
+				if (aptDspSleep())
+					aptFlags |= FLAG_DSPWAKEUP;
 				if (aptIsActive())
 					aptFlags |= FLAG_SHOULDSLEEP;
 				else
@@ -512,6 +538,11 @@ void aptEventHandler(void *arg)
 					APT_ReplySleepNotificationComplete(envGetAptAppId());
 				break;
 			case APTSIGNAL_SLEEP_WAKEUP:
+				if (aptFlags & FLAG_DSPWAKEUP)
+				{
+					aptFlags &= ~FLAG_DSPWAKEUP;
+					aptDspWakeup();
+				}
 				if (!aptIsActive())
 					break;
 				if (aptFlags & FLAG_SLEEPING)
@@ -589,8 +620,16 @@ APT_Command aptWaitForWakeUp(APT_Transition transition)
 		aptCallHook(APTHOOK_ONRESTORE);
 	}
 
-	if (cmd == APTCMD_WAKEUP_CANCEL)
-		aptFlags |= FLAG_CANCELLED;
+	if (cmd == APTCMD_WAKEUP_CANCEL || cmd == APTCMD_WAKEUP_CANCELALL)
+	{
+		aptDspCancel();
+		if (cmd == APTCMD_WAKEUP_CANCEL) // for some reason, not for CANCELALL... is this a bug in official sw?
+			aptFlags |= FLAG_CANCELLED;
+	} else if (cmd != APTCMD_WAKEUP_LAUNCHAPP)
+	{
+		aptFlags &= ~FLAG_DSPWAKEUP;
+		aptDspWakeup();
+	}
 
 	if (cmd != APTCMD_WAKEUP_JUMPTOHOME)
 	{
@@ -732,6 +771,7 @@ void aptJumpToHomeMenu(void)
 
 	GSPGPU_SaveVramSysArea();
 	aptScreenTransfer(aptGetMenuAppID(), true);
+	aptDspSleep();
 	GSPGPU_ReleaseRight();
 
 	APT_JumpToHomeMenu(NULL, 0, 0);

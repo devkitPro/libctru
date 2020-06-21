@@ -13,12 +13,23 @@ typedef enum
 	DSP_INTERRUPT_PIPE = 2 ///< Pipe interrupt.
 } DSP_InterruptType;
 
-/// DSP pipe directions.
+/// DSP hook types.
 typedef enum
 {
-	DSP_PIPE_INPUT  = 0, ///< DSP to ARM
-	DSP_PIPE_OUTPUT = 1  ///< ARM to DSP
-} DSP_PipeDirection;
+	DSPHOOK_ONSLEEP  = 0, ///< DSP is going to sleep.
+	DSPHOOK_ONWAKEUP = 1, ///< DSP is waking up.
+	DSPHOOK_ONCANCEL = 2, ///< DSP was sleeping and the app was cancelled.
+} DSP_HookType;
+
+/// DSP hook function.
+typedef void (* dspHookFn)(DSP_HookType hook);
+
+/// DSP hook cookie.
+typedef struct tag_dspHookCookie
+{
+	struct tag_dspHookCookie* next; ///< Next cookie.
+	dspHookFn callback;             ///< Hook callback.
+} dspHookCookie;
 
 /**
  * @brief Initializes the dsp service.
@@ -34,6 +45,22 @@ Result dspInit(void);
  * @note This will also unload the DSP binary.
  */
 void dspExit(void);
+
+/// Returns true if a component is loaded, false otherwise.
+bool dspIsComponentLoaded(void);
+
+/**
+ * @brief Sets up a DSP status hook.
+ * @param cookie Hook cookie to use.
+ * @param callback Function to call when DSP's status changes.
+ */
+void dspHook(dspHookCookie* cookie, dspHookFn callback);
+
+/**
+ * @brief Removes a DSP status hook.
+ * @param cookie Hook cookie to remove.
+ */
+void dspUnhook(dspHookCookie* cookie);
 
 /**
  * @brief Checks if a headphone is inserted.
