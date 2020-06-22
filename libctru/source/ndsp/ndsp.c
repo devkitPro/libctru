@@ -9,7 +9,7 @@
 u16 ndspFrameId, ndspBufferCurId, ndspBufferId;
 void* ndspVars[16][2];
 
-static bool bDspReady = false, bSleeping = false, bActuallySleeping = false, bNeedsSync = false;
+static bool bDspReady, bEnteringSleep, bSleeping, bCancelReceived;
 static u32 droppedFrames, frameCount;
 
 static const void* componentBin;
@@ -28,12 +28,31 @@ static u8 dspVar5Backup[0x1080];
 static volatile bool ndspThreadRun;
 static Thread ndspThread;
 
-static inline void ndspWaitForIrq(void)
+static inline bool ndspWaitForIrq(u64 timeout_ns)
 {
 	LightLock_Lock(&ndspMutex);
-	svcWaitSynchronization(irqEvent, U64_MAX);
-	svcClearEvent(irqEvent);
+
+	// BUG: Official sw has a race condition here when entering sleep mode. DSP state might
+	// have already been torn down, and thus this ends up waiting on an invalid (0) handle.
+	// There's code that tries to panic if an error happens, however said error handler fails
+	// to actually panic because it checks that the result code level is specifically 'Fatal'.
+	// Note that the "invalid handle" result code has a 'Permanent' level...
+	// We will instead handle invalid handles properly and immediately return.
+	bool waitOk = false;
+	if (irqEvent)
+	{
+		Result rc = svcWaitSynchronization(irqEvent, timeout_ns);
+		if (R_FAILED(rc))
+			svcBreak(USERBREAK_PANIC); // Shouldn't happen.
+
+		waitOk = R_DESCRIPTION(rc) != RD_TIMEOUT;
+	}
+
+	if (waitOk)
+		svcClearEvent(irqEvent);
+
 	LightLock_Unlock(&ndspMutex);
+	return waitOk;
 }
 
 static inline void ndspSetCounter(int a, int counter)
@@ -95,12 +114,24 @@ static void ndspInitMaster(void)
 {
 	memset(&ndspMaster, 0, sizeof(ndspMaster));
 	LightLock_Init(&ndspMaster.lock);
+	ndspMaster.flags = ~0;
 	ndspMaster.masterVol = 1.0f;
 	ndspMaster.outputMode = NDSP_OUTPUT_STEREO;
 	ndspMaster.clippingMode = NDSP_CLIP_SOFT;
 	ndspMaster.outputCount = 2;
 	ndspMaster.surround.depth = 0x7FFF;
 	ndspMaster.surround.rearRatio = 0x8000;
+
+	// Use the output mode set in system settings, if available
+	Result rc = cfguInit();
+	if (R_SUCCEEDED(rc))
+	{
+		u8 outMode;
+		rc = CFGU_GetConfigInfoBlk2(sizeof(outMode), 0x70001, &outMode);
+		if (R_SUCCEEDED(rc))
+			ndspMaster.outputMode = outMode;
+		cfguExit();
+	}
 }
 
 static void ndspUpdateMaster(void)
@@ -206,7 +237,7 @@ static Result ndspInitialize(bool resume)
 	rc = svcCreateEvent(&irqEvent, RESET_STICKY);
 	if (R_FAILED(rc)) goto _fail1;
 
-	rc = DSP_RegisterInterruptEvents(irqEvent, 2, 2);
+	rc = DSP_RegisterInterruptEvents(irqEvent, DSP_INTERRUPT_PIPE, 2);
 	if (R_FAILED(rc)) goto _fail2;
 
 	rc = DSP_GetSemaphoreHandle(&dspSem);
@@ -214,42 +245,49 @@ static Result ndspInitialize(bool resume)
 
 	DSP_SetSemaphoreMask(0x2000);
 
-	u16 val = resume ? 2 : 0;
 	if (resume)
+	{
 		memcpy(ndspVars[5][0], dspVar5Backup, sizeof(dspVar5Backup));
+		__dsb();
+	}
+
+	u16 val = resume ? 2 : 0;
 	DSP_WriteProcessPipe(2, &val, 4);
+
 	DSP_SetSemaphore(0x4000);
-	ndspWaitForIrq();
+	ndspWaitForIrq(U64_MAX);
 
 	DSP_ReadPipeIfPossible(2, 0, &val, sizeof(val), NULL);
+
 	u16 vars[16];
 	DSP_ReadPipeIfPossible(2, 0, vars, val*2, NULL);
-	int i;
-	for (i = 0; i < val; i ++)
+	for (unsigned i = 0; i < val; i ++)
 	{
 		DSP_ConvertProcessAddressFromDspDram(vars[i],           (u32*)&ndspVars[i][0]);
 		DSP_ConvertProcessAddressFromDspDram(vars[i] | 0x10000, (u32*)&ndspVars[i][1]);
 	}
 
 	DSP_SetSemaphore(0x4000);
+	frameCount = 0;
 	ndspFrameId = 4;
 	ndspSetCounter(0, 4);
 	ndspFrameId++;
 	svcSignalEvent(dspSem);
+
 	ndspBufferCurId = ndspFrameId & 1;
 	ndspBufferId = ndspFrameId & 1;
 	bDspReady = true;
-
-	ndspDirtyMaster();
-	ndspUpdateMaster();
 
 	if (resume)
 	{
 		ndspiDirtyChn();
 		ndspiUpdateChn();
-		// Force update effect params here
-	}
 
+		ndspDirtyMaster();
+		ndspUpdateMaster();
+
+		// TODO: force update effect params
+	}
 	return 0;
 
 _fail3:
@@ -262,28 +300,36 @@ _fail1:
 
 static void ndspFinalize(bool suspend)
 {
-	LightLock_Lock(&ndspMutex);
 	u16 val = suspend ? 3 : 1;
 	DSP_WriteProcessPipe(2, &val, 4);
+
 	for (;;)
 	{
-		bool ready;
+		bool ready = false;
 		DSP_RecvDataIsReady(0, &ready);
 		if (ready)
 		{
+			val = 0;
 			DSP_RecvData(0, &val);
 			if (val == 1)
 				break;
 		}
+		svcSleepThread(4888000); // 4.888ms (approx. one sound frame)
 	}
+
 	if (suspend)
 		memcpy(dspVar5Backup, ndspVars[5][0], sizeof(dspVar5Backup));
 
-	DSP_RegisterInterruptEvents(0, 2, 2);
-	svcCloseHandle(irqEvent);
-	svcCloseHandle(dspSem);
-
+	LightLock_Lock(&ndspMutex);
 	bDspReady = false;
+
+	svcCloseHandle(irqEvent);
+	irqEvent = 0;
+	DSP_RegisterInterruptEvents(0, DSP_INTERRUPT_PIPE, 2);
+
+	svcCloseHandle(dspSem);
+	dspSem = 0;
+
 	LightLock_Unlock(&ndspMutex);
 }
 
@@ -291,21 +337,38 @@ static void ndspHookCallback(DSP_HookType hook)
 {
 	switch (hook)
 	{
-		case DSPHOOK_ONWAKEUP:
-			bSleeping = false;
-			Result res = ndspInitialize(true);
-			if (R_FAILED(res))
-				svcBreak(USERBREAK_PANIC); // Shouldn't happen.
-			if (bActuallySleeping)
+		case DSPHOOK_ONSLEEP:
+			if (!bSleeping)
 			{
-				bActuallySleeping = false;
+				bEnteringSleep = true;
+				ndspFinalize(true);
+				bSleeping = true;
+			}
+			break;
+
+		case DSPHOOK_ONWAKEUP:
+			if (bSleeping)
+			{
+				Result res = ndspInitialize(true);
+				if (R_FAILED(res))
+					svcBreak(USERBREAK_PANIC); // Shouldn't happen.
+
+				bSleeping = false;
+				bEnteringSleep = false;
+				__dsb();
 				LightEvent_Signal(&sleepEvent);
 			}
 			break;
 
-		case DSPHOOK_ONSLEEP:
-			bSleeping = true;
-			ndspFinalize(true);
+		case DSPHOOK_ONCANCEL:
+			if (bSleeping)
+			{
+				bCancelReceived = true;
+				bSleeping = false;
+				bEnteringSleep = false;
+				__dsb();
+				LightEvent_Signal(&sleepEvent);
+			}
 			break;
 
 		default:
@@ -315,13 +378,36 @@ static void ndspHookCallback(DSP_HookType hook)
 
 static void ndspSync(void)
 {
-	if (bSleeping)
+	// If we are about to sleep...
+	if (bEnteringSleep)
 	{
-		bActuallySleeping = true;
-		LightEvent_Wait(&sleepEvent);
+		// Check whether the DSP is still running by attempting to wait with a timeout
+		if (ndspWaitForIrq(9776000)) // 9.776ms (approx. two sound frames)
+			goto _receiveState; // it's not, so just proceed as usual
+
+		// The wait failed, so the DSP is indeed sleeping
+		bSleeping = true;
 	}
 
-	ndspWaitForIrq();
+	// If we are sleeping, wait for the DSP to wake up
+	if (bSleeping)
+	{
+		LightEvent_Wait(&sleepEvent);
+		LightEvent_Clear(&sleepEvent);
+	}
+
+	// If we were cancelled, do a dummy wait instead
+	if (bCancelReceived)
+	{
+		svcSleepThread(4888000); // 4.888ms (approx. one sound frame)
+		return;
+	}
+
+	// In any other case - wait for the DSP to notify us
+	ndspWaitForIrq(U64_MAX);
+
+_receiveState:
+	// Receive and update state (if the DSP is ready)
 	if (bDspReady)
 	{
 		int counter = ndspGetCounter(~ndspFrameId & 1);
@@ -335,7 +421,6 @@ static void ndspSync(void)
 			ndspUpdateCapture((s16*)ndspVars[6][ndspBufferId], 160);
 			droppedFrames += *((u16*)ndspVars[5][ndspBufferId] + 1);
 		}
-		bNeedsSync = false;
 	}
 }
 
@@ -346,19 +431,15 @@ static void ndspThreadMain(void* arg)
 	{
 		ndspSync();
 
-		// Call callbacks here
 		if (ndspMaster.callback)
 			ndspMaster.callback(ndspMaster.callbackData);
 
-		if (bSleeping || !bDspReady)
+		if (bSleeping || bCancelReceived || !bDspReady)
 			continue;
 
-		if (bNeedsSync)
-			ndspSync();
-
 		ndspUpdateMaster();
-		// Call aux user callback here if enabled
-		// Execute DSP effects here
+		// TODO: call aux user callback if enabled
+		// TODO: execute DSP effects
 		ndspiUpdateChn();
 
 		ndspSetCounter(ndspBufferCurId, ndspFrameId++);
@@ -366,7 +447,6 @@ static void ndspThreadMain(void* arg)
 		ndspBufferCurId = ndspFrameId & 1;
 
 		frameCount++;
-		bNeedsSync = true;
 	}
 }
 
@@ -454,18 +534,7 @@ Result ndspInit(void)
 	}
 
 	LightLock_Init(&ndspMutex);
-	ndspInitMaster();
-	ndspiInitChn();
-
-	rc = cfguInit();
-	if (R_SUCCEEDED(rc))
-	{
-		u8 outMode;
-		rc = CFGU_GetConfigInfoBlk2(sizeof(outMode), 0x70001, &outMode);
-		if (R_SUCCEEDED(rc))
-			ndspMaster.outputMode = outMode;
-		cfguExit();
-	}
+	LightEvent_Init(&sleepEvent, RESET_STICKY);
 
 	rc = dspInit();
 	if (R_FAILED(rc)) goto _fail1;
@@ -476,7 +545,10 @@ Result ndspInit(void)
 	rc = ndspInitialize(false);
 	if (R_FAILED(rc)) goto _fail2;
 
-	LightEvent_Init(&sleepEvent, RESET_ONESHOT);
+	ndspiInitChn();
+	ndspInitMaster();
+	ndspUpdateMaster(); // official sw does this upfront, not sure what's the point
+	// TODO: initialize effect params
 
 	ndspThread = threadCreate(ndspThreadMain, 0x0, NDSP_THREAD_STACK_SIZE, 0x18, -2, true);
 	if (!ndspThread) goto _fail3;
@@ -502,20 +574,19 @@ _fail0:
 void ndspExit(void)
 {
 	if (AtomicDecrement(&ndspRefCount)) return;
-	if (!bDspReady) return;
+
 	ndspThreadRun = false;
-	if (bActuallySleeping)
-	{
-		bActuallySleeping = false;
-		LightEvent_Signal(&sleepEvent);
-	}
 	threadJoin(ndspThread, U64_MAX);
+
 	dspUnhook(&ndspHookCookie);
-	if (!bSleeping)
+	if (!bCancelReceived)
 		ndspFinalize(false);
+
+	bEnteringSleep = false;
 	bSleeping = false;
-	bNeedsSync = false;
+	bCancelReceived = false;
 	dspExit();
+
 	if (componentFree)
 	{
 		free((void*)componentBin);
