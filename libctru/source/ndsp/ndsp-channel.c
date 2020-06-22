@@ -53,7 +53,11 @@ void ndspChnReset(int id)
 	chn->syncCount ++;
 	chn->waveBufSeqPos = 0;
 	chn->samplePos = 0;
-	chn->waveBuf = NULL;
+	while (chn->waveBuf)
+	{
+		chn->waveBuf->status = NDSP_WBUF_DONE;
+		chn->waveBuf = chn->waveBuf->next;
+	}
 	chn->wavBufCount = 0;
 	chn->wavBufIdNext = 0;
 	chn->wavBufSeq = 0;
@@ -150,7 +154,11 @@ void ndspChnWaveBufClear(int id)
 {
 	ndspChnSt* chn = &ndspChn[id];
 	LightLock_Lock(&chn->lock);
-	chn->waveBuf = NULL;
+	while (chn->waveBuf)
+	{
+		chn->waveBuf->status = NDSP_WBUF_DONE;
+		chn->waveBuf = chn->waveBuf->next;
+	}
 	chn->waveBufSeqPos = 0;
 	chn->wavBufCount = 0;
 	chn->wavBufIdNext = 0;
@@ -167,6 +175,12 @@ void ndspChnWaveBufAdd(int id, ndspWaveBuf* buf)
 	if (!buf->nsamples) return;
 
 	LightLock_Lock(&chn->lock);
+	if (buf->status == NDSP_WBUF_QUEUED || buf->status == NDSP_WBUF_PLAYING)
+	{
+		// Wavebuf is already queued, avoid requeuing it...
+		LightLock_Unlock(&chn->lock);
+		return;
+	}
 	buf->next = NULL;
 	buf->status = NDSP_WBUF_QUEUED;
 	ndspWaveBuf* cb = chn->waveBuf;
@@ -275,6 +289,7 @@ void ndspiInitChn(void)
 	{
 		LightLock_Init(&ndspChn[i].lock);
 		ndspChn[i].syncCount = 0;
+		ndspChn[i].waveBuf = NULL;
 		ndspChnReset(i);
 	}
 }
@@ -464,31 +479,37 @@ void ndspiReadChnState(void)
 				if (wb)
 				{
 					ndspWaveBuf* doneList = NULL;
-					if (chn->wavBufCount)
+					while (chn->wavBufCount)
 					{
-						while (wb->sequence_id != seqId)
+						u16 wbSeqId = wb->sequence_id;
+						if (wbSeqId == seqId)
 						{
-							chn->wavBufCount--;
-							bool shouldBreak = seqId == 0 && (wb->sequence_id == st->lastSeqId || st->lastSeqId == 0);
-							ndspWaveBuf* next = wb->next;
-							wb->next = doneList;
-							doneList = wb;
-							wb = next;
-							if (!wb || shouldBreak || chn->wavBufCount == 0)
-								break;
-						}
-						if (wb)
 							wb->status = NDSP_WBUF_PLAYING;
+							break;
+						}
+
+						chn->wavBufCount--;
+						ndspWaveBuf* next = wb->next;
+						wb->next = doneList;
+						doneList = wb;
+						wb = next;
+
+						if (seqId == 0 && (wbSeqId == st->lastSeqId || st->lastSeqId == 0))
+							break;
 					}
+
 					if (seqId == 0)
 						chn->wavBufCount = 0;
+
+					__dmb();
+
 					chn->waveBuf = wb;
 					for (; doneList; doneList = doneList->next)
 						doneList->status = NDSP_WBUF_DONE;
 				}
 				LightLock_Unlock(&chn->lock);
 			}
-			chn->playing = (st->flags & 0xFF) ? true : false;
+			chn->playing = (st->flags & 0xFF) == 1;
 		}
 	}
 }
