@@ -267,6 +267,14 @@ void LightSemaphore_Init(LightSemaphore* semaphore, s16 initial_count, s16 max_c
 void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count);
 
 /**
+ * @brief Attempts to acquire a light semaphore.
+ * @param semaphore Pointer to the semaphore.
+ * @param count Acquire count
+ * @return Zero on success, non-zero on failure
+ */
+int LightSemaphore_TryAcquire(LightSemaphore* semaphore, s32 count);
+
+/**
  * @brief Releases a light semaphore.
  * @param semaphore Pointer to the semaphore.
  * @param count Release count

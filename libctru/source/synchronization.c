@@ -251,7 +251,7 @@ void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count)
 		for (;;)
 		{
 			old_count = __ldrex(&semaphore->current_count);
-			if (old_count > 0)
+			if (old_count >= count)
 				break;
 			__clrex();
 
@@ -266,6 +266,22 @@ void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count)
 			while (__strexh((u16 *)&semaphore->num_threads_acq, num_threads_acq - 1));
 		}
 	} while (__strex(&semaphore->current_count, old_count - count));
+}
+
+int LightSemaphore_TryAcquire(LightSemaphore* semaphore, s32 count)
+{
+	s32 old_count;
+	do
+	{
+		old_count = __ldrex(&semaphore->current_count);
+		if (old_count < count)
+		{
+			__clrex();
+			return 1; // failure
+		}
+	} while (__strex(&semaphore->current_count, old_count - count));
+	
+	return 0; // success
 }
 
 void LightSemaphore_Release(LightSemaphore* semaphore, s32 count)
