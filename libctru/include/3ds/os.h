@@ -75,7 +75,7 @@ void* osConvertOldLINEARMemToNew(const void* vaddr);
  *
  * This can be used to get some details about an error returned by a service call.
  */
-const char* osStrError(u32 error);
+const char* osStrError(Result error);
 
 /**
  * @brief Gets the system's FIRM version.

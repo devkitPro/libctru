@@ -119,30 +119,32 @@ double osTickCounterRead(const TickCounter* cnt) {
 }
 
 //---------------------------------------------------------------------------------
-const char* osStrError(u32 error) {
+const char* osStrError(Result error) {
 //---------------------------------------------------------------------------------
-	switch((error>>26) & 0x3F) {
-	case 0:
+	switch(R_SUMMARY(error)) {
+	case RS_SUCCESS:
 		return "Success.";
-	case 1:
+	case RS_NOP:
 		return "Nothing happened.";
-	case 2:
+	case RS_WOULDBLOCK:
 		return "Would block.";
-	case 3:
+	case RS_OUTOFRESOURCE:
 		return "Not enough resources.";
-	case 4:
+	case RS_NOTFOUND:
 		return "Not found.";
-	case 5:
+	case RS_INVALIDSTATE:
 		return "Invalid state.";
-	case 6:
+	case RS_NOTSUPPORTED:
 		return "Unsupported.";
-	case 7:
+	case RS_INVALIDARG:
 		return "Invalid argument.";
-	case 8:
+	case RS_WRONGARG:
 		return "Wrong argument.";
-	case 9:
-		return "Interrupted.";
-	case 10:
+	case RS_CANCELED:
+		return "Cancelled.";
+	case RS_STATUSCHANGED:
+		return "Status changed.";
+	case RS_INTERNAL:
 		return "Internal error.";
 	default:
 		return "Unknown.";
