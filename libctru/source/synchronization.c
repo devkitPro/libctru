@@ -18,7 +18,7 @@ void __sync_fini(void)
 
 Result syncArbitrateAddress(s32* addr, ArbitrationType type, s32 value)
 {
-	return svcArbitrateAddress(arbiter, (u32)addr, type, value, 0);
+	return svcArbitrateAddressNoTimeout(arbiter, (u32)addr, type, value);
 }
 
 Result syncArbitrateAddressWithTimeout(s32* addr, ArbitrationType type, s32 value, s64 timeout_ns)

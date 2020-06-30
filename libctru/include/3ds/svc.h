@@ -915,9 +915,22 @@ Result svcCreateAddressArbiter(Handle *arbiter);
  * @param addr A pointer to a s32 value.
  * @param type Type of action to be performed by the arbiter
  * @param value Number of threads to signal if using @ref ARBITRATION_SIGNAL, or the value used for comparison.
- * @warning Please use \ref syncArbitrateAddress or \ref syncArbitrateAddressWithTimeout instead.
+ * @param timeout_ns Optional timeout in nanoseconds when using TIMEOUT actions, ignored otherwise. If not needed, use \ref svcArbitrateAddressNoTimeout instead.
+ * @note Usage of this syscall entails an implicit Data Memory Barrier (dmb).
+ * @warning Please use \ref syncArbitrateAddressWithTimeout instead.
  */
-Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 nanoseconds);
+Result svcArbitrateAddress(Handle arbiter, u32 addr, ArbitrationType type, s32 value, s64 timeout_ns);
+
+/**
+ * @brief Same as \ref svcArbitrateAddress but with the timeout_ns parameter undefined.
+ * @param arbiter Handle of the arbiter
+ * @param addr A pointer to a s32 value.
+ * @param type Type of action to be performed by the arbiter
+ * @param value Number of threads to signal if using @ref ARBITRATION_SIGNAL, or the value used for comparison.
+ * @note Usage of this syscall entails an implicit Data Memory Barrier (dmb).
+ * @warning Please use \ref syncArbitrateAddress instead.
+ */
+Result svcArbitrateAddressNoTimeout(Handle arbiter, u32 addr, ArbitrationType type, s32 value);
 
 /**
  * @brief Sends a synchronized request to a session handle.

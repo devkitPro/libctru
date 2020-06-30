@@ -144,6 +144,8 @@ static inline bool __strexb(u8* addr, u8 val)
  * // Does *nothing* since val >= 0
  * syncArbitrateAddress(&val,ARBITRATION_WAIT_IF_LESS_THAN,0);
  * @endcode
+ *
+ * @note Usage of this function entails an implicit Data Memory Barrier (dmb).
  */
 Result syncArbitrateAddress(s32* addr, ArbitrationType type, s32 value);
 
@@ -160,6 +162,8 @@ Result syncArbitrateAddress(s32* addr, ArbitrationType type, s32 value);
  * // Thread will wait for a signal or wake up after 10000000 nanoseconds because val < 1.
  * syncArbitrateAddressWithTimeout(&val,ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT,1,10000000LL);
  * @endcode
+ *
+ * @note Usage of this function entails an implicit Data Memory Barrier (dmb).
  */
 Result syncArbitrateAddressWithTimeout(s32* addr, ArbitrationType type, s32 value, s64 timeout_ns);
 

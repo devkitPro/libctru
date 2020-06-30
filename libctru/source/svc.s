@@ -249,6 +249,11 @@ SVC_BEGIN svcArbitrateAddress
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcArbitrateAddressNoTimeout
+	svc 0x22
+	bx  lr
+SVC_END
+
 SVC_BEGIN svcCloseHandle
 	svc 0x23
 	bx  lr
