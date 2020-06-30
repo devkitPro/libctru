@@ -43,6 +43,7 @@ void LightLock_Lock(LightLock* lock)
 	{
 		// Read the current lock state
 		val = __ldrex(lock);
+		if (val == 0) val = 1; // 0 is an invalid state - treat it as 1 (unlocked)
 		bAlreadyLocked = val < 0;
 
 		// Calculate the desired next state of the lock
@@ -76,6 +77,8 @@ void LightLock_Lock(LightLock* lock)
 			}
 		} while (__strex(lock, val));
 	}
+
+	__dmb();
 }
 
 int LightLock_TryLock(LightLock* lock)
@@ -84,17 +87,22 @@ int LightLock_TryLock(LightLock* lock)
 	do
 	{
 		val = __ldrex(lock);
+		if (val == 0) val = 1; // 0 is an invalid state - treat it as 1 (unlocked)
 		if (val < 0)
 		{
 			__clrex();
 			return 1; // Failure
 		}
 	} while (__strex(lock, -val));
+
+	__dmb();
 	return 0; // Success
 }
 
 void LightLock_Unlock(LightLock* lock)
 {
+	__dmb();
+
 	s32 val;
 	do
 		val = -__ldrex(lock);
@@ -154,6 +162,7 @@ static inline void LightEvent_SetState(LightEvent* event, int state)
 
 static inline int LightEvent_TryReset(LightEvent* event)
 {
+	__dmb();
 	do
 	{
 		if (__ldrex(&event->state))
@@ -162,6 +171,7 @@ static inline int LightEvent_TryReset(LightEvent* event)
 			return 0;
 		}
 	} while (__strex(&event->state, -1));
+	__dmb();
 	return 1;
 }
 
@@ -179,7 +189,11 @@ void LightEvent_Clear(LightEvent* event)
 		LightEvent_SetState(event, -2);
 		LightLock_Unlock(&event->lock);
 	} else if (event->state == 0)
+	{
+		__dmb();
 		LightEvent_SetState(event, -1);
+		__dmb();
+	}
 }
 
 void LightEvent_Pulse(LightEvent* event)
@@ -196,6 +210,7 @@ void LightEvent_Signal(LightEvent* event)
 {
 	if (event->state == -1)
 	{
+		__dmb();
 		LightEvent_SetState(event, 0);
 		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, 1);
 	} else if (event->state == -2)
@@ -266,6 +281,8 @@ void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count)
 			while (__strexh((u16 *)&semaphore->num_threads_acq, num_threads_acq - 1));
 		}
 	} while (__strex(&semaphore->current_count, old_count - count));
+
+	__dmb();
 }
 
 int LightSemaphore_TryAcquire(LightSemaphore* semaphore, s32 count)
@@ -280,12 +297,15 @@ int LightSemaphore_TryAcquire(LightSemaphore* semaphore, s32 count)
 			return 1; // failure
 		}
 	} while (__strex(&semaphore->current_count, old_count - count));
-	
+
+	__dmb();
 	return 0; // success
 }
 
 void LightSemaphore_Release(LightSemaphore* semaphore, s32 count)
 {
+	__dmb();
+
 	s32 old_count, new_count;
 	do
 	{
