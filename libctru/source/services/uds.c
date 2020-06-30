@@ -55,7 +55,7 @@ Result udsInit(size_t sharedmem_size, const char *username)
 	if(R_SUCCEEDED(ret))
 	{
 		ndm_state = 1;
-		ret = NDMU_EnterExclusiveState(EXCLUSIVE_STATE_LOCAL_COMMUNICATIONS);
+		ret = NDMU_EnterExclusiveState(NDM_EXCLUSIVE_STATE_LOCAL_COMMUNICATIONS);
 		if(R_SUCCEEDED(ret))
 		{
 			ndm_state = 2;
