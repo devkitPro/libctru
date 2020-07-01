@@ -52,9 +52,72 @@
 #define OS_DSPRAM_PADDR    0x1FF00000 ///< DSP memory physical address
 #define OS_DSPRAM_SIZE     0x80000    ///< DSP memory size (512 KiB)
 
+#define OS_KERNELCFG_VADDR 0x1FF80000 ///< Kernel configuration page virtual address
+#define OS_SHAREDCFG_VADDR 0x1FF81000 ///< Shared system configuration page virtual address
+
 #define OS_FCRAM_VADDR     0x30000000 ///< Linear FCRAM mapping virtual address
 #define OS_FCRAM_PADDR     0x20000000 ///< Linear FCRAM mapping physical address
 #define OS_FCRAM_SIZE      0x10000000 ///< Linear FCRAM mapping size (256 MiB)
+
+#define OS_KernelConfig ((osKernelConfig_s const*)OS_KERNELCFG_VADDR) ///< Pointer to the kernel configuration page (see \ref osKernelConfig_s)
+#define OS_SharedConfig ((osSharedConfig_s*)OS_SHAREDCFG_VADDR)       ///< Pointer to the shared system configuration page (see \ref osSharedConfig_s)
+
+/// Kernel configuration page (read-only).
+typedef struct
+{
+	u32 kernel_ver;
+	u32 update_flag;
+	u64 ns_tid;
+	u32 kernel_syscore_ver;
+	u8  env_info;
+	u8  unit_info;
+	u8  boot_env;
+	u8  unk_0x17;
+	u32 kernel_ctrsdk_ver;
+	u32 unk_0x1c;
+	u32 firmlaunch_flags;
+	u8  unk_0x24[0xc];
+	u32 app_memtype;
+	u8  unk_0x34[0x10];
+	u32 memregion_sz[3];
+	u8  unk_0x4c[0x14];
+	u32 firm_ver;
+	u32 firm_syscore_ver;
+	u32 firm_ctrsdk_ver;
+} osKernelConfig_s;
+
+/// Time reference information struct (filled in by PTM).
+typedef struct
+{
+	u64 value_ms;   ///< Milliseconds elapsed since January 1900 when this structure was last updated
+	u64 value_tick; ///< System ticks elapsed since boot when this structure was last updated
+	s64 sysclock_hz;///< System clock frequency in Hz adjusted using RTC measurements (usually around \ref SYSCLOCK_ARM11)
+	s64 drift_ms;   ///< Measured time drift of the system clock (according to the RTC) in milliseconds since the last update
+} osTimeRef_s;
+
+/// Shared system configuration page structure (read-only or read-write depending on exheader).
+typedef struct
+{
+	vu32 timeref_cnt;
+	u8   running_hw;
+	u8   mcu_hwinfo;
+	u8   unk_0x06[0x1A];
+	volatile osTimeRef_s timeref[2];
+	u8   wifi_macaddr[6];
+	vu8  wifi_strength;
+	vu8  network_state;
+	u8   unk_0x68[0x18];
+	volatile float slider_3d;
+	vu8  led_3d;
+	vu8  led_battery;
+	vu8  unk_flag;
+	u8   unk_0x87;
+	u8   unk_0x88[0x18];
+	vu64 menu_tid;
+	vu64 cur_menu_tid;
+	u8   unk_0xB0[0x10];
+	vu8  headset_connected;
+} osSharedConfig_s;
 
 /// Tick counter.
 typedef struct
@@ -106,7 +169,7 @@ const char* osStrError(Result error);
  */
 static inline u32 osGetFirmVersion(void)
 {
-	return (*(vu32*)0x1FF80060) & ~0xFF;
+	return OS_KernelConfig->firm_ver &~ 0xFF;
 }
 
 /**
@@ -121,19 +184,19 @@ static inline u32 osGetFirmVersion(void)
  */
 static inline u32 osGetKernelVersion(void)
 {
-	return (*(vu32*)0x1FF80000) & ~0xFF;
+	return OS_KernelConfig->kernel_ver &~ 0xFF;
 }
 
 /// Gets the system's "core version" (2 on NATIVE_FIRM, 3 on SAFE_FIRM, etc.)
 static inline u32 osGetSystemCoreVersion(void)
 {
-	return *(vu32*)0x1FF80010;
+	return OS_KernelConfig->kernel_syscore_ver;
 }
 
 /// Gets the system's memory layout ID (0-5 on Old 3DS, 6-8 on New 3DS)
 static inline u32 osGetApplicationMemType(void)
 {
-	return *(vu32*)0x1FF80030;
+	return OS_KernelConfig->app_memtype;
 }
 
 /**
@@ -146,7 +209,7 @@ static inline u32 osGetMemRegionSize(MemRegion region)
 	if(region == MEMREGION_ALL) {
 		return osGetMemRegionSize(MEMREGION_APPLICATION) + osGetMemRegionSize(MEMREGION_SYSTEM) + osGetMemRegionSize(MEMREGION_BASE);
 	} else {
-		return *(vu32*) (0x1FF80040 + (region - 1) * 0x4);
+		return OS_KernelConfig->memregion_sz[region-1];
 	}
 }
 
@@ -171,6 +234,12 @@ static inline u32 osGetMemRegionFree(MemRegion region)
 {
 	return osGetMemRegionSize(region) - osGetMemRegionUsed(region);
 }
+
+/**
+ * @brief Reads the latest reference timepoint published by PTM.
+ * @return Structure (see \ref osTimeRef_s).
+ */
+osTimeRef_s osGetTimeRef(void);
 
 /**
  * @brief Gets the current time.
@@ -222,7 +291,7 @@ double osTickCounterRead(const TickCounter* cnt);
  */
 static inline u8 osGetWifiStrength(void)
 {
-	return *(vu8*)0x1FF81066;
+	return OS_SharedConfig->wifi_strength;
 }
 
 /**
@@ -231,7 +300,16 @@ static inline u8 osGetWifiStrength(void)
  */
 static inline float osGet3DSliderState(void)
 {
-	return *(volatile float*)0x1FF81080;
+	return OS_SharedConfig->slider_3d;
+}
+
+/**
+ * @brief Checks whether a headset is connected.
+ * @return true or false.
+ */
+static inline bool osIsHeadsetConnected(void)
+{
+	return OS_SharedConfig->headset_connected != 0;
 }
 
 /**

@@ -142,7 +142,7 @@ static void ndspUpdateMaster(void)
 	u32 flags = m->flags, mflags = ndspMaster.flags;
 	int i;
 
-	m->headsetConnected = *(vu8*)0x1FF810C0;
+	m->headsetConnected = osIsHeadsetConnected();
 	flags |= 0x10000000;
 
 	if (mflags & MFLAG_MASTERVOL)
