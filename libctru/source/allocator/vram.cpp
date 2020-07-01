@@ -1,6 +1,7 @@
 extern "C"
 {
 	#include <3ds/types.h>
+	#include <3ds/os.h>
 	#include <3ds/allocator/vram.h>
 	#include <3ds/util/rbtree.h>
 }
@@ -12,7 +13,7 @@ static MemPool sVramPool;
 
 static bool vramInit()
 {
-	auto blk = MemBlock::Create((u8*)0x1F000000, 0x00600000);
+	auto blk = MemBlock::Create((u8*)OS_VRAM_VADDR, OS_VRAM_SIZE);
 	if (blk)
 	{
 		sVramPool.AddBlock(blk);

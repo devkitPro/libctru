@@ -26,6 +26,36 @@
 /// Retrieves the revision version from a packed system version.
 #define GET_VERSION_REVISION(version) (((version)>> 8)&0xFF)
 
+#define OS_HEAP_AREA_BEGIN 0x08000000 ///< Start of the heap area in the virtual address space
+#define OS_HEAP_AREA_END   0x0E000000 ///< End of the heap area in the virtual address space
+
+#define OS_MAP_AREA_BEGIN  0x10000000 ///< Start of the mappable area in the virtual address space
+#define OS_MAP_AREA_END    0x14000000 ///< End of the mappable area in the virtual address space
+
+#define OS_OLD_FCRAM_VADDR 0x14000000 ///< Old pre-8.x linear FCRAM mapping virtual address
+#define OS_OLD_FCRAM_PADDR 0x20000000 ///< Old pre-8.x linear FCRAM mapping physical address
+#define OS_OLD_FCRAM_SIZE  0x8000000  ///< Old pre-8.x linear FCRAM mapping size (128 MiB)
+
+#define OS_QTMRAM_VADDR    0x1E800000 ///< New3DS QTM memory virtual address
+#define OS_QTMRAM_PADDR    0x1F000000 ///< New3DS QTM memory physical address
+#define OS_QTMRAM_SIZE     0x400000   ///< New3DS QTM memory size (4 MiB; last 128 KiB reserved by kernel)
+
+#define OS_MMIO_VADDR      0x1EC00000 ///< Memory mapped IO range virtual address
+#define OS_MMIO_PADDR      0x10100000 ///< Memory mapped IO range physical address
+#define OS_MMIO_SIZE       0x400000   ///< Memory mapped IO range size (4 MiB)
+
+#define OS_VRAM_VADDR      0x1F000000 ///< VRAM virtual address
+#define OS_VRAM_PADDR      0x18000000 ///< VRAM physical address
+#define OS_VRAM_SIZE       0x600000   ///< VRAM size (6 MiB)
+
+#define OS_DSPRAM_VADDR    0x1FF00000 ///< DSP memory virtual address
+#define OS_DSPRAM_PADDR    0x1FF00000 ///< DSP memory physical address
+#define OS_DSPRAM_SIZE     0x80000    ///< DSP memory size (512 KiB)
+
+#define OS_FCRAM_VADDR     0x30000000 ///< Linear FCRAM mapping virtual address
+#define OS_FCRAM_PADDR     0x20000000 ///< Linear FCRAM mapping physical address
+#define OS_FCRAM_SIZE      0x10000000 ///< Linear FCRAM mapping size (256 MiB)
+
 /// Tick counter.
 typedef struct
 {

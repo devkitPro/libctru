@@ -29,14 +29,18 @@ __attribute__((weak)) bool __ctru_speedup = false;
 u32 osConvertVirtToPhys(const void* addr) {
 //---------------------------------------------------------------------------------
 	u32 vaddr = (u32)addr;
-	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)
-		return vaddr + 0x0c000000; // LINEAR heap
-	if(vaddr >= 0x1F000000 && vaddr < 0x1F600000)
-		return vaddr - 0x07000000; // VRAM
-	if(vaddr >= 0x1FF00000 && vaddr < 0x1FF80000)
-		return vaddr + 0x00000000; // DSP memory
-	if(vaddr >= 0x30000000 && vaddr < 0x40000000)
-		return vaddr - 0x10000000; // Only available under FIRM v8+ for certain processes.
+#define CONVERT_REGION(_name) \
+	if (vaddr >= OS_##_name##_VADDR && vaddr < (OS_##_name##_VADDR + OS_##_name##_SIZE)) \
+		return vaddr + (OS_##_name##_PADDR - OS_##_name##_VADDR);
+
+	CONVERT_REGION(FCRAM);
+	CONVERT_REGION(VRAM);
+	CONVERT_REGION(OLD_FCRAM);
+	CONVERT_REGION(DSPRAM);
+	CONVERT_REGION(QTMRAM);
+	CONVERT_REGION(MMIO);
+
+#undef CONVERT_REGION
 	return 0;
 }
 
@@ -44,9 +48,11 @@ u32 osConvertVirtToPhys(const void* addr) {
 void* osConvertOldLINEARMemToNew(const void* addr) {
 //---------------------------------------------------------------------------------
 	u32 vaddr = (u32)addr;
-	if(vaddr >= 0x30000000 && vaddr < 0x40000000)return (void*)vaddr;
-	if(vaddr >= 0x14000000 && vaddr < 0x1c000000)return (void*)(vaddr+0x1c000000);
-	return 0;
+	if (vaddr >= OS_FCRAM_VADDR && vaddr < (OS_FCRAM_VADDR+OS_FCRAM_SIZE))
+		return (void*)vaddr;
+	if (vaddr >= OS_OLD_FCRAM_VADDR && vaddr < (OS_FCRAM_VADDR+OS_OLD_FCRAM_SIZE))
+		return (void*)(vaddr + (OS_FCRAM_VADDR-OS_OLD_FCRAM_VADDR));
+	return NULL;
 }
 
 //---------------------------------------------------------------------------------
