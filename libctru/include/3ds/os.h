@@ -26,15 +26,6 @@
 /// Retrieves the revision version from a packed system version.
 #define GET_VERSION_REVISION(version) (((version)>> 8)&0xFF)
 
-/// Memory regions.
-typedef enum
-{
-	MEMREGION_ALL = 0,         ///< All regions.
-	MEMREGION_APPLICATION = 1, ///< APPLICATION memory.
-	MEMREGION_SYSTEM = 2,      ///< SYSTEM memory.
-	MEMREGION_BASE = 3,        ///< BASE memory.
-} MemRegion;
-
 /// Tick counter.
 typedef struct
 {
@@ -134,16 +125,21 @@ static inline u32 osGetMemRegionSize(MemRegion region)
  * @param region Memory region to check.
  * @return The number of used bytes of memory.
  */
-s64 osGetMemRegionUsed(MemRegion region);
+static inline u32 osGetMemRegionUsed(MemRegion region)
+{
+	s64 mem_used;
+	svcGetSystemInfo(&mem_used, 0, region);
+	return mem_used;
+}
 
 /**
  * @brief Gets the number of free bytes within the specified memory region.
  * @param region Memory region to check.
  * @return The number of free bytes of memory.
  */
-static inline s64 osGetMemRegionFree(MemRegion region)
+static inline u32 osGetMemRegionFree(MemRegion region)
 {
-	return (s64) osGetMemRegionSize(region) - osGetMemRegionUsed(region);
+	return osGetMemRegionSize(region) - osGetMemRegionUsed(region);
 }
 
 /**

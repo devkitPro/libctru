@@ -62,6 +62,15 @@ typedef enum {
 	MEMPERM_DONTCARE = 0x10000000, ///< Don't care
 } MemPerm;
 
+/// Memory regions.
+typedef enum
+{
+	MEMREGION_ALL = 0,         ///< All regions.
+	MEMREGION_APPLICATION = 1, ///< APPLICATION memory.
+	MEMREGION_SYSTEM = 2,      ///< SYSTEM memory.
+	MEMREGION_BASE = 3,        ///< BASE memory.
+} MemRegion;
+
 /// Memory information.
 typedef struct {
     u32 base_addr; ///< Base address.
