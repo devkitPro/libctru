@@ -502,7 +502,7 @@ static bool ndspFindAndLoadComponent(void)
 	{
 		extern u32 fake_heap_end;
 		u32 mapAddr = (fake_heap_end+0xFFF) &~ 0xFFF;
-		rc = svcMapMemoryBlock(rsrc, mapAddr, 0x3, 0x3);
+		rc = svcMapMemoryBlock(rsrc, mapAddr, MEMPERM_READWRITE, MEMPERM_READWRITE);
 		if (R_FAILED(rc)) break;
 
 		componentSize = *(u32*)(mapAddr + 0x104);

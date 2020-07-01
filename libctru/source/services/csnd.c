@@ -207,7 +207,7 @@ Result csndInit(void)
 		goto cleanup1;
 	}
 
-	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, 3, 0x10000000);
+	ret = svcMapMemoryBlock(csndSharedMemBlock, (u32)csndSharedMem, MEMPERM_READWRITE, MEMPERM_DONTCARE);
 	if (R_FAILED(ret)) goto cleanup2;
 
 	memset((void*)csndSharedMem, 0, csndSharedMemSize);

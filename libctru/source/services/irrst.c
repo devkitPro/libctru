@@ -46,7 +46,7 @@ Result irrstInit(void)
 		goto cleanup1;
 	}
 
-	if(R_FAILED(ret = svcMapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem, MEMPERM_READ, 0x10000000))) goto cleanup2;
+	if(R_FAILED(ret = svcMapMemoryBlock(irrstMemHandle, (u32)irrstSharedMem, MEMPERM_READ, MEMPERM_DONTCARE))) goto cleanup2;
 
 	return 0;
 
