@@ -16,6 +16,8 @@
 #include <3ds/util/utf.h>
 #include <3ds/env.h>
 
+#include "path_buf.h"
+
 typedef struct romfs_mount
 {
 	Handle             fd;
@@ -30,9 +32,6 @@ typedef struct romfs_mount
 
 extern int __system_argc;
 extern char** __system_argv;
-
-static char __component[PATH_MAX+1];
-static uint16_t __utf16path[PATH_MAX+1];
 
 #define romFS_root(m)   ((romfs_dir*)(m)->dirTable)
 #define romFS_dir(m,x)  ((romfs_dir*) ((u8*)(m)->dirTable  + (x)))
@@ -192,10 +191,10 @@ Result romfsMount(struct romfs_mount **p)
 			filename += 5;
 		else if (strncmp(filename, "3dslink:/", 9) == 0)
 		{
-			strncpy(__component, "/3ds",     PATH_MAX);
-			strncat(__component, filename+8, PATH_MAX);
-			__component[PATH_MAX] = 0;
-			filename = __component;
+			strncpy(__ctru_dev_path_buf, "/3ds",     PATH_MAX);
+			strncat(__ctru_dev_path_buf, filename+8, PATH_MAX);
+			__ctru_dev_path_buf[PATH_MAX] = 0;
+			filename = __ctru_dev_path_buf;
 		}
 		else
 		{
@@ -203,21 +202,21 @@ Result romfsMount(struct romfs_mount **p)
 			return 2;
 		}
 
-		ssize_t units = utf8_to_utf16(__utf16path, (const uint8_t*)filename, PATH_MAX);
+		ssize_t units = utf8_to_utf16(__ctru_dev_utf16_buf, (const uint8_t*)filename, PATH_MAX);
 		if (units < 0)
 		{
 			romfs_free(mount);
 			return 3;
 		}
-		if (units >= PATH_MAX)
+		if (units > PATH_MAX)
 		{
 			romfs_free(mount);
 			return 4;
 		}
-		__utf16path[units] = 0;
+		__ctru_dev_utf16_buf[units] = 0;
 
 		FS_Path archPath = { PATH_EMPTY, 1, "" };
-		FS_Path filePath = { PATH_UTF16, (units+1)*2, __utf16path };
+		FS_Path filePath = { PATH_UTF16, (units+1)*2, __ctru_dev_utf16_buf };
 
 		Result rc = FSUSER_OpenFileDirectly(&mount->fd, ARCHIVE_SDMC, archPath, filePath, FS_OPEN_READ, 0);
 		if (R_FAILED(rc))
@@ -456,7 +455,7 @@ static int navigateToDir(romfs_mount *mount, romfs_dir** ppDir, const char** pPa
 	while (**pPath)
 	{
 		char* slashPos = strchr(*pPath, '/');
-		char* component = __component;
+		char* component = __ctru_dev_path_buf;
 
 		if (slashPos)
 		{
@@ -486,13 +485,13 @@ static int navigateToDir(romfs_mount *mount, romfs_dir** ppDir, const char** pPa
 			}
 		}
 
-		units = utf8_to_utf16(__utf16path, (const uint8_t*)component, PATH_MAX);
+		units = utf8_to_utf16(__ctru_dev_utf16_buf, (const uint8_t*)component, PATH_MAX);
 		if (units < 0)
 			return EILSEQ;
-		if (units >= PATH_MAX)
+		if (units > PATH_MAX)
 			return ENAMETOOLONG;
 
-		*ppDir = searchForDir(mount, *ppDir, __utf16path, units);
+		*ppDir = searchForDir(mount, *ppDir, __ctru_dev_utf16_buf, units);
 		if (!*ppDir)
 			return ENOENT;
 	}
@@ -581,7 +580,7 @@ int romfs_open(struct _reent *r, void *fileStruct, const char *path, int flags, 
 	if (r->_errno != 0)
 		return -1;
 
-	ssize_t units = utf8_to_utf16(__utf16path, (const uint8_t*)path, PATH_MAX);
+	ssize_t units = utf8_to_utf16(__ctru_dev_utf16_buf, (const uint8_t*)path, PATH_MAX);
 	if (units <= 0)
 	{
 		r->_errno = EILSEQ;
@@ -593,7 +592,7 @@ int romfs_open(struct _reent *r, void *fileStruct, const char *path, int flags, 
 		return -1;
 	}
 
-	romfs_file* file = searchForFile(fileobj->mount, curDir, __utf16path, units);
+	romfs_file* file = searchForFile(fileobj->mount, curDir, __ctru_dev_utf16_buf, units);
 	if (!file)
 	{
 		if(flags & O_CREAT)
@@ -709,26 +708,26 @@ int romfs_stat(struct _reent *r, const char *path, struct stat *st)
 		return 0;
 	}
 
-	ssize_t units = utf8_to_utf16(__utf16path, (const uint8_t*)path, PATH_MAX);
+	ssize_t units = utf8_to_utf16(__ctru_dev_utf16_buf, (const uint8_t*)path, PATH_MAX);
 	if (units <= 0)
 	{
 		r->_errno = EILSEQ;
 		return -1;
 	}
-	if (units >= PATH_MAX)
+	if (units > PATH_MAX)
 	{
 		r->_errno = ENAMETOOLONG;
 		return -1;
 	}
 
-	romfs_dir* dir = searchForDir(mount, curDir, __utf16path, units);
+	romfs_dir* dir = searchForDir(mount, curDir, __ctru_dev_utf16_buf, units);
 	if(dir)
 	{
 		fill_dir(st, mount, dir);
 		return 0;
 	}
 
-	romfs_file* file = searchForFile(mount, curDir, __utf16path, units);
+	romfs_file* file = searchForFile(mount, curDir, __ctru_dev_utf16_buf, units);
 	if(file)
 	{
 		fill_file(st, mount, file);
@@ -821,9 +820,9 @@ int romfs_dirnext(struct _reent *r, DIR_ITER *dirState, char *filename, struct s
 
 		/* convert name from UTF-16 to UTF-8 */
 		memset(filename, 0, NAME_MAX);
-		memcpy(__utf16path, dir->name, dir->nameLen*sizeof(uint16_t));
-		__utf16path[dir->nameLen/sizeof(uint16_t)] = 0;
-		units = utf16_to_utf8((uint8_t*)filename, __utf16path, NAME_MAX);
+		memcpy(__ctru_dev_utf16_buf, dir->name, dir->nameLen*sizeof(uint16_t));
+		__ctru_dev_utf16_buf[dir->nameLen/sizeof(uint16_t)] = 0;
+		units = utf16_to_utf8((uint8_t*)filename, __ctru_dev_utf16_buf, NAME_MAX);
 
 		if(units < 0)
 		{
@@ -852,9 +851,9 @@ int romfs_dirnext(struct _reent *r, DIR_ITER *dirState, char *filename, struct s
 
 		/* convert name from UTF-16 to UTF-8 */
 		memset(filename, 0, NAME_MAX);
-		memcpy(__utf16path, file->name, file->nameLen*sizeof(uint16_t));
-		__utf16path[file->nameLen/sizeof(uint16_t)] = 0;
-		units = utf16_to_utf8((uint8_t*)filename, __utf16path, NAME_MAX);
+		memcpy(__ctru_dev_utf16_buf, file->name, file->nameLen*sizeof(uint16_t));
+		__ctru_dev_utf16_buf[file->nameLen/sizeof(uint16_t)] = 0;
+		units = utf16_to_utf8((uint8_t*)filename, __ctru_dev_utf16_buf, NAME_MAX);
 
 		if(units < 0)
 		{

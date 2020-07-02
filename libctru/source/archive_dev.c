@@ -14,6 +14,7 @@
 #include <3ds/services/fs.h>
 #include <3ds/util/utf.h>
 
+#include "path_buf.h"
 
 /*! @internal
  *
@@ -110,9 +111,6 @@ static archive_fsdevice archive_devices[32];
 
 /*! @endcond */
 
-static __thread char     __fixedpath[PATH_MAX+1];
-static __thread uint16_t __utf16path[PATH_MAX+1];
-
 static archive_fsdevice *archiveFindDevice(const char *name)
 {
   u32 i;
@@ -204,17 +202,17 @@ archive_fixpath(struct _reent    *r,
   }
 
   if(path[0] == '/')
-    strncpy(__fixedpath, path, PATH_MAX);
+    strncpy(__ctru_dev_path_buf, path, PATH_MAX);
   else
   {
-    strncpy(__fixedpath, dev->cwd, PATH_MAX);
-    __fixedpath[PATH_MAX] = '\0';
-    strncat(__fixedpath, path, PATH_MAX);
+    strncpy(__ctru_dev_path_buf, dev->cwd, PATH_MAX);
+    __ctru_dev_path_buf[PATH_MAX] = '\0';
+    strncat(__ctru_dev_path_buf, path, PATH_MAX);
   }
 
-  if(__fixedpath[PATH_MAX] != 0)
+  if(__ctru_dev_path_buf[PATH_MAX] != 0)
   {
-    __fixedpath[PATH_MAX] = 0;
+    __ctru_dev_path_buf[PATH_MAX] = 0;
     r->_errno = ENAMETOOLONG;
     return NULL;
   }
@@ -222,7 +220,7 @@ archive_fixpath(struct _reent    *r,
   if(device)
     *device = dev;
 
-  return __fixedpath;
+  return __ctru_dev_path_buf;
 }
 
 static const FS_Path
@@ -238,23 +236,23 @@ archive_utf16path(struct _reent    *r,
   if(archive_fixpath(r, path, device) == NULL)
     return fspath;
 
-  units = utf8_to_utf16(__utf16path, (const uint8_t*)__fixedpath, PATH_MAX);
+  units = utf8_to_utf16(__ctru_dev_utf16_buf, (const uint8_t*)__ctru_dev_path_buf, PATH_MAX);
   if(units < 0)
   {
     r->_errno = EILSEQ;
     return fspath;
   }
-  if(units >= PATH_MAX)
+  if(units > PATH_MAX)
   {
     r->_errno = ENAMETOOLONG;
     return fspath;
   }
 
-  __utf16path[units] = 0;
+  __ctru_dev_utf16_buf[units] = 0;
 
   fspath.type = PATH_UTF16;
   fspath.size = (units+1)*sizeof(uint16_t);
-  fspath.data = (const u8*)__utf16path;
+  fspath.data = __ctru_dev_utf16_buf;
 
   return fspath;
 }
@@ -379,15 +377,15 @@ Result archiveMountSdmc(void)
       {
         if(FindDevice(__system_argv[0]) == rc)
         {
-          strncpy(__fixedpath,__system_argv[0],PATH_MAX);
-          if(__fixedpath[PATH_MAX] != 0)
+          strncpy(__ctru_dev_path_buf,__system_argv[0],PATH_MAX);
+          if(__ctru_dev_path_buf[PATH_MAX] != 0)
           {
-            __fixedpath[PATH_MAX] = 0;
+            __ctru_dev_path_buf[PATH_MAX] = 0;
           }
           else
           {
             char *last_slash = NULL;
-            p = __fixedpath;
+            p = __ctru_dev_path_buf;
             do
             {
               units = decode_utf8(&code, (const uint8_t*)p);
@@ -406,7 +404,7 @@ Result archiveMountSdmc(void)
             if(last_slash != NULL)
             {
               last_slash[0] = 0;
-              chdir(__fixedpath);
+              chdir(__ctru_dev_path_buf);
             }
           }
         }
@@ -927,7 +925,7 @@ archive_chdir(struct _reent *r,
   if(R_SUCCEEDED(rc))
   {
     FSDIR_Close(fd);
-    strncpy(device->cwd, __fixedpath, PATH_MAX + 1);
+    strncpy(device->cwd, __ctru_dev_path_buf, PATH_MAX + 1);
     device->cwd[PATH_MAX] = '\0';
     return 0;
   }
@@ -952,7 +950,6 @@ archive_rename(struct _reent *r,
 {
   Result  rc;
   FS_Path fs_path_old, fs_path_new;
-  static __thread uint16_t __utf16path_old[PATH_MAX+1];
   archive_fsdevice *sourceDevice = r->deviceData;
   archive_fsdevice *destDevice = NULL;
 
@@ -967,8 +964,9 @@ archive_rename(struct _reent *r,
   if(fs_path_old.data == NULL)
     return -1;
 
-  memcpy(__utf16path_old, __utf16path, sizeof(__utf16path));
-  fs_path_old.data = (const u8*)__utf16path_old;
+  uint8_t old_path_copy[fs_path_old.size];
+  memcpy(old_path_copy, fs_path_old.data, fs_path_old.size);
+  fs_path_old.data = old_path_copy;
 
   fs_path_new = archive_utf16path(r, newName, &destDevice);
   if(fs_path_new.data == NULL)
