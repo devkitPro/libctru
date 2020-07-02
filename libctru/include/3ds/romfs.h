@@ -45,36 +45,40 @@ typedef struct
 	u16 name[];   ///< Name. (UTF-16)
 } romfs_file;
 
-struct romfs_mount;
-
 /**
  * @brief Mounts the Application's RomFS.
- * @param mount Output mount handle
+ * @param name Device mount name.
+ * @remark This function is intended to be used to access one's own RomFS.
+ *         If the application is running as 3DSX, it mounts the embedded RomFS section inside the 3DSX.
+ *         If on the other hand it's an NCCH, it behaves identically to \ref romfsMountFromCurrentProcess.
  */
-Result romfsMount(struct romfs_mount **mount);
-static inline Result romfsInit(void)
-{
-	return romfsMount(NULL);
-}
+Result romfsMountSelf(const char *name);
 
 /**
  * @brief Mounts RomFS from an open file.
- * @param file Handle of the RomFS file.
+ * @param fd FSFILE handle of the RomFS image.
  * @param offset Offset of the RomFS within the file.
- * @param mount Output mount handle
+ * @param name Device mount name.
  */
-Result romfsMountFromFile(Handle file, u32 offset, struct romfs_mount **mount);
-static inline Result romfsInitFromFile(Handle file, u32 offset)
-{
-	return romfsMountFromFile(file, offset, NULL);
-}
+Result romfsMountFromFile(Handle fd, u32 offset, const char *name);
 
-/// Bind the RomFS mount
-Result romfsBind(struct romfs_mount *mount);
+/**
+ * @brief Mounts RomFS using the current process host program RomFS.
+ * @param name Device mount name.
+ */
+Result romfsMountFromCurrentProcess(const char *name);
 
 /// Unmounts the RomFS device.
-Result romfsUnmount(struct romfs_mount *mount);
+Result romfsUnmount(const char *name);
+
+/// Wrapper for \ref romfsMountSelf with the default "romfs" device name.
+static inline Result romfsInit(void)
+{
+	return romfsMountSelf("romfs");
+}
+
+/// Wrapper for \ref romfsUnmount with the default "romfs" device name.
 static inline Result romfsExit(void)
 {
-	return romfsUnmount(NULL);
+	return romfsUnmount("romfs");
 }

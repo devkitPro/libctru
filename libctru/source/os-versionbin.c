@@ -41,15 +41,14 @@ static Result __read_versionbin(FS_ArchiveID archiveId, FS_Path archivePath, FS_
 	Result ret = 0;
 	Handle filehandle = 0;
 	FILE *f = NULL;
-	struct romfs_mount *mount;
 
 	ret = FSUSER_OpenFileDirectly(&filehandle, archiveId, archivePath, fileLowPath, FS_OPEN_READ, 0x0);
 	if(R_FAILED(ret))return ret;
 
-	ret = romfsMountFromFile(filehandle, 0x0, &mount);
+	ret = romfsMountFromFile(filehandle, 0x0, "ver");
 	if(R_FAILED(ret))return ret;
 
-	f = fopen("romfs:/version.bin", "r");
+	f = fopen("ver:/version.bin", "r");
 	if(f==NULL)
 	{
 		ret = errno;
@@ -60,7 +59,7 @@ static Result __read_versionbin(FS_ArchiveID archiveId, FS_Path archivePath, FS_
 		fclose(f);
 	}
 
-	romfsUnmount(mount);
+	romfsUnmount("ver");
 
 	return ret;
 }
@@ -121,7 +120,7 @@ Result osGetSystemVersionDataString(OS_VersionBin *nver_versionbin, OS_VersionBi
 	ret = osGetSystemVersionData(nver_versionbin, cver_versionbin);
 	if(R_FAILED(ret))return ret;
 
-	snprintf(sysverstr, sysverstr_maxsize, "%u.%u.%u-%u%c\n", cver_versionbin->mainver, cver_versionbin->minor, cver_versionbin->build, nver_versionbin->mainver, nver_versionbin->region);
+	snprintf(sysverstr, sysverstr_maxsize, "%u.%u.%u-%u%c", cver_versionbin->mainver, cver_versionbin->minor, cver_versionbin->build, nver_versionbin->mainver, nver_versionbin->region);
 
 	return 0;
 }
