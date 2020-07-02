@@ -296,7 +296,7 @@ static int _archiveMountDevice(FS_Archive       archive,
   device = archiveFindDevice(NULL);
   if(device==NULL)
     goto _fail;
-  
+
   device->archive = archive;
   memset(device->name, 0, sizeof(device->name));
   strncpy(device->name, deviceName, sizeof(device->name)-1);
@@ -356,7 +356,7 @@ Result archiveMountSdmc(void)
   ssize_t  units;
   uint32_t code;
   char     *p;
-  FS_Path sdmcPath = { PATH_EMPTY, 1, (u8*)"" };
+  FS_Path sdmcPath = { PATH_EMPTY, 1, "" };
   FS_Archive sdmcArchive;
   Result   rc = 0;
 
@@ -465,7 +465,7 @@ Result archiveUnmount(const char *deviceName)
 Result archiveUnmountAll(void)
 {
   u32 total = sizeof(archive_devices) / sizeof(archive_fsdevice);
-  
+
   if(!archive_initialized) return 0;
 
   for(u32 i = 0; i < total; i++)

@@ -216,8 +216,8 @@ Result romfsMount(struct romfs_mount **p)
 		}
 		__utf16path[units] = 0;
 
-		FS_Path archPath = { PATH_EMPTY, 1, (u8*)"" };
-		FS_Path filePath = { PATH_UTF16, (units+1)*2, (u8*)__utf16path };
+		FS_Path archPath = { PATH_EMPTY, 1, "" };
+		FS_Path filePath = { PATH_UTF16, (units+1)*2, __utf16path };
 
 		Result rc = FSUSER_OpenFileDirectly(&mount->fd, ARCHIVE_SDMC, archPath, filePath, FS_OPEN_READ, 0);
 		if (R_FAILED(rc))
@@ -238,10 +238,9 @@ Result romfsMount(struct romfs_mount **p)
 	else
 	{
 		// Regular RomFS
-		u8 zeros[0xC];
-		memset(zeros, 0, sizeof(zeros));
+		u8 zeros[0xC] = {0};
 
-		FS_Path archPath = { PATH_EMPTY, 1, (u8*)"" };
+		FS_Path archPath = { PATH_EMPTY, 1, "" };
 		FS_Path filePath = { PATH_BINARY, sizeof(zeros), zeros };
 
 		Result rc = FSUSER_OpenFileDirectly(&mount->fd, ARCHIVE_ROMFS, archPath, filePath, FS_OPEN_READ, 0);
