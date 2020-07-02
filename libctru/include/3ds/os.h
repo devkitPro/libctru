@@ -78,7 +78,7 @@ typedef struct
 	u32 firmlaunch_flags;
 	u8  unk_0x24[0xc];
 	u32 app_memtype;
-	u8  unk_0x34[0x10];
+	u8  unk_0x34[0xc];
 	u32 memregion_sz[3];
 	u8  unk_0x4c[0x14];
 	u32 firm_ver;
