@@ -1,21 +1,18 @@
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/os.h>
-#include <3ds/svc.h>
 #include <3ds/romfs.h>
-#include <3ds/services/ptmsysm.h>
-#include <3ds/services/fs.h>
 #include <3ds/services/cfgu.h>
 
-#include <sys/time.h>
-#include <reent.h>
 #include <stdio.h>
-#include <errno.h>
 #include <string.h>
 
 //See here regarding regions: http://3dbrew.org/wiki/Nandrw/sys/SecureInfo_A
 
-static u32 __NVer_tidlow_regionarray[7] = {
+#define TID_HIGH 0x000400DB00000000ULL
+
+static const u32 __NVer_tidlow_regionarray[7] =
+{
 	0x00016202, //JPN
 	0x00016302, //USA
 	0x00016102, //EUR
@@ -25,87 +22,54 @@ static u32 __NVer_tidlow_regionarray[7] = {
 	0x00016602, //TWN
 };
 
-static u32 __CVer_tidlow_regionarray[7] = {
+static const u32 __CVer_tidlow_regionarray[7] =
+{
 	0x00017202, //JPN
 	0x00017302, //USA
 	0x00017102, //EUR
 	0x00017202, //"AUS"
 	0x00017402, //CHN
 	0x00017502, //KOR
-	0x00017602 //TWN
+	0x00017602, //TWN
 };
 
-
-static Result __read_versionbin(FS_ArchiveID archiveId, FS_Path archivePath, FS_Path fileLowPath, OS_VersionBin *versionbin)
+static Result osReadVersionBin(u64 tid, OS_VersionBin *versionbin)
 {
-	Result ret = 0;
-	Handle filehandle = 0;
-	FILE *f = NULL;
+	Result ret = romfsMountFromTitle(tid, MEDIATYPE_NAND, "ver");
+	if (R_FAILED(ret))
+		return ret;
 
-	ret = FSUSER_OpenFileDirectly(&filehandle, archiveId, archivePath, fileLowPath, FS_OPEN_READ, 0x0);
-	if(R_FAILED(ret))return ret;
-
-	ret = romfsMountFromFile(filehandle, 0x0, "ver");
-	if(R_FAILED(ret))return ret;
-
-	f = fopen("ver:/version.bin", "r");
-	if(f==NULL)
-	{
-		ret = errno;
-	}
+	FILE* f = fopen("ver:/version.bin", "r");
+	if (!f)
+		ret = MAKERESULT(RL_PERMANENT, RS_NOTFOUND, RM_APPLICATION, RD_NOT_FOUND);
 	else
 	{
-		if(fread(versionbin, 1, sizeof(OS_VersionBin), f) != sizeof(OS_VersionBin))ret = -10;
+		if (fread(versionbin, 1, sizeof(OS_VersionBin), f) != sizeof(OS_VersionBin))
+			ret = MAKERESULT(RL_PERMANENT, RS_INVALIDSTATE, RM_APPLICATION, RD_NO_DATA);
 		fclose(f);
 	}
 
 	romfsUnmount("ver");
-
 	return ret;
 }
 
 Result osGetSystemVersionData(OS_VersionBin *nver_versionbin, OS_VersionBin *cver_versionbin)
 {
-	Result ret=0;
-	u8 region=0;
-
-	u32 archive_lowpath_data[0x10>>2];
-	u32 file_lowpath_data[0x14>>2];
-
-	FS_ArchiveID archiveId;
-	FS_Path archivePath;
-	FS_Path fileLowPath;
-
-	memset(archive_lowpath_data, 0, sizeof(archive_lowpath_data));
-	memset(file_lowpath_data,    0, sizeof(file_lowpath_data));
-
-	archiveId = 0x2345678a;
-	archivePath.type = PATH_BINARY;
-	archivePath.size = 0x10;
-	archivePath.data = archive_lowpath_data;
-
-	fileLowPath.type = PATH_BINARY;
-	fileLowPath.size = 0x14;
-	fileLowPath.data = file_lowpath_data;
-
-	archive_lowpath_data[1] = 0x000400DB;
-
-	ret = cfguInit();
+	Result ret = cfguInit();
 	if(R_FAILED(ret))return ret;
 
+	u8 region=0;
 	ret = CFGU_SecureInfoGetRegion(&region);
 	if(R_FAILED(ret))return ret;
 
-	if(region>=7)return -9;
+	if(region>=7)return MAKERESULT(RL_PERMANENT, RS_INVALIDSTATE, RM_APPLICATION, RD_OUT_OF_RANGE);
 
 	cfguExit();
 
-	archive_lowpath_data[0] = __NVer_tidlow_regionarray[region];
-	ret = __read_versionbin(archiveId, archivePath, fileLowPath, nver_versionbin);
+	ret = osReadVersionBin(TID_HIGH | __NVer_tidlow_regionarray[region], nver_versionbin);
 	if(R_FAILED(ret))return ret;
 
-	archive_lowpath_data[0] = __CVer_tidlow_regionarray[region];
-	ret = __read_versionbin(archiveId, archivePath, fileLowPath, cver_versionbin);
+	ret = osReadVersionBin(TID_HIGH | __CVer_tidlow_regionarray[region], cver_versionbin);
 	return ret;
 }
 

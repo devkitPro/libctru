@@ -308,6 +308,23 @@ Result romfsMountFromCurrentProcess(const char *name)
 	return rc;
 }
 
+Result romfsMountFromTitle(u64 tid, FS_MediaType mediatype, const char* name)
+{
+	// Set up FS_Path structures
+	u32 archPathData[4] = { (u32)tid, (u32)(tid>>32), (u8)mediatype, 0 };
+	u32 filePathData[5] = { 0 };
+	FS_Path archPath = { PATH_BINARY, sizeof(archPathData), archPathData };
+	FS_Path filePath = { PATH_BINARY, sizeof(filePathData), filePathData };
+
+	// Open the RomFS file and mount it
+	Handle fd = 0;
+	Result rc = FSUSER_OpenFileDirectly(&fd, ARCHIVE_SAVEDATA_AND_CONTENT, archPath, filePath, FS_OPEN_READ, 0);
+	if (R_SUCCEEDED(rc))
+		rc = romfsMountFromFile(fd, 0, name);
+
+	return rc;
+}
+
 Result romfsUnmount(const char* name)
 {
 	// Find the mount

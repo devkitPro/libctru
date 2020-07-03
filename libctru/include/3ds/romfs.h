@@ -5,6 +5,7 @@
 #pragma once
 
 #include <3ds/types.h>
+#include <3ds/services/fs.h>
 
 /// RomFS header.
 typedef struct
@@ -67,6 +68,14 @@ Result romfsMountFromFile(Handle fd, u32 offset, const char *name);
  * @param name Device mount name.
  */
 Result romfsMountFromCurrentProcess(const char *name);
+
+/**
+ * @brief Mounts RomFS from the specified title.
+ * @param tid Title ID
+ * @param mediatype Mediatype
+ * @param name Device mount name.
+ */
+Result romfsMountFromTitle(u64 tid, FS_MediaType mediatype, const char* name);
 
 /// Unmounts the RomFS device.
 Result romfsUnmount(const char *name);
