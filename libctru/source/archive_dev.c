@@ -107,7 +107,7 @@ typedef struct
 
 static bool archive_initialized = false;
 static s32 archive_device_cwd;
-static archive_fsdevice archive_devices[32];
+static archive_fsdevice archive_devices[8];
 
 /*! @endcond */
 
