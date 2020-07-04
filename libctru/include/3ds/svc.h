@@ -488,31 +488,6 @@ Result svcUnmapProcessMemory(Handle process, u32 destAddress, u32 size);
 Result svcUnmapMemoryBlock(Handle memblock, u32 addr);
 
 /**
- * @brief Begins an inter-process DMA.
- * @param[out] dma Pointer to output the handle of the DMA to.
- * @param dstProcess Destination process.
- * @param dst Buffer to write data to.
- * @param srcprocess Source process.
- * @param src Buffer to read data from.
- * @param size Size of the data to DMA.
- * @param dmaConfig DMA configuration data.
- */
-Result svcStartInterProcessDma(Handle* dma, Handle dstProcess, void* dst, Handle srcProcess, const void* src, u32 size, void* dmaConfig);
-
-/**
- * @brief Terminates an inter-process DMA.
- * @param dma Handle of the DMA.
- */
-Result svcStopDma(Handle dma);
-
-/**
- * @brief Gets the state of an inter-process DMA.
- * @param[out] dmaState Pointer to output the state of the DMA to.
- * @param dma Handle of the DMA.
- */
-Result svcGetDmaState(void* dmaState, Handle dma);
-
-/**
  * @brief Queries memory information.
  * @param[out] info Pointer to output memory info to.
  * @param out Pointer to output page info to.
@@ -529,29 +504,6 @@ Result svcQueryMemory(MemInfo* info, PageInfo* out, u32 addr);
  */
 Result svcQueryProcessMemory(MemInfo* info, PageInfo* out, Handle process, u32 addr);
 
-/**
- * @brief Invalidates a process's data cache.
- * @param process Handle of the process.
- * @param addr Address to invalidate.
- * @param size Size of the memory to invalidate.
- */
-Result svcInvalidateProcessDataCache(Handle process, void* addr, u32 size);
-
-/**
- * @brief Cleans a process's data cache.
- * @param process Handle of the process.
- * @param addr Address to clean.
- * @param size Size of the memory to clean.
- */
-Result svcStoreProcessDataCache(Handle process, void* addr, u32 size);
-
-/**
- * @brief Flushes (cleans and invalidates) a process's data cache.
- * @param process Handle of the process.
- * @param addr Address to flush.
- * @param size Size of the memory to flush.
- */
-Result svcFlushProcessDataCache(Handle process, void const* addr, u32 size);
 ///@}
 
 
@@ -565,7 +517,7 @@ Result svcFlushProcessDataCache(Handle process, void const* addr, u32 size);
 Result svcOpenProcess(Handle* process, u32 processId);
 
 /// Exits the current process.
-void svcExitProcess() __attribute__((noreturn));
+void __attribute__((noreturn)) svcExitProcess();
 
 /**
  * @brief Terminates a process.
@@ -977,21 +929,6 @@ Result svcAcceptSession(Handle* session, Handle port);
  */
 Result svcReplyAndReceive(s32* index, const Handle* handles, s32 handleCount, Handle replyTarget);
 
-/**
- * @brief Binds an event or semaphore handle to an ARM11 interrupt.
- * @param interruptId Interrupt identfier (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
- * @param eventOrSemaphore Event or semaphore handle to bind to the given interrupt.
- * @param priority Priority of the interrupt for the current process.
- * @param isManualClear Indicates whether the interrupt has to be manually cleared or not (= level-high active).
- */
-Result svcBindInterrupt(u32 interruptId, Handle eventOrSemaphore, s32 priority, bool isManualClear);
-
-/**
- * @brief Unbinds an event or semaphore handle from an ARM11 interrupt.
- * @param interruptId Interrupt identfier, see (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
- * @param eventOrSemaphore Event or semaphore handle to unbind from the given interrupt.
- */
-Result svcUnbindInterrupt(u32 interruptId, Handle eventOrSemaphore);
 ///@}
 
 ///@name Time
@@ -1062,6 +999,81 @@ Result svcGetHandleInfo(s64* out, Handle handle, u32 param);
 Result svcGetSystemInfo(s64* out, u32 type, s32 param);
 
 /**
+ * @brief Sets the current kernel state.
+ * @param type Type of state to set (the other parameters depend on it).
+ */
+Result svcKernelSetState(u32 type, ...);
+///@}
+
+///@name Device drivers
+///@{
+
+/**
+ * @brief Binds an event or semaphore handle to an ARM11 interrupt.
+ * @param interruptId Interrupt identfier (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
+ * @param eventOrSemaphore Event or semaphore handle to bind to the given interrupt.
+ * @param priority Priority of the interrupt for the current process.
+ * @param isManualClear Indicates whether the interrupt has to be manually cleared or not (= level-high active).
+ */
+Result svcBindInterrupt(u32 interruptId, Handle eventOrSemaphore, s32 priority, bool isManualClear);
+
+/**
+ * @brief Unbinds an event or semaphore handle from an ARM11 interrupt.
+ * @param interruptId Interrupt identfier, see (see https://www.3dbrew.org/wiki/ARM11_Interrupts).
+ * @param eventOrSemaphore Event or semaphore handle to unbind from the given interrupt.
+ */
+Result svcUnbindInterrupt(u32 interruptId, Handle eventOrSemaphore);
+
+/**
+ * @brief Invalidates a process's data cache.
+ * @param process Handle of the process.
+ * @param addr Address to invalidate.
+ * @param size Size of the memory to invalidate.
+ */
+Result svcInvalidateProcessDataCache(Handle process, u32 addr, u32 size);
+
+/**
+ * @brief Cleans a process's data cache.
+ * @param process Handle of the process.
+ * @param addr Address to clean.
+ * @param size Size of the memory to clean.
+ */
+Result svcStoreProcessDataCache(Handle process, u32 addr, u32 size);
+
+/**
+ * @brief Flushes (cleans and invalidates) a process's data cache.
+ * @param process Handle of the process.
+ * @param addr Address to flush.
+ * @param size Size of the memory to flush.
+ */
+Result svcFlushProcessDataCache(Handle process, u32 addr, u32 size);
+
+/**
+ * @brief Begins an inter-process DMA.
+ * @param[out] dma Pointer to output the handle of the DMA to.
+ * @param dstProcess Destination process.
+ * @param dstAddr Buffer to write data to.
+ * @param srcProcess Source process.
+ * @param srcAddr Buffer to read data from.
+ * @param size Size of the data to DMA.
+ * @param dmaConfig DMA configuration data.
+ */
+Result svcStartInterProcessDma(Handle* dma, Handle dstProcess, u32 dstAddr, Handle srcProcess, u32 srcAddr, u32 size, const void* dmaConfig);
+
+/**
+ * @brief Terminates an inter-process DMA.
+ * @param dma Handle of the DMA.
+ */
+Result svcStopDma(Handle dma);
+
+/**
+ * @brief Gets the state of an inter-process DMA.
+ * @param[out] dmaState Pointer to output the state of the DMA to.
+ * @param dma Handle of the DMA.
+ */
+Result svcGetDmaState(void* dmaState, Handle dma);
+
+/**
  * @brief Sets the GPU protection register to restrict the range of the GPU DMA. 11.3+ only.
  * @param useApplicationRestriction Whether to use the register value used for APPLICATION titles.
  */
@@ -1073,13 +1085,7 @@ Result svcSetGpuProt(bool useApplicationRestriction);
  */
 Result svcSetWifiEnabled(bool enabled);
 
-/**
- * @brief Sets the current kernel state.
- * @param type Type of state to set (the other parameters depend on it).
- */
-Result svcKernelSetState(u32 type, ...);
 ///@}
-
 
 ///@name Debugging
 ///@{
