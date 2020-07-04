@@ -73,15 +73,15 @@ typedef enum
 
 /// Memory information.
 typedef struct {
-    u32 base_addr; ///< Base address.
-    u32 size;      ///< Size.
-    u32 perm;      ///< Memory permissions. See @ref MemPerm
-    u32 state;     ///< Memory state. See @ref MemState
+	u32 base_addr; ///< Base address.
+	u32 size;      ///< Size.
+	u32 perm;      ///< Memory permissions. See @ref MemPerm
+	u32 state;     ///< Memory state. See @ref MemState
 } MemInfo;
 
 /// Memory page information.
 typedef struct {
-    u32 flags; ///< Page flags.
+	u32 flags; ///< Page flags.
 } PageInfo;
 
 /// Arbitration modes.
@@ -134,6 +134,62 @@ typedef enum {
 
 ///@}
 
+///@name Device drivers
+///@{
+
+/// DMA transfer state.
+typedef enum {
+	DMASTATE_STARTING = 0,  ///< DMA transfer involving at least one device is starting and has not reached DMAWFP yet.
+	DMASTATE_WFP_DST = 1,   ///< DMA channel is in WFP state for the destination device (2nd loop iteration onwards).
+	DMASTATE_WFP_SRC = 2,   ///< DMA channel is in WFP state for the source device (2nd loop iteration onwards).
+	DMASTATE_RUNNING = 3,   ///< DMA transfer is running.
+	DMASTATE_DONE = 4,      ///< DMA transfer is done.
+} DmaState;
+
+/// Configuration flags for \ref DmaConfig.
+enum {
+	DMACFG_SRC_IS_DEVICE        = BIT(0), ///< DMA source is a device/peripheral. Address will not auto-increment.
+	DMACFG_DST_IS_DEVICE        = BIT(1), ///< DMA destination is a device/peripheral. Address will not auto-increment.
+	DMACFG_WAIT_AVAILABLE       = BIT(2), ///< Make \ref svcStartInterProcessDma wait for the channel to be unlocked.
+	DMACFG_KEEP_LOCKED          = BIT(3), ///< Keep the channel locked after the transfer. Required for \ref svcRestartDma.
+	DMACFG_USE_SRC_CONFIG       = BIT(6), ///< Use the provided source device configuration even if the DMA source is not a device.
+	DMACFG_USE_DST_CONFIG       = BIT(7), ///< Use the provided destination device configuration even if the DMA destination is not a device.
+};
+
+/// Configuration flags for \ref svcRestartDma.
+enum {
+	DMARST_UNLOCK           = BIT(0), ///< Unlock the channel after transfer.
+	DMARST_RESUME_DEVICE    = BIT(1), ///< Replace DMAFLUSHP instructions by NOP (they may not be regenerated even if this flag is not set).
+};
+
+/**
+ * @brief Device configuration structure, part of \ref DmaConfig.
+ * @note
+ * - if (and only if) src/dst is a device, then src/dst won't be auto-incremented.
+ * - the kernel uses DMAMOV instead of DMAADNH, when having to decrement (possibly working around an erratum);
+ * this forces all loops to be unrolled -- you need to keep that in mind when using negative increments, as the kernel
+ * uses a limit of 100 DMA instruction bytes per channel.
+ */
+typedef struct {
+	s8 deviceId;            ///< DMA device ID.
+	s8 allowedAlignments;   ///< Mask of allowed access alignments (8, 4, 2, 1).
+	s16 burstSize;          ///< Number of bytes transferred in a burst loop. Can be 0 (in which case the max allowed alignment is used as unit).
+	s16 transferSize;       ///< Number of bytes transferred in a "transfer" loop (made of burst loops).
+	s16 burstStride;        ///< Burst loop stride, can be <= 0.
+	s16 transferStride;     ///< "Transfer" loop stride, can be <= 0.
+} DmaDeviceConfig;
+
+/// Configuration stucture for \ref svcStartInterProcessDma.
+typedef struct {
+	s8 channelId;           ///< Channel ID (Arm11: 0-7, Arm9: 0-1). Use -1 to auto-assign to a free channel (Arm11: 3-7, Arm9: 0-1).
+	s8 endianSwapSize;      ///< Endian swap size (can be 0).
+	u8 flags;               ///< DMACFG_* flags.
+	u8 _padding;
+	DmaDeviceConfig srcCfg; ///< Source device configuration, read if \ref DMACFG_SRC_IS_DEVICE and/or \ref DMACFG_USE_SRC_CONFIG are set.
+	DmaDeviceConfig dstCfg; ///< Destination device configuration, read if \ref DMACFG_SRC_IS_DEVICE and/or \ref DMACFG_USE_SRC_CONFIG are set.
+} DmaConfig;
+
+///@}
 
 ///@name Debugging
 ///@{
@@ -403,6 +459,38 @@ static inline u32* getThreadStaticBuffers(void)
 {
 	return (u32*)((u8*)getThreadLocalStorage() + 0x180);
 }
+
+///@name Device drivers
+///@{
+
+/// Writes the default DMA device config that the kernel uses when DMACFG_*_IS_DEVICE and DMACFG_*_USE_CFG are not set
+static inline void dmaDeviceConfigInitDefault(DmaDeviceConfig *cfg)
+{
+	// Kernel uses this default instance if _IS_DEVICE and _USE_CFG are not set
+	*cfg = (DmaDeviceConfig) {
+		.deviceId = -1,
+		.allowedAlignments = 8 | 4 | 2 | 1,
+		.burstSize = 0x80,
+		.transferSize = 0,
+		.burstStride = 0x80,
+		.transferStride = 0,
+	};
+}
+
+/// Initializes a \ref DmaConfig instance with sane defaults for RAM<>RAM tranfers
+static inline void dmaConfigInitDefault(DmaConfig *cfg)
+{
+	*cfg = (DmaConfig) {
+		.channelId = -1,
+		.endianSwapSize = 0,
+		.flags = DMACFG_WAIT_AVAILABLE,
+		._padding = 0,
+		.srcCfg = {},
+		.dstCfg = {},
+	};
+}
+
+///@}
 
 ///@name Memory management
 ///@{
@@ -1049,29 +1137,42 @@ Result svcStoreProcessDataCache(Handle process, u32 addr, u32 size);
 Result svcFlushProcessDataCache(Handle process, u32 addr, u32 size);
 
 /**
- * @brief Begins an inter-process DMA.
- * @param[out] dma Pointer to output the handle of the DMA to.
- * @param dstProcess Destination process.
- * @param dstAddr Buffer to write data to.
- * @param srcProcess Source process.
- * @param srcAddr Buffer to read data from.
- * @param size Size of the data to DMA.
- * @param dmaConfig DMA configuration data.
+ * @brief Begins an inter-process DMA transfer.
+ * @param[out] dma Pointer to output the handle of the DMA channel object to.
+ * @param dstProcess Destination process handle.
+ * @param dstAddr Address in the destination process to write data to.
+ * @param srcProcess Source process handle.
+ * @param srcAddr Address in the source to read data from.
+ * @param size Size of the data to transfer.
+ * @param cfg Configuration structure.
+ * @note The handle is signaled when the transfer finishes.
  */
-Result svcStartInterProcessDma(Handle* dma, Handle dstProcess, u32 dstAddr, Handle srcProcess, u32 srcAddr, u32 size, const void* dmaConfig);
+Result svcStartInterProcessDma(Handle *dma, Handle dstProcess, u32 dstAddr, Handle srcProcess, u32 srcAddr, u32 size, const DmaConfig *cfg);
 
 /**
- * @brief Terminates an inter-process DMA.
- * @param dma Handle of the DMA.
+ * @brief Stops an inter-process DMA transfer.
+ * @param dma Handle of the DMA channel object.
  */
 Result svcStopDma(Handle dma);
 
 /**
- * @brief Gets the state of an inter-process DMA.
- * @param[out] dmaState Pointer to output the state of the DMA to.
- * @param dma Handle of the DMA.
+ * @brief Gets the state of an inter-process DMA transfer.
+ * @param[out] state Pointer to output the state of the DMA transfer to.
+ * @param dma Handle of the DMA channel object.
  */
-Result svcGetDmaState(void* dmaState, Handle dma);
+Result svcGetDmaState(DmaState *state, Handle dma);
+
+/**
+ * @brief Restarts a DMA transfer, using the same configuration as before.
+ * @param[out] state Pointer to output the state of the DMA transfer to.
+ * @param dma Handle of the DMA channel object.
+ * @param dstAddr Address in the destination process to write data to.
+ * @param srcAddr Address in the source to read data from.
+ * @param size Size of the data to transfer.
+ * @param flags Restart flags, \ref DMARST_UNLOCK and/or \ref DMARST_RESUME_DEVICE.
+ * @note The first transfer has to be configured with \ref DMACFG_KEEP_LOCKED.
+ */
+Result svcRestartDma(Handle dma, u32 dstAddr, u32 srcAddr, u32 size, s8 flags);
 
 /**
  * @brief Sets the GPU protection register to restrict the range of the GPU DMA. 11.3+ only.

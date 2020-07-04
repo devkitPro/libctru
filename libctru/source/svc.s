@@ -504,6 +504,14 @@ SVC_BEGIN svcGetDmaState
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcRestartDma
+	push {r4}
+	ldr  r4, [sp, #4]
+	svc  0x58
+	pop  {r4}
+	bx   lr
+SVC_END
+
 SVC_BEGIN svcSetGpuProt
 	svc 0x59
 	bx  lr
