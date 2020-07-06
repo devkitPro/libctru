@@ -12,6 +12,9 @@ typedef _LOCK_T LightLock;
 /// A recursive lock.
 typedef _LOCK_RECURSIVE_T RecursiveLock;
 
+/// A condition variable.
+typedef s32 CondVar;
+
 /// A light event.
 typedef struct
 {
@@ -216,6 +219,53 @@ int RecursiveLock_TryLock(RecursiveLock* lock);
  * @param lock Pointer to the lock.
  */
 void RecursiveLock_Unlock(RecursiveLock* lock);
+
+/**
+ * @brief Initializes a condition variable.
+ * @param cv Pointer to the condition variable.
+ */
+void CondVar_Init(CondVar* cv);
+
+/**
+ * @brief Waits on a condition variable.
+ * @param cv Pointer to the condition variable.
+ * @param lock Pointer to the lock to atomically unlock/relock during the wait.
+ */
+void CondVar_Wait(CondVar* cv, LightLock* lock);
+
+/**
+ * @brief Waits on a condition variable with a timeout.
+ * @param cv Pointer to the condition variable.
+ * @param lock Pointer to the lock to atomically unlock/relock during the wait.
+ * @param timeout_ns Timeout in nanoseconds.
+ * @return Zero on success, non-zero on failure.
+ */
+int CondVar_WaitTimeout(CondVar* cv, LightLock* lock, s64 timeout_ns);
+
+/**
+ * @brief Wakes up threads waiting on a condition variable.
+ * @param cv Pointer to the condition variable.
+ * @param num_threads Maximum number of threads to wake up (or \ref ARBITRATION_SIGNAL_ALL to wake them all).
+ */
+void CondVar_WakeUp(CondVar* cv, s32 num_threads);
+
+/**
+ * @brief Wakes up a single thread waiting on a condition variable.
+ * @param cv Pointer to the condition variable.
+ */
+static inline void CondVar_Signal(CondVar* cv)
+{
+	CondVar_WakeUp(cv, 1);
+}
+
+/**
+ * @brief Wakes up all threads waiting on a condition variable.
+ * @param cv Pointer to the condition variable.
+ */
+static inline void CondVar_Broadcast(CondVar* cv)
+{
+	CondVar_WakeUp(cv, ARBITRATION_SIGNAL_ALL);
+}
 
 /**
  * @brief Initializes a light event.

@@ -1,6 +1,7 @@
 #include <string.h>
 #include <3ds/types.h>
 #include <3ds/svc.h>
+#include <3ds/result.h>
 #include <3ds/synchronization.h>
 
 static Handle arbiter;
@@ -151,6 +152,74 @@ void RecursiveLock_Unlock(RecursiveLock* lock)
 		lock->thread_tag = 0;
 		LightLock_Unlock(&lock->lock);
 	}
+}
+
+static inline void CondVar_BeginWait(CondVar* cv, LightLock* lock)
+{
+	s32 val;
+	do
+		val = __ldrex(cv) - 1;
+	while (!__strex(cv, val));
+	LightLock_Unlock(lock);
+}
+
+static inline bool CondVar_EndWait(CondVar* cv, s32 num_threads)
+{
+	bool hasWaiters;
+	s32 val;
+
+	do {
+		val = __ldrex(cv);
+		hasWaiters = val < 0;
+		if (hasWaiters)
+		{
+			if (num_threads < 0)
+				val = 0;
+			else if (val <= -num_threads)
+				val += num_threads;
+			else
+				val = 0;
+		}
+	} while (!__strex(cv, val));
+
+	return hasWaiters;
+}
+
+void CondVar_Init(CondVar* cv)
+{
+	*cv = 0;
+}
+
+void CondVar_Wait(CondVar* cv, LightLock* lock)
+{
+	CondVar_BeginWait(cv, lock);
+	syncArbitrateAddress(cv, ARBITRATION_WAIT_IF_LESS_THAN, 0);
+	LightLock_Lock(lock);
+}
+
+int CondVar_WaitTimeout(CondVar* cv, LightLock* lock, s64 timeout_ns)
+{
+	CondVar_BeginWait(cv, lock);
+
+	bool timedOut = false;
+	Result rc = syncArbitrateAddressWithTimeout(cv, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, 0, timeout_ns);
+	if (R_DESCRIPTION(rc) == RD_TIMEOUT)
+	{
+		timedOut = CondVar_EndWait(cv, 1);
+		__dmb();
+	}
+
+	LightLock_Lock(lock);
+	return timedOut;
+}
+
+void CondVar_WakeUp(CondVar* cv, s32 num_threads)
+{
+	__dmb();
+	if (CondVar_EndWait(cv, num_threads))
+		syncArbitrateAddress(cv, ARBITRATION_SIGNAL, num_threads);
+	else
+		__dmb();
 }
 
 static inline void LightEvent_SetState(LightEvent* event, int state)
