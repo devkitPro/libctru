@@ -194,6 +194,100 @@ typedef struct {
 ///@name Debugging
 ///@{
 
+/// Operations for \ref svcControlPerformanceCounter
+typedef enum {
+	PERFCOUNTEROP_ENABLE                        = 0,    ///< Enable and lock perfmon. functionality.
+	PERFCOUNTEROP_DISABLE                       = 1,    ///< Disable and forcibly unlock perfmon. functionality.
+	PERFCOUNTEROP_GET_VALUE                     = 2,    ///< Get the value of a counter register.
+	PERFCOUNTEROP_SET_VALUE                     = 3,    ///< Set the value of a counter register.
+	PERFCOUNTEROP_GET_OVERFLOW_FLAGS            = 4,    ///< Get the overflow flags for all CP15 and SCU counters.
+	PERFCOUNTEROP_RESET                         = 5,    ///< Reset the value and/or overflow flags of selected counters.
+	PERFCOUNTEROP_GET_EVENT                     = 6,    ///< Get the event ID associated to a particular counter.
+	PERFCOUNTEROP_SET_EVENT                     = 7,    ///< Set the event ID associated to a paritcular counter.
+	PERFCOUNTEROP_SET_VIRTUAL_COUNTER_ENABLED   = 8,    ///< (Dis)allow the kernel to track counter overflows and to use 64-bit counter values.
+} PerfCounterOperation;
+
+/// Performance counter register IDs (CP15 and SCU).
+typedef enum
+{
+	// CP15 registers:
+	PERFCOUNTERREG_CORE_BASE = 0,
+	PERFCOUNTERREG_CORE_COUNT_REG_0 = PERFCOUNTERREG_CORE_BASE, ///< CP15 PMN0.
+	PERFCOUNTERREG_CORE_COUNT_REG_1,   ///< CP15 PMN1.
+	PERFCOUNTERREG_CORE_CYCLE_COUNTER, ///< CP15 CCNT.
+
+	// SCU registers
+	PERFCOUNTERREG_SCU_BASE = 0x10,
+	PERFCOUNTERREG_SCU_0 = PERFCOUNTERREG_SCU_BASE, ///< SCU MN0.
+	PERFCOUNTERREG_SCU_1,  ///< SCU MN1.
+	PERFCOUNTERREG_SCU_2,  ///< SCU MN2.
+	PERFCOUNTERREG_SCU_3,  ///< SCU MN3.
+	PERFCOUNTERREG_SCU_4,  ///< SCU MN4. Prod-N3DS only. IRQ line missing.
+	PERFCOUNTERREG_SCU_5,  ///< SCU MN5. Prod-N3DS only. IRQ line missing.
+	PERFCOUNTERREG_SCU_6,  ///< SCU MN6. Prod-N3DS only. IRQ line missing.
+	PERFCOUNTERREG_SCU_7,  ///< SCU MN7. Prod-N3DS only. IRQ line missing.
+} PerfCounterRegister;
+
+/**
+ * @brief Performance counter event IDs (CP15 or SCU).
+ * 
+ * @note Refer to:
+ *     - CP15: https://developer.arm.com/documentation/ddi0360/e/control-coprocessor-cp15/register-descriptions/c15--performance-monitor-control-register--pmnc-
+ *     - SCU: https://developer.arm.com/documentation/ddi0360/e/mpcore-private-memory-region/about-the-mpcore-private-memory-region/performance-monitor-event-registers
+ */
+typedef enum
+{
+	// Core events:
+	PERFCOUNTEREVT_CORE_BASE = 0x0,
+	PERFCOUNTEREVT_CORE_INST_CACHE_MISS = PERFCOUNTEREVT_CORE_BASE,
+	PERFCOUNTEREVT_CORE_STALL_BY_LACK_OF_INST,
+	PERFCOUNTEREVT_CORE_STALL_BY_DATA_HAZARD,
+	PERFCOUNTEREVT_CORE_INST_MICRO_TLB_MISS,
+	PERFCOUNTEREVT_CORE_DATA_MICRO_TLB_MISS,
+	PERFCOUNTEREVT_CORE_BRANCH_INST,
+	PERFCOUNTEREVT_CORE_BRANCH_NOT_PREDICTED,
+	PERFCOUNTEREVT_CORE_BRANCH_MISS_PREDICTED,
+	PERFCOUNTEREVT_CORE_INST_EXECUTED,
+	PERFCOUNTEREVT_CORE_FOLDED_INST_EXECUTED,
+	PERFCOUNTEREVT_CORE_DATA_CACHE_READ,
+	PERFCOUNTEREVT_CORE_DATA_CACHE_READ_MISS,
+	PERFCOUNTEREVT_CORE_DATA_CACHE_WRITE,
+	PERFCOUNTEREVT_CORE_DATA_CACHE_WRITE_MISS,
+	PERFCOUNTEREVT_CORE_DATA_CACHE_LINE_EVICTION,
+	PERFCOUNTEREVT_CORE_PC_CHANGED,
+	PERFCOUNTEREVT_CORE_MAIN_TLB_MISS,
+	PERFCOUNTEREVT_CORE_EXTERNAL_REQUEST,
+	PERFCOUNTEREVT_CORE_STALL_BY_LSU_FULL,
+	PERFCOUNTEREVT_CORE_STORE_BUFFER_DRAIN,
+	PERFCOUNTEREVT_CORE_MERGE_IN_STORE_BUFFER,
+	PERFCOUNTEREVT_CORE_CYCLE_COUNT = PERFCOUNTEREVT_CORE_BASE + 0xFF,     ///< One cycle elapsed.
+	PERFCOUNTEREVT_CORE_CYCLE_COUNT_64 = PERFCOUNTEREVT_CORE_BASE + 0xFFF, ///< 64 cycles elapsed.
+
+
+	PERFCOUNTEREVT_SCU_BASE = 0x1000,
+	PERFCOUNTEREVT_SCU_DISABLED = PERFCOUNTEREVT_SCU_BASE,
+	PERFCOUNTEREVT_SCU_LINEFILL_MISS_FROM_CORE0,
+	PERFCOUNTEREVT_SCU_LINEFILL_MISS_FROM_CORE1,
+	PERFCOUNTEREVT_SCU_LINEFILL_MISS_FROM_CORE2,
+	PERFCOUNTEREVT_SCU_LINEFILL_MISS_FROM_CORE3,
+	PERFCOUNTEREVT_SCU_LINEFILL_HIT_FROM_CORE0,
+	PERFCOUNTEREVT_SCU_LINEFILL_HIT_FROM_CORE1,
+	PERFCOUNTEREVT_SCU_LINEFILL_HIT_FROM_CORE2,
+	PERFCOUNTEREVT_SCU_LINEFILL_HIT_FROM_CORE3,
+	PERFCOUNTEREVT_SCU_LINE_MISSING_FROM_CORE0,
+	PERFCOUNTEREVT_SCU_LINE_MISSING_FROM_CORE1,
+	PERFCOUNTEREVT_SCU_LINE_MISSING_FROM_CORE2,
+	PERFCOUNTEREVT_SCU_LINE_MISSING_FROM_CORE3,
+	PERFCOUNTEREVT_SCU_LINE_MIGRATION,
+	PERFCOUNTEREVT_SCU_READ_BUSY_PORT0,
+	PERFCOUNTEREVT_SCU_READ_BUSY_PORT1,
+	PERFCOUNTEREVT_SCU_WRITE_BUSY_PORT0,
+	PERFCOUNTEREVT_SCU_WRITE_BUSY_PORT1,
+	PERFCOUNTEREVT_SCU_EXTERNAL_READ,
+	PERFCOUNTEREVT_SCU_EXTERNAL_WRITE,
+	PERFCOUNTEREVT_SCU_CYCLE_COUNT = PERFCOUNTEREVT_SCU_BASE + 0x1F,
+} PerfCounterEvent;
+
 /// Event relating to the attachment of a process.
 typedef struct {
 	u64 program_id;       ///< ID of the program.
@@ -1210,6 +1304,34 @@ void svcBreakRO(UserBreakType breakReason, const void* croInfo, u32 croInfoSize)
  * @param length Length of the string to output, needs to be positive.
  */
 Result svcOutputDebugString(const char* str, s32 length);
+
+
+/**
+ * @brief Controls performance monitoring on the CP15 interface and the SCU.
+ * The meaning of the parameters depend on the operation.
+ * @param[out] out Output.
+ * @param op Operation, see details.
+ * @param param1 First parameter.
+ * @param param2 Second parameter.
+ * @details The operations are the following:
+ *     - \ref PERFCOUNTEROP_ENABLE (void) -> void, tries to enable and lock perfmon. functionality.
+ *     - \ref PERFCOUNTEROP_DISABLE (void) -> void, disable and forcibly unlocks perfmon. functionality.
+ *     - \ref PERFCOUNTEROP_GET_VALUE (\ref PerfCounterRegister reg) -> u64, gets the value of a particular counter register.
+ *     - \ref PERFCOUNTEROP_SET_VALUE (\ref PerfCounterRegister reg, u64 value) -> void, sets the value of a particular counter register.
+ *     - \ref PERFCOUNTEROP_GET_OVERFLOW_FLAGS (void) -> u32, gets the overflow flags of all CP15 and SCU registers.
+ *         - Format is a bitfield of \ref PerfCounterRegister.
+ *     - \ref PERFCOUNTEROP_RESET (u32 valueResetMask, u32 overflowFlagResetMask) -> void, resets the value and/or
+ *     overflow flags of selected registers.
+ *         - Format is two bitfields of \ref PerfCounterRegister.
+ *     - \ref PERFCOUNTEROP_GET_EVENT (\ref PerfCounterRegister reg) -> \ref PerfCounterEvent, gets the event associated
+ *     to a particular counter register.
+ *     - \ref PERFCOUNTEROP_SET_EVENT (\ref PerfCounterRegister reg, \ref PerfCounterEvent) -> void, sets the event associated
+ *     to a particular counter register.
+ *     - \ref PERFCOUNTEROP_SET_VIRTUAL_COUNTER_ENABLED (bool enabled) -> void, (dis)allows the kernel to track counter overflows
+ *     and to use 64-bit counter values.
+ */
+Result svcControlPerformanceCounter(u64 *out, PerfCounterOperation op, u32 param1, u64 param2);
+
 /**
  * @brief Creates a debug handle for an active process.
  * @param[out] debug Pointer to output the created debug handle to.

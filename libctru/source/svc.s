@@ -407,6 +407,16 @@ SVC_BEGIN svcOutputDebugString
 	bx  lr
 SVC_END
 
+SVC_BEGIN svcControlPerformanceCounter
+	push  {r0}
+	ldr   r0, [sp, #4+0]
+	ldr   r3, [sp, #4+4]
+	svc   0x3E
+	pop   {r3}
+	stmia r3, {r1, r2}
+	bx    lr
+SVC_END
+
 SVC_BEGIN svcCreatePort
 	push {r0, r1}
 	svc 0x47
