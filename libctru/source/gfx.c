@@ -83,7 +83,7 @@ void gfxSetDoubleBuffering(gfxScreen_t screen, bool enable)
 	gfxIsDoubleBuf[screen] = enable ? 1 : 0; // make sure they're the integer values '1' and '0'
 }
 
-static void gfxPresentFramebuffer(gfxScreen_t screen, u8 id)
+static void gfxPresentFramebuffer(gfxScreen_t screen, u8 id, bool hasStereo)
 {
 	u32 stride = GSP_SCREEN_WIDTH*gspGetBytesPerPixel(gfxFramebufferFormats[screen]);
 	u32 mode = gfxFramebufferFormats[screen];
@@ -101,7 +101,7 @@ static void gfxPresentFramebuffer(gfxScreen_t screen, u8 id)
 				break;
 			case MODE_3D:
 				mode |= BIT(5);
-				fb_b = fb_a + gfxTopFramebufferMaxSize/2;
+				fb_b = hasStereo ? (fb_a + gfxTopFramebufferMaxSize/2) : fb_a;
 				break;
 			case MODE_WIDE:
 				fb_b = fb_a;
@@ -149,8 +149,8 @@ void gfxInit(GSPGPU_FramebufferFormat topFormat, GSPGPU_FramebufferFormat bottom
 
 	// Present the framebuffers
 	gfxCurBuf[0] = gfxCurBuf[1] = 0;
-	gfxPresentFramebuffer(GFX_TOP, 0);
-	gfxPresentFramebuffer(GFX_BOTTOM, 0);
+	gfxPresentFramebuffer(GFX_TOP, 0, false);
+	gfxPresentFramebuffer(GFX_BOTTOM, 0, false);
 
 	// Wait for VBlank and turn the LCD on
 	gspWaitForVBlank();
@@ -241,20 +241,25 @@ void gfxFlushBuffers(void)
 	GSPGPU_FlushDataCache(gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), bottomSize);
 }
 
-void gfxConfigScreen(gfxScreen_t scr, bool immediate)
+void gfxScreenSwapBuffers(gfxScreen_t scr, bool hasStereo)
 {
 	gfxCurBuf[scr] ^= gfxIsDoubleBuf[scr];
-	gfxPresentFramebuffer(scr, gfxCurBuf[scr]);
+	gfxPresentFramebuffer(scr, gfxCurBuf[scr], hasStereo);
+}
+
+void gfxConfigScreen(gfxScreen_t scr, bool immediate)
+{
+	gfxScreenSwapBuffers(scr, true);
 }
 
 void gfxSwapBuffers(void)
 {
-	gfxConfigScreen(GFX_TOP, true);
-	gfxConfigScreen(GFX_BOTTOM, true);
+	gfxScreenSwapBuffers(GFX_TOP, true);
+	gfxScreenSwapBuffers(GFX_BOTTOM, true);
 }
 
 void gfxSwapBuffersGpu(void)
 {
-	gfxConfigScreen(GFX_TOP, false);
-	gfxConfigScreen(GFX_BOTTOM, false);
+	gfxScreenSwapBuffers(GFX_TOP, true);
+	gfxScreenSwapBuffers(GFX_BOTTOM, true);
 }

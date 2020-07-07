@@ -151,17 +151,26 @@ void gfxFlushBuffers(void);
 /**
  * @brief Updates the configuration of the specified screen, swapping the buffers if double buffering is enabled.
  * @param scr Screen ID (see \ref gfxScreen_t)
- * @param immediate This parameter no longer has any effect and is thus ignored.
+ * @param hasStereo For the top screen in 3D mode: true if the framebuffer contains individual images
+ *                  for both eyes, or false if the left image should be duplicated to the right eye.
  * @note Previously rendered content will be displayed on the screen after the next VBlank.
  * @note This function is still useful even if double buffering is disabled, as it must be used to commit configuration changes.
  * @warning Only call this once per screen per frame, otherwise graphical glitches will occur
  *          since this API does not implement triple buffering.
  */
-void gfxConfigScreen(gfxScreen_t scr, bool immediate);
+void gfxScreenSwapBuffers(gfxScreen_t scr, bool hasStereo);
+
+/**
+ * @brief Same as \ref gfxScreenSwapBuffers, but with hasStereo set to true.
+ * @param scr Screen ID (see \ref gfxScreen_t)
+ * @param immediate This parameter no longer has any effect and is thus ignored.
+ * @deprecated This function has been superseded by \ref gfxScreenSwapBuffers, please use that instead.
+ */
+DEPRECATED void gfxConfigScreen(gfxScreen_t scr, bool immediate);
 
 /**
  * @brief Updates the configuration of both screens.
- * @note This function is equivalent to calling \ref gfxConfigScreen for both screens.
+ * @note This function is equivalent to: \code gfxScreenSwapBuffers(GFX_TOP,true); gfxScreenSwapBuffers(GFX_BOTTOM,true); \endcode
  */
 void gfxSwapBuffers(void);
 
