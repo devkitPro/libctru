@@ -106,26 +106,26 @@ Result GSPLCD_GetVendors(u8 *vendors)
 Result GSPLCD_GetBrightness(u32 screen, u32 *brightness)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x15,1,0); // 0x150040
 	cmdbuf[1] = screen;
-	
+
 	Result ret = 0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
-	
+
 	*brightness = cmdbuf[2];
-	
-	return cmdbuf[2];
+
+	return cmdbuf[1];
 }
 
 Result GSPLCD_SetBrightness(u32 screen, u32 brightness)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x0B,2,0); // 0xB0080
 	cmdbuf[1] = screen;
 	cmdbuf[2] = brightness;
-	
+
 	Result ret = 0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
 
@@ -135,11 +135,11 @@ Result GSPLCD_SetBrightness(u32 screen, u32 brightness)
 Result GSPLCD_SetBrightnessRaw(u32 screen, u32 brightness)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x0A,2,0); // 0xA0080
 	cmdbuf[1] = screen;
 	cmdbuf[2] = brightness;
-	
+
 	Result ret = 0;
 	if (R_FAILED(ret = svcSendSyncRequest(gspLcdHandle))) return ret;
 
