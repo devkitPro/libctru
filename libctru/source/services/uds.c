@@ -128,7 +128,7 @@ Result udsGenerateNodeInfo(udsNodeInfo *nodeinfo, const char *username)
 	ret = cfguInit();
 	if (R_FAILED(ret))return ret;
 
-	ret = CFGU_GetConfigInfoBlk2(sizeof(nodeinfo->uds_friendcodeseed), 0x00090000, (u8*)&nodeinfo->uds_friendcodeseed);
+	ret = CFGU_GetConfigInfoBlk2(sizeof(nodeinfo->uds_friendcodeseed), 0x00090000, &nodeinfo->uds_friendcodeseed);
 	if (R_FAILED(ret))
 	{
 		cfguExit();

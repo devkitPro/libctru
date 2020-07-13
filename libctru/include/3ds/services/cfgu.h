@@ -3,6 +3,7 @@
  * @brief CFGU (Configuration) Service
  */
 #pragma once
+#include <3ds/types.h>
 
 /// Configuration region values.
 typedef enum
@@ -96,7 +97,7 @@ Result CFGU_IsNFCSupported(bool* isSupported);
  * @param blkID ID of the block to retrieve.
  * @param outData Pointer to write the block data to.
  */
-Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData);
+Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, void* outData);
 
 /**
  * @brief Gets a config info block with flags = 4.
@@ -104,7 +105,7 @@ Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData);
  * @param blkID ID of the block to retrieve.
  * @param outData Pointer to write the block data to.
  */
-Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, u8* outData);
+Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, void* outData);
 
 /**
  * @brief Gets a config info block with flags = 8.
@@ -112,7 +113,7 @@ Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, u8* outData);
  * @param blkID ID of the block to retrieve.
  * @param outData Pointer to write the block data to.
  */
-Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, u8* outData);
+Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, void* outData);
 
 /**
  * @brief Sets a config info block with flags = 4.
@@ -120,7 +121,7 @@ Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, u8* outData);
  * @param blkID ID of the block to retrieve.
  * @param inData Pointer to block data to write.
  */
-Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, u8* inData);
+Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, const void* inData);
 
 /**
  * @brief Sets a config info block with flags = 8.
@@ -128,7 +129,7 @@ Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, u8* inData);
  * @param blkID ID of the block to retrieve.
  * @param inData Pointer to block data to write.
  */
-Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, u8* inData);
+Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, const void* inData);
 
 
 /**

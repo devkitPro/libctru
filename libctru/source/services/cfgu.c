@@ -149,7 +149,7 @@ Result CFGU_IsNFCSupported(bool* isSupported)
 
 // See here for block IDs:
 // http://3dbrew.org/wiki/Config_Savegame#Configuration_blocks
-Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
+Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, void* outData)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -165,7 +165,7 @@ Result CFGU_GetConfigInfoBlk2(u32 size, u32 blkID, u8* outData)
 	return (Result)cmdbuf[1];
 }
 
-Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, u8* outData)
+Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, void* outData)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -181,7 +181,7 @@ Result CFG_GetConfigInfoBlk4(u32 size, u32 blkID, u8* outData)
 	return (Result)cmdbuf[1];
 }
 
-Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, u8* outData)
+Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, void* outData)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -197,7 +197,7 @@ Result CFG_GetConfigInfoBlk8(u32 size, u32 blkID, u8* outData)
 	return (Result)cmdbuf[1];
 }
 
-Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, u8* inData)
+Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, const void* inData)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -213,7 +213,7 @@ Result CFG_SetConfigInfoBlk4(u32 size, u32 blkID, u8* inData)
 	return (Result)cmdbuf[1];
 }
 
-Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, u8* inData)
+Result CFG_SetConfigInfoBlk8(u32 size, u32 blkID, const void* inData)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -246,7 +246,7 @@ Result CFGU_GetSystemLanguage(u8* language)
 	return CFGU_GetConfigInfoBlk2(1, 0xA0002, language);
 }
 
-Result CFGI_RestoreLocalFriendCodeSeed(void) 
+Result CFGI_RestoreLocalFriendCodeSeed(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -258,7 +258,7 @@ Result CFGI_RestoreLocalFriendCodeSeed(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_RestoreSecureInfo(void) 
+Result CFGI_RestoreSecureInfo(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -270,7 +270,7 @@ Result CFGI_RestoreSecureInfo(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_DeleteConfigSavefile(void) 
+Result CFGI_DeleteConfigSavefile(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -282,7 +282,7 @@ Result CFGI_DeleteConfigSavefile(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_FormatConfig(void) 
+Result CFGI_FormatConfig(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -294,7 +294,7 @@ Result CFGI_FormatConfig(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_ClearParentalControls(void) 
+Result CFGI_ClearParentalControls(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -306,7 +306,7 @@ Result CFGI_ClearParentalControls(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_VerifySigLocalFriendCodeSeed(void) 
+Result CFGI_VerifySigLocalFriendCodeSeed(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -318,7 +318,7 @@ Result CFGI_VerifySigLocalFriendCodeSeed(void)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGI_VerifySigSecureInfo(void) 
+Result CFGI_VerifySigSecureInfo(void)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
