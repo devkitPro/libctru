@@ -318,6 +318,34 @@ void LightEvent_Wait(LightEvent* event)
 	}
 }
 
+int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns)
+{
+	Result  timeoutRes = 0x09401BFE;
+	Result  res = 0;
+
+	while (res != timeoutRes)
+	{
+		if (event->state == -2)
+		{
+			res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, 0, timeout_ns);
+			return res == timeoutRes;
+		}
+
+		if (event->state != -1)
+		{
+			if (event->state == 1)
+				return 0;
+
+			if (event->state == 0 && LightEvent_TryReset(event))
+				return 0;
+		}
+
+		res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, 0, timeout_ns);
+	}
+
+	return res == timeoutRes;
+}
+
 void LightSemaphore_Init(LightSemaphore* semaphore, s16 initial_count, s16 max_count)
 {
 	semaphore->current_count = (s32)initial_count;

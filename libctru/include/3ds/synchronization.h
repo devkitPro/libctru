@@ -306,6 +306,14 @@ int LightEvent_TryWait(LightEvent* event);
 void LightEvent_Wait(LightEvent* event);
 
 /**
+ * @brief Waits on a light event until either the event is signaled or the timeout is reached.
+ * @param event Pointer to the event.
+ * @param timeout_ns Timeout in nanoseconds.
+ * @return Non-zero on timeout, zero otherwise.
+ */
+int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns);
+
+/**
  * @brief Initializes a light semaphore.
  * @param event Pointer to the semaphore.
  * @param max_count Initial count of the semaphore.
