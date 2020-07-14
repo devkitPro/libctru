@@ -222,6 +222,15 @@ void CondVar_WakeUp(CondVar* cv, s32 num_threads)
 		__dmb();
 }
 
+// LightEvent state
+enum
+{
+	CLEARED_STICKY = -2,
+	CLEARED_ONESHOT = -1,
+	SIGNALED_ONESHOT = 0,
+	SIGNALED_STICKY = 1
+};
+
 static inline void LightEvent_SetState(LightEvent* event, int state)
 {
 	do
@@ -239,7 +248,7 @@ static inline int LightEvent_TryReset(LightEvent* event)
 			__clrex();
 			return 0;
 		}
-	} while (__strex(&event->state, -1));
+	} while (__strex(&event->state, CLEARED_ONESHOT));
 	__dmb();
 	return 1;
 }
@@ -247,29 +256,29 @@ static inline int LightEvent_TryReset(LightEvent* event)
 void LightEvent_Init(LightEvent* event, ResetType reset_type)
 {
 	LightLock_Init(&event->lock);
-	LightEvent_SetState(event, reset_type == RESET_STICKY ? -2 : -1);
+	LightEvent_SetState(event, reset_type == RESET_STICKY ? CLEARED_STICKY : CLEARED_ONESHOT);
 }
 
 void LightEvent_Clear(LightEvent* event)
 {
-	if (event->state == 1)
+	if (event->state == SIGNALED_STICKY)
 	{
 		LightLock_Lock(&event->lock);
-		LightEvent_SetState(event, -2);
+		LightEvent_SetState(event, CLEARED_STICKY);
 		LightLock_Unlock(&event->lock);
-	} else if (event->state == 0)
+	} else if (event->state == SIGNALED_ONESHOT)
 	{
 		__dmb();
-		LightEvent_SetState(event, -1);
+		LightEvent_SetState(event, CLEARED_ONESHOT);
 		__dmb();
 	}
 }
 
 void LightEvent_Pulse(LightEvent* event)
 {
-	if (event->state == -2)
+	if (event->state == CLEARED_STICKY)
 		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, -1);
-	else if (event->state == -1)
+	else if (event->state == CLEARED_ONESHOT)
 		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, 1);
 	else
 		LightEvent_Clear(event);
@@ -277,15 +286,15 @@ void LightEvent_Pulse(LightEvent* event)
 
 void LightEvent_Signal(LightEvent* event)
 {
-	if (event->state == -1)
+	if (event->state == CLEARED_ONESHOT)
 	{
 		__dmb();
-		LightEvent_SetState(event, 0);
+		LightEvent_SetState(event, SIGNALED_ONESHOT);
 		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, 1);
-	} else if (event->state == -2)
+	} else if (event->state == CLEARED_STICKY)
 	{
 		LightLock_Lock(&event->lock);
-		LightEvent_SetState(event, 1);
+		LightEvent_SetState(event, SIGNALED_STICKY);
 		syncArbitrateAddress(&event->state, ARBITRATION_SIGNAL, -1);
 		LightLock_Unlock(&event->lock);
 	}
@@ -293,7 +302,7 @@ void LightEvent_Signal(LightEvent* event)
 
 int LightEvent_TryWait(LightEvent* event)
 {
-	if (event->state == 1)
+	if (event->state == SIGNALED_STICKY)
 		return 1;
 	return LightEvent_TryReset(event);
 }
@@ -302,19 +311,19 @@ void LightEvent_Wait(LightEvent* event)
 {
 	for (;;)
 	{
-		if (event->state == -2)
+		if (event->state == CLEARED_STICKY)
 		{
-			syncArbitrateAddress(&event->state, ARBITRATION_WAIT_IF_LESS_THAN, 0);
+			syncArbitrateAddress(&event->state, ARBITRATION_WAIT_IF_LESS_THAN, SIGNALED_ONESHOT);
 			return;
 		}
-		if (event->state != -1)
+		if (event->state != CLEARED_ONESHOT)
 		{
-			if (event->state == 1)
+			if (event->state == SIGNALED_STICKY)
 				return;
-			if (event->state == 0 && LightEvent_TryReset(event))
+			if (event->state == SIGNALED_ONESHOT && LightEvent_TryReset(event))
 				return;
 		}
-		syncArbitrateAddress(&event->state, ARBITRATION_WAIT_IF_LESS_THAN, 0);
+		syncArbitrateAddress(&event->state, ARBITRATION_WAIT_IF_LESS_THAN, SIGNALED_ONESHOT);
 	}
 }
 
@@ -325,22 +334,22 @@ int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns)
 
 	while (res != timeoutRes)
 	{
-		if (event->state == -2)
+		if (event->state == CLEARED_STICKY)
 		{
-			res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, 0, timeout_ns);
+			res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, SIGNALED_ONESHOT, timeout_ns);
 			return res == timeoutRes;
 		}
 
-		if (event->state != -1)
+		if (event->state != CLEARED_ONESHOT)
 		{
-			if (event->state == 1)
+			if (event->state == SIGNALED_STICKY)
 				return 0;
 
-			if (event->state == 0 && LightEvent_TryReset(event))
+			if (event->state == SIGNALED_ONESHOT && LightEvent_TryReset(event))
 				return 0;
 		}
 
-		res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, 0, timeout_ns);
+		res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, SIGNALED_ONESHOT, timeout_ns);
 	}
 
 	return res == timeoutRes;
