@@ -1,5 +1,110 @@
 # Changelog
 
+## Version 2.0.0
+
+**This is a major release. Many essential components have been overhauled, although breaking changes are minimal and only affect rarely used functionality.**
+
+### system
+
+- Added support for userAppInit/userAppExit (backported from libnx).
+- Changed default heap allocation logic to be more robust:
+  - Resource limit SVCs are now used to detect available memory.
+  - The heap size calculation algorithm was tweaked so that 32MB of linear heap are available for normal apps running under the default appmemtype layout on Old 3DS, as it was the case prior to libctru 1.8.0.
+- SVC enhancements:
+  - Added svcControlPerformanceCounter with corresponding enums.
+  - Overhauled support for DMA related SVCs:
+    - Added svcRestartDma.
+    - Added enums and structures needed for DMA SVCs.
+    - Added dmaDeviceConfigInitDefault, dmaConfigInitDefault.
+  - Added svcArbitrateAddressNoTimeout (minor ABI optimization for the svcArbitrateAddress syscall when the timeout parameter is not used).
+  - Changed process memory SVCs to use u32 parameters instead of void\* for foreign-process addresses.
+- Major refactor of OS related functions:
+  - Added defines for Arm11 userland memory region addresses/sizes.
+  - Added struct definitions for the kernel/system shared config pages: osKernelConfig_s, osSharedConfig_s.
+  - Added macros to access the kernel/system shared config pages: OS_KernelConfig, OS_SharedConfig.
+  - Fixed return type of osGetMemRegionUsed, osGetMemRegionFree (s64 -> u32).
+  - Refactored osConvertVirtToPhys and added support for the missing linearly mapped memory regions.
+  - Rewritten RTC time reading support to improve accuracy and match official logic more closely.
+    - Time drift correction is now implemented.
+    - Added osGetTimeRef function for reading the current reference timepoint published by the PTM sysmodule.
+  - Fixed osStrError to actually work properly.
+  - Cleaned up osGetSystemVersionData implementation.
+  - Other miscellaneous internal cleanup.
+
+### synchronization
+
+- Improved safety of usermode synchronization primitives when used in intercore contexts.
+- Added CondVar synchronization primitive implementation.
+- Added syncArbitrateAddress, syncArbitrateAddressWithTimeout.
+  - These functions replace \_\_sync\_get\_arbiter (which has been removed).
+- Added \_\_dmb (Data Memory Barrier) intrinsic.
+- Added LightEvent_WaitTimeout.
+- Added LightSemaphore_TryAcquire.
+- Changed LightLock to support 0 as a valid initial (unlocked) state.
+  - This effectively adds support for trivially initialized/zerofilled locks.
+- Fixed bug in LightSemaphore_Acquire.
+
+### graphics
+
+- Major refactor of the GSP service wrapper. It should now be possible to use GSP directly without the gfx API, if the user so desires.
+- Major internal refactor of the gfx wrapper API that increases maintainability.
+- Added support for 800px wide mode with non-square pixels on the top screen - usable on every 3DS model except for Old 2DS (but *including* New 2DS XL).
+- Added support for 800px wide mode to the libctru console.
+- Transferred most of the GSP initialization duties to gspInit/gspExit (previously done by the gfx wrapper).
+- Added defines for screen IDs and screen dimensions.
+- Added gspPresentBuffer for pushing a framebuffer to the internal GSP swap queue (previously this was an internal function in the gfx wrapper).
+- Added gspGetBytesPerPixel, gspHasGpuRight.
+- Added gfxScreenSwapBuffers, with support for duplicating left->right eye content during stereoscopic 3D mode.
+- Fixed LCD configuration mode when using framebuffers on VRAM with the gfx wrapper.
+- Changed gfxExit to set LCD force-black status to true.
+- Changed the gfx wrapper to always use gspPresentBuffer during swap. This means the immediate parameter of gfxConfigScreen no longer has any effect, and gfxSwapBuffers/gfxSwapBuffersGpu now do the same thing - that is, present the rendered content during the next VBlank.
+- Renamed GSPGPU_FramebufferFormats enum to GSPGPU_FramebufferFormat.
+- Deprecated gfxConfigScreen (use gfxScreenSwapBuffers instead).
+- Removed gspInitEventHandler, gspExitEventHandler (now handled automatically inside gspInit/gspExit).
+- Removed sharedGspCmdBuf param from gspSubmitGxCommand (now uses the proper GSP shared memory address automatically).
+- Removed GSPGPU_REBASE_REG define (leftover from early 3DS homebrew).
+- Removed numerous internal fields that were previously publicly accessible.
+
+### audio
+
+- DSP access rights are now managed using a hook mechanism, similar to the APT hook.
+  - This fixes audio playback during libapplet invocations, as they no longer relinquish DSP rights.
+- Changed NDSP to use the DSP hook instead of the APT hook.
+- Added dspIsComponentLoaded, dspHook, dspUnhook.
+- Fixed and improved robustness of wavebuf handling in NDSP code.
+- Fixed and refactored NDSP sleep/wakeup code to improve accuracy compared to official logic.
+
+### filesystem
+
+- Reduced TLS footprint of the archive/romfs devices by sharing buffers.
+- Reduced the maximum number of concurrently registered archive devices from 32 to 8 in order to save memory.
+- Backported multi-mount romfs system from libnx, with additional optimizations (breaking API change).
+- Added romfsMountFromTitle.
+- Fixed stat for romfs device to return -1 for non-existent files/directories.
+
+### applet
+
+- Major internal refactor of the APT service wrapper that should improve accuracy compared to official logic.
+- Fixed sleep handling when the app is inactive (i.e. app is suspended).
+- Added support for screen capture during libapplet transitions.
+- Added support for proper DSP access right management.
+- aptLaunchLibraryApplet no longer calls aptMainLoop internally. Library applet calls no longer return a bool value, users are advised to check APT state manually afterwards.
+- Added functions for checking APT state: aptIsActive, aptShouldClose, aptShouldJumpToHome, aptCheckHomePressRejected (replaces aptIsHomePressed).
+- Added functions for handling incoming requests: aptHandleSleep, aptHandleJumpToHome.
+- Added aptJumpToHomeMenu.
+- Changed aptMainLoop to use the new wrapper functions (this means aptMainLoop can now be replaced by custom logic if desired).
+- Changed APTHOOK_ONEXIT to be invoked during aptExit instead of during aptMainLoop.
+- Added aptClearChainloader, aptSetChainloaderToSelf.
+
+### miscellaneous
+
+- Fix decompress out-of-bounds access.
+- Added NDM_ prefix to NDM enum members in order to avoid name collisions.
+- Corrected parameter type in several CFGU functions.
+- Corrected return value of GSPLCD_GetBrightness.
+- Removed obsolete support for ninjhax 1.x's fake hb:HB service.
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 1.9.0
 
 - hid: Added hidKeysDownRepeat, hidWaitForAnyEvent. Allow user override of irsst usage.
