@@ -60,11 +60,11 @@ Result osGetSystemVersionData(OS_VersionBin *nver_versionbin, OS_VersionBin *cve
 
 	u8 region=0;
 	ret = CFGU_SecureInfoGetRegion(&region);
+	cfguExit();
+
 	if(R_FAILED(ret))return ret;
 
 	if(region>=7)return MAKERESULT(RL_PERMANENT, RS_INVALIDSTATE, RM_APPLICATION, RD_OUT_OF_RANGE);
-
-	cfguExit();
 
 	ret = osReadVersionBin(TID_HIGH | __NVer_tidlow_regionarray[region], nver_versionbin);
 	if(R_FAILED(ret))return ret;
