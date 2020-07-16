@@ -54,7 +54,7 @@ Result ERRF_Throw(const ERRF_FatalErrInfo* error)
 static inline void getCommonErrorData(ERRF_FatalErrInfo* error, Result failure)
 {
 	error->resCode = failure;
-	svcGetProcessId(&error->procId, 0xFFFF8001);
+	svcGetProcessId(&error->procId, CUR_PROCESS_HANDLE);
 }
 
 Result ERRF_ThrowResult(Result failure)
@@ -125,7 +125,7 @@ void ERRF_ExceptionHandler(ERRF_ExceptionInfo* excep, CpuRegisters* regs)
 	error.pcAddr = regs->pc;
 	getCommonErrorData(&error, 0);
 	error.data.exception_data.excep = *excep;
-	error.data.exception_data.regs = *regs;	
+	error.data.exception_data.regs = *regs;
 
 	ret = ERRF_Throw(&error);
 
