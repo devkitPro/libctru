@@ -159,7 +159,7 @@ static inline void CondVar_BeginWait(CondVar* cv, LightLock* lock)
 	s32 val;
 	do
 		val = __ldrex(cv) - 1;
-	while (!__strex(cv, val));
+	while (__strex(cv, val));
 	LightLock_Unlock(lock);
 }
 
@@ -180,7 +180,7 @@ static inline bool CondVar_EndWait(CondVar* cv, s32 num_threads)
 			else
 				val = 0;
 		}
-	} while (!__strex(cv, val));
+	} while (__strex(cv, val));
 
 	return hasWaiters;
 }
