@@ -34,6 +34,17 @@ typedef enum
 	CFG_LANGUAGE_TW = 11, ///< Traditional Chinese
 } CFG_Language;
 
+// Configuration system model values.
+typedef enum
+{
+	CFG_MODEL_3DS    = 0, ///< Old 3DS (CTR)
+	CFG_MODEL_3DSXL  = 1, ///< Old 3DS XL (SPR)
+	CFG_MODEL_N3DS   = 2, ///< New 3DS (KTR)
+	CFG_MODEL_2DS    = 3, ///< Old 2DS (FTR)
+	CFG_MODEL_N3DSXL = 4, ///< New 3DS XL (RED)
+	CFG_MODEL_N2DSXL = 5, ///< New 2DS XL (JAN)
+} CFG_SystemModel;
+
 /// Initializes CFGU.
 Result cfguInit(void);
 
@@ -61,7 +72,7 @@ Result CFGU_GetRegionCanadaUSA(u8* value);
 
 /**
  * @brief Gets the system's model.
- * @param model Pointer to output the model to. (0 = O3DS, 1 = O3DSXL, 2 = N3DS, 3 = 2DS, 4 = N3DSXL, 5 = N2DSXL)
+ * @param model Pointer to output the model to. (see @ref CFG_SystemModel)
  */
 Result CFGU_GetSystemModel(u8* model);
 
