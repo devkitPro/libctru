@@ -279,7 +279,7 @@ double osTickCounterRead(const TickCounter* cnt);
  * @return The current Wifi signal strength.
  *
  * Valid values are 0-3:
- * - 0 means the singal strength is terrible or the 3DS is disconnected from
+ * - 0 means the signal strength is terrible or the 3DS is disconnected from
  *   all networks.
  * - 1 means the signal strength is bad.
  * - 2 means the signal strength is decent.
