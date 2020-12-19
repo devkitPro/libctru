@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 2.0.1
+
+- Added CFG_SystemModel enum.
+- Fixed bug in condvar code.
+- Fixed bug in srvpm code.
+- Fixed const correctness issues in gspgpu code.
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 2.0.0
 
 **This is a major release. Many essential components have been overhauled, although breaking changes are minimal and only affect rarely used functionality.**
