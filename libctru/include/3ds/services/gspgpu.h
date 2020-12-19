@@ -156,7 +156,7 @@ GSPGPU_Event gspWaitForAnyEvent(void);
  * @brief Submits a GX command.
  * @param gxCommand GX command to execute.
  */
-Result gspSubmitGxCommand(u32 gxCommand[0x8]);
+Result gspSubmitGxCommand(const u32 gxCommand[0x8]);
 
 /**
  * @brief Acquires GPU rights.
@@ -171,7 +171,7 @@ Result GSPGPU_ReleaseRight(void);
  * @brief Retrieves display capture info.
  * @param captureinfo Pointer to output capture info to.
  */
-Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo*captureinfo);
+Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo* captureinfo);
 
 /// Saves the VRAM sys area.
 Result GSPGPU_SaveVramSysArea(void);
@@ -193,7 +193,7 @@ Result GSPGPU_SetLcdForceBlack(u8 flags);
  * @param screenid ID of the screen to update.
  * @param framebufinfo Framebuffer information to update with.
  */
-Result GSPGPU_SetBufferSwap(u32 screenid, GSPGPU_FramebufferInfo*framebufinfo);
+Result GSPGPU_SetBufferSwap(u32 screenid, const GSPGPU_FramebufferInfo* framebufinfo);
 
 /**
  * @brief Flushes memory from the data cache.
@@ -215,7 +215,7 @@ Result GSPGPU_InvalidateDataCache(const void* adr, u32 size);
  * @param data Data to write.
  * @param size Size of the data to write.
  */
-Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size);
+Result GSPGPU_WriteHWRegs(u32 regAddr, const u32* data, u8 size);
 
 /**
  * @brief Writes to GPU hardware registers with a mask.
@@ -225,7 +225,7 @@ Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size);
  * @param maskdata Data of the mask.
  * @param masksize Size of the mask.
  */
-Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize);
+Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, const u32* data, u8 datasize, const u32* maskdata, u8 masksize);
 
 /**
  * @brief Reads from GPU hardware registers.
