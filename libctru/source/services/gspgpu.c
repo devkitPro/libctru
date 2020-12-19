@@ -297,7 +297,7 @@ GSPGPU_Event gspWaitForAnyEvent(void)
 	return (GSPGPU_Event)x;
 }
 
-static int popInterrupt()
+static int popInterrupt(void)
 {
 	int curEvt;
 	bool strexFailed;
@@ -379,7 +379,7 @@ void gspEventThreadMain(void *arg)
 //essentially : get commandIndex and totalCommands, calculate offset of new command, copy command and update totalCommands
 //use LDREX/STREX because this data may also be accessed by the GSP module and we don't want to break stuff
 //(mostly, we could overwrite the buffer header with wrong data and make the GSP module reexecute old commands)
-Result gspSubmitGxCommand(u32 gxCommand[0x8])
+Result gspSubmitGxCommand(const u32 gxCommand[0x8])
 {
 	u32* sharedGspCmdBuf = (u32*)((u8*)gspSharedMem + 0x800 + gspThreadId*0x200);
 	u32 cmdBufHeader = __ldrex((s32*)sharedGspCmdBuf);
@@ -410,7 +410,7 @@ Result gspSubmitGxCommand(u32 gxCommand[0x8])
 	return 0;
 }
 
-Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size)
+Result GSPGPU_WriteHWRegs(u32 regAddr, const u32* data, u8 size)
 {
 	if(size>0x80 || !data)return -1;
 
@@ -427,7 +427,7 @@ Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size)
 	return cmdbuf[1];
 }
 
-Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize)
+Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, const u32* data, u8 datasize, const u32* maskdata, u8 masksize)
 {
 	if(datasize>0x80 || !data)return -1;
 
@@ -463,7 +463,7 @@ Result GSPGPU_ReadHWRegs(u32 regAddr, u32* data, u8 size)
 	return cmdbuf[1];
 }
 
-Result GSPGPU_SetBufferSwap(u32 screenid, GSPGPU_FramebufferInfo*framebufinfo)
+Result GSPGPU_SetBufferSwap(u32 screenid, const GSPGPU_FramebufferInfo*framebufinfo)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -590,7 +590,7 @@ Result GSPGPU_ReleaseRight(void)
 	return cmdbuf[1];
 }
 
-Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo*captureinfo)
+Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo* captureinfo)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 	cmdbuf[0]=IPC_MakeHeader(0x18,0,0); // 0x180000
