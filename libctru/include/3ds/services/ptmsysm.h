@@ -48,6 +48,12 @@ Result ptmSysmInit(void);
 /// Exits ptm:sysm.
 void ptmSysmExit(void);
 
+/**
+ * @brief Gets a pointer to the current ptm:sysm session handle.
+ * @return A pointer to the current ptm:sysm session handle.
+ */
+Handle *ptmSysmGetSessionHandle(void);
+
 /// Requests to enter sleep mode.
 Result PTMSYSM_RequestSleep(void);
 
@@ -81,12 +87,18 @@ Result PTMSYSM_GetWakeReason(PtmSleepConfig *outSleepConfig);
 /// Cancels the "half-awake" state and fully wakes up the 3DS after some delay.
 Result PTMSYSM_Awaken(void);
 
+/**
+ * @brief Sets the user time by updating the user time offset.
+ * @param msY2k The number of milliseconds since 01/01/2000.
+ */
+Result PTMSYSM_SetUserTime(s64 msY2k);
+
 /// Invalidates the "system time" (cfg block 0x30002)
 Result PTMSYSM_InvalidateSystemTime(void);
 
 /**
  * @brief Reads the time and date coming from the RTC and converts the result.
- * @returns The number of milliseconds since 01/01/2000.
+ * @param[out] outMsY2k The pointer to write the number of milliseconds since 01/01/2000 to.
  */
 Result PTMSYSM_GetRtcTime(s64 *outMsY2k);
 

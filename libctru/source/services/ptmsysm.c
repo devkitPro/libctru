@@ -24,6 +24,11 @@ void ptmSysmExit(void)
 	svcCloseHandle(ptmSysmHandle);
 }
 
+Handle *ptmSysmGetSessionHandle(void)
+{
+	return &ptmSysmHandle;
+}
+
 Result PTMSYSM_RequestSleep(void)
 {
 	Result ret;
@@ -138,6 +143,18 @@ Result PTMSYSM_RebootAsync(u64 timeout)
 	cmdbuf[0] = IPC_MakeHeader(0x409,2,0); // 0x04090080
 	cmdbuf[1] = timeout & 0xffffffff;
 	cmdbuf[2] = (timeout >> 32) & 0xffffffff;
+
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result PTMSYSM_SetUserTime(s64 msY2k)
+{
+	Result ret;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x80C,2,0); // 0x080C0080
+	memcpy(&cmdbuf[1], &msY2k, 8);
 
 	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
 
