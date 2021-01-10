@@ -60,6 +60,8 @@ extern "C" {
 #include <3ds/services/ps.h>
 #include <3ds/services/ptmu.h>
 #include <3ds/services/ptmsysm.h>
+#include <3ds/services/ptmgets.h>
+#include <3ds/services/ptmsets.h>
 #include <3ds/services/pxidev.h>
 #include <3ds/services/pxipm.h>
 #include <3ds/services/soc.h>

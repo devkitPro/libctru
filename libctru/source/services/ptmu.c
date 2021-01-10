@@ -24,6 +24,11 @@ void ptmuExit(void)
 	svcCloseHandle(ptmuHandle);
 }
 
+Handle *ptmuGetSessionHandle(void)
+{
+	return &ptmuHandle;
+}
+
 Result PTMU_GetShellState(u8 *out)
 {
 	Result ret=0;
