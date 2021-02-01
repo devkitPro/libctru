@@ -235,6 +235,14 @@ typedef struct
 	const void* data; ///< Pointer to FS path data.
 } FS_Path;
 
+/// SDMC/NAND speed information
+typedef struct
+{
+	bool highSpeedModeEnabled;  ///< Whether or not High Speed Mode is enabled.
+	bool usesHighestClockRate;  ///< Whether or not a clock divider of 2 is being used.
+	u16 sdClkCtrl;              ///< The value of the SD_CLK_CTRL register.
+} FS_SdMmcSpeedInfo;
+
 /// Filesystem archive handle, providing access to a filesystem's contents.
 typedef u64 FS_Archive;
 
@@ -467,13 +475,13 @@ Result FSUSER_GetNandCid(u8* out, u32 length);
  * @brief Gets the SDMC speed info.
  * @param speedInfo Pointer to output the speed info to.
  */
-Result FSUSER_GetSdmcSpeedInfo(u32 *speedInfo);
+Result FSUSER_GetSdmcSpeedInfo(FS_SdMmcSpeedInfo *speedInfo);
 
 /**
  * @brief Gets the NAND speed info.
  * @param speedInfo Pointer to output the speed info to.
  */
-Result FSUSER_GetNandSpeedInfo(u32 *speedInfo);
+Result FSUSER_GetNandSpeedInfo(FS_SdMmcSpeedInfo *speedInfo);
 
 /**
  * @brief Gets the SDMC log.

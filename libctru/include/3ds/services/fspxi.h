@@ -193,7 +193,7 @@ Result FSPXI_CloseArchive(Handle serviceHandle, FSPXI_Archive archive);
 /**
  * @brief Unknown 0x17. Appears to be an "is archive handle valid" command?
  * @param archive Archive handle to check validity of.
- * @param out Pointer to output validity to. 
+ * @param out Pointer to output validity to.
  */
 Result FSPXI_Unknown0x17(Handle serviceHandle, FSPXI_Archive archive, bool* out);
 
@@ -251,13 +251,13 @@ Result FSPXI_GetNandCid(Handle serviceHandle, void* out, u32 size);
  * @brief Gets the SDMC speed info
  * @param out Buffer to output the speed info to.
  */
-Result FSPXI_GetSdmcSpeedInfo(Handle serviceHandle, u32* out);
+Result FSPXI_GetSdmcSpeedInfo(Handle serviceHandle, FS_SdMmcSpeedInfo* out);
 
 /**
  * @brief Gets the NAND speed info
  * @param out Buffer to output the speed info to.
  */
-Result FSPXI_GetNandSpeedInfo(Handle serviceHandle, u32* out);
+Result FSPXI_GetNandSpeedInfo(Handle serviceHandle, FS_SdMmcSpeedInfo* out);
 
 /**
  * @brief Gets the SDMC log
