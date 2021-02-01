@@ -566,7 +566,7 @@ Result FSUSER_GetNandCid(u8* out, u32 length)
 	return cmdbuf[1];
 }
 
-Result FSUSER_GetSdmcSpeedInfo(u32 *speedInfo)
+Result FSUSER_GetSdmcSpeedInfo(FS_SdMmcSpeedInfo *speedInfo)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -575,12 +575,11 @@ Result FSUSER_GetSdmcSpeedInfo(u32 *speedInfo)
 	Result ret = 0;
 	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
-	if(speedInfo) *speedInfo = cmdbuf[2];
-
+	if(speedInfo) memcpy(speedInfo, &cmdbuf[2], sizeof(FS_SdMmcSpeedInfo));
 	return cmdbuf[1];
 }
 
-Result FSUSER_GetNandSpeedInfo(u32 *speedInfo)
+Result FSUSER_GetNandSpeedInfo(FS_SdMmcSpeedInfo *speedInfo)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -589,7 +588,7 @@ Result FSUSER_GetNandSpeedInfo(u32 *speedInfo)
 	Result ret = 0;
 	if(R_FAILED(ret = svcSendSyncRequest(fsSession()))) return ret;
 
-	if(speedInfo) *speedInfo = cmdbuf[2];
+	if(speedInfo) memcpy(speedInfo, &cmdbuf[2], sizeof(FS_SdMmcSpeedInfo));
 
 	return cmdbuf[1];
 }

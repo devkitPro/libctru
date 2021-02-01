@@ -5,10 +5,22 @@
 #pragma once
 #include "svc.h"
 
-#define SYSCLOCK_SOC       (16756991)
-#define SYSCLOCK_ARM9      (SYSCLOCK_SOC * 8)
-#define SYSCLOCK_ARM11     (SYSCLOCK_ARM9 * 2)
-#define SYSCLOCK_ARM11_NEW (SYSCLOCK_ARM11 * 3)
+///< The external clock rate for the SoC.
+#define SYSCLOCK_SOC            (16756991u)
+///< The base system clock rate (for I2C, NDMA, etc.).
+#define SYSCLOCK_SYS            (SYSCLOCK_SOC * 2)
+///< The base clock rate for the SDMMC controller (and some other peripherals).
+#define SYSCLOCK_SDMMC          (SYSCLOCK_SYS * 2)
+///< The clock rate for the Arm9.
+#define SYSCLOCK_ARM9           (SYSCLOCK_SYS * 4)
+///< The clock rate for the Arm11 in CTR mode and in \ref svcGetSystemTick.
+#define SYSCLOCK_ARM11          (SYSCLOCK_ARM9 * 2)
+///< The clock rate for the Arm11 in LGR1 mode.
+#define SYSCLOCK_ARM11_LGR1     (SYSCLOCK_ARM11 * 2)
+///< The clock rate for the Arm11 in LGR2 mode.
+#define SYSCLOCK_ARM11_LGR2     (SYSCLOCK_ARM11 * 3)
+///< The highest possible clock rate for the Arm11 on known New 3DS units.
+#define SYSCLOCK_ARM11_NEW      SYSCLOCK_ARM11_LGR2
 
 #define CPU_TICKS_PER_MSEC (SYSCLOCK_ARM11 / 1000.0)
 #define CPU_TICKS_PER_USEC (SYSCLOCK_ARM11 / 1000000.0)

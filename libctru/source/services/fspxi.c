@@ -572,7 +572,7 @@ Result FSPXI_GetNandCid(Handle serviceHandle, void* out, u32 size)
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_GetSdmcSpeedInfo(Handle serviceHandle, u32* out)
+Result FSPXI_GetSdmcSpeedInfo(Handle serviceHandle, FS_SdMmcSpeedInfo* out)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -581,12 +581,12 @@ Result FSPXI_GetSdmcSpeedInfo(Handle serviceHandle, u32* out)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(out) *out = cmdbuf[2];
+	if(out) memcpy(out, &cmdbuf[2], sizeof(FS_SdMmcSpeedInfo));
 
 	return (Result) cmdbuf[1];
 }
 
-Result FSPXI_GetNandSpeedInfo(Handle serviceHandle, u32* out)
+Result FSPXI_GetNandSpeedInfo(Handle serviceHandle, FS_SdMmcSpeedInfo* out)
 {
 	Result ret = 0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -595,7 +595,7 @@ Result FSPXI_GetNandSpeedInfo(Handle serviceHandle, u32* out)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(out) *out = cmdbuf[2];
+	if(out) memcpy(out, &cmdbuf[2], sizeof(FS_SdMmcSpeedInfo));
 
 	return (Result) cmdbuf[1];
 }
@@ -1084,7 +1084,7 @@ Result FSPXI_GetArchiveResource(Handle serviceHandle, FS_ArchiveResource* archiv
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x43, 1, 0); // 0x00430040
 	cmdbuf[1] = mediaType;
 
@@ -1179,7 +1179,7 @@ Result FSPXI_ReadSpecialFile(Handle serviceHandle, u32* bytesRead, u64 fileOffse
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x49, 4, 2); // 0x00490102
 	cmdbuf[1] = 0;
 	cmdbuf[2] = (u32) fileOffset;
