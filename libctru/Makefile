@@ -145,7 +145,7 @@ lib/libctrud.a : lib debug $(SOURCES) $(INCLUDES)
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr release debug lib docs
+	@rm -fr release debug lib docs libctru.tag
 
 #---------------------------------------------------------------------------------
 else

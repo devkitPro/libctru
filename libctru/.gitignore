@@ -7,3 +7,4 @@ docs
 internal_docs
 *.bz2
 .*/
+*.tag
