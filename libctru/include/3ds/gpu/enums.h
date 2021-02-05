@@ -78,16 +78,16 @@ typedef enum
 	GPU_ETC1A4   = 0xD, ///< ETC1 texture compression + 4-bit Alpha
 } GPU_TEXCOLOR;
 
-// Texture faces.
+/// Texture faces.
 typedef enum
 {
-	GPU_TEXFACE_2D = 0, // 2D face
-	GPU_POSITIVE_X = 0, // +X face
-	GPU_NEGATIVE_X = 1, // -X face
-	GPU_POSITIVE_Y = 2, // +Y face
-	GPU_NEGATIVE_Y = 3, // -Y face
-	GPU_POSITIVE_Z = 4, // +Z face
-	GPU_NEGATIVE_Z = 5, // -Z face
+	GPU_TEXFACE_2D = 0, ///< 2D face
+	GPU_POSITIVE_X = 0, ///< +X face
+	GPU_NEGATIVE_X = 1, ///< -X face
+	GPU_POSITIVE_Y = 2, ///< +Y face
+	GPU_NEGATIVE_Y = 3, ///< -Y face
+	GPU_POSITIVE_Z = 4, ///< +Z face
+	GPU_NEGATIVE_Z = 5, ///< -Z face
 } GPU_TEXFACE;
 
 /// Procedural texture clamp modes.
