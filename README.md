@@ -1,6 +1,6 @@
 # libctru - CTR User Library
 
-[![Build Status](https://travis-ci.org/devkitPro/libctru.svg?branch=master)](https://travis-ci.org/devkitPro/libctru)
+![Build Status](https://github.com/devkitPro/libctru/actions/workflows/build.yaml/badge.svg)
 
 Library for writing user mode ARM11 code for the 3DS (CTR)
 

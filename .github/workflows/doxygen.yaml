@@ -1,0 +1,40 @@
+name: Build documentation
+
+on:
+  push:
+    tags: [ v* ]
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Get current tag
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF/refs\/tags\//}
+
+      - name: Set up Doxygen
+        run: sudo apt-get install -y doxygen
+
+      - name: Display Doxygen version
+        run: echo "Doxygen version $(doxygen -v)"
+
+      - name: Build documentation
+        run: |
+               git clone --branch=master --single-branch --depth 1 https://github.com/devkitPro/3ds-examples examples
+               cd libctru
+               CTRU_VERSION=${{ steps.vars.outputs.tag }} doxygen Doxyfile
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: libctru/docs/html
+          CLEAN: true
+          SINGLE_COMMIT: true
