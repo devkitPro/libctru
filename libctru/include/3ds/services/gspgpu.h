@@ -105,6 +105,12 @@ bool gspHasGpuRight(void);
 void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode);
 
 /**
+ * @brief Returns true if a prior \ref gspPresentBuffer command is still pending to be processed by GSP.
+ * @param screen Screen ID (see \ref GSP_SCREEN_TOP and \ref GSP_SCREEN_BOTTOM)
+ */
+bool gspIsPresentPending(unsigned screen);
+
+/**
  * @brief Configures a callback to run when a GSPGPU event occurs.
  * @param id ID of the event.
  * @param cb Callback to run.

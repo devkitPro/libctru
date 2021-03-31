@@ -257,6 +257,12 @@ void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const vo
 	} while (__strex(fbInfoHeader, u.header));
 }
 
+bool gspIsPresentPending(unsigned screen)
+{
+	s32* fbInfoHeader = (s32*)((u8*)gspSharedMem + 0x200 + gspThreadId*0x80 + screen*0x40);
+	return (*fbInfoHeader & 0xff00) != 0;
+}
+
 void gspSetEventCallback(GSPGPU_Event id, ThreadFunc cb, void* data, bool oneShot)
 {
 	if(id>= GSPGPU_EVENT_MAX)return;
