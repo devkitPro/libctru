@@ -100,9 +100,10 @@ bool gspHasGpuRight(void);
  * @param fb_b Pointer to the secondary framebuffer (only used in stereo mode for the right eye, otherwise pass the same as fb_a)
  * @param stride Stride in bytes between scanlines
  * @param mode Mode configuration to be written to LCD register
+ * @return true if a buffer had already been presented to the screen but not processed yet by GSP, false otherwise.
  * @note The most recently presented buffer is processed and configured during the specified screen's next VBlank event.
  */
-void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode);
+bool gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode);
 
 /**
  * @brief Returns true if a prior \ref gspPresentBuffer command is still pending to be processed by GSP.

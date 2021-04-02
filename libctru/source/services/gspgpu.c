@@ -226,7 +226,7 @@ bool gspHasGpuRight(void)
 	return gspGpuRight;
 }
 
-void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode)
+bool gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode)
 {
 	GSPGPU_FramebufferInfo info;
 	info.active_framebuf = swap;
@@ -249,12 +249,17 @@ void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const vo
 		struct { u8 swap, update; };
 	} u;
 
+	bool ret;
 	do
 	{
 		u.header = __ldrex(fbInfoHeader);
+		ret = u.update != 0;
+
 		u.swap = pos;
 		u.update = 1;
 	} while (__strex(fbInfoHeader, u.header));
+
+	return ret;
 }
 
 bool gspIsPresentPending(unsigned screen)
