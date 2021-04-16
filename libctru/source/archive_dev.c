@@ -981,7 +981,7 @@ archive_rename(struct _reent *r,
 
   rc = FSUSER_RenameFile(sourceDevice->archive, fs_path_old, sourceDevice->archive, fs_path_new);
   /* if the file at the target destination exists, overwrite it */
-  if(rc == 0xC82044BE) {
+  if(R_FAILED(rc) && R_DESCRIPTION(rc) == RD_ALREADY_EXISTS) {
     rc = FSUSER_DeleteFile(sourceDevice->archive, fs_path_new);
     if(R_FAILED(rc)) return -1;
     rc = FSUSER_RenameFile(sourceDevice->archive, fs_path_old, sourceDevice->archive, fs_path_new);
@@ -990,7 +990,7 @@ archive_rename(struct _reent *r,
 
   rc = FSUSER_RenameDirectory(sourceDevice->archive, fs_path_old, sourceDevice->archive, fs_path_new);
   /* if the directory at the target destination exists, overwrite it */
-  if(rc == 0xC82044BE) {
+  if(R_FAILED(rc) && R_DESCRIPTION(rc) == RD_ALREADY_EXISTS) {
     /* only overwrite empty directories */
     rc = FSUSER_DeleteDirectory(sourceDevice-> archive, fs_path_new);
     if(R_FAILED(rc)) return -1;
