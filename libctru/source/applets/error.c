@@ -1,4 +1,3 @@
-#include <3ds.h>
 #include <string.h>
 #include <3ds/types.h>
 #include <3ds/synchronization.h>
@@ -40,7 +39,7 @@ static void errorConvertToUTF16(u16* out, const char* in, size_t max)
 		return;
 	}
 
-	out[units] = 0;	
+	out[units] = 0;
 }
 
 void errorText(errorConf *err, const char* text)
@@ -49,6 +48,6 @@ void errorText(errorConf *err, const char* text)
 }
 
 void errorDisp(errorConf* err)
-{   
+{
 	aptLaunchLibraryApplet(APPID_ERROR, err, sizeof(*err), 0);
 }

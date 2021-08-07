@@ -8,6 +8,11 @@
 extern "C" {
 #endif
 
+#if defined(_3DS) && !defined(__3DS__)
+#warning "Please update your Makefile and replace -DARM11 -D_3DS with -D__3DS__"
+#define __3DS__
+#endif
+
 //might be missing some
 #include <3ds/types.h>
 #include <3ds/result.h>
