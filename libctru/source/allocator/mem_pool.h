@@ -2,6 +2,15 @@
 #include <3ds/types.h>
 #include <stdlib.h>
 
+static inline int alignmentToShift(size_t alignment)
+{
+	if (alignment < 16)
+		alignment = 16;
+	else if (alignment & (alignment - 1))
+		return -1; // Not a power of two
+	return __builtin_ffs(alignment)-1;
+}
+
 struct MemChunk
 {
 	u8* addr;

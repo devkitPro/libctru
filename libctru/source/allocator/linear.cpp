@@ -27,18 +27,9 @@ static bool linearInit()
 
 void* linearMemAlign(size_t size, size_t alignment)
 {
-	// Enforce minimum alignment
-	if (alignment < 16)
-		alignment = 16;
-
-	// Convert alignment to shift amount
-	int shift;
-	for (shift = 4; shift < 32; shift ++)
-	{
-		if ((1U<<shift) == alignment)
-			break;
-	}
-	if (shift == 32) // Invalid alignment
+	// Convert alignment to shift
+	int shift = alignmentToShift(alignment);
+	if (shift < 0)
 		return nullptr;
 
 	// Initialize the pool if it is not ready
