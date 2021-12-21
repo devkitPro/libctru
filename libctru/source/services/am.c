@@ -1031,3 +1031,41 @@ Result AM_DeleteAllTwlTitles(void)
 
 	return (Result)cmdbuf[1];
 }
+
+Result AMAPP_GetDLCContentInfoCount(u32* count, FS_MediaType mediatype, u64 titleID)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1001,3,0); // 0x100100C0
+	cmdbuf[1] = (u32)mediatype;
+	cmdbuf[2] = titleID & 0xffffffff;
+	cmdbuf[3] = (u32)(titleID >> 32);
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	*count = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
+
+Result AMAPP_ListDLCContentInfos(u32* contentInfoRead, FS_MediaType mediatype, u64 titleID, u32 contentInfoCount, u32 offset, AM_ContentInfo* contentInfos)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = (IPC_MakeHeader(0x1003,5,2)); // 0x10030142
+	cmdbuf[1] = contentInfoCount;
+	cmdbuf[2] = (u32)mediatype;
+	cmdbuf[3] = titleID & 0xffffffff;
+	cmdbuf[4] = (u32)(titleID >> 32);
+	cmdbuf[5] = offset;
+	cmdbuf[6] = IPC_Desc_Buffer(contentInfoCount * 0x18, IPC_BUFFER_W);
+	cmdbuf[7] = (u32)contentInfos;
+
+	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
+
+	*contentInfoRead = cmdbuf[2];
+
+	return (Result)cmdbuf[1];
+}
