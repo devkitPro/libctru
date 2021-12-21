@@ -141,7 +141,7 @@ Result DSP_RegisterInterruptEvents(Handle handle, u32 interrupt, u32 channel);
 Result DSP_ReadPipeIfPossible(u32 channel, u32 peer, void* buffer, u16 length, u16* length_read);
 
 /**
- * @param Writes to a pipe.
+ * @brief Writes to a pipe.
  * @param channel unknown. Usually 2
  * @param buffer  The message to send to the DSP process
  * @param length  Length of the message
