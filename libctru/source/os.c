@@ -89,27 +89,6 @@ u64 osGetTime(void) {
 }
 
 //---------------------------------------------------------------------------------
-int __libctru_gtod(struct _reent *ptr, struct timeval *tp, struct timezone *tz) {
-//---------------------------------------------------------------------------------
-	if (tp != NULL) {
-		// Retrieve current time, adjusting epoch from 1900 to 1970
-		s64 now = osGetTime() - 2208988800000ULL;
-
-		// Convert to struct timeval
-		tp->tv_sec = now / 1000;
-		tp->tv_usec = (now - 1000*tp->tv_sec) * 1000;
-	}
-
-	if (tz != NULL) {
-		// Provide dummy information, as the 3DS does not have the concept of timezones
-		tz->tz_minuteswest = 0;
-		tz->tz_dsttime = 0;
-	}
-
-	return 0;
-}
-
-//---------------------------------------------------------------------------------
 double osTickCounterRead(const TickCounter* cnt) {
 //---------------------------------------------------------------------------------
 	return u64_to_double(cnt->elapsed) / CPU_TICKS_PER_MSEC;
