@@ -37,6 +37,16 @@ static u16 colorTable[] = {
 	RGB8_to_565( 96, 96, 96),	// faint white
 };
 
+static const u8 colorCube[] = {
+	0x00, 0x5f, 0x87, 0xaf, 0xd7, 0xff,
+};
+
+static const u8 grayScale[] = {
+	0x08, 0x12, 0x1c, 0x26, 0x30, 0x3a, 0x44, 0x4e,
+	0x58, 0x62, 0x6c, 0x76, 0x80, 0x8a, 0x94, 0x9e,
+	0xa8, 0xb2, 0xbc, 0xc6, 0xd0, 0xda, 0xe4, 0xee,
+};
+
 PrintConsole defaultConsole =
 {
 	//Font:
@@ -61,6 +71,65 @@ PrintConsole defaultConsole =
 	0,		//print callback
 	false	//console initialized
 };
+
+static bool parseColor (char **esc, int *escLen, u16 *color, bool *custom)
+{
+	unsigned int p;
+	unsigned int n;
+	unsigned int r;
+	unsigned int g;
+	unsigned int b;
+	int consumed;
+
+	if (sscanf (*esc, "%d;%n", &p, &consumed) != 1)
+		return false;
+
+	*esc    += consumed;
+	*escLen -= consumed;
+
+	if (p == 5) {
+		if (sscanf (*esc, "%u%n", &n, &consumed) != 1)
+			return false;
+
+		*esc    += consumed;
+		*escLen -= consumed;
+
+		if (n <= 15) {
+			*color  = n;
+			*custom = false;
+		} else if (n <= 231) {
+			n -= 16;
+			r = n / 36;
+			g = (n - r * 36) / 6;
+			b = n - r * 36 - g * 6;
+
+			*color  = RGB8_to_565 (colorCube[r], colorCube[g], colorCube[b]);
+			*custom = true;
+		} else if (n <= 255) {
+			n -= 232;
+
+			*color  = RGB8_to_565 (grayScale[n], grayScale[n], grayScale[n]);
+			*custom = true;
+		} else {
+			return false;
+		}
+
+		return true;
+	} else if (p == 2) {
+		if (sscanf (*esc, "%u;%u;%u%n", &r, &g, &b, &consumed) != 3)
+			return false;
+
+		*esc    += consumed;
+		*escLen -= consumed;
+
+		*color  = RGB8_to_565 (r, g, b);
+		*custom = true;
+
+		return true;
+	}
+
+	return false;
+}
 
 PrintConsole currentCopy;
 
@@ -220,7 +289,7 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 		chr = *(tmp++);
 		i++; count++;
 
-		if ( chr == 0x1b && *tmp == '[' ) {
+		if ( chr == 0x1b && len > 1 && *tmp == '[' ) {
 			bool escaping = true;
 			char *escapeseq	= tmp++;
 			int escapelen = 1;
@@ -354,6 +423,7 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 						escapelen--;
 
 						do {
+							bool custom;
 							parameter = 0;
 							if (escapelen == 1) {
 								consumed = 1;
@@ -444,18 +514,62 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 								break;
 
 							case 30 ... 37: // writing color
-								currentConsole->fg = parameter - 30;
+								currentConsole->flags &= ~CONSOLE_FG_CUSTOM;
+								currentConsole->fg     = parameter - 30;
+								break;
+
+							case 38: // custom foreground color
+								if (parseColor (&escapeseq, &escapelen, &currentConsole->fg, &custom)) {
+									if (custom)
+										currentConsole->flags |= CONSOLE_FG_CUSTOM;
+									else
+										currentConsole->flags &= ~CONSOLE_FG_CUSTOM;
+
+									if (!custom && currentConsole->fg < 16) {
+										currentConsole->flags &= ~CONSOLE_COLOR_FAINT;
+										if (currentConsole->fg < 8)
+											currentConsole->flags &= ~CONSOLE_COLOR_BOLD;
+										else
+											currentConsole->flags |= CONSOLE_COLOR_BOLD;
+									}
+
+									// consume next ; or m
+									++escapeseq;
+									--escapelen;
+								} else {
+									// stop processing
+									escapelen = 0;
+								}
 								break;
 
 							case 39: // reset foreground color
-								currentConsole->fg = 7;
+								currentConsole->flags &= ~CONSOLE_FG_CUSTOM;
+								currentConsole->fg     = 7;
 								break;
 
 							case 40 ... 47: // screen color
+								currentConsole->flags &= ~CONSOLE_BG_CUSTOM;
 								currentConsole->bg = parameter - 40;
 								break;
 
+							case 48: // custom background color
+								if (parseColor (&escapeseq, &escapelen, &currentConsole->bg, &custom)) {
+									if (custom)
+										currentConsole->flags |= CONSOLE_BG_CUSTOM;
+									else
+										currentConsole->flags &= ~CONSOLE_BG_CUSTOM;
+
+									// consume next ; or m
+									++escapeseq;
+									--escapelen;
+								} else {
+									// stop processing
+									escapelen = 0;
+								}
+								break;
+
 							case 49: // reset background color
+								currentConsole->flags &= ~CONSOLE_BG_CUSTOM;
 								currentConsole->fg = 0;
 								break;
 							}
@@ -640,23 +754,28 @@ void consoleDrawChar(int c) {
 
 	u8 *fontdata = currentConsole->font.gfx + (8 * c);
 
-	int writingColor = currentConsole->fg;
-	int screenColor = currentConsole->bg;
+	u16 fg = currentConsole->fg;
+	u16 bg = currentConsole->bg;
 
-	if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
-		writingColor += 8;
-	} else if (currentConsole->flags & CONSOLE_COLOR_FAINT) {
-		writingColor += 16;
+	if (!(currentConsole->flags & CONSOLE_FG_CUSTOM)) {
+		if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
+			fg = colorTable[fg + 8];
+		} else if (currentConsole->flags & CONSOLE_COLOR_FAINT) {
+			fg = colorTable[fg + 16];
+		} else {
+			fg = colorTable[fg];
+		}
+	}
+
+	if (!(currentConsole->flags & CONSOLE_BG_CUSTOM)) {
+		bg = colorTable[bg];
 	}
 
 	if (currentConsole->flags & CONSOLE_COLOR_REVERSE) {
-		int tmp = writingColor;
-		writingColor = screenColor;
-		screenColor = tmp;
+		u16 tmp = fg;
+		fg = bg;
+		bg = tmp;
 	}
-
-	u16 bg = colorTable[screenColor];
-	u16 fg = colorTable[writingColor];
 
 	u8 b1 = *(fontdata++);
 	u8 b2 = *(fontdata++);
@@ -755,7 +874,7 @@ void consolePrintChar(int c) {
 //---------------------------------------------------------------------------------
 void consoleClear(void) {
 //---------------------------------------------------------------------------------
-	iprintf("\x1b[2J");
+	consoleCls('2');
 }
 
 //---------------------------------------------------------------------------------

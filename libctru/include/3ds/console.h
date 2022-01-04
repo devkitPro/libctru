@@ -94,8 +94,8 @@ typedef struct PrintConsole
 	int windowHeight;        ///< Window height in characters (not implemented)
 
 	int tabSize;             ///< Size of a tab
-	int fg;                  ///< Foreground color
-	int bg;                  ///< Background color
+	u16 fg;                  ///< Foreground color
+	u16 bg;                  ///< Background color
 	int flags;               ///< Reverse/bright flags
 
 	ConsolePrint PrintChar;  ///< Callback for printing a character. Should return true if it has handled rendering the graphics (else the print engine will attempt to render via tiles).
@@ -112,6 +112,8 @@ typedef struct PrintConsole
 #define CONSOLE_COLOR_REVERSE	(1<<6) ///< Reversed color text
 #define CONSOLE_CONCEAL		(1<<7) ///< Concealed text
 #define CONSOLE_CROSSED_OUT	(1<<8) ///< Crossed out text
+#define CONSOLE_FG_CUSTOM	(1<<9) ///< Foreground custom color
+#define CONSOLE_BG_CUSTOM	(1<<10) ///< Background custom color
 
 /// Console debug devices supported by libnds.
 typedef enum {
