@@ -585,7 +585,7 @@ decompress_huff(const size_t bits, buffer_t *buffer, const decompressIOVec *iov,
     }
 
     // read the current node's offset value
-    offset = tree[node] & 0x1F;
+    offset = tree[node] & 0x3F;
 
     child = (node & ~1) + offset*2 + 2;
 
