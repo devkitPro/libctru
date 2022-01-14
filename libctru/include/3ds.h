@@ -99,6 +99,7 @@ extern "C" {
 #include <3ds/mii.h>
 
 #include <3ds/gdbhio_dev.h>
+#include <3ds/3dslink.h>
 
 #ifdef __cplusplus
 }
