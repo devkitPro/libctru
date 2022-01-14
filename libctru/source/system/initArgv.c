@@ -1,7 +1,10 @@
 #include <3ds/types.h>
 #include <3ds/env.h>
+#include <3ds/3dslink.h>
 
 #include <string.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
 
 // System globals we define here
 int __system_argc;
@@ -46,6 +49,15 @@ void __attribute__((weak)) __system_initArgv(void)
 		__system_argv[i] = (char*)temp;
 		for (; *temp; temp ++);
 		temp ++;
+	}
+
+	// Grab 3dslink host address if avaliable
+	if ( __system_argc > 1 &&
+         strlen(__system_argv[__system_argc - 1]) == 17 &&
+         strncmp(&__system_argv[__system_argc - 1][8], "_3DSLINK_", 8) == 0 )
+	{
+		__system_argc--;
+		__3dslink_host.s_addr = strtoul(__system_argv[__system_argc], NULL, 16);
 	}
 	__system_argv[__system_argc] = NULL;
 }
