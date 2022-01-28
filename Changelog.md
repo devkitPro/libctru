@@ -1,5 +1,34 @@
 # Changelog
 
+## Version 2.1.0
+
+**The #define for the 3DS platform has been changed to `__3DS__` (previously it was `_3DS`) - please update your Makefiles and your code**
+
+### graphics
+
+- Refactored VRAM allocators:
+  - Added proper handling for VRAM banks (A and B, 3 MiB each)
+  - Allocations no longer cross VRAM bank boundaries
+  - Added vramAllocAt, vramMemAlignAt
+- Add gspIsPresentPending.
+- Add return value to gspPresentBuffer.
+- libctru console now supports SGR 38 and 48 escape sequences (needed by fmtlib).
+- Fixed GPU_TEXFACE enum.
+
+### filesystem
+
+- Changed rename to replace existing files, for better compatibility with POSIX (#483)
+- Added SDMMC speed info types, and more clock rates (#480).
+
+### miscellaneous
+
+- Added support for 3dslink stdio redirection (#488).
+- Added ptm:gets, ptm:sets and more ptm service commands.
+- Added AM_ContentInfo, AM_ContentInfoFlags structs.
+- Added AMAPP_GetDLCContentInfoCount, AMAPP_ListDLCContentInfos.
+- Fixed bug in Huffman decoder.
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 2.0.1
 
 - Added CFG_SystemModel enum.
