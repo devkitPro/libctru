@@ -20,6 +20,12 @@ Result gspLcdInit(void);
 /// Exits GSPLCD.
 void gspLcdExit(void);
 
+/**
+ * @brief Gets a pointer to the current gsp::Lcd session handle.
+ * @return A pointer to the current gsp::Lcd session handle.
+ */
+Handle *gspLcdGetSessionHandle(void);
+
 /// Powers on both backlights.
 Result GSPLCD_PowerOnAllBacklights(void);
 

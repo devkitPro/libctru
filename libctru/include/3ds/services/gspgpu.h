@@ -89,6 +89,12 @@ Result gspInit(void);
 /// Exits GSPGPU.
 void gspExit(void);
 
+/**
+ * @brief Gets a pointer to the current gsp::Gpu session handle.
+ * @return A pointer to the current gsp::Gpu session handle.
+ */
+Handle *gspGetSessionHandle(void);
+
 /// Returns true if the application currently has GPU rights.
 bool gspHasGpuRight(void);
 

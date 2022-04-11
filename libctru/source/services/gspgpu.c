@@ -221,6 +221,11 @@ void gspExit(void)
 	svcCloseHandle(gspGpuHandle);
 }
 
+Handle *gspGetSessionHandle(void)
+{
+	return &gspGpuHandle;
+}
+
 bool gspHasGpuRight(void)
 {
 	return gspGpuRight;

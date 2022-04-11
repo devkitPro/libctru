@@ -26,6 +26,11 @@ void gspLcdExit(void)
 	svcCloseHandle(gspLcdHandle);
 }
 
+Handle *gspLcdGetSessionHandle(void)
+{
+	return &gspLcdHandle;
+}
+
 Result GSPLCD_PowerOnAllBacklights(void)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
