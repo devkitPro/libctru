@@ -18,10 +18,12 @@ Result errfInit(void)
 	if (AtomicPostIncrement(&errfRefCount)) return 0;
 
 	rc = svcConnectToPort(&errfHandle, "err:f");
-	if (R_FAILED(rc)) goto end;
+	if (R_FAILED(rc))
+	{
+		errfHandle = 0;
+		errfExit();
+	}
 
-end:
-	if (R_FAILED(rc)) errfExit();
 	return rc;
 }
 
@@ -29,7 +31,8 @@ void errfExit(void)
 {
 	if (AtomicDecrement(&errfRefCount))
 		return;
-	svcCloseHandle(errfHandle);
+	if (errfHandle != 0) svcCloseHandle(errfHandle);
+	errfHandle = 0;
 }
 
 Handle* errfGetSessionHandle(void)

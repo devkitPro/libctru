@@ -35,10 +35,13 @@ Result srvInit(void)
 		rc = svcDuplicateHandle(&srvHandle, *srvPmGetSessionHandle()); // Prior to system version 7.0 srv:pm was a superset of srv:
 	else
 		rc = svcConnectToPort(&srvHandle, "srv:");
-	if (R_FAILED(rc)) goto end;
 
-	rc = srvRegisterClient();
-end:
+	if (R_SUCCEEDED(rc))
+		rc = srvRegisterClient();
+	else
+		// Prior to system version 11.0, the kernel filled the resulting handle with junk in case of failure
+		srvHandle = 0;
+
 	if (R_FAILED(rc)) srvExit();
 	return rc;
 }
@@ -96,11 +99,11 @@ Result srvEnableNotification(Handle* semaphoreOut)
 
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0);
 
-	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
+	rc = svcSendSyncRequest(srvHandle);
+	rc = R_SUCCEEDED(rc) ? cmdbuf[1] : rc;
+	if(semaphoreOut) *semaphoreOut = R_SUCCEEDED(rc) ? cmdbuf[3] : 0;
 
-	if(semaphoreOut) *semaphoreOut = cmdbuf[3];
-
-	return cmdbuf[1];
+	return rc;
 }
 
 Result srvRegisterService(Handle* out, const char* name, int maxSessions)
@@ -113,11 +116,11 @@ Result srvRegisterService(Handle* out, const char* name, int maxSessions)
 	cmdbuf[3] = strnlen(name, 8);
 	cmdbuf[4] = maxSessions;
 
-	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
+	rc = svcSendSyncRequest(srvHandle);
+	rc = R_SUCCEEDED(rc) ? cmdbuf[1] : rc;
+	if(out) *out = R_SUCCEEDED(rc) ? cmdbuf[3] : 0;
 
-	if(out) *out = cmdbuf[3];
-
-	return cmdbuf[1];
+	return rc;
 }
 
 Result srvUnregisterService(const char* name)
@@ -144,11 +147,11 @@ Result srvGetServiceHandleDirect(Handle* out, const char* name)
 	cmdbuf[3] = strnlen(name, 8);
 	cmdbuf[4] = (u32)srvGetBlockingPolicy(); // per-thread setting, default is blocking
 
-	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
+	rc = svcSendSyncRequest(srvHandle);
+	rc = R_SUCCEEDED(rc) ? cmdbuf[1] : rc;
+	if(out) *out = R_SUCCEEDED(rc) ? cmdbuf[3] : 0;
 
-	if(out) *out = cmdbuf[3];
-
-	return cmdbuf[1];
+	return rc;
 }
 
 Result srvRegisterPort(const char* name, Handle clientHandle)
@@ -191,11 +194,11 @@ Result srvGetPort(Handle* out, const char* name)
 	cmdbuf[3] = strnlen(name, 8);
 	cmdbuf[4] = 0x0;
 
-	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
+	rc = svcSendSyncRequest(srvHandle);
+	rc = R_SUCCEEDED(rc) ? cmdbuf[1] : rc;
+	if(out) *out = R_SUCCEEDED(rc) ? cmdbuf[3] : 0;
 
-	if(out) *out = cmdbuf[3];
-
-	return cmdbuf[1];
+	return rc;
 }
 
 Result srvWaitForPortRegistered(const char* name)
@@ -245,11 +248,11 @@ Result srvReceiveNotification(u32* notificationIdOut)
 
 	cmdbuf[0] = IPC_MakeHeader(0xB,0,0); // 0xB0000
 
-	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
+	rc = svcSendSyncRequest(srvHandle);
+	rc = R_SUCCEEDED(rc) ? cmdbuf[1] : rc;
+	if(notificationIdOut) *notificationIdOut = R_SUCCEEDED(rc) ? cmdbuf[2] : 0;
 
-	if(notificationIdOut) *notificationIdOut = cmdbuf[2];
-
-	return cmdbuf[1];
+	return rc;
 }
 
 Result srvPublishToSubscriber(u32 notificationId, u32 flags)
@@ -274,12 +277,18 @@ Result srvPublishAndGetSubscriber(u32* processIdCountOut, u32* processIdsOut, u3
 	cmdbuf[0] = IPC_MakeHeader(0xD,1,0); // 0xD0040
 	cmdbuf[1] = notificationId;
 
-	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
+	rc = svcSendSyncRequest(srvHandle);
+	rc = R_SUCCEEDED(rc) ? cmdbuf[1] : rc;
 
-	if(processIdCountOut) *processIdCountOut = cmdbuf[2];
-	if(processIdsOut) memcpy(processIdsOut, &cmdbuf[3], cmdbuf[2] * sizeof(u32));
+	if (R_SUCCEEDED(rc))
+	{
+		if(processIdCountOut) *processIdCountOut = cmdbuf[2];
+		if(processIdsOut) memcpy(processIdsOut, &cmdbuf[3], cmdbuf[2] * sizeof(u32));
+	}
+	else if(processIdCountOut)
+		*processIdCountOut = 0;
 
-	return cmdbuf[1];
+	return rc;
 }
 
 Result srvIsServiceRegistered(bool* registeredOut, const char* name)
@@ -291,11 +300,12 @@ Result srvIsServiceRegistered(bool* registeredOut, const char* name)
 	strncpy((char*) &cmdbuf[1], name,8);
 	cmdbuf[3] = strnlen(name, 8);
 
-	if(R_FAILED(rc = svcSendSyncRequest(srvHandle)))return rc;
+	rc = svcSendSyncRequest(srvHandle);
+	rc = R_SUCCEEDED(rc) ? cmdbuf[1] : rc;
 
-	if(registeredOut) *registeredOut = cmdbuf[2] & 0xFF;
+	if(registeredOut) *registeredOut = R_SUCCEEDED(rc) && (cmdbuf[2] & 0xFF) != 0;
 
-	return cmdbuf[1];
+	return rc;
 }
 
 Result srvIsPortRegistered(bool* registeredOut, const char* name)
