@@ -31,7 +31,20 @@ typedef struct
 	bool srv_blocking_policy;
 } ThreadVars;
 
+struct Thread_tag
+{
+	Handle handle;
+	ThreadFunc ep;
+	void* arg;
+	int rc;
+	bool detached, finished;
+	struct _reent reent;
+	void* stacktop;
+};
+
 static inline ThreadVars* getThreadVars(void)
 {
 	return (ThreadVars*)getThreadLocalStorage();
 }
+
+void initThreadVars(struct Thread_tag *thread);

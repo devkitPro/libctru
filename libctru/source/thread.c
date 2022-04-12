@@ -8,17 +8,6 @@ extern const u8 __tdata_lma_end[];
 extern u8 __tls_start[];
 extern u8 __tls_end[];
 
-struct Thread_tag
-{
-	Handle handle;
-	ThreadFunc ep;
-	void* arg;
-	int rc;
-	bool detached, finished;
-	struct _reent reent;
-	void* stacktop;
-};
-
 static void __panic(void)
 {
 	svcBreak(USERBREAK_PANIC);
@@ -28,12 +17,7 @@ static void __panic(void)
 static void _thread_begin(void* arg)
 {
 	Thread t = (Thread)arg;
-	ThreadVars* tv = getThreadVars();
-	tv->magic = THREADVARS_MAGIC;
-	tv->reent = &t->reent;
-	tv->thread_ptr = t;
-	tv->tls_tp = (u8*)t->stacktop-8; // ARM ELF TLS ABI mandates an 8-byte header
-	tv->srv_blocking_policy = false;
+	initThreadVars(t);
 	t->ep(t->arg);
 	threadExit(0);
 }
