@@ -105,7 +105,10 @@ void initThreadVars(struct Thread_tag *thread)
 	tv->magic = THREADVARS_MAGIC;
 	tv->reent = thread != NULL ? &thread->reent : _impure_ptr;
 	tv->thread_ptr = thread;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 	tv->tls_tp = (thread != NULL ? (u8*)thread->stacktop : __tls_start) - 8; // Arm ELF TLS ABI mandates an 8-byte header
+#pragma GCC diagnostic pop
 	tv->srv_blocking_policy = false;
 
 	// Kernel does not initialize fpscr at all, so we must do it ourselves
