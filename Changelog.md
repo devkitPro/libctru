@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 2.1.1
+
+- FPSCR is now initialized with a predictable value in all threads (including the main thread).
+- Added gspGetSessionHandle and gspLcdGetSessionHandle.
+- Fixed bugs related to uninitialized data in srv/errf service wrappers.
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 2.1.0
 
 **The #define for the 3DS platform has been changed to `__3DS__` (previously it was `_3DS`) - please update your Makefiles and your code**
