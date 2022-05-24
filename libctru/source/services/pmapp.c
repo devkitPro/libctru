@@ -79,7 +79,7 @@ Result PMAPP_TerminateTitle(u64 titleId, s64 timeout)
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = IPC_MakeHeader(0x3, 4, 0); // 0x40100
+	cmdbuf[0] = IPC_MakeHeader(0x4, 4, 0); // 0x40100
 	cmdbuf[1] = (u32)titleId;
 	cmdbuf[2] = (u32)(titleId >> 32);
 	cmdbuf[3] = (u32)timeout;
