@@ -3,12 +3,15 @@
 #include <sys/lock.h>
 #include <sys/reent.h>
 #include <string.h>
+#include <time.h>
+#include <errno.h>
 
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/env.h>
 #include <3ds/os.h>
 #include <3ds/synchronization.h>
+
 #include "../internal.h"
 
 void __ctru_exit(int rc);
@@ -28,6 +31,64 @@ struct _reent* __SYSCALL(getreent)()
 	return tv->reent;
 }
 
+int __SYSCALL(clock_gettime)(clockid_t clock_id, struct timespec *tp) {
+
+	if (clock_id == CLOCK_REALTIME)
+	{
+		if (tp != NULL)
+		{
+			// Retrieve current time, adjusting epoch from 1900 to 1970
+			s64 ms_since_epoch = osGetTime() - 2208988800000ULL;
+			tp->tv_sec = ms_since_epoch / 1000;
+			tp->tv_nsec = (ms_since_epoch % 1000) * 1000000;
+		}
+	}
+	else if (clock_id == CLOCK_MONOTONIC) 
+	{
+		if (tp != NULL)
+		{
+			// Use the ticks directly, as it offer the highest precision
+			u64 ticks_since_boot = svcGetSystemTick();
+
+			tp->tv_sec = ticks_since_boot / SYSCLOCK_ARM11;
+			tp->tv_nsec = ((ticks_since_boot % SYSCLOCK_ARM11) * 1000000000ULL) / SYSCLOCK_ARM11;
+		}
+	}
+	else
+	{
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
+int __SYSCALL(clock_getres)(clockid_t clock_id, struct timespec *res) {
+	if (clock_id == CLOCK_REALTIME)
+	{
+		if (res != NULL) 
+		{
+			res->tv_sec = 0;
+			res->tv_nsec = 1000000;
+		}
+	}
+	else if (clock_id == CLOCK_MONOTONIC)
+	{
+		if (res != NULL)
+		{
+			res->tv_sec = 0;
+			res->tv_nsec = 1;
+		}
+	}
+	else
+	{
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
 //---------------------------------------------------------------------------------
 int __SYSCALL(gettod_r)(struct _reent *ptr, struct timeval *tp, struct timezone *tz) {
 //---------------------------------------------------------------------------------
@@ -37,7 +98,7 @@ int __SYSCALL(gettod_r)(struct _reent *ptr, struct timeval *tp, struct timezone 
 
                 // Convert to struct timeval
                 tp->tv_sec = now / 1000;
-                tp->tv_usec = (now - 1000*tp->tv_sec) * 1000;
+                tp->tv_usec = (now % 1000) * 1000;
         }
 
         if (tz != NULL) {
