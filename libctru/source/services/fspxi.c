@@ -229,8 +229,8 @@ Result FSPXI_WriteFile(Handle serviceHandle, FSPXI_File file, u32* bytesWritten,
 	cmdbuf[2] = (u32)(file >> 32);
 	cmdbuf[3] = (u32) offset;
 	cmdbuf[4] = (u32) (offset >> 32);
-	cmdbuf[5] = flags;
-	cmdbuf[6] = size;
+	cmdbuf[5] = size;
+	cmdbuf[6] = flags;
 	cmdbuf[7] = IPC_Desc_PXIBuffer(size, 0, true);
 	cmdbuf[8] = (u32) buffer;
 
