@@ -107,8 +107,8 @@ Result FSPXI_CreateFile(Handle serviceHandle, FSPXI_Archive archive, FS_Path pat
 	cmdbuf[6] = attributes;
 	cmdbuf[7] = (u32)fileSize;
 	cmdbuf[8] = (u32)(fileSize >> 32);
-	cmdbuf[8] = IPC_Desc_PXIBuffer(path.size, 0, true);
-	cmdbuf[9] = (u32) path.data;
+	cmdbuf[9] = IPC_Desc_PXIBuffer(path.size, 0, true);
+	cmdbuf[10] = (u32) path.data;
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
