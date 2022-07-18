@@ -19,7 +19,8 @@
 #define WRITE_DATA_TO_FAULTING_STACK    ((ERRF_ExceptionData*)1)
 
 /// libctru thread handle type
-typedef struct Thread_tag* Thread;
+typedef struct Thread_tag* CTRThread;
+#define Thread CTRThread
 
 /// Exception handler type, necessarily an ARM function that does not return.
 typedef void (*ExceptionHandler)(ERRF_ExceptionInfo* excep, CpuRegisters* regs);
