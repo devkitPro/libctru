@@ -33,6 +33,8 @@ Result NS_TerminateTitle(void);
  */
 Result NS_LaunchApplicationFIRM(u64 titleid, u32 flags);
 
+Result NS_SetWirelessRebootInfo(u8* macAddr, u8* passphrase);
+
 /**
  * @brief Reboots to a title.
  * @param mediatype Mediatype of the title.
