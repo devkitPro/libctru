@@ -6,22 +6,20 @@
 #include <3ds/srv.h>
 #include <3ds/synchronization.h>
 #include <3ds/services/dlpclnt.h>
-#include <3ds/services/cfgu.h>
 #include <3ds/services/ndm.h>
 #include <3ds/ipc.h>
 
-
-Handle dlpClntHandle;
-Handle dlpClntMemHandle;
-u8* dlpClntMemAddr;
-size_t dlpClntMemSize;
-Handle dlpClntEventHandle;
+static Handle dlpClntHandle;
+static Handle dlpClntMemHandle;
+static u8* dlpClntMemAddr;
+static size_t dlpClntMemSize;
+static Handle dlpClntEventHandle;
 
 static int dlpClntRefCount;
 
-u32 ndm_state;
+static u32 ndm_state;
 
-Result dlpClntInit() {
+Result dlpClntInit(void) {
 	Result ret = 0;
 	ndm_state = 0;
 
@@ -36,7 +34,7 @@ Result dlpClntInit() {
 
 	ndm_state = 2;
 
-	dlpClntMemSize = 0x232000;
+	dlpClntMemSize = dlpCalcSharedMemSize(0x10, 0x200000);
 	dlpClntMemAddr = memalign(0x1000, dlpClntMemSize);
 	if (dlpClntMemAddr == NULL) {
 		ret = -1;
@@ -65,7 +63,7 @@ end:
 	return ret;
 }
 
-void dlpClntExit() {
+void dlpClntExit(void) {
 	if (AtomicDecrement(&dlpClntRefCount)) return;
 
 	if (dlpClntHandle)
@@ -111,22 +109,27 @@ bool dlpClntWaitForEvent(bool nextEvent, bool wait) {
 	return ret;
 }
 
-u64 dlpCreateChildTid(u32 uniqueId, u32 revision) {
+size_t dlpCalcSharedMemSize(u8 maxTitles, size_t constantMemSize) {
+	size_t size = maxTitles * 0x2b70 + 0x5a20 + constantMemSize;
+	return (size + 0xFFF) & ~0xFFF; // Round up to alignment
+}
+
+u64 dlpCreateChildTid(u32 uniqueId, u32 variation) {
 	u64 tid = 0;
 	if (uniqueId) {
 		tid = (u64)0x40001 << 32;
-		tid |= revision | ((uniqueId & 0xff0fffff) << 8);
+		tid |= variation | ((uniqueId & 0xff0fffff) << 8);
 	}
 	return tid;
 }
 
-Result DLPCLNT_Initialize(size_t sharedMemSize, u8 maxScanTitles, size_t unk, Handle sharedMemHandle, Handle eventHandle) {
+Result DLPCLNT_Initialize(size_t sharedMemSize, u8 maxScanTitles, size_t constantMemSize, Handle sharedMemHandle, Handle eventHandle) {
 	u32* cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x1,3,3); // 0x100C3
 	cmdbuf[1] = sharedMemSize;
 	cmdbuf[2] = maxScanTitles;
-	cmdbuf[3] = unk;
+	cmdbuf[3] = constantMemSize;
 	cmdbuf[4] = IPC_Desc_SharedHandles(2);
 	cmdbuf[5] = sharedMemHandle;
 	cmdbuf[6] = eventHandle;
@@ -137,7 +140,7 @@ Result DLPCLNT_Initialize(size_t sharedMemSize, u8 maxScanTitles, size_t unk, Ha
 	return cmdbuf[1];
 }
 
-Result DLPCLNT_Finalize() {
+Result DLPCLNT_Finalize(void) {
 	u32* cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x2,0,0); // 0x20000
@@ -161,18 +164,18 @@ Result DLPCLNT_GetChannel(u16* channel) {
 	return cmdbuf[1];
 }
 
-Result DLPCLNT_StartScan(u16 channel, u8* macAddr) {
+Result DLPCLNT_StartScan(u16 channel, u8* macAddrFilter, u64 tidFilter) {
 	u32* cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x5,6,0); // 0x50180
 	cmdbuf[1] = channel;
-	cmdbuf[2] = 0; // tidLow filter
-	cmdbuf[3] = 0; // tidHigh filter
-	if (macAddr) {
-		memcpy(cmdbuf + 4, macAddr, 6);
+	cmdbuf[2] = tidFilter & 0xFFFFFFFF;
+	cmdbuf[3] = tidFilter >> 32;
+	if (macAddrFilter) {
+		memcpy(cmdbuf + 4, macAddrFilter, 6);
 	}
 	else {
-		cmdbuf[4] = 0; // mac address filter
+		cmdbuf[4] = 0;
 		cmdbuf[5] = 0;
 	}
 	cmdbuf[6] = 0; // unknown state filter
@@ -183,7 +186,7 @@ Result DLPCLNT_StartScan(u16 channel, u8* macAddr) {
 	return cmdbuf[1];
 }
 
-Result DLPCLNT_StopScan() {
+Result DLPCLNT_StopScan(void) {
 	u32* cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x6,0,0); // 0x60000
@@ -194,19 +197,23 @@ Result DLPCLNT_StopScan() {
 	return cmdbuf[1];
 }
 
-Result DLPCLNT_GetTitleInfoInOrder(void* buf, size_t size, size_t* actual_size) {
+Result DLPCLNT_GetTitleInfo(dlpClntTitleInfo* titleInfo, size_t* actual_size, u8* macAddr, u32 uniqueId, u32 variation) {
 	u32* cmdbuf = getThreadCommandBuffer();
 	u32 saved_threadstorage[2];
 
-	cmdbuf[0] = IPC_MakeHeader(0x9,1,0); // 0x90040
-	cmdbuf[1] = 0; // 0 = Iterate?, 1 = Don't Iterate?
+	u64 tid = dlpCreateChildTid(uniqueId, variation);
+
+	cmdbuf[0] = IPC_MakeHeader(0x9, 1, 0); // 0x90040
+	memcpy(cmdbuf + 1, macAddr, 6);
+	cmdbuf[3] = tid & 0xFFFFFFFF;
+	cmdbuf[4] = tid >> 32;
 
 	u32* staticbufs = getThreadStaticBuffers();
 	saved_threadstorage[0] = staticbufs[0];
 	saved_threadstorage[1] = staticbufs[1];
 
-	staticbufs[0] = IPC_Desc_StaticBuffer(size, 0);
-	staticbufs[1] = (u32)buf;
+	staticbufs[0] = IPC_Desc_StaticBuffer(sizeof(*titleInfo), 0);
+	staticbufs[1] = (u32)titleInfo;
 
 	Result ret = 0;
 	ret = svcSendSyncRequest(dlpClntHandle);
@@ -226,10 +233,42 @@ Result DLPCLNT_GetTitleInfoInOrder(void* buf, size_t size, size_t* actual_size) 
 	return ret;
 }
 
-Result DLPCLNT_PrepareForSystemDownload(u8* macAddr, u32 uniqueId, u32 revision) {
+Result DLPCLNT_GetTitleInfoInOrder(dlpClntTitleInfo* titleInfo, size_t* actual_size) {
+	u32* cmdbuf = getThreadCommandBuffer();
+	u32 saved_threadstorage[2];
+
+	cmdbuf[0] = IPC_MakeHeader(0x9,1,0); // 0x90040
+	cmdbuf[1] = 0; // 0 = Iterate?, 1 = Don't Iterate?
+
+	u32* staticbufs = getThreadStaticBuffers();
+	saved_threadstorage[0] = staticbufs[0];
+	saved_threadstorage[1] = staticbufs[1];
+
+	staticbufs[0] = IPC_Desc_StaticBuffer(sizeof(*titleInfo), 0);
+	staticbufs[1] = (u32)titleInfo;
+
+	Result ret = 0;
+	ret = svcSendSyncRequest(dlpClntHandle);
+
+	staticbufs[0] = saved_threadstorage[0];
+	staticbufs[1] = saved_threadstorage[1];
+
+	if (R_FAILED(ret))return ret;
+
+	ret = cmdbuf[1];
+
+	if (R_SUCCEEDED(ret))
+	{
+		if (actual_size)*actual_size = cmdbuf[2];
+	}
+
+	return ret;
+}
+
+Result DLPCLNT_PrepareForSystemDownload(u8* macAddr, u32 uniqueId, u32 variation) {
 	u32* cmdbuf = getThreadCommandBuffer();
 
-	u64 tid = dlpCreateChildTid(uniqueId, revision);
+	u64 tid = dlpCreateChildTid(uniqueId, variation);
 
 	cmdbuf[0] = IPC_MakeHeader(0xB,4,0); // 0xB0100
 	memcpy(cmdbuf + 1, macAddr, 6);
@@ -242,10 +281,21 @@ Result DLPCLNT_PrepareForSystemDownload(u8* macAddr, u32 uniqueId, u32 revision)
 	return cmdbuf[1];
 }
 
-Result DLPCLNT_StartTitleDownload(u8* macAddr, u32 uniqueId, u32 revision) {
+Result DLPCLNT_StartSystemDownload(void) {
+	u32* cmdbuf = getThreadCommandBuffer();
+	
+	cmdbuf[0] = IPC_MakeHeader(0xC,0,0); // 0xC0000
+
+	Result ret = 0;
+	if (R_FAILED(ret = svcSendSyncRequest(dlpClntHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+Result DLPCLNT_StartTitleDownload(u8* macAddr, u32 uniqueId, u32 variation) {
 	u32* cmdbuf = getThreadCommandBuffer();
 
-	u64 tid = dlpCreateChildTid(uniqueId, revision);
+	u64 tid = dlpCreateChildTid(uniqueId, variation);
 
 	cmdbuf[0] = IPC_MakeHeader(0xD,4,0); // 0xD0100
 	memcpy(cmdbuf + 1, macAddr, 6);
@@ -258,7 +308,7 @@ Result DLPCLNT_StartTitleDownload(u8* macAddr, u32 uniqueId, u32 revision) {
 	return cmdbuf[1];
 }
 
-Result DLPCLNT_GetMyStatus(u32* status) {
+Result DLPCLNT_GetMyStatus(dlpClntMyStatus* status) {
 	u32* cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0xE,0,0); // 0xE00000
@@ -266,7 +316,9 @@ Result DLPCLNT_GetMyStatus(u32* status) {
 	Result ret = 0;
 	if (R_FAILED(ret = svcSendSyncRequest(dlpClntHandle)))return ret;
 
-	memcpy(status, cmdbuf + 2, sizeof(u32) * 3);
+	status->state = cmdbuf[2] >> 0x18; // Other bytes unknown.
+	status->unitsTotal = cmdbuf[3];
+	status->unitsRecvd = cmdbuf[4];
 
 	return cmdbuf[1];
 }
