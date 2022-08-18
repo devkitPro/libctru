@@ -16,10 +16,6 @@
 
 void __ctru_exit(int rc);
 
-extern const u8 __tdata_lma[];
-extern const u8 __tdata_lma_end[];
-extern u8 __tls_start[];
-
 struct _reent* __SYSCALL(getreent)()
 {
 	ThreadVars* tv = getThreadVars();
@@ -43,7 +39,7 @@ int __SYSCALL(clock_gettime)(clockid_t clock_id, struct timespec *tp) {
 			tp->tv_nsec = (ms_since_epoch % 1000) * 1000000;
 		}
 	}
-	else if (clock_id == CLOCK_MONOTONIC) 
+	else if (clock_id == CLOCK_MONOTONIC)
 	{
 		if (tp != NULL)
 		{
@@ -66,7 +62,7 @@ int __SYSCALL(clock_gettime)(clockid_t clock_id, struct timespec *tp) {
 int __SYSCALL(clock_getres)(clockid_t clock_id, struct timespec *res) {
 	if (clock_id == CLOCK_REALTIME)
 	{
-		if (res != NULL) 
+		if (res != NULL)
 		{
 			res->tv_sec = 0;
 			res->tv_nsec = 1000000;
@@ -168,7 +164,7 @@ void initThreadVars(struct Thread_tag *thread)
 	tv->thread_ptr = thread;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-	tv->tls_tp = (thread != NULL ? (u8*)thread->stacktop : __tls_start) - 8; // Arm ELF TLS ABI mandates an 8-byte header
+	tv->tls_tp = (thread != NULL ? (u8*)thread->stacktop : __tls_start);
 #pragma GCC diagnostic pop
 	tv->srv_blocking_policy = false;
 
@@ -185,6 +181,7 @@ void __system_initSyscalls(void)
 	// Initialize thread vars for the main thread
 	initThreadVars(NULL);
 	u32 tls_size = __tdata_lma_end - __tdata_lma;
+	size_t tdata_start = getThreadLocalStartOffset((size_t)__tls_start);
 	if (tls_size)
-		memcpy(__tls_start, __tdata_lma, tls_size);
+		memcpy((void*)tdata_start, __tdata_lma, tls_size);
 }
