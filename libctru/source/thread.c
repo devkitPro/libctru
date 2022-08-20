@@ -19,31 +19,42 @@ static void _thread_begin(void* arg)
 
 Thread threadCreate(ThreadFunc entrypoint, void* arg, size_t stack_size, int prio, int core_id, bool detached)
 {
-	size_t stackoffset = (sizeof(struct Thread_tag) + 7) & ~7;
-	size_t allocsize = getThreadLocalStartOffset(stackoffset + stack_size);
+	// The stack must be 8-aligned at minimum.
+	size_t align =  __tdata_align > 8 ? __tdata_align : 8;
+
+	size_t stackoffset = alignTo(sizeof(struct Thread_tag), align);
+	size_t allocsize = alignTo(stackoffset + stack_size, align);
+
 	size_t tlssize = __tls_end-__tls_start;
 	size_t tlsloadsize = __tdata_lma_end-__tdata_lma;
-	size_t tbsssize = tlssize-tlsloadsize;
+	size_t tbsssize = tlssize - tlsloadsize;
+
+	// memalign seems to have an implicit requirement that (size % align) == 0.
+	// Without this, it seems to return NULL whenever (align > 8).
+	size_t size = alignTo(allocsize + tlssize, align);
 
 	// Guard against overflow
 	if (allocsize < stackoffset) return NULL;
-	if ((allocsize-stackoffset) < stack_size) return NULL;
-	if ((allocsize+tlssize) < allocsize) return NULL;
+	if ((allocsize - stackoffset) < stack_size) return NULL;
+	if (size < allocsize) return NULL;
 
-	Thread t = (Thread)memalign(__tdata_align, allocsize + tlssize);
+	Thread t = (Thread)memalign(align, size);
 	if (!t) return NULL;
 
 	t->ep       = entrypoint;
 	t->arg      = arg;
 	t->detached = detached;
 	t->finished = false;
-	t->stacktop = (u8*)t + stackoffset + stack_size;
+	t->stacktop = (u8*)t + allocsize;
 
-	void* tdata_start = (void*)getThreadLocalStartOffset((size_t)t->stacktop);
+	// ThreadVars.tls_tp must be aligned correctly, so we bump tdata_start to
+	// ensure that after subtracting 8 bytes for the TLS header, it will be aligned.
+	size_t tdata_start = 8 + alignTo((size_t)t->stacktop - 8, align);
+
 	if (tlsloadsize)
-		memcpy(tdata_start, __tdata_lma, tlsloadsize);
+		memcpy((void*)tdata_start, __tdata_lma, tlsloadsize);
 	if (tbsssize)
-		memset(tdata_start + tlsloadsize, 0, tbsssize);
+		memset((void*)tdata_start + tlsloadsize, 0, tbsssize);
 
 	// Set up child thread's reent struct, inheriting standard file handles
 	_REENT_INIT_PTR(&t->reent);

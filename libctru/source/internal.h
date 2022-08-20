@@ -55,10 +55,6 @@ static inline ThreadVars* getThreadVars(void)
 
 void initThreadVars(struct Thread_tag *thread);
 
-static inline size_t getThreadLocalStartOffset(size_t tls_tp) {
-	size_t align = 8;
-	if (__tdata_align > align) align = __tdata_align;
-	// ARM ELF TLS ABI mandates an 8-byte header, so we include an extra 8 bytes
-	// then add padding to align the .tdata properly
-	return (8 + (size_t)tls_tp + (__tdata_align - 1)) & ~(__tdata_align - 1);
+static inline size_t alignTo(const size_t base, const size_t align) {
+	return (base + (align - 1)) & ~(align - 1);
 }

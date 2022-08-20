@@ -164,7 +164,7 @@ void initThreadVars(struct Thread_tag *thread)
 	tv->thread_ptr = thread;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-	tv->tls_tp = (thread != NULL ? (u8*)thread->stacktop : __tls_start);
+	tv->tls_tp = (thread != NULL ? (u8*)thread->stacktop : __tls_start) - 8; // Arm ELF TLS ABI mandates an 8-byte header
 #pragma GCC diagnostic pop
 	tv->srv_blocking_policy = false;
 
@@ -181,7 +181,7 @@ void __system_initSyscalls(void)
 	// Initialize thread vars for the main thread
 	initThreadVars(NULL);
 	u32 tls_size = __tdata_lma_end - __tdata_lma;
-	size_t tdata_start = getThreadLocalStartOffset((size_t)__tls_start);
+	size_t tdata_start = alignTo((size_t)__tls_start, __tdata_align);
 	if (tls_size)
 		memcpy((void*)tdata_start, __tdata_lma, tls_size);
 }
