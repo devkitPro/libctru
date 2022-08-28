@@ -135,6 +135,13 @@ void ndspChnSetRate(int id, float rate);
 void ndspChnSetMix(int id, float mix[12]);
 
 /**
+ * @brief Gets the mix parameters (volumes) of a channel.
+ * @param id ID of the channel (0..23)
+ * @return The mix parameters.
+ */
+float* ndspChnGetMix(int id);
+
+/**
  * @brief Sets the DSPADPCM coefficients of a channel.
  * @param id ID of the channel (0..23).
  * @param coefs DSPADPCM coefficients to use.
