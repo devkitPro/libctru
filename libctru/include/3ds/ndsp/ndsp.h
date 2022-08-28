@@ -122,7 +122,7 @@ void ndspSetMasterVol(float volume);
  * @brief Gets the master volume.
  * @return The master volume.
  */
-void ndspGetMasterVol(void); 
+float ndspGetMasterVol(void); 
 
 /**
  * @brief Sets the output mode.
