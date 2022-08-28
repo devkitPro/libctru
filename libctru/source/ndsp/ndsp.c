@@ -612,12 +612,22 @@ void ndspSetMasterVol(float volume)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
+void ndspGetMasterVol(void)
+{
+	return ndspMaster.masterVol;
+}
+
 void ndspSetOutputMode(ndspOutputMode mode)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.outputMode = mode;
 	ndspMaster.flags |= MFLAG_OUTPUTMODE;
 	LightLock_Unlock(&ndspMaster.lock);
+}
+
+ndspOutputMode ndspGetOutputMode(void)
+{
+	return ndspMaster.outputMode;
 }
 
 void ndspSetClippingMode(ndspClippingMode mode)
@@ -628,12 +638,22 @@ void ndspSetClippingMode(ndspClippingMode mode)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
+ndspClippingMode ndspGetClippingMode(void)
+{
+	return ndspMaster.clippingMode;
+}
+
 void ndspSetOutputCount(int count)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.outputCount = count;
 	ndspMaster.flags |= MFLAG_OUTPUTCOUNT;
 	LightLock_Unlock(&ndspMaster.lock);
+}
+
+int ndspGetOutputCount(void)
+{
+	return ndspMaster.outputCount;
 }
 
 void ndspSetCapture(ndspWaveBuf* capture)
@@ -655,12 +675,22 @@ void ndspSurroundSetDepth(u16 depth)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
+u16 ndspSurroundGetDepth(void)
+{
+	return ndspMaster.surround.depth;
+}
+
 void ndspSurroundSetPos(ndspSpeakerPos pos)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.surround.pos = pos;
 	ndspMaster.flags |= MFLAG_SURR_POS;
 	LightLock_Unlock(&ndspMaster.lock);
+}
+
+ndspSpeakerPos ndspSurroundGetPos(void)
+{
+	return ndspMaster.surround.pos;
 }
 
 void ndspSurroundSetRearRatio(u16 ratio)
@@ -671,12 +701,22 @@ void ndspSurroundSetRearRatio(u16 ratio)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
+u16 ndspSurroundGetRearRatio(void)
+{
+	return ndspMaster.surround.rearRatio;
+}
+
 void ndspAuxSetEnable(int id, bool enable)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.aux[id].enable = enable ? 1 : 0;
 	ndspMaster.flags |= MFLAG_AUX_ENABLE(id);
 	LightLock_Unlock(&ndspMaster.lock);
+}
+
+bool ndspAuxIsEnabled(int id)
+{
+	return ndspMaster.aux[id].enable;
 }
 
 void ndspAuxSetFrontBypass(int id, bool bypass)
@@ -687,12 +727,22 @@ void ndspAuxSetFrontBypass(int id, bool bypass)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
+bool ndspGetFrontBypass(int id)
+{
+	return ndspMaster.aux[id].frontBypass;
+}
+
 void ndspAuxSetVolume(int id, float volume)
 {
 	LightLock_Lock(&ndspMaster.lock);
 	ndspMaster.aux[id].volume = volume;
 	ndspMaster.flags |= MFLAG_AUX_VOLUME(id);
 	LightLock_Unlock(&ndspMaster.lock);
+}
+
+float ndspAuxGetVolume(int id)
+{
+	return ndspMaster.aux[id].volume;
 }
 
 void ndspAuxSetCallback(int id, ndspAuxCallback callback, void* data)
