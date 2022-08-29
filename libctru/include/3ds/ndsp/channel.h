@@ -159,9 +159,9 @@ void ndspChnSetMix(int id, float mix[12]);
 /**
  * @brief Gets the mix parameters (volumes) of a channel.
  * @param id ID of the channel (0..23)
- * @return The mix parameters. See \ref ndspChnSetMix.
+ * @param mix Mix parameters to write out to. See \ref ndspChnSetMix.
  */
-float* ndspChnGetMix(int id);
+void ndspChnGetMix(int id, float* mix[12]);
 
 /**
  * @brief Sets the DSPADPCM coefficients of a channel.

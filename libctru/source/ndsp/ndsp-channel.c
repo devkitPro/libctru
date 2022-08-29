@@ -153,10 +153,10 @@ void ndspChnSetMix(int id, float mix[12])
 	LightLock_Unlock(&chn->lock);
 }
 
-float* ndspChnGetMix(int id)
+void ndspChnGetMix(int id, float mix[12])
 {
     ndspChnSt* chn = &ndspChn[id];
-    return chn->mix;
+    memcpy(mix, chn->mix, sizeof(mix));
 }
 
 void ndspChnSetAdpcmCoefs(int id, u16 coefs[16])
