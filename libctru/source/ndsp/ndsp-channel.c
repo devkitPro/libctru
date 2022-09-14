@@ -123,6 +123,12 @@ void ndspChnSetInterp(int id, ndspInterpType type)
 	LightLock_Unlock(&chn->lock);
 }
 
+ndspInterpType ndspChnGetInterp(int id)
+{
+    ndspChnSt* chn = &ndspChn[id];
+    return chn->interpType;
+}
+
 void ndspChnSetRate(int id, float rate)
 {
 	ndspChnSt* chn = &ndspChn[id];
@@ -132,6 +138,12 @@ void ndspChnSetRate(int id, float rate)
 	LightLock_Unlock(&chn->lock);
 }
 
+float ndspChnGetRate(int id)
+{
+    ndspChnSt* chn = &ndspChn[id];
+	return chn->rate;
+}
+
 void ndspChnSetMix(int id, float mix[12])
 {
 	ndspChnSt* chn = &ndspChn[id];
@@ -139,6 +151,14 @@ void ndspChnSetMix(int id, float mix[12])
 	memcpy(&chn->mix, mix, sizeof(ndspChn[id].mix));
 	chn->flags |= CFLAG_MIX;
 	LightLock_Unlock(&chn->lock);
+}
+
+void ndspChnGetMix(int id, float out_mix[12])
+{
+    ndspChnSt* chn = &ndspChn[id];
+    LightLock_Lock(&chn->lock);
+    memcpy(out_mix, chn->mix, sizeof(ndspChn[id].mix));
+    LightLock_Unlock(&chn->lock);
 }
 
 void ndspChnSetAdpcmCoefs(int id, u16 coefs[16])

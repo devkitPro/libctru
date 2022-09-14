@@ -108,6 +108,14 @@ void ndspChnSetPaused(int id, bool paused);
 void ndspChnSetFormat(int id, u16 format);
 
 /**
+ * 
+ * @brief Gets the format of a channel.
+ * @param id ID of the channel (0..23).
+ * @return The format of the channel.
+ */
+u16 ndspChnGetFormat(int id);
+
+/**
  * @brief Sets the interpolation type of a channel.
  * @param id ID of the channel (0..23).
  * @param type Interpolation type to use.
@@ -115,11 +123,25 @@ void ndspChnSetFormat(int id, u16 format);
 void ndspChnSetInterp(int id, ndspInterpType type);
 
 /**
+ * @brief Gets the interpolation type of a channel.
+ * @param id ID of the channel (0..23).
+ * @return The interpolation type of the channel.
+ */
+ndspInterpType ndspChnGetInterp(int id);
+
+/**
  * @brief Sets the sample rate of a channel.
  * @param id ID of the channel (0..23).
  * @param rate Sample rate to use.
  */
 void ndspChnSetRate(int id, float rate);
+
+/**
+ * @brief Gets the sample rate of a channel.
+ * @param id ID of the channel (0..23).
+ * @return The sample rate of the channel.
+ */
+float ndspChnGetRate(int id);
 
 /**
  * @brief Sets the mix parameters (volumes) of a channel.
@@ -133,6 +155,13 @@ void ndspChnSetRate(int id, float rate);
  *   - 8..11: Same as 0..3, but for auxiliary output 1.
  */
 void ndspChnSetMix(int id, float mix[12]);
+
+/**
+ * @brief Gets the mix parameters (volumes) of a channel.
+ * @param id ID of the channel (0..23)
+ * @param mix Mix parameters to write out to. See \ref ndspChnSetMix.
+ */
+void ndspChnGetMix(int id, float* mix[12]);
 
 /**
  * @brief Sets the DSPADPCM coefficients of a channel.
