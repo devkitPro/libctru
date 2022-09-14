@@ -8,6 +8,12 @@
 #define THREADVARS_MAGIC  0x21545624 // !TV$
 #define FS_OVERRIDE_MAGIC 0x21465324 // !FS$
 
+extern const size_t __tdata_align;
+extern const u8 __tdata_lma[];
+extern const u8 __tdata_lma_end[];
+extern u8 __tls_start[];
+extern u8 __tls_end[];
+
 // Keep this structure under 0x80 bytes
 typedef struct
 {
@@ -48,3 +54,7 @@ static inline ThreadVars* getThreadVars(void)
 }
 
 void initThreadVars(struct Thread_tag *thread);
+
+static inline size_t alignTo(const size_t base, const size_t align) {
+	return (base + (align - 1)) & ~(align - 1);
+}
