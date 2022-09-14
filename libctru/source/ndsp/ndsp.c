@@ -612,7 +612,7 @@ void ndspSetMasterVol(float volume)
 	LightLock_Unlock(&ndspMaster.lock);
 }
 
-void ndspGetMasterVol(void)
+float ndspGetMasterVol(void)
 {
 	return ndspMaster.masterVol;
 }
