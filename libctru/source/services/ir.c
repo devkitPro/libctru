@@ -237,3 +237,33 @@ Result IRU_GetIRLEDRecvState(u32 *out)
 
 	return ret;
 }
+
+Result IRU_GetSendFinishedEvent(Handle *out)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xD,0,0); // 0xD0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(iruHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+
+	*out = (Handle)cmdbuf[3];
+
+	return ret;
+}
+
+Result IRU_GetRecvFinishedEvent(Handle *out)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0xE,0,0); // 0xE0000
+
+	if(R_FAILED(ret = svcSendSyncRequest(iruHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+
+	*out = (Handle)cmdbuf[3];
+
+	return ret;
+}
