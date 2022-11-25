@@ -91,3 +91,15 @@ Result IRU_SetIRLEDState(u32 value);
  * @param out Pointer to write the IR LED state to.
  */
 Result IRU_GetIRLEDRecvState(u32 *out);
+
+/**
+ * @brief Gets an event which is signaled once a send finishes.
+ * @param out Pointer to write the event handle to.
+ */
+Result IRU_GetSendFinishedEvent(Handle *out);
+
+/**
+ * @brief Gets an event which is signaled once a receive finishes.
+ * @param out Pointer to write the event handle to.
+ */
+Result IRU_GetRecvFinishedEvent(Handle *out);
