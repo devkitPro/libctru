@@ -345,6 +345,7 @@ void aptExit(void)
 	if (AtomicDecrement(&aptRefCount)) return;
 
 	bool closeAptLock = true;
+	bool doDirtyChainload = false;
 
 	if (!aptIsCrippled())
 	{
@@ -378,7 +379,7 @@ void aptExit(void)
 			{
 				// XX: HOME menu doesn't exist, so we need to use a workaround provided by Luma3DS
 				APT_Finalize(envGetAptAppId());
-				srvPublishToSubscriber(0x3000, 0);
+				doDirtyChainload = true;
 			}
 
 			// After a chainload has been applied, we don't need to manually close
@@ -413,6 +414,30 @@ void aptExit(void)
 
 	if (closeAptLock)
 		svcCloseHandle(aptLockHandle);
+
+	if (doDirtyChainload)
+	{
+		// Provided by Luma3DS
+		Handle notificationHandle = 0;
+		Result res = 0;
+		u32 notificationNumber = 0;
+		srvEnableNotification(&notificationHandle);
+
+		// Not needed, but official (sysmodule) code does this:
+		srvSubscribe(0x100);
+
+		// Make PM modify our run flags and ask us to terminate
+		srvPublishToSubscriber(0x3000, 0);
+
+		do
+		{
+			// Bail out after 3 seconds, we don't want to wait forever for this
+			res = svcWaitSynchronization(notificationHandle, 3 * 1000 * 1000LL);
+			res = res == 0 ? srvReceiveNotification(&notificationNumber) : res;
+		} while(res == 0 && notificationNumber != 0x100);
+
+		svcCloseHandle(notificationHandle);
+	}
 }
 
 void aptEventHandler(void *arg)
