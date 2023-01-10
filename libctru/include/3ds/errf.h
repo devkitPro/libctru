@@ -9,12 +9,12 @@
 
 /// Types of errors that can be thrown by err:f.
 typedef enum {
-	ERRF_ERRTYPE_GENERIC      = 0, ///< For generic errors. Shows miscellaneous info.
-	ERRF_ERRTYPE_MEM_CORRUPT  = 1, ///< Same output as generic, but informs the user that "the System Memory has been damaged".
-	ERRF_ERRTYPE_CARD_REMOVED = 2, ///< Displays the "The Game Card was removed." message.
-	ERRF_ERRTYPE_EXCEPTION    = 3, ///< For exceptions, or more specifically 'crashes'. union data should be exception_data.
-	ERRF_ERRTYPE_FAILURE      = 4, ///< For general failure. Shows a message. union data should have a string set in failure_mesg
-	ERRF_ERRTYPE_LOGGED       = 5, ///< Outputs logs to NAND in some cases.
+	ERRF_ERRTYPE_GENERIC      = 0,  ///< Generic fatal error. Shows miscellaneous info, including the address of the caller
+	ERRF_ERRTYPE_NAND_DAMAGED = 1,  ///< Damaged NAND (CC_ERROR after reading CSR)
+	ERRF_ERRTYPE_CARD_REMOVED = 2,  ///< Game content storage medium (cartridge and/or SD card) ejected. Not logged
+	ERRF_ERRTYPE_EXCEPTION    = 3,  ///< CPU or VFP exception
+	ERRF_ERRTYPE_FAILURE      = 4,  ///< Fatal error with a message instead of the caller's address
+	ERRF_ERRTYPE_LOG_ONLY     = 5,  ///< Log-level failure. Does not display the exception and does not force the system to reboot
 } ERRF_ErrType;
 
 /// Types of 'Exceptions' thrown for ERRF_ERRTYPE_EXCEPTION
@@ -46,12 +46,12 @@ typedef struct {
 	u16 revLow;        ///< Low revision ID
 	u32 resCode;       ///< Result code
 	u32 pcAddr;        ///< PC address at exception
-	u32 procId;        ///< Process ID.
-	u64 titleId;       ///< Title ID.
-	u64 appTitleId;    ///< Application Title ID.
+	u32 procId;        ///< Process ID of the caller
+	u64 titleId;       ///< Title ID of the caller
+	u64 appTitleId;    ///< Title ID of the running application
 	union {
 		ERRF_ExceptionData exception_data; ///< Data for when type is ERRF_ERRTYPE_EXCEPTION
-		char failure_mesg[0x60];             ///< String for when type is ERRF_ERRTYPE_FAILURE
+		char failure_mesg[0x60];           ///< String for when type is ERRF_ERRTYPE_FAILURE
 	} data;                                ///< The different types of data for errors.
 } ERRF_FatalErrInfo;
 
@@ -68,13 +68,19 @@ void errfExit(void);
 Handle *errfGetSessionHandle(void);
 
 /**
- * @brief Throws a system error and possibly results in ErrDisp triggering.
+ * @brief Throws a system error and possibly logs it.
  * @param[in] error Error to throw.
  *
- * After performing this, the system may panic and need to be rebooted. Extra information will be displayed on the
- * top screen with a developer console or the proper patches in a CFW applied.
+ * ErrDisp may convert the error info to \ref ERRF_ERRTYPE_NAND_DAMAGED or \ref ERRF_ERRTYPE_CARD_REMOVED
+ * depending on the error code.
  *
- * The error may not be shown and execution aborted until errfExit(void) is called.
+ * Except with \ref ERRF_ERRTYPE_LOG_ONLY, the system will panic and will need to be rebooted.
+ * Fatal error information will also be logged into a file, unless the type either \ref ERRF_ERRTYPE_NAND_DAMAGED
+ * or \ref ERRF_ERRTYPE_CARD_REMOVED.
+ *
+ * No error will be shown if the system is asleep.
+ *
+ * On retail units with vanilla firmware, no detailed information will be displayed on screen.
  *
  * You may wish to use ERRF_ThrowResult() or ERRF_ThrowResultWithMessage() instead of
  * constructing the ERRF_FatalErrInfo struct yourself.
@@ -82,34 +88,43 @@ Handle *errfGetSessionHandle(void);
 Result ERRF_Throw(const ERRF_FatalErrInfo* error);
 
 /**
- * @brief Throws a system error with the given Result code.
+ * @brief Throws (and logs) a system error with the given Result code.
  * @param[in] failure Result code to throw.
  *
- * This calls ERRF_Throw() with error type ERRF_ERRTYPE_GENERIC and fills in the required data.
+ * This calls \ref ERRF_Throw with error type \ref ERRF_ERRTYPE_GENERIC and fills in the required data.
  *
  * This function \em does fill in the address where this function was called from.
- *
- * See https://3dbrew.org/wiki/ERR:Throw#Generic for expected top screen output
- * on development units/patched ErrDisp.
  */
 Result ERRF_ThrowResult(Result failure);
+
+/**
+ * @brief Logs a system error with the given Result code.
+ * @param[in] failure Result code to log.
+ *
+ * Similar to \ref ERRF_Throw, except that it does not display anything on the screen,
+ * nor does it force the system to reboot.
+ *
+ * This function \em does fill in the address where this function was called from.
+ */
+Result ERRF_LogResult(Result failure);
 
 /**
  * @brief Throws a system error with the given Result code and message.
  * @param[in] failure Result code to throw.
  * @param[in] message The message to display.
  *
- * This calls ERRF_Throw() with error type ERRF_ERRTYPE_FAILURE and fills in the required data.
+ * This calls \ref ERRF_Throw with error type \ref ERRF_ERRTYPE_FAILURE and fills in the required data.
  *
  * This function does \em not fill in the address where this function was called from because it
  * would not be displayed.
- *
- * The message is only displayed on development units/patched ErrDisp.
- *
- * See https://3dbrew.org/wiki/ERR:Throw#Result_Failure for expected top screen output
- * on development units/patched ErrDisp.
  */
 Result ERRF_ThrowResultWithMessage(Result failure, const char* message);
+
+/**
+ * @brief Specify an additional user string to use for error reporting.
+ * @param[in] user_string User string (up to 256 bytes, not including NUL byte)
+ */
+Result ERRF_SetUserString(const char* user_string);
 
 /**
  * @brief Handles an exception using ErrDisp.

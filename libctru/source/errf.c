@@ -42,7 +42,7 @@ Handle* errfGetSessionHandle(void)
 
 Result ERRF_Throw(const ERRF_FatalErrInfo* error)
 {
-	uint32_t *cmdbuf = getThreadCommandBuffer();
+	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x1,32,0); // 0x10800
 	memcpy(&cmdbuf[1], error, sizeof(ERRF_FatalErrInfo));
@@ -83,11 +83,33 @@ Result ERRF_ThrowResult(Result failure)
 	return ret;
 }
 
+Result ERRF_LogResult(Result failure)
+{
+	ERRF_FatalErrInfo error;
+	Result ret;
+
+	if (R_FAILED(ret = errfInit()))
+		return ret;
+
+	memset(&error, 0, sizeof(error));
+
+	error.type = ERRF_ERRTYPE_LOG_ONLY;
+
+	// pcAddr is not used by ErrDisp for ERRF_ERRTYPE_FAILURE
+	error.pcAddr = (u32)__builtin_extract_return_addr(__builtin_return_address(0));
+	getCommonErrorData(&error, failure);
+
+	ret = ERRF_Throw(&error);
+
+	errfExit();
+
+	return ret;
+}
+
 Result ERRF_ThrowResultWithMessage(Result failure, const char* message)
 {
 	ERRF_FatalErrInfo error;
 	Result ret;
-	size_t msglen;
 
 	if (R_FAILED(ret = errfInit()))
 		return ret;
@@ -97,16 +119,39 @@ Result ERRF_ThrowResultWithMessage(Result failure, const char* message)
 	error.type = ERRF_ERRTYPE_FAILURE;
 	getCommonErrorData(&error, failure);
 
-	if ((msglen = strlen(message)) > sizeof(error.data.failure_mesg) - 1)
-		msglen = sizeof(error.data.failure_mesg) - 1;
-
-	memcpy(error.data.failure_mesg, message, msglen);
-	error.data.failure_mesg[msglen] = '\0';
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+	// Official client code always copies at most 95 bytes + NUL byte, but server codes uses %.96s
+	// and explicitely handles 96 non-NUL bytes.
+	strncpy(error.data.failure_mesg, message, sizeof(error.data.failure_mesg));
+#pragma GCC diagnostic pop
 
 	ret = ERRF_Throw(&error);
 
 	errfExit();
 
+	return ret;
+}
+
+Result ERRF_SetUserString(const char* user_string)
+{
+	Result ret = errfInit();
+	size_t size = strnlen(user_string, 256);
+
+	if (R_FAILED(ret))
+		return ret;
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x2,1,2); // 0x20042
+	cmdbuf[1] = size; // unused
+	cmdbuf[2] = IPC_Desc_StaticBuffer(size, 0);
+	cmdbuf[3] = (u32)user_string;
+
+	if (R_SUCCEEDED(ret = svcSendSyncRequest(errfHandle)))
+		ret = cmdbuf[1];
+
+	errfExit();
 	return ret;
 }
 
