@@ -21,6 +21,12 @@ Result mcuHwcInit(void);
 void mcuHwcExit(void);
 
 /**
+ * @brief Gets the current mcuHwc session handle.
+ * @return A pointer to the current mcuHwc session handle.
+ */
+Handle* mcuHwcGetSessionHandle(void);
+
+/**
  * @brief Reads data from an i2c device3 register
  * @param reg Register number. See https://www.3dbrew.org/wiki/I2C_Registers#Device_3 for more info
  * @param data Pointer to write the data to.

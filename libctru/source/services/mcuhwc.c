@@ -23,6 +23,11 @@ void mcuHwcExit(void)
 	svcCloseHandle(mcuHwcHandle);
 }
 
+Handle* mcuHwcGetSessionHandle(void)
+{
+	return &mcuHwcHandle;
+}
+
 Result MCUHWC_ReadRegister(u8 reg, void* data, u32 size)
 {
 	Result ret = 0;
