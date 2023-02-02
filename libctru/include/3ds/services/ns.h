@@ -34,6 +34,13 @@ Result NS_TerminateTitle(void);
 Result NS_LaunchApplicationFIRM(u64 titleid, u32 flags);
 
 /**
+ * @brief Set the wireless reboot info the for the dlp child to use for its connection.
+ * @param macAddr Mac address buffer. Must be 6 bytes.
+ * @param passphrase Passphrase buffer. Must be 9 bytes.
+ */
+Result NS_SetWirelessRebootInfo(u8* macAddr, u8* passphrase);
+
+/**
  * @brief Reboots to a title.
  * @param mediatype Mediatype of the title.
  * @param titleid ID of the title to launch.

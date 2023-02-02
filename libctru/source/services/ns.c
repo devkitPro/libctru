@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/svc.h>
@@ -82,6 +83,25 @@ Result NS_LaunchApplicationFIRM(u64 titleid, u32 flags)
 
 	return (Result)cmdbuf[1];
 }
+
+Result NS_SetWirelessRebootInfo(u8* macAddr, u8* passphrase) {
+	Result ret = 0;
+	u32* cmdbuf = getThreadCommandBuffer();
+
+	u8 buf[16];
+	memcpy(buf, macAddr, 6);
+	memcpy(buf + 6, passphrase, 9);
+
+	cmdbuf[0] = IPC_MakeHeader(0x6,1,2); // 0x60042
+	cmdbuf[1] = 16;
+	cmdbuf[2] = IPC_Desc_StaticBuffer(cmdbuf[1], 0);
+	cmdbuf[3] = (u32)buf;
+
+	if (R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 
 Result NS_RebootToTitle(u8 mediatype, u64 titleid)
 {
