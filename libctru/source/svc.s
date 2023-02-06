@@ -510,7 +510,7 @@ SVC_BEGIN svcGetDmaState
 	str r0, [sp, #-4]!
 	svc 0x57
 	ldr r3, [sp], #4
-	str r1, [r3]
+	strb r1, [r3]
 	bx  lr
 SVC_END
 
