@@ -497,9 +497,8 @@ typedef enum {
 /// Information on address space for process. All sizes are in pages (0x1000 bytes)
 typedef struct {
 	u8 name[8];           ///< ASCII name of codeset
-	u16 unk1;
-	u16 unk2;
-	u32 unk3;
+	u16 version;          ///< Version field of codeset (unused)
+	u16 padding[3];       ///< Padding
 	u32 text_addr;        ///< .text start address
 	u32 text_size;        ///< .text number of pages
 	u32 ro_addr;          ///< .rodata start address
@@ -509,9 +508,9 @@ typedef struct {
 	u32 text_size_total;  ///< total pages for .text (aligned)
 	u32 ro_size_total;    ///< total pages for .rodata (aligned)
 	u32 rw_size_total;    ///< total pages for .data, .bss (aligned)
-	u32 unk4;
+	u32 padding2;         ///< Padding
 	u64 program_id;       ///< Program ID
-} CodeSetInfo;
+} CodeSetHeader;
 
 /// Information for the main thread of a process.
 typedef struct
@@ -756,23 +755,24 @@ Result svcCreatePort(Handle* portServer, Handle* portClient, const char* name, s
 Result svcConnectToPort(volatile Handle* out, const char* portName);
 
 /**
- * @brief Sets up virtual address space for a new process
- * @param[out] out Pointer to output the code set handle to.
- * @param info Description for setting up the addresses
- * @param code_ptr Pointer to .text in shared memory
- * @param ro_ptr Pointer to .rodata in shared memory
- * @param data_ptr Pointer to .data in shared memory
+ * @brief Sets up virtual address space for a new process.
+ * @param[out] out Pointer to output the codeset handle to.
+ * @param info Codeset header, contains process name, titleId and segment info.
+ * @param textSegmentLma Address of executable segment in caller's address space.
+ * @param roSegmentLma Address of read-only segment in caller's address space.
+ * @param dataSegmentLma Address of read-write segment in caller's address space.
+ * @note On success, the provided segments are unmapped from the caller's address space.
  */
-Result svcCreateCodeSet(Handle* out, const CodeSetInfo *info, void* code_ptr, void* ro_ptr, void* data_ptr);
+Result svcCreateCodeSet(Handle* out, const CodeSetHeader* info, u32 textSegmentLma, u32 roSegmentLma, u32 dataSegmentLma);
 
 /**
- * @brief Sets up virtual address space for a new process
+ * @brief Create a new process.
  * @param[out] out Pointer to output the process handle to.
- * @param codeset Codeset created for this process
- * @param arm11kernelcaps ARM11 Kernel Capabilities from exheader
- * @param arm11kernelcaps_num Number of kernel capabilities
+ * @param codeset Codeset created for this process.
+ * @param arm11KernelCaps Arm11 Kernel Capabilities from exheader.
+ * @param numArm11KernelCaps Number of kernel capabilities.
  */
-Result svcCreateProcess(Handle* out, Handle codeset, const u32 *arm11kernelcaps, u32 arm11kernelcaps_num);
+Result svcCreateProcess(Handle* out, Handle codeset, const u32* arm11KernelCaps, s32 numArm11KernelCaps);
 
 /**
  * @brief Gets a process's affinity mask.
