@@ -1,5 +1,19 @@
 # Changelog
 
+## Version 2.1.2
+
+- Added cdc:CHK service wrappers
+- Added support for `clock_gettime` (#495)
+- svc: Fixed svcGetDmaState writing out-of-bounds data
+- svc: Changed svcCreateCodeSet address parameters to pointer-sized integers, improve documentation
+- fspxi: Fixed FSPXI_CreateFile and FSPXI_WriteFile (#496)
+- ndsp: Added various ndspGet\* and ndspChnGet\* methods (#505, #506, #507)
+- ir: Added IRU_GetSend/RecvFinishedEvent (#513)
+- errf: Added ERRF_SetUserString and clarify documentation
+- mcuhwc: Added mcuHwcGetSessionHandle
+- apt: Fixed dirty homebrew chainload bug (used when Home Menu hasn't been started)
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 2.1.1
 
 - FPSCR is now initialized with a predictable value in all threads (including the main thread).

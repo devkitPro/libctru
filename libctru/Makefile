@@ -10,7 +10,7 @@ include $(DEVKITARM)/base_rules
 
 export LIBCTRU_MAJOR	:= 2
 export LIBCTRU_MINOR	:= 1
-export LIBCTRU_PATCH	:= 1
+export LIBCTRU_PATCH	:= 2
 
 
 VERSION	:=	$(LIBCTRU_MAJOR).$(LIBCTRU_MINOR).$(LIBCTRU_PATCH)
