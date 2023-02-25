@@ -63,9 +63,12 @@ enum
 static u8 aptHomeButtonState;
 static u32 aptFlags;
 static u32 aptParameters[0x1000/4];
-static u8 aptChainloadFlags;
 static u64 aptChainloadTid;
+static u8 aptChainloadDeliverArg[0x300];
+static u32 aptChainloadDeliverArgSize = sizeof(aptChainloadDeliverArg);
+static u8 aptChainloadHmac[0x20];
 static u8 aptChainloadMediatype;
+static u8 aptChainloadFlags;
 
 typedef enum
 {
@@ -315,6 +318,9 @@ static void aptClearJumpToHome(void)
 void aptClearChainloader(void)
 {
 	aptFlags &= ~FLAG_CHAINLOAD;
+	aptChainloadDeliverArgSize = sizeof(aptChainloadDeliverArg);
+	memset(aptChainloadDeliverArg, 0, sizeof(aptChainloadDeliverArg));
+	memset(aptChainloadHmac, 0, sizeof(aptChainloadHmac));
 }
 
 void aptSetChainloader(u64 programID, u8 mediatype)
@@ -325,12 +331,34 @@ void aptSetChainloader(u64 programID, u8 mediatype)
 	aptChainloadMediatype = mediatype;
 }
 
+void aptSetChainloaderToCaller(void)
+{
+	aptFlags |= FLAG_CHAINLOAD;
+	aptChainloadFlags = 1;
+	aptChainloadTid = 0;
+	aptChainloadMediatype = 0;
+}
+
 void aptSetChainloaderToSelf(void)
 {
 	aptFlags |= FLAG_CHAINLOAD;
 	aptChainloadFlags = 2;
 	aptChainloadTid = 0;
 	aptChainloadMediatype = 0;
+}
+
+void aptSetChainloaderArgs(const void *deliverArg, size_t deliverArgSize, const void *hmac)
+{
+	if (deliverArgSize >= sizeof(aptChainloadDeliverArg))
+		deliverArgSize = sizeof(aptChainloadDeliverArg);
+
+	aptChainloadDeliverArgSize = deliverArgSize;
+	memcpy(aptChainloadDeliverArg, deliverArg, deliverArgSize);
+
+	if (hmac != NULL)
+		memcpy(aptChainloadHmac, hmac, sizeof(aptChainloadHmac));
+	else
+		memset(aptChainloadHmac, 0, sizeof(aptChainloadHmac));
 }
 
 extern void (*__system_retAddr)(void);
@@ -370,10 +398,8 @@ void aptExit(void)
 			if (R_SUCCEEDED(APT_IsRegistered(aptGetMenuAppID(), &hmRegistered)) && hmRegistered)
 			{
 				// Normal, sane chainload
-				u8 param[0x300] = {0};
-				u8 hmac[0x20] = {0};
 				APT_PrepareToDoApplicationJump(aptChainloadFlags, aptChainloadTid, aptChainloadMediatype);
-				APT_DoApplicationJump(param, sizeof(param), hmac);
+				APT_DoApplicationJump(aptChainloadDeliverArg, aptChainloadDeliverArgSize, aptChainloadHmac);
 			}
 			else
 			{
@@ -1430,7 +1456,7 @@ Result APT_GetSharedFont(Handle* fontHandle, u32* mapAddr)
 	return ret;
 }
 
-Result APT_ReceiveDeliverArg(const void* param, size_t paramSize, const void* hmac, u64* sender, bool* received)
+Result APT_ReceiveDeliverArg(void* param, size_t paramSize, void* hmac, u64* sender, bool* received)
 {
 	u32 cmdbuf[16];
 	cmdbuf[0]=IPC_MakeHeader(0x35,2,0); // 0x350080

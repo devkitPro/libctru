@@ -237,8 +237,21 @@ void aptClearChainloader(void);
  */
 void aptSetChainloader(u64 programID, u8 mediatype);
 
+/// Configures the chainloader to launch the previous application.
+void aptSetChainloaderToCaller(void);
+
 /// Configures the chainloader to relaunch the current application (i.e. soft-reset)
 void aptSetChainloaderToSelf(void);
+
+/**
+ * @brief Sets the "deliver arg" and HMAC for the chainloader, which will
+ *        be passed to the target 3DS/DS(i) application. The meaning of each
+ *        parameter varies on a per-application basis.
+ * @param deliverArg Deliver arg to pass to the target application.
+ * @param deliverArgSize Size of the deliver arg, maximum 0x300 bytes.
+ * @param hmac HMAC buffer, 32 bytes. Use NULL to pass an all-zero dummy HMAC.
+ */
+void aptSetChainloaderArgs(const void *deliverArg, size_t deliverArgSize, const void *hmac);
 
 /**
  * @brief Gets an APT lock handle.
@@ -565,4 +578,4 @@ Result APT_GetSharedFont(Handle* fontHandle, u32* mapAddr);
  * @param sender Pointer to output the sender's AppID to.
  * @param received Pointer to output whether an argument was received to.
  */
-Result APT_ReceiveDeliverArg(const void* param, size_t paramSize, const void* hmac, u64* sender, bool* received);
+Result APT_ReceiveDeliverArg(void* param, size_t paramSize, void* hmac, u64* sender, bool* received);
