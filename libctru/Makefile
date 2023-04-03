@@ -9,8 +9,8 @@ endif
 include $(DEVKITARM)/base_rules
 
 export LIBCTRU_MAJOR	:= 2
-export LIBCTRU_MINOR	:= 1
-export LIBCTRU_PATCH	:= 2
+export LIBCTRU_MINOR	:= 2
+export LIBCTRU_PATCH	:= 0
 
 
 VERSION	:=	$(LIBCTRU_MAJOR).$(LIBCTRU_MINOR).$(LIBCTRU_PATCH)

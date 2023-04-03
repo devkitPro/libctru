@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.2.0
+
+- apt: add deliver arg support to chainloader
+
 ## Version 2.1.2
 
 - Added cdc:CHK service wrappers
