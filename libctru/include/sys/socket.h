@@ -44,6 +44,8 @@
 
 #define SO_BROADCAST    0x0000      // unrequired, included for compatibility
 
+#define _SOCKLEN_T_DECLARED
+
 typedef uint32_t socklen_t;
 typedef uint16_t sa_family_t;
 
