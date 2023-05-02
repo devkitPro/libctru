@@ -1,8 +1,16 @@
 #include <string.h>
+#include <sys/time.h>
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/result.h>
 #include <3ds/synchronization.h>
+
+#define RES_IS_TIMEOUT(res) (R_DESCRIPTION(res) == RD_TIMEOUT)
+
+static inline s64 calc_new_timeout(s64 timeout_ns, struct timespec* startTime, struct timespec* currentTime)
+{
+	return timeout_ns - (currentTime->tv_sec - startTime->tv_sec) * 1000000000ULL - (currentTime->tv_nsec - startTime->tv_nsec);
+}
 
 static Handle arbiter;
 
@@ -82,6 +90,72 @@ void LightLock_Lock(LightLock* lock)
 	__dmb();
 }
 
+int LightLock_LockTimeout(LightLock* lock, s64 timeout_ns)
+{
+	s32 val;
+	bool bAlreadyLocked;
+
+	// Try to lock, or if that's not possible, increment the number of waiting threads
+	do
+	{
+		// Read the current lock state
+		val = __ldrex(lock);
+		if (val == 0) val = 1; // 0 is an invalid state - treat it as 1 (unlocked)
+		bAlreadyLocked = val < 0;
+
+		// Calculate the desired next state of the lock
+		if (!bAlreadyLocked)
+			val = -val; // transition into locked state
+		else
+			--val; // increment the number of waiting threads (which has the sign reversed during locked state)
+	} while (__strex(lock, val));
+
+	// If the lock is held by a different thread, we need to do some timing initialization
+	if (bAlreadyLocked)
+	{
+		struct timespec startTime;
+		clock_gettime(CLOCK_MONOTONIC, &startTime);
+		struct timespec currentTime = startTime;
+
+		// While the lock is held by a different thread:
+		do
+		{
+			s64 target_ns = calc_new_timeout(timeout_ns, &startTime, &currentTime);
+			// Wait for the lock holder thread to wake us up
+			Result res = syncArbitrateAddressWithTimeout(lock, ARBITRATION_WAIT_IF_LESS_THAN, 0, target_ns);
+			if (RES_IS_TIMEOUT(res))
+			{
+				return 1;
+			}
+
+			// Try to lock again
+			do
+			{
+				// Read the current lock state
+				val = __ldrex(lock);
+				bAlreadyLocked = val < 0;
+
+				// Calculate the desired next state of the lock
+				if (!bAlreadyLocked)
+					val = -(val-1); // decrement the number of waiting threads *and* transition into locked state
+				else
+				{
+					// Since the lock is still held, we need to cancel the atomic update and wait again
+					__clrex();
+
+					// Get the time for the new wait as well
+					clock_gettime(CLOCK_MONOTONIC, &currentTime);
+					break;
+				}
+			} while (__strex(lock, val));
+		} while (bAlreadyLocked);
+	}
+
+	__dmb();
+
+	return 0;
+}
+
 int LightLock_TryLock(LightLock* lock)
 {
 	s32 val;
@@ -130,6 +204,21 @@ void RecursiveLock_Lock(RecursiveLock* lock)
 		lock->thread_tag = tag;
 	}
 	lock->counter ++;
+}
+
+int RecursiveLock_LockTimeout(RecursiveLock* lock, s64 timeout_ns)
+{
+	u32 tag = (u32)getThreadLocalStorage();
+	if (lock->thread_tag != tag)
+	{
+		if (LightLock_LockTimeout(&lock->lock, timeout_ns) != 0)
+		{
+			return 1;
+		}
+		lock->thread_tag = tag;
+	}
+	lock->counter ++;
+	return 0;
 }
 
 int RecursiveLock_TryLock(RecursiveLock* lock)
@@ -203,7 +292,7 @@ int CondVar_WaitTimeout(CondVar* cv, LightLock* lock, s64 timeout_ns)
 
 	bool timedOut = false;
 	Result rc = syncArbitrateAddressWithTimeout(cv, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, 0, timeout_ns);
-	if (R_DESCRIPTION(rc) == RD_TIMEOUT)
+	if (RES_IS_TIMEOUT(rc))
 	{
 		timedOut = CondVar_EndWait(cv, 1);
 		__dmb();
@@ -329,15 +418,18 @@ void LightEvent_Wait(LightEvent* event)
 
 int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns)
 {
-	Result  timeoutRes = 0x09401BFE;
-	Result  res = 0;
+	Result res = 0;
 
-	while (res != timeoutRes)
+	struct timespec startTime;
+	clock_gettime(CLOCK_MONOTONIC, &startTime);
+	struct timespec currentTime = startTime;
+
+	for(;;)
 	{
 		if (event->state == CLEARED_STICKY)
 		{
 			res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, SIGNALED_ONESHOT, timeout_ns);
-			return res == timeoutRes;
+			return RES_IS_TIMEOUT(res);
 		}
 
 		if (event->state != CLEARED_ONESHOT)
@@ -349,10 +441,17 @@ int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns)
 				return 0;
 		}
 
-		res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, SIGNALED_ONESHOT, timeout_ns);
-	}
+		s64 target_ns = calc_new_timeout(timeout_ns, &startTime, &currentTime);
 
-	return res == timeoutRes;
+		res = syncArbitrateAddressWithTimeout(&event->state, ARBITRATION_WAIT_IF_LESS_THAN_TIMEOUT, SIGNALED_ONESHOT, target_ns);
+
+		if (RES_IS_TIMEOUT(res))
+		{
+			return 1;
+		}
+
+		clock_gettime(CLOCK_MONOTONIC, &currentTime);
+	}
 }
 
 void LightSemaphore_Init(LightSemaphore* semaphore, s16 initial_count, s16 max_count)
@@ -389,6 +488,50 @@ void LightSemaphore_Acquire(LightSemaphore* semaphore, s32 count)
 	} while (__strex(&semaphore->current_count, old_count - count));
 
 	__dmb();
+}
+
+int LightSemaphore_AcquireTimeout(LightSemaphore* semaphore, s32 count, s64 timeout_ns)
+{
+	s32 old_count;
+	s16 num_threads_acq;
+
+	struct timespec startTime;
+	clock_gettime(CLOCK_MONOTONIC, &startTime);
+	struct timespec currentTime = startTime;
+
+	do
+	{
+		for (;;)
+		{
+			old_count = __ldrex(&semaphore->current_count);
+			if (old_count >= count)
+				break;
+			__clrex();
+
+			do
+				num_threads_acq = (s16)__ldrexh((u16 *)&semaphore->num_threads_acq);
+			while (__strexh((u16 *)&semaphore->num_threads_acq, num_threads_acq + 1));
+
+			s64 target_ns = calc_new_timeout(timeout_ns, &startTime, &currentTime);
+
+			Result res = syncArbitrateAddressWithTimeout(&semaphore->current_count, ARBITRATION_WAIT_IF_LESS_THAN, count, target_ns);
+
+			if (RES_IS_TIMEOUT(res))
+			{
+				return 1;
+			}
+
+			clock_gettime(CLOCK_MONOTONIC, &currentTime);
+
+			do
+				num_threads_acq = (s16)__ldrexh((u16 *)&semaphore->num_threads_acq);
+			while (__strexh((u16 *)&semaphore->num_threads_acq, num_threads_acq - 1));
+		}
+	} while (__strex(&semaphore->current_count, old_count - count));
+
+	__dmb();
+
+	return 0;
 }
 
 int LightSemaphore_TryAcquire(LightSemaphore* semaphore, s32 count)
