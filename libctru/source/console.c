@@ -237,7 +237,7 @@ static struct
 		int rawBuf[5];
 	};
 	int argIdx;
-	bool hasArg[2];
+	bool hasArg[3];
 	enum ESC_STATE
 	{
 		ESC_NONE,
