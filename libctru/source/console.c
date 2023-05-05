@@ -750,7 +750,7 @@ PrintConsole* consoleInit(gfxScreen_t screen, PrintConsole* console) {
 		console->windowWidth = isWide ? 100 : 50;
 	}
 
-	consoleCls('2');
+	consoleCls(2);
 
 	return currentConsole;
 
@@ -820,7 +820,7 @@ static void newRow() {
 			src += 240;
 		}
 
-		consoleClearLine('2');
+		consoleClearLine(2);
 	}
 }
 //---------------------------------------------------------------------------------
@@ -951,7 +951,7 @@ void consolePrintChar(int c) {
 //---------------------------------------------------------------------------------
 void consoleClear(void) {
 //---------------------------------------------------------------------------------
-	consoleCls('2');
+	consoleCls(2);
 }
 
 //---------------------------------------------------------------------------------
