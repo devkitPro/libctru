@@ -9,14 +9,13 @@
 #define TRY_AGAIN	4
 
 struct hostent {
-	char	*h_name;
-	char	**h_aliases;
-	int	h_addrtype;
-	int	h_length;
-	char	**h_addr_list;
-	char	*h_addr;
+  char     *h_name;        /* official name of host */
+  char     **h_aliases;    /* alias list */
+  uint16_t h_addrtype;     /* host address type */
+  uint16_t h_length;       /* length of address */
+  char     **h_addr_list;  /* list of addresses from name server */
 };
-
+#define h_addr h_addr_list[0] /* for backward compatibility */
 
 #define AI_PASSIVE     0x01
 #define AI_CANONNAME   0x02
