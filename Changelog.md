@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 2.2.2
+
+- archive_dev: Ensure path separator for local path
+- adjust struct hostent for compatibilty
+
+## Version 2.2.1
+
+- add _SOCKLEN_T_DECLARED
+
 ## Version 2.2.0
 
 - apt: add deliver arg support to chainloader
