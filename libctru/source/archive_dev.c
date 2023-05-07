@@ -205,9 +205,11 @@ archive_fixpath(struct _reent    *r,
     strncpy(__ctru_dev_path_buf, path, PATH_MAX);
   else
   {
+    size_t cwdlen = strlen(dev->cwd);
     strncpy(__ctru_dev_path_buf, dev->cwd, PATH_MAX);
     __ctru_dev_path_buf[PATH_MAX] = '\0';
-    strncat(__ctru_dev_path_buf, path, PATH_MAX);
+    strncat(__ctru_dev_path_buf, "/", PATH_MAX - cwdlen);
+    strncat(__ctru_dev_path_buf, path, PATH_MAX - cwdlen - 1);
   }
 
   if(__ctru_dev_path_buf[PATH_MAX] != 0)
