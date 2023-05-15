@@ -526,7 +526,7 @@ typedef struct
 
 /**
  * @brief Gets the thread local storage buffer.
- * @return The thread local storage bufger.
+ * @return The thread local storage buffer.
  */
 static inline void* getThreadLocalStorage(void)
 {
@@ -537,7 +537,7 @@ static inline void* getThreadLocalStorage(void)
 
 /**
  * @brief Gets the thread command buffer.
- * @return The thread command bufger.
+ * @return The thread command buffer.
  */
 static inline u32* getThreadCommandBuffer(void)
 {
@@ -546,7 +546,7 @@ static inline u32* getThreadCommandBuffer(void)
 
 /**
  * @brief Gets the thread static buffer.
- * @return The thread static bufger.
+ * @return The thread static buffer.
  */
 static inline u32* getThreadStaticBuffers(void)
 {
