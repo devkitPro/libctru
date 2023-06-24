@@ -647,7 +647,7 @@ Result FSUSER_GetLegacyRomHeader(FS_MediaType mediaType, u64 programId, void* he
  * @brief Gets the legacy banner data of a program.
  * @param mediaType Media type of the program.
  * @param programId ID of the program.
- * @param header Pointer to output the legacy banner data to. (size = 0x23C0)
+ * @param banner Pointer to output the legacy banner data to. (size = 0x23C0)
  */
 Result FSUSER_GetLegacyBannerData(FS_MediaType mediaType, u64 programId, void* banner);
 
