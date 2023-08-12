@@ -368,7 +368,8 @@ typedef enum
 	GPU_ADD_SIGNED   = 0x03, ///< Signed add.
 	GPU_INTERPOLATE  = 0x04, ///< Interpolate.
 	GPU_SUBTRACT     = 0x05, ///< Subtract.
-	GPU_DOT3_RGB     = 0x06, ///< Dot3. RGB only.
+	GPU_DOT3_RGB     = 0x06, ///< Dot3. Scalar result is written to RGB only.
+	GPU_DOT3_RGBA    = 0x07, ///< Dot3. Scalar result is written to RGBA.
 	GPU_MULTIPLY_ADD = 0x08, ///< Multiply then add.
 	GPU_ADD_MULTIPLY = 0x09, ///< Add then multiply.
 } GPU_COMBINEFUNC;
