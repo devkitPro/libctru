@@ -54,7 +54,7 @@ void GPUCMD_Add(u32 header, const u32* param, u32 paramlength)
 		GPUCMD_AddInternal(header, param, remaining);
 		param += remaining;
 		paramlength -= remaining;
-		if(header & BIT(31)) header += remaining;
+		if(header & (1U << 31)) header += remaining;
 	}
 }
 

@@ -6,9 +6,9 @@
 
 /// System run-flags.
 enum {
-	RUNFLAG_APTWORKAROUND = BIT(0), ///< Use APT workaround.
-	RUNFLAG_APTREINIT     = BIT(1), ///< Reinitialize APT.
-	RUNFLAG_APTCHAINLOAD  = BIT(2), ///< Chainload APT on return.
+	RUNFLAG_APTWORKAROUND = 1U << 0, ///< Use APT workaround.
+	RUNFLAG_APTREINIT     = 1U << 1, ///< Reinitialize APT.
+	RUNFLAG_APTCHAINLOAD  = 1U << 2, ///< Chainload APT on return.
 };
 
 /**

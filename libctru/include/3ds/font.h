@@ -144,9 +144,9 @@ typedef struct
 /// Flags for use with fontCalcGlyphPos.
 enum
 {
-	GLYPH_POS_CALC_VTXCOORD = BIT(0), ///< Calculates vertex coordinates in addition to texture coordinates.
-	GLYPH_POS_AT_BASELINE   = BIT(1), ///< Position the glyph at the baseline instead of at the top-left corner.
-	GLYPH_POS_Y_POINTS_UP   = BIT(2), ///< Indicates that the Y axis points up instead of down.
+	GLYPH_POS_CALC_VTXCOORD = 1U << 0, ///< Calculates vertex coordinates in addition to texture coordinates.
+	GLYPH_POS_AT_BASELINE   = 1U << 1, ///< Position the glyph at the baseline instead of at the top-left corner.
+	GLYPH_POS_Y_POINTS_UP   = 1U << 2, ///< Indicates that the Y axis points up instead of down.
 };
 
 ///@}

@@ -61,9 +61,9 @@ typedef enum
 #define GX_TRANSFER_SCALING(x)    ((x)<<24)
 
 /// Updates gas additive blend results.
-#define GX_CMDLIST_UPDATE_GAS_ACC BIT(0)
+#define GX_CMDLIST_UPDATE_GAS_ACC (1U << 0)
 /// Flushes the command list.
-#define GX_CMDLIST_FLUSH          BIT(1)
+#define GX_CMDLIST_FLUSH          (1U << 1)
 
 /// GX command entry
 typedef union

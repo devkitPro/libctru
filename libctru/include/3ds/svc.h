@@ -126,7 +126,7 @@ typedef enum {
 	RESLIMIT_ADDRESSARBITER = 8,        ///< Number of address arbiters
 	RESLIMIT_CPUTIME        = 9,        ///< CPU time. Value expressed in percentage regular until it reaches 90.
 
-	RESLIMIT_BIT            = BIT(31),  ///< Forces enum size to be 32 bits
+	RESLIMIT_BIT            = 1U << 31,  ///< Forces enum size to be 32 bits
 } ResourceLimitType;
 
 /// Pseudo handle for the current thread
@@ -148,18 +148,18 @@ typedef enum {
 
 /// Configuration flags for \ref DmaConfig.
 enum {
-	DMACFG_SRC_IS_DEVICE        = BIT(0), ///< DMA source is a device/peripheral. Address will not auto-increment.
-	DMACFG_DST_IS_DEVICE        = BIT(1), ///< DMA destination is a device/peripheral. Address will not auto-increment.
-	DMACFG_WAIT_AVAILABLE       = BIT(2), ///< Make \ref svcStartInterProcessDma wait for the channel to be unlocked.
-	DMACFG_KEEP_LOCKED          = BIT(3), ///< Keep the channel locked after the transfer. Required for \ref svcRestartDma.
-	DMACFG_USE_SRC_CONFIG       = BIT(6), ///< Use the provided source device configuration even if the DMA source is not a device.
-	DMACFG_USE_DST_CONFIG       = BIT(7), ///< Use the provided destination device configuration even if the DMA destination is not a device.
+	DMACFG_SRC_IS_DEVICE        = 1U << 0, ///< DMA source is a device/peripheral. Address will not auto-increment.
+	DMACFG_DST_IS_DEVICE        = 1U << 1, ///< DMA destination is a device/peripheral. Address will not auto-increment.
+	DMACFG_WAIT_AVAILABLE       = 1U << 2, ///< Make \ref svcStartInterProcessDma wait for the channel to be unlocked.
+	DMACFG_KEEP_LOCKED          = 1U << 3, ///< Keep the channel locked after the transfer. Required for \ref svcRestartDma.
+	DMACFG_USE_SRC_CONFIG       = 1U << 6, ///< Use the provided source device configuration even if the DMA source is not a device.
+	DMACFG_USE_DST_CONFIG       = 1U << 7, ///< Use the provided destination device configuration even if the DMA destination is not a device.
 };
 
 /// Configuration flags for \ref svcRestartDma.
 enum {
-	DMARST_UNLOCK           = BIT(0), ///< Unlock the channel after transfer.
-	DMARST_RESUME_DEVICE    = BIT(1), ///< Replace DMAFLUSHP instructions by NOP (they may not be regenerated even if this flag is not set).
+	DMARST_UNLOCK           = 1U << 0, ///< Unlock the channel after transfer.
+	DMARST_RESUME_DEVICE    = 1U << 1, ///< Replace DMAFLUSHP instructions by NOP (they may not be regenerated even if this flag is not set).
 };
 
 /**
@@ -456,11 +456,11 @@ typedef struct {
 
 /// Debug flags for an attached process, set by @ref svcContinueDebugEvent
 typedef enum {
-	DBG_INHIBIT_USER_CPU_EXCEPTION_HANDLERS   = BIT(0), ///< Inhibit user-defined CPU exception handlers (including watchpoints and breakpoints, regardless of any @ref svcKernelSetState call).
-	DBG_SIGNAL_FAULT_EXCEPTION_EVENTS         = BIT(1), ///< Signal fault exception events. See @ref FaultExceptionEvent.
-	DBG_SIGNAL_SCHEDULE_EVENTS                = BIT(2), ///< Signal schedule in/out events. See @ref ScheduleInOutEvent.
-	DBG_SIGNAL_SYSCALL_EVENTS                 = BIT(3), ///< Signal syscall in/out events. See @ref SyscallInOutEvent.
-	DBG_SIGNAL_MAP_EVENTS                     = BIT(4), ///< Signal map events. See @ref MapEvent.
+	DBG_INHIBIT_USER_CPU_EXCEPTION_HANDLERS   = 1U << 0, ///< Inhibit user-defined CPU exception handlers (including watchpoints and breakpoints, regardless of any @ref svcKernelSetState call).
+	DBG_SIGNAL_FAULT_EXCEPTION_EVENTS         = 1U << 1, ///< Signal fault exception events. See @ref FaultExceptionEvent.
+	DBG_SIGNAL_SCHEDULE_EVENTS                = 1U << 2, ///< Signal schedule in/out events. See @ref ScheduleInOutEvent.
+	DBG_SIGNAL_SYSCALL_EVENTS                 = 1U << 3, ///< Signal syscall in/out events. See @ref SyscallInOutEvent.
+	DBG_SIGNAL_MAP_EVENTS                     = 1U << 4, ///< Signal map events. See @ref MapEvent.
 } DebugFlags;
 
 typedef struct {
@@ -470,15 +470,15 @@ typedef struct {
 
 /// Control flags for @ref svcGetDebugThreadContext and @ref svcSetDebugThreadContext
 typedef enum {
-	THREADCONTEXT_CONTROL_CPU_GPRS  = BIT(0), ///< Control r0-r12.
-	THREADCONTEXT_CONTROL_CPU_SPRS  = BIT(1), ///< Control sp, lr, pc, cpsr.
-	THREADCONTEXT_CONTROL_FPU_GPRS  = BIT(2), ///< Control d0-d15 (or s0-s31).
-	THREADCONTEXT_CONTROL_FPU_SPRS  = BIT(3), ///< Control fpscr, fpexc.
+	THREADCONTEXT_CONTROL_CPU_GPRS  = 1U << 0, ///< Control r0-r12.
+	THREADCONTEXT_CONTROL_CPU_SPRS  = 1U << 1, ///< Control sp, lr, pc, cpsr.
+	THREADCONTEXT_CONTROL_FPU_GPRS  = 1U << 2, ///< Control d0-d15 (or s0-s31).
+	THREADCONTEXT_CONTROL_FPU_SPRS  = 1U << 3, ///< Control fpscr, fpexc.
 
-	THREADCONTEXT_CONTROL_CPU_REGS  = BIT(0) | BIT(1), ///< Control r0-r12, sp, lr, pc, cpsr.
-	THREADCONTEXT_CONTROL_FPU_REGS  = BIT(2) | BIT(3), ///< Control d0-d15, fpscr, fpexc.
+	THREADCONTEXT_CONTROL_CPU_REGS  = (1U << 0) | (1U << 1), ///< Control r0-r12, sp, lr, pc, cpsr.
+	THREADCONTEXT_CONTROL_FPU_REGS  = (1U << 2) | (1U << 3), ///< Control d0-d15, fpscr, fpexc.
 
-	THREADCONTEXT_CONTROL_ALL       = BIT(0) | BIT(1) | BIT(2) | BIT(3), ///< Control all of the above.
+	THREADCONTEXT_CONTROL_ALL       = (1U << 0) | (1U << 1) | (1U << 2) | (1U << 3), ///< Control all of the above.
 } ThreadContextControlFlags;
 
 /// Thread parameter field for @ref svcGetDebugThreadParameter

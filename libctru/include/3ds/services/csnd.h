@@ -65,24 +65,24 @@ enum
 /// Sound flags.
 enum
 {
-	SOUND_LINEAR_INTERP = BIT(6),                           ///< Linear interpolation.
+	SOUND_LINEAR_INTERP = 1U << 6,                           ///< Linear interpolation.
 	SOUND_REPEAT = SOUND_LOOPMODE(CSND_LOOPMODE_NORMAL),    ///< Repeat the sound.
 	SOUND_ONE_SHOT = SOUND_LOOPMODE(CSND_LOOPMODE_ONESHOT), ///< Play the sound once.
 	SOUND_FORMAT_8BIT = SOUND_FORMAT(CSND_ENCODING_PCM8),   ///< PCM8
 	SOUND_FORMAT_16BIT = SOUND_FORMAT(CSND_ENCODING_PCM16), ///< PCM16
 	SOUND_FORMAT_ADPCM = SOUND_FORMAT(CSND_ENCODING_ADPCM), ///< ADPCM
 	SOUND_FORMAT_PSG = SOUND_FORMAT(CSND_ENCODING_PSG),     ///< PSG
-	SOUND_ENABLE = BIT(14),                                 ///< Enable sound.
+	SOUND_ENABLE = 1U << 14,                                 ///< Enable sound.
 };
 
 /// Capture modes.
 enum
 {
 	CAPTURE_REPEAT = 0,           ///< Repeat capture.
-	CAPTURE_ONE_SHOT = BIT(0),    ///< Capture once.
+	CAPTURE_ONE_SHOT = 1U << 0,    ///< Capture once.
 	CAPTURE_FORMAT_16BIT = 0,     ///< PCM16
-	CAPTURE_FORMAT_8BIT = BIT(1), ///< PCM8
-	CAPTURE_ENABLE = BIT(15),     ///< Enable capture.
+	CAPTURE_FORMAT_8BIT = 1U << 1, ///< PCM8
+	CAPTURE_ENABLE = 1U << 15,     ///< Enable capture.
 };
 
 /// Duty cycles for a PSG channel.

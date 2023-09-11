@@ -9,8 +9,8 @@
 /// IPC buffer access rights.
 typedef enum
 {
-	IPC_BUFFER_R  = BIT(1),                     ///< Readable
-	IPC_BUFFER_W  = BIT(2),                     ///< Writable
+	IPC_BUFFER_R  = 1U << 1,                     ///< Readable
+	IPC_BUFFER_W  = 1U << 2,                     ///< Writable
 	IPC_BUFFER_RW = IPC_BUFFER_R | IPC_BUFFER_W ///< Readable and Writable
 } IPC_BufferRights;
 
@@ -70,7 +70,7 @@ static inline u32 IPC_Desc_CurProcessId(void)
 	return 0x20;
 }
 
-static inline DEPRECATED u32 IPC_Desc_CurProcessHandle(void)
+static inline LIBCTRU_DEPRECATED u32 IPC_Desc_CurProcessHandle(void)
 {
 	return IPC_Desc_CurProcessId();
 }

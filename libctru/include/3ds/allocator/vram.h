@@ -6,8 +6,8 @@
 
 typedef enum vramAllocPos
 {
-	VRAM_ALLOC_A   = BIT(0),
-	VRAM_ALLOC_B   = BIT(1),
+	VRAM_ALLOC_A   = 1U << 0,
+	VRAM_ALLOC_B   = 1U << 1,
 	VRAM_ALLOC_ANY = VRAM_ALLOC_A | VRAM_ALLOC_B,
 } vramAllocPos;
 

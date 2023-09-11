@@ -10,8 +10,8 @@
 /// Camera connection target ports.
 enum {
 	PORT_NONE = 0x0,    ///< No port.
-	PORT_CAM1 = BIT(0), ///< CAM1 port.
-	PORT_CAM2 = BIT(1), ///< CAM2 port.
+	PORT_CAM1 = 1U << 0, ///< CAM1 port.
+	PORT_CAM2 = 1U << 1, ///< CAM2 port.
 
 	// Port combinations.
 	PORT_BOTH = PORT_CAM1 | PORT_CAM2, ///< Both ports.
@@ -20,9 +20,9 @@ enum {
 /// Camera combinations.
 enum {
 	SELECT_NONE = 0x0,    ///< No camera.
-	SELECT_OUT1 = BIT(0), ///< Outer camera 1.
-	SELECT_IN1  = BIT(1), ///< Inner camera 1.
-	SELECT_OUT2 = BIT(2), ///< Outer camera 2.
+	SELECT_OUT1 = 1U << 0, ///< Outer camera 1.
+	SELECT_IN1  = 1U << 1, ///< Inner camera 1.
+	SELECT_OUT2 = 1U << 2, ///< Outer camera 2.
 
 	// Camera combinations.
 	SELECT_IN1_OUT1  = SELECT_OUT1 | SELECT_IN1,               ///< Outer camera 1 and inner camera 1.
@@ -34,8 +34,8 @@ enum {
 /// Camera contexts.
 typedef enum {
 	CONTEXT_NONE = 0x0,    ///< No context.
-	CONTEXT_A    = BIT(0), ///< Context A.
-	CONTEXT_B    = BIT(1), ///< Context B.
+	CONTEXT_A    = 1U << 0, ///< Context A.
+	CONTEXT_B    = 1U << 1, ///< Context B.
 
 	// Context combinations.
 	CONTEXT_BOTH = CONTEXT_A | CONTEXT_B, ///< Both contexts.

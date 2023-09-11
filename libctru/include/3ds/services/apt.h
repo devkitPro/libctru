@@ -50,7 +50,7 @@ struct PtmWakeEvents;
 /// Create an APT_AppletAttr bitfield from its components.
 static inline APT_AppletAttr aptMakeAppletAttr(APT_AppletPos pos, bool manualGpuRights, bool manualDspRights)
 {
-	return (pos&7) | (manualGpuRights ? BIT(3) : 0) | (manualDspRights ? BIT(4) : 0);
+	return (pos&7) | (manualGpuRights ? (1U << 3) : 0) | (manualDspRights ? (1U << 4) : 0);
 }
 
 /// APT query reply.
@@ -176,7 +176,7 @@ bool aptShouldJumpToHome(void);
 bool aptCheckHomePressRejected(void);
 
 /// \deprecated Alias for \ref aptCheckHomePressRejected.
-static inline DEPRECATED bool aptIsHomePressed(void)
+static inline LIBCTRU_DEPRECATED bool aptIsHomePressed(void)
 {
 	return aptCheckHomePressRejected();
 }

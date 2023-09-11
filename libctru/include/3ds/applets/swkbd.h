@@ -46,26 +46,26 @@ typedef enum
 /// Keyboard input filtering flags.
 enum
 {
-	SWKBD_FILTER_DIGITS    = BIT(0), ///< Disallow the use of more than a certain number of digits (0 or more)
-	SWKBD_FILTER_AT        = BIT(1), ///< Disallow the use of the @ sign.
-	SWKBD_FILTER_PERCENT   = BIT(2), ///< Disallow the use of the % sign.
-	SWKBD_FILTER_BACKSLASH = BIT(3), ///< Disallow the use of the \ sign.
-	SWKBD_FILTER_PROFANITY = BIT(4), ///< Disallow profanity using Nintendo's profanity filter.
-	SWKBD_FILTER_CALLBACK  = BIT(5), ///< Use a callback in order to check the input.
+	SWKBD_FILTER_DIGITS    = 1U << 0, ///< Disallow the use of more than a certain number of digits (0 or more)
+	SWKBD_FILTER_AT        = 1U << 1, ///< Disallow the use of the @ sign.
+	SWKBD_FILTER_PERCENT   = 1U << 2, ///< Disallow the use of the % sign.
+	SWKBD_FILTER_BACKSLASH = 1U << 3, ///< Disallow the use of the \ sign.
+	SWKBD_FILTER_PROFANITY = 1U << 4, ///< Disallow profanity using Nintendo's profanity filter.
+	SWKBD_FILTER_CALLBACK  = 1U << 5, ///< Use a callback in order to check the input.
 };
 
 /// Keyboard features.
 enum
 {
-	SWKBD_PARENTAL          = BIT(0), ///< Parental PIN mode.
-	SWKBD_DARKEN_TOP_SCREEN = BIT(1), ///< Darken the top screen when the keyboard is shown.
-	SWKBD_PREDICTIVE_INPUT  = BIT(2), ///< Enable predictive input (necessary for Kanji input in JPN systems).
-	SWKBD_MULTILINE         = BIT(3), ///< Enable multiline input.
-	SWKBD_FIXED_WIDTH       = BIT(4), ///< Enable fixed-width mode.
-	SWKBD_ALLOW_HOME        = BIT(5), ///< Allow the usage of the HOME button.
-	SWKBD_ALLOW_RESET       = BIT(6), ///< Allow the usage of a software-reset combination.
-	SWKBD_ALLOW_POWER       = BIT(7), ///< Allow the usage of the POWER button.
-	SWKBD_DEFAULT_QWERTY    = BIT(9), ///< Default to the QWERTY page when the keyboard is shown.
+	SWKBD_PARENTAL          = 1U << 0, ///< Parental PIN mode.
+	SWKBD_DARKEN_TOP_SCREEN = 1U << 1, ///< Darken the top screen when the keyboard is shown.
+	SWKBD_PREDICTIVE_INPUT  = 1U << 2, ///< Enable predictive input (necessary for Kanji input in JPN systems).
+	SWKBD_MULTILINE         = 1U << 3, ///< Enable multiline input.
+	SWKBD_FIXED_WIDTH       = 1U << 4, ///< Enable fixed-width mode.
+	SWKBD_ALLOW_HOME        = 1U << 5, ///< Allow the usage of the HOME button.
+	SWKBD_ALLOW_RESET       = 1U << 6, ///< Allow the usage of a software-reset combination.
+	SWKBD_ALLOW_POWER       = 1U << 7, ///< Allow the usage of the POWER button.
+	SWKBD_DEFAULT_QWERTY    = 1U << 9, ///< Default to the QWERTY page when the keyboard is shown.
 };
 
 /// Keyboard filter callback return values.

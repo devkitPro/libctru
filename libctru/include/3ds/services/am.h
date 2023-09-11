@@ -18,8 +18,8 @@ typedef struct
 /// Pending title status mask values.
 enum
 {
-	AM_STATUS_MASK_INSTALLING = BIT(0),           ///< Titles currently installing.
-	AM_STATUS_MASK_AWAITING_FINALIZATION = BIT(1) ///< Titles awaiting finalization.
+	AM_STATUS_MASK_INSTALLING = 1U << 0,           ///< Titles currently installing.
+	AM_STATUS_MASK_AWAITING_FINALIZATION = (1U << 1) ///< Titles awaiting finalization.
 };
 
 /// Pending title status values.
@@ -44,8 +44,8 @@ typedef struct
 /// Pending title deletion flags.
 enum
 {
-	AM_DELETE_PENDING_NON_SYSTEM = BIT(0), ///< Non-system titles.
-	AM_DELETE_PENDING_SYSTEM = BIT(1)      ///< System titles.
+	AM_DELETE_PENDING_NON_SYSTEM = 1U << 0, ///< Non-system titles.
+	AM_DELETE_PENDING_SYSTEM = (1U << 1)      ///< System titles.
 };
 
 /// Information about the TWL NAND partition.
@@ -69,8 +69,8 @@ typedef struct {
 /// Title ContentInfo flags.
 typedef enum
 {
-	AM_CONTENT_DOWNLOADED = BIT(0), ///< ?
-	AM_CONTENT_OWNED = BIT(1)       ///< ?
+	AM_CONTENT_DOWNLOADED = 1U << 0, ///< ?
+	AM_CONTENT_OWNED = (1U << 1)       ///< ?
 } AM_ContentInfoFlags;
 
 /// Initializes AM. This doesn't initialize with "am:app", see amAppInit().

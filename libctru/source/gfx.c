@@ -96,11 +96,11 @@ static void gfxPresentFramebuffer(gfxScreen_t screen, u8 id, bool hasStereo)
 		{
 			default:
 			case MODE_2D:
-				mode |= BIT(6);
+				mode |= (1U << 6);
 				fb_b = fb_a;
 				break;
 			case MODE_3D:
-				mode |= BIT(5);
+				mode |= (1U << 5);
 				fb_b = hasStereo ? (fb_a + gfxTopFramebufferMaxSize/2) : fb_a;
 				break;
 			case MODE_WIDE:

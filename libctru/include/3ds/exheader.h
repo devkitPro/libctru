@@ -9,43 +9,43 @@
 /// ARM9 descriptor flags
 enum
 {
-	ARM9DESC_MOUNT_NAND         = BIT(0), ///< Mount "nand:/"
-	ARM9DESC_MOUNT_NANDRO_RW    = BIT(1), ///< Mount nand:/ro/ as read-write
-	ARM9DESC_MOUNT_TWLN         = BIT(2), ///< Mount "twln:/"
-	ARM9DESC_MOUNT_WNAND        = BIT(3), ///< Mount "wnand:/"
-	ARM9DESC_MOUNT_CARDSPI      = BIT(4), ///< Mount "cardspi:/"
-	ARM9DESC_USE_SDIF3          = BIT(5), ///< Use SDIF3
-	ARM9DESC_CREATE_SEED        = BIT(6), ///< Create seed (movable.sed)
-	ARM9DESC_USE_CARD_SPI       = BIT(7), ///< Use card SPI, required by multiple pxi:dev commands
-	ARM9DESC_SD_APPLICATION     = BIT(8), ///< SD application (not checked)
-	ARM9DESC_MOUNT_SDMC_RW      = BIT(9), ///< Mount "sdmc:/" as read-write
+	ARM9DESC_MOUNT_NAND         = 1U << 0, ///< Mount "nand:/"
+	ARM9DESC_MOUNT_NANDRO_RW    = 1U << 1, ///< Mount nand:/ro/ as read-write
+	ARM9DESC_MOUNT_TWLN         = 1U << 2, ///< Mount "twln:/"
+	ARM9DESC_MOUNT_WNAND        = 1U << 3, ///< Mount "wnand:/"
+	ARM9DESC_MOUNT_CARDSPI      = 1U << 4, ///< Mount "cardspi:/"
+	ARM9DESC_USE_SDIF3          = 1U << 5, ///< Use SDIF3
+	ARM9DESC_CREATE_SEED        = 1U << 6, ///< Create seed (movable.sed)
+	ARM9DESC_USE_CARD_SPI       = 1U << 7, ///< Use card SPI, required by multiple pxi:dev commands
+	ARM9DESC_SD_APPLICATION     = 1U << 8, ///< SD application (not checked)
+	ARM9DESC_MOUNT_SDMC_RW      = 1U << 9, ///< Mount "sdmc:/" as read-write
 };
 
 /// Filesystem access flags
 enum
 {
-	FSACCESS_CATEGORY_SYSTEM_APPLICATION    = BIT(0),   ///< Category "system application"
-	FSACCESS_CATEGORY_HARDWARE_CHECK        = BIT(1),   ///< Category "hardware check"
-	FSACCESS_CATEGORY_FILESYSTEM_TOOL       = BIT(2),   ///< Category "filesystem tool"
-	FSACCESS_DEBUG                          = BIT(3),   ///< Debug
-	FSACCESS_TWLCARD_BACKUP                 = BIT(4),   ///< TWLCARD backup
-	FSACCESS_TWLNAND_DATA                   = BIT(5),   ///< TWLNAND data
-	FSACCESS_BOSS                           = BIT(6),   ///< BOSS (SpotPass)
-	FSACCESS_SDMC_RW                        = BIT(7),   ///< SDMC (read-write)
-	FSACCESS_CORE                           = BIT(8),   ///< Core
-	FSACCESS_NANDRO_RO                      = BIT(9),   ///< nand:/ro/ (read-only)
-	FSACCESS_NANDRW                         = BIT(10),  ///< nand:/rw/
-	FSACCESS_NANDRO_RW                      = BIT(11),  ///< nand:/ro/ (read-write)
-	FSACCESS_CATEGORY_SYSTEM_SETTINGS       = BIT(12),  ///< Category "System Settings"
-	FSACCESS_CARDBOARD                      = BIT(13),  ///< Cardboard (System Transfer)
-	FSACCESS_EXPORT_IMPORT_IVS              = BIT(14),  ///< Export/Import IVs (movable.sed)
-	FSACCESS_SDMC_WO                        = BIT(15),  ///< SDMC (write-only)
-	FSACCESS_SWITCH_CLEANUP                 = BIT(16),  ///< "Switch cleanup" (3.0+)
-	FSACCESS_SAVEDATA_MOVE                  = BIT(17),  ///< Savedata move (5.0+)
-	FSACCESS_SHOP                           = BIT(18),  ///< Shop (5.0+)
-	FSACCESS_SHELL                          = BIT(19),  ///< Shop (5.0+)
-	FSACCESS_CATEGORY_HOME_MENU             = BIT(20),  ///< Category "Home Menu" (6.0+)
-	FSACCESS_SEEDDB                         = BIT(21),  ///< Seed DB (9.6+)
+	FSACCESS_CATEGORY_SYSTEM_APPLICATION    = 1U << 0,   ///< Category "system application"
+	FSACCESS_CATEGORY_HARDWARE_CHECK        = 1U << 1,   ///< Category "hardware check"
+	FSACCESS_CATEGORY_FILESYSTEM_TOOL       = 1U << 2,   ///< Category "filesystem tool"
+	FSACCESS_DEBUG                          = 1U << 3,   ///< Debug
+	FSACCESS_TWLCARD_BACKUP                 = 1U << 4,   ///< TWLCARD backup
+	FSACCESS_TWLNAND_DATA                   = 1U << 5,   ///< TWLNAND data
+	FSACCESS_BOSS                           = 1U << 6,   ///< BOSS (SpotPass)
+	FSACCESS_SDMC_RW                        = 1U << 7,   ///< SDMC (read-write)
+	FSACCESS_CORE                           = 1U << 8,   ///< Core
+	FSACCESS_NANDRO_RO                      = 1U << 9,   ///< nand:/ro/ (read-only)
+	FSACCESS_NANDRW                         = 1U << 10,  ///< nand:/rw/
+	FSACCESS_NANDRO_RW                      = 1U << 11,  ///< nand:/ro/ (read-write)
+	FSACCESS_CATEGORY_SYSTEM_SETTINGS       = 1U << 12,  ///< Category "System Settings"
+	FSACCESS_CARDBOARD                      = 1U << 13,  ///< Cardboard (System Transfer)
+	FSACCESS_EXPORT_IMPORT_IVS              = 1U << 14,  ///< Export/Import IVs (movable.sed)
+	FSACCESS_SDMC_WO                        = 1U << 15,  ///< SDMC (write-only)
+	FSACCESS_SWITCH_CLEANUP                 = 1U << 16,  ///< "Switch cleanup" (3.0+)
+	FSACCESS_SAVEDATA_MOVE                  = 1U << 17,  ///< Savedata move (5.0+)
+	FSACCESS_SHOP                           = 1U << 18,  ///< Shop (5.0+)
+	FSACCESS_SHELL                          = 1U << 19,  ///< Shop (5.0+)
+	FSACCESS_CATEGORY_HOME_MENU             = 1U << 20,  ///< Category "Home Menu" (6.0+)
+	FSACCESS_SEEDDB                         = 1U << 21,  ///< Seed DB (9.6+)
 };
 
 /// The resource limit category of a title

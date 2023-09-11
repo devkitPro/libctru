@@ -125,13 +125,13 @@ void DVLE_GenerateOutmap(DVLE_s* dvle)
 		switch (type)
 		{
 			case RESULT_POSITION:   sem = 0x00; num = 4;                                                     break;
-			case RESULT_NORMALQUAT: sem = 0x04; num = 4; dvle->outmapClock |= BIT(24);                       break;
-			case RESULT_COLOR:      sem = 0x08; num = 4; dvle->outmapClock |= BIT(1);                        break;
-			case RESULT_TEXCOORD0:  sem = 0x0C; num = 2; dvle->outmapClock |= BIT(8);  dvle->outmapMode = 1; break;
-			case RESULT_TEXCOORD0W: sem = 0x10; num = 1; dvle->outmapClock |= BIT(16); dvle->outmapMode = 1; break;
-			case RESULT_TEXCOORD1:  sem = 0x0E; num = 2; dvle->outmapClock |= BIT(9);  dvle->outmapMode = 1; break;
-			case RESULT_TEXCOORD2:  sem = 0x16; num = 2; dvle->outmapClock |= BIT(10); dvle->outmapMode = 1; break;
-			case RESULT_VIEW:       sem = 0x12; num = 3; dvle->outmapClock |= BIT(24);                       break;
+			case RESULT_NORMALQUAT: sem = 0x04; num = 4; dvle->outmapClock |= (1U << 24);                       break;
+			case RESULT_COLOR:      sem = 0x08; num = 4; dvle->outmapClock |= (1U << 1);                        break;
+			case RESULT_TEXCOORD0:  sem = 0x0C; num = 2; dvle->outmapClock |= (1U << 8);  dvle->outmapMode = 1; break;
+			case RESULT_TEXCOORD0W: sem = 0x10; num = 1; dvle->outmapClock |= (1U << 16); dvle->outmapMode = 1; break;
+			case RESULT_TEXCOORD1:  sem = 0x0E; num = 2; dvle->outmapClock |= (1U << 9);  dvle->outmapMode = 1; break;
+			case RESULT_TEXCOORD2:  sem = 0x16; num = 2; dvle->outmapClock |= (1U << 10); dvle->outmapMode = 1; break;
+			case RESULT_VIEW:       sem = 0x12; num = 3; dvle->outmapClock |= (1U << 24);                       break;
 			default: continue;
 		}
 
@@ -143,7 +143,7 @@ void DVLE_GenerateOutmap(DVLE_s* dvle)
 				*out |= (sem++) << (j*8);
 				k ++;
 				if (type==RESULT_POSITION && k==3)
-					dvle->outmapClock |= BIT(0);
+					dvle->outmapClock |= (1U << 0);
 			}
 		}
 	}

@@ -9,14 +9,14 @@
 
 /// Launch flags for PM launch commands.
 enum {
-	PMLAUNCHFLAG_NORMAL_APPLICATION            = BIT(0),
-	PMLAUNCHFLAG_LOAD_DEPENDENCIES             = BIT(1),
-	PMLAUNCHFLAG_NOTIFY_TERMINATION            = BIT(2),
-	PMLAUNCHFLAG_QUEUE_DEBUG_APPLICATION       = BIT(3),
+	PMLAUNCHFLAG_NORMAL_APPLICATION            = 1U << 0,
+	PMLAUNCHFLAG_LOAD_DEPENDENCIES             = 1U << 1,
+	PMLAUNCHFLAG_NOTIFY_TERMINATION            = 1U << 2,
+	PMLAUNCHFLAG_QUEUE_DEBUG_APPLICATION       = 1U << 3,
 	PMLAUNCHFLAG_TERMINATION_NOTIFICATION_MASK = 0xF0,
-	PMLAUNCHFLAG_FORCE_USE_O3DS_APP_MEM        = BIT(8),  ///< Forces the usage of the O3DS system mode app memory setting even if N3DS system mode is not "Legacy". Dev4 and Dev5 not supported. N3DS only.
-	PMLAUNCHFLAG_FORCE_USE_O3DS_MAX_APP_MEM    = BIT(9),  ///< In conjunction with the above, forces the 96MB app memory setting. N3DS only.
-	PMLAUNCHFLAG_USE_UPDATE_TITLE              = BIT(16),
+	PMLAUNCHFLAG_FORCE_USE_O3DS_APP_MEM        = 1U << 8,  ///< Forces the usage of the O3DS system mode app memory setting even if N3DS system mode is not "Legacy". Dev4 and Dev5 not supported. N3DS only.
+	PMLAUNCHFLAG_FORCE_USE_O3DS_MAX_APP_MEM    = 1U << 9,  ///< In conjunction with the above, forces the 96MB app memory setting. N3DS only.
+	PMLAUNCHFLAG_USE_UPDATE_TITLE              = 1U << 16,
 };
 
 /// Initializes pm:app.

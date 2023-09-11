@@ -251,7 +251,7 @@ void initThreadVars(struct Thread_tag *thread)
 
 	// All flags clear, all interrupts disabled, all instruction scalar.
 	// As for the 3 below fields: default NaN mode, flush-to-zero both enabled & round to nearest.
-	__builtin_arm_set_fpscr(BIT(25) | BIT(24) | (0u << 22));
+	__builtin_arm_set_fpscr((1U << 25) | (1U << 24) | (0u << 22));
 }
 
 void __system_initSyscalls(void)

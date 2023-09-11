@@ -9,25 +9,25 @@
 /// Open flags.
 enum
 {
-	FS_OPEN_READ   = BIT(0), ///< Open for reading.
-	FS_OPEN_WRITE  = BIT(1), ///< Open for writing.
-	FS_OPEN_CREATE = BIT(2), ///< Create file.
+	FS_OPEN_READ   = 1U << 0, ///< Open for reading.
+	FS_OPEN_WRITE  = 1U << 1, ///< Open for writing.
+	FS_OPEN_CREATE = 1U << 2, ///< Create file.
 };
 
 /// Write flags.
 enum
 {
-	FS_WRITE_FLUSH       = BIT(0), ///< Flush.
-	FS_WRITE_UPDATE_TIME = BIT(8), ///< Update file timestamp.
+	FS_WRITE_FLUSH       = 1U << 0, ///< Flush.
+	FS_WRITE_UPDATE_TIME = 1U << 8, ///< Update file timestamp.
 };
 
 /// Attribute flags.
 enum
 {
-	FS_ATTRIBUTE_DIRECTORY = BIT(0),  ///< Directory.
-	FS_ATTRIBUTE_HIDDEN    = BIT(8),  ///< Hidden.
-	FS_ATTRIBUTE_ARCHIVE   = BIT(16), ///< Archive.
-	FS_ATTRIBUTE_READ_ONLY = BIT(24), ///< Read-only.
+	FS_ATTRIBUTE_DIRECTORY = 1U << 0,  ///< Directory.
+	FS_ATTRIBUTE_HIDDEN    = 1U << 8,  ///< Hidden.
+	FS_ATTRIBUTE_ARCHIVE   = 1U << 16, ///< Archive.
+	FS_ATTRIBUTE_READ_ONLY = 1U << 24, ///< Read-only.
 };
 
 /// Media types.
@@ -202,7 +202,7 @@ typedef struct
 } FS_IntegrityVerificationSeed;
 
 /// Ext save data information.
-typedef struct PACKED
+typedef struct __attribute__((packed))
 {
 	FS_MediaType mediaType : 8; ///< Media type.
 	u8 unknown;                 ///< Unknown.

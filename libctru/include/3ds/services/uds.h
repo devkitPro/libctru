@@ -138,15 +138,15 @@ typedef struct {
 } udsNetworkScanInfo;
 
 enum {
-	UDSNETATTR_DisableConnectSpectators = BIT(0), //When set new Spectators are not allowed to connect.
-	UDSNETATTR_DisableConnectClients = BIT(1), //When set new Clients are not allowed to connect.
-	UDSNETATTR_x4 = BIT(2), //Unknown what this bit is for.
-	UDSNETATTR_Default = BIT(15), //Unknown what this bit is for.
+	UDSNETATTR_DisableConnectSpectators = 1U << 0, //When set new Spectators are not allowed to connect.
+	UDSNETATTR_DisableConnectClients = 1U << 1, //When set new Clients are not allowed to connect.
+	UDSNETATTR_x4 = 1U << 2, //Unknown what this bit is for.
+	UDSNETATTR_Default = 1U << 15, //Unknown what this bit is for.
 };
 
 enum {
-	UDS_SENDFLAG_Default = BIT(0), //Unknown what this bit is for.
-	UDS_SENDFLAG_Broadcast = BIT(1) //When set, broadcast the data frame via the destination MAC address even when UDS_BROADCAST_NETWORKNODEID isn't used.
+	UDS_SENDFLAG_Default = 1U << 0, //Unknown what this bit is for.
+	UDS_SENDFLAG_Broadcast = (1U << 1) //When set, broadcast the data frame via the destination MAC address even when UDS_BROADCAST_NETWORKNODEID isn't used.
 };
 
 typedef enum {

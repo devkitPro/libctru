@@ -123,16 +123,16 @@ void swkbdSetStatusData(SwkbdState* swkbd, SwkbdStatusData* data, bool in, bool 
 {
 	swkbd->extra.status_data = data;
 	swkbd->initial_status_offset = (data&&in) ? 0 : -1;
-	if (data&&out) swkbd->save_state_flags |= BIT(0);
-	else           swkbd->save_state_flags &= ~BIT(0);
+	if (data&&out) swkbd->save_state_flags |= (1U << 0);
+	else           swkbd->save_state_flags &= ~(1U << 0);
 }
 
 void swkbdSetLearningData(SwkbdState* swkbd, SwkbdLearningData* data, bool in, bool out)
 {
 	swkbd->extra.learning_data = data;
 	swkbd->initial_learning_offset = (data&&in) ? 0 : -1;
-	if (data&&out) swkbd->save_state_flags |= BIT(1);
-	else           swkbd->save_state_flags &= ~BIT(1);
+	if (data&&out) swkbd->save_state_flags |= (1U << 1);
+	else           swkbd->save_state_flags &= ~(1U << 1);
 }
 
 void swkbdSetFilterCallback(SwkbdState* swkbd, SwkbdCallbackFn callback, void* user)
@@ -180,12 +180,12 @@ SwkbdButton swkbdInputText(SwkbdState* swkbd, char* buf, size_t bufsize)
 	sharedMemSize += swkbd->initial_status_offset >= 0 ? sizeof(SwkbdStatusData) : 0;
 	size_t learningOff = sharedMemSize;
 	sharedMemSize += swkbd->initial_learning_offset >= 0 ? sizeof(SwkbdLearningData) : 0;
-	if (swkbd->save_state_flags & BIT(0))
+	if (swkbd->save_state_flags & (1U << 0))
 	{
 		swkbd->status_offset = sharedMemSize;
 		sharedMemSize += sizeof(SwkbdStatusData);
 	}
-	if (swkbd->save_state_flags & BIT(1))
+	if (swkbd->save_state_flags & (1U << 1))
 	{
 		swkbd->learning_offset = sharedMemSize;
 		sharedMemSize += sizeof(SwkbdLearningData);
@@ -264,8 +264,8 @@ SwkbdButton swkbdInputText(SwkbdState* swkbd, char* buf, size_t bufsize)
 	u16* text16 = (u16*)(swkbdSharedMem+swkbd->text_offset);
 	text16[swkbd->text_length] = 0;
 	swkbdConvertToUTF8(buf, text16, bufsize-1);
-	if (swkbd->save_state_flags & BIT(0)) memcpy(extra.status_data, swkbdSharedMem+swkbd->status_offset, sizeof(SwkbdStatusData));
-	if (swkbd->save_state_flags & BIT(1)) memcpy(extra.learning_data, swkbdSharedMem+swkbd->learning_offset, sizeof(SwkbdLearningData));
+	if (swkbd->save_state_flags & (1U << 0)) memcpy(extra.status_data, swkbdSharedMem+swkbd->status_offset, sizeof(SwkbdStatusData));
+	if (swkbd->save_state_flags & (1U << 1)) memcpy(extra.learning_data, swkbdSharedMem+swkbd->learning_offset, sizeof(SwkbdLearningData));
 
 	free(swkbdSharedMem);
 	return button;

@@ -43,8 +43,8 @@ typedef enum {
 
 /// Bit4-7 are always clear with nfcGetAmiiboSettings() due to "& 0xF".
 enum {
-	NFC_amiiboFlag_Setup = BIT(4), /// This indicates that the amiibo was setup with amiibo Settings. nfcGetAmiiboSettings() will return an all-zero struct when this is not set.
-	NFC_amiiboFlag_AppDataSetup = BIT(5) /// This indicates that the AppData was previously initialized via nfcInitializeWriteAppData(), that function can't be used again with this flag already set.
+	NFC_amiiboFlag_Setup = 1U << 4, /// This indicates that the amiibo was setup with amiibo Settings. nfcGetAmiiboSettings() will return an all-zero struct when this is not set.
+	NFC_amiiboFlag_AppDataSetup = (1U << 5) /// This indicates that the AppData was previously initialized via nfcInitializeWriteAppData(), that function can't be used again with this flag already set.
 };
 
 typedef struct {

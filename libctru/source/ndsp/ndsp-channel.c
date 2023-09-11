@@ -3,16 +3,16 @@
 
 enum
 {
-	CFLAG_INITPARAMS    = BIT(0),
-	CFLAG_SYNCCOUNT     = BIT(1),
-	CFLAG_PLAYSTATUS    = BIT(2),
-	CFLAG_INTERPTYPE    = BIT(3),
-	CFLAG_IIRFILTERTYPE = BIT(4),
-	CFLAG_RATE          = BIT(5),
-	CFLAG_MIX           = BIT(6),
-	CFLAG_ADPCMCOEFS    = BIT(7),
-	CFLAG_IIRMONO       = BIT(8),
-	CFLAG_IIRBIQUAD     = BIT(9),
+	CFLAG_INITPARAMS    = 1U << 0,
+	CFLAG_SYNCCOUNT     = 1U << 1,
+	CFLAG_PLAYSTATUS    = 1U << 2,
+	CFLAG_INTERPTYPE    = 1U << 3,
+	CFLAG_IIRFILTERTYPE = 1U << 4,
+	CFLAG_RATE          = 1U << 5,
+	CFLAG_MIX           = 1U << 6,
+	CFLAG_ADPCMCOEFS    = 1U << 7,
+	CFLAG_IIRMONO       = 1U << 8,
+	CFLAG_IIRBIQUAD     = 1U << 9,
 };
 
 typedef struct
@@ -224,8 +224,8 @@ void ndspChnIirMonoSetEnable(int id, bool enable)
 {
 	ndspChnSt* chn = &ndspChn[id];
 	LightLock_Lock(&chn->lock);
-	u16 f = chn->iirFilterType &~ BIT(0);
-	if (enable) f |= BIT(0);
+	u16 f = chn->iirFilterType &~ (1U << 0);
+	if (enable) f |= (1U << 0);
 	chn->iirFilterType = f;
 	chn->flags |= CFLAG_IIRFILTERTYPE;
 	LightLock_Unlock(&chn->lock);
@@ -235,8 +235,8 @@ void ndspChnIirBiquadSetEnable(int id, bool enable)
 {
 	ndspChnSt* chn = &ndspChn[id];
 	LightLock_Lock(&chn->lock);
-	u16 f = chn->iirFilterType &~ BIT(1);
-	if (enable) f |= BIT(1);
+	u16 f = chn->iirFilterType &~ (1U << 1);
+	if (enable) f |= (1U << 1);
 	chn->iirFilterType = f;
 	chn->flags |= CFLAG_IIRFILTERTYPE;
 	LightLock_Unlock(&chn->lock);
@@ -270,7 +270,7 @@ bool ndspChnIirMonoSetParamsCustomFilter(int id, float a0, float a1, float b0)
 	LightLock_Lock(&chn->lock);
 
 	memcpy(chn->iirMono, params, sizeof(chn->iirMono));
-	chn->iirFilterType |= BIT(0);
+	chn->iirFilterType |= (1U << 0);
 
 	chn->flags |= CFLAG_IIRMONO | CFLAG_IIRFILTERTYPE;
 
@@ -293,7 +293,7 @@ bool ndspChnIirBiquadSetParamsCustomFilter(int id, float a0, float a1, float a2,
 	LightLock_Lock(&chn->lock);
 
 	memcpy(chn->iirBiquad, params, sizeof(chn->iirBiquad));
-	chn->iirFilterType |= BIT(1);
+	chn->iirFilterType |= (1U << 1);
 
 	chn->flags |= CFLAG_IIRBIQUAD | CFLAG_IIRFILTERTYPE;
 
@@ -418,7 +418,7 @@ void ndspiUpdateChn(void)
 				st->sampleCount = ndspiRotateVal(wb->nsamples);
 				st->paddr = ndspiRotateVal(osConvertVirtToPhys(wb->data_vaddr));
 				st->cntFlags = chn->format;
-				st->moreFlags = (st->moreFlags &~ BIT(1)) | (wb->looping ? BIT(1) : 0);
+				st->moreFlags = (st->moreFlags &~ (1U << 1)) | (wb->looping ? (1U << 1) : 0);
 				st->unknown = 0;
 				if ((chn->format & NDSP_ENCODING(3)) == NDSP_ENCODING(NDSP_ENCODING_ADPCM))
 				{
@@ -427,9 +427,9 @@ void ndspiUpdateChn(void)
 						st->adpcmData.index = wb->adpcm_data->index;
 						st->adpcmData.history0 = wb->adpcm_data->history0;
 						st->adpcmData.history1 = wb->adpcm_data->history1;
-						st->moreFlags |= BIT(0);
+						st->moreFlags |= (1U << 0);
 					} else
-						st->moreFlags &= ~BIT(0);
+						st->moreFlags &= ~(1U << 0);
 				}
 				stflags |= 0x10 | 0x40200000;
 			} else

@@ -33,8 +33,8 @@ enum
 	NDSP_FORMAT_ADPCM = NDSP_FORMAT_MONO_ADPCM, ///< (Alias) Buffer contains Mono ADPCM.
 
 	// Flags
-	NDSP_FRONT_BYPASS             = BIT(4), ///< Front bypass.
-	NDSP_3D_SURROUND_PREPROCESSED = BIT(6), ///< (?) Unknown, under research
+	NDSP_FRONT_BYPASS             = 1U << 4, ///< Front bypass.
+	NDSP_3D_SURROUND_PREPROCESSED = 1U << 6, ///< (?) Unknown, under research
 };
 
 /// Interpolation types.

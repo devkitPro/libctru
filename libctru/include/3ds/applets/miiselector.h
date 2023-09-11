@@ -73,10 +73,10 @@ typedef struct
 /// AppletEd options
 enum
 {
-	MIISELECTOR_CANCEL     = BIT(0), ///< Show the cancel button
-	MIISELECTOR_GUESTS     = BIT(1), ///< Make Guets Miis selectable
-	MIISELECTOR_TOP        = BIT(2), ///< Show AppletEd on top screen
-	MIISELECTOR_GUESTSTART = BIT(3), ///< Start on guest page
+	MIISELECTOR_CANCEL     = 1U << 0, ///< Show the cancel button
+	MIISELECTOR_GUESTS     = 1U << 1, ///< Make Guets Miis selectable
+	MIISELECTOR_TOP        = 1U << 2, ///< Show AppletEd on top screen
+	MIISELECTOR_GUESTSTART = 1U << 3, ///< Start on guest page
 };
 
 /**

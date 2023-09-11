@@ -156,4 +156,4 @@ typedef struct
 	} mole_details;
 
 	u16 author_name[10];    ///< Name of Mii's author (Encoded using UTF16)
-} PACKED MiiData;
+} __attribute__((packed)) MiiData;

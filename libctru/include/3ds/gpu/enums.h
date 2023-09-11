@@ -17,9 +17,9 @@
 /// Creates a texture mode parameter from a @ref GPU_TEXTURE_MODE_PARAM
 #define GPU_TEXTURE_MODE(v)       (((v)&0x7)<<28)
 /// Texture parameter indicating ETC1 texture.
-#define GPU_TEXTURE_ETC1_PARAM    BIT(5)
+#define GPU_TEXTURE_ETC1_PARAM    (1U << 5)
 /// Texture parameter indicating shadow texture.
-#define GPU_TEXTURE_SHADOW_PARAM  BIT(20)
+#define GPU_TEXTURE_SHADOW_PARAM  (1U << 20)
 
 /// Creates a combiner buffer write configuration.
 #define GPU_TEV_BUFFER_WRITE_CONFIG(stage0, stage1, stage2, stage3) ((stage0) | ((stage1) << 1) | ((stage2) << 2) | ((stage3) << 3))

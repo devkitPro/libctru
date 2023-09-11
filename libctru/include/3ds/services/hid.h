@@ -9,29 +9,29 @@
 /// Key values.
 enum
 {
-	KEY_A       = BIT(0),       ///< A
-	KEY_B       = BIT(1),       ///< B
-	KEY_SELECT  = BIT(2),       ///< Select
-	KEY_START   = BIT(3),       ///< Start
-	KEY_DRIGHT  = BIT(4),       ///< D-Pad Right
-	KEY_DLEFT   = BIT(5),       ///< D-Pad Left
-	KEY_DUP     = BIT(6),       ///< D-Pad Up
-	KEY_DDOWN   = BIT(7),       ///< D-Pad Down
-	KEY_R       = BIT(8),       ///< R
-	KEY_L       = BIT(9),       ///< L
-	KEY_X       = BIT(10),      ///< X
-	KEY_Y       = BIT(11),      ///< Y
-	KEY_ZL      = BIT(14),      ///< ZL (New 3DS only)
-	KEY_ZR      = BIT(15),      ///< ZR (New 3DS only)
-	KEY_TOUCH   = BIT(20),      ///< Touch (Not actually provided by HID)
-	KEY_CSTICK_RIGHT = BIT(24), ///< C-Stick Right (New 3DS only)
-	KEY_CSTICK_LEFT  = BIT(25), ///< C-Stick Left (New 3DS only)
-	KEY_CSTICK_UP    = BIT(26), ///< C-Stick Up (New 3DS only)
-	KEY_CSTICK_DOWN  = BIT(27), ///< C-Stick Down (New 3DS only)
-	KEY_CPAD_RIGHT = BIT(28),   ///< Circle Pad Right
-	KEY_CPAD_LEFT  = BIT(29),   ///< Circle Pad Left
-	KEY_CPAD_UP    = BIT(30),   ///< Circle Pad Up
-	KEY_CPAD_DOWN  = BIT(31),   ///< Circle Pad Down
+	KEY_A       = 1U << 0,       ///< A
+	KEY_B       = 1U << 1,       ///< B
+	KEY_SELECT  = 1U << 2,       ///< Select
+	KEY_START   = 1U << 3,       ///< Start
+	KEY_DRIGHT  = 1U << 4,       ///< D-Pad Right
+	KEY_DLEFT   = 1U << 5,       ///< D-Pad Left
+	KEY_DUP     = 1U << 6,       ///< D-Pad Up
+	KEY_DDOWN   = 1U << 7,       ///< D-Pad Down
+	KEY_R       = 1U << 8,       ///< R
+	KEY_L       = 1U << 9,       ///< L
+	KEY_X       = 1U << 10,      ///< X
+	KEY_Y       = 1U << 11,      ///< Y
+	KEY_ZL      = 1U << 14,      ///< ZL (New 3DS only)
+	KEY_ZR      = 1U << 15,      ///< ZR (New 3DS only)
+	KEY_TOUCH   = 1U << 20,      ///< Touch (Not actually provided by HID)
+	KEY_CSTICK_RIGHT = 1U << 24, ///< C-Stick Right (New 3DS only)
+	KEY_CSTICK_LEFT  = 1U << 25, ///< C-Stick Left (New 3DS only)
+	KEY_CSTICK_UP    = 1U << 26, ///< C-Stick Up (New 3DS only)
+	KEY_CSTICK_DOWN  = 1U << 27, ///< C-Stick Down (New 3DS only)
+	KEY_CPAD_RIGHT = 1U << 28,   ///< Circle Pad Right
+	KEY_CPAD_LEFT  = 1U << 29,   ///< Circle Pad Left
+	KEY_CPAD_UP    = 1U << 30,   ///< Circle Pad Up
+	KEY_CPAD_DOWN  = 1U << 31,   ///< Circle Pad Down
 
 	// Generic catch-all directions
 	KEY_UP    = KEY_DUP    | KEY_CPAD_UP,    ///< D-Pad Up or Circle Pad Up

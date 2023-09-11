@@ -43,20 +43,12 @@ typedef s32 Result;                 ///< Function result.
 typedef void (*ThreadFunc)(void *); ///< Thread entrypoint function.
 typedef void (*voidfn)(void);
 
-/// Creates a bitmask from a bit number.
-#define BIT(n) (1U<<(n))
-
-/// Aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
-#define ALIGN(m)   __attribute__((aligned(m)))
-/// Packs a struct (and other types?) so it won't include padding bytes.
-#define PACKED     __attribute__((packed))
-
 #ifndef LIBCTRU_NO_DEPRECATION
 /// Flags a function as deprecated.
-#define DEPRECATED __attribute__ ((deprecated))
+#define LIBCTRU_DEPRECATED __attribute__ ((deprecated))
 #else
 /// Flags a function as deprecated.
-#define DEPRECATED
+#define LIBCTRU_DEPRECATED
 #endif
 
 /// Structure representing CPU registers
@@ -71,7 +63,7 @@ typedef struct {
 /// Structure representing FPU registers
 typedef struct {
 	union {
-		struct PACKED { double d[16]; }; ///< d0-d15.
+		struct __attribute__((packed)) { double d[16]; }; ///< d0-d15.
 		float  s[32];                    ///< s0-s31.
 	};
 	u32 fpscr;        ///< fpscr.

@@ -32,8 +32,8 @@ typedef enum {
 /// sslc options. https://www.3dbrew.org/wiki/SSL_Services#SSLOpt
 enum {
 	SSLCOPT_Default = 0,
-	SSLCOPT_DisableVerify = BIT(9), // "Disables server cert verification when set."
-	SSLCOPT_TLSv10 = BIT(11) // "Use TLSv1.0."
+	SSLCOPT_DisableVerify = 1U << 9, // "Disables server cert verification when set."
+	SSLCOPT_TLSv10 = (1U << 11) // "Use TLSv1.0."
 };
 
 /// Initializes SSLC. Normally session_handle should be 0. When non-zero this will use the specified handle for the main-service-session without using the Initialize command, instead of using srvGetServiceHandle.

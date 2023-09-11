@@ -34,30 +34,30 @@ static void* aptMessageFuncData;
 enum
 {
 	// Current applet state
-	FLAG_ACTIVE       = BIT(0),
-	FLAG_SLEEPING     = BIT(1),
+	FLAG_ACTIVE       = 1U << 0,
+	FLAG_SLEEPING     = 1U << 1,
 
 	// Sleep handling flags
-	FLAG_ALLOWSLEEP   = BIT(2),
-	FLAG_SHOULDSLEEP  = BIT(3),
+	FLAG_ALLOWSLEEP   = 1U << 2,
+	FLAG_SHOULDSLEEP  = 1U << 3,
 
 	// Home button flags
-	FLAG_ALLOWHOME    = BIT(4),
-	FLAG_SHOULDHOME   = BIT(5),
-	FLAG_HOMEREJECTED = BIT(6),
+	FLAG_ALLOWHOME    = 1U << 4,
+	FLAG_SHOULDHOME   = 1U << 5,
+	FLAG_HOMEREJECTED = 1U << 6,
 
 	// Power button flags
-	FLAG_POWERBUTTON  = BIT(7),
-	FLAG_SHUTDOWN     = BIT(8),
+	FLAG_POWERBUTTON  = 1U << 7,
+	FLAG_SHUTDOWN     = 1U << 8,
 
 	// Close handling flags
-	FLAG_ORDERTOCLOSE = BIT(9),
-	FLAG_CANCELLED    = BIT(10),
+	FLAG_ORDERTOCLOSE = 1U << 9,
+	FLAG_CANCELLED    = 1U << 10,
 
 	// Miscellaneous
-	FLAG_DSPWAKEUP    = BIT(29),
-	FLAG_CHAINLOAD    = BIT(30),
-	FLAG_SPURIOUS     = BIT(31),
+	FLAG_DSPWAKEUP    = 1U << 29,
+	FLAG_CHAINLOAD    = 1U << 30,
+	FLAG_SPURIOUS     = 1U << 31,
 };
 
 static u8 aptHomeButtonState;
@@ -616,7 +616,7 @@ void aptEventHandler(void *arg)
 				// its purpose is unclear. For completeness' sake, we'll do it as well.
 				static const struct PtmWakeEvents s_sleepWakeEvents = {
 					.pdn_wake_events = 0,
-					.mcu_interupt_mask = BIT(6),
+					.mcu_interupt_mask = 1U << 6,
 				};
 				APT_SleepSystem(&s_sleepWakeEvents);
 				break;
