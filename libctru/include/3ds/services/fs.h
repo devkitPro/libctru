@@ -202,7 +202,7 @@ typedef struct
 } FS_IntegrityVerificationSeed;
 
 /// Ext save data information.
-typedef struct PACKED
+typedef struct LIBCTRU_PACKED
 {
 	FS_MediaType mediaType : 8; ///< Media type.
 	u8 unknown;                 ///< Unknown.

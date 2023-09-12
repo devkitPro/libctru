@@ -205,7 +205,7 @@ static int _gdbExportSeekFlag(int flag)
 // https://sourceware.org/gdb/onlinedocs/gdb/struct-stat.html#struct-stat
 typedef u32 gdbhio_time_t;
 
-struct PACKED ALIGN(4) gdbhio_stat {
+struct LIBCTRU_PACKED LIBCTRU_ALIGN(4) gdbhio_stat {
 	u32  gst_dev;               /* device */
 	u32  gst_ino;               /* inode */
 	gdbhio_mode_t gst_mode;     /* protection */
