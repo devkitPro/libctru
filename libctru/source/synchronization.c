@@ -4,12 +4,22 @@
 #include <3ds/svc.h>
 #include <3ds/result.h>
 #include <3ds/synchronization.h>
+#include <3ds/os.h>
 
 #define RES_IS_TIMEOUT(res) (R_DESCRIPTION(res) == RD_TIMEOUT)
 
 static inline s64 calc_new_timeout(s64 timeout_ns, struct timespec* startTime, struct timespec* currentTime)
 {
 	return timeout_ns - (currentTime->tv_sec - startTime->tv_sec) * 1000000000ULL - (currentTime->tv_nsec - startTime->tv_nsec);
+}
+
+static inline void get_current_time(struct timespec* tp)
+{
+	// Use the ticks directly, as it offer the highest precision
+	u64 ticks_since_boot = svcGetSystemTick();
+
+	tp->tv_sec = ticks_since_boot / SYSCLOCK_ARM11;
+	tp->tv_nsec = ((ticks_since_boot % SYSCLOCK_ARM11) * 1000000000ULL) / SYSCLOCK_ARM11;
 }
 
 static Handle arbiter;
@@ -114,7 +124,7 @@ int LightLock_LockTimeout(LightLock* lock, s64 timeout_ns)
 	if (bAlreadyLocked)
 	{
 		struct timespec startTime;
-		clock_gettime(CLOCK_MONOTONIC, &startTime);
+		get_current_time(&startTime);
 		struct timespec currentTime = startTime;
 
 		// While the lock is held by a different thread:
@@ -144,7 +154,7 @@ int LightLock_LockTimeout(LightLock* lock, s64 timeout_ns)
 					__clrex();
 
 					// Get the time for the new wait as well
-					clock_gettime(CLOCK_MONOTONIC, &currentTime);
+					get_current_time(&currentTime);
 					break;
 				}
 			} while (__strex(lock, val));
@@ -421,7 +431,7 @@ int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns)
 	Result res = 0;
 
 	struct timespec startTime;
-	clock_gettime(CLOCK_MONOTONIC, &startTime);
+	get_current_time(&startTime);
 	struct timespec currentTime = startTime;
 
 	for(;;)
@@ -450,7 +460,7 @@ int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns)
 			return 1;
 		}
 
-		clock_gettime(CLOCK_MONOTONIC, &currentTime);
+		get_current_time(&currentTime);
 	}
 }
 
@@ -496,7 +506,7 @@ int LightSemaphore_AcquireTimeout(LightSemaphore* semaphore, s32 count, s64 time
 	s16 num_threads_acq;
 
 	struct timespec startTime;
-	clock_gettime(CLOCK_MONOTONIC, &startTime);
+	get_current_time(&startTime);
 	struct timespec currentTime = startTime;
 
 	do
@@ -521,7 +531,7 @@ int LightSemaphore_AcquireTimeout(LightSemaphore* semaphore, s32 count, s64 time
 				return 1;
 			}
 
-			clock_gettime(CLOCK_MONOTONIC, &currentTime);
+			get_current_time(&currentTime);
 
 			do
 				num_threads_acq = (s16)__ldrexh((u16 *)&semaphore->num_threads_acq);
