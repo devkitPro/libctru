@@ -42,6 +42,12 @@ static inline void __dmb(void)
 	__asm__ __volatile__("mcr p15, 0, %[val], c7, c10, 5" :: [val] "r" (0) : "memory");
 }
 
+/// Performs an Instruction Synchronization Barrier (officially "flush prefetch buffer") operation.
+static inline void __isb(void)
+{
+	__asm__ __volatile__("mcr p15, 0, %[val], c7, c5, 4" :: [val] "r" (0) : "memory");
+}
+
 /// Performs a clrex operation.
 static inline void __clrex(void)
 {
