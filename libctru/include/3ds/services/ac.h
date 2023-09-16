@@ -27,6 +27,9 @@ Result acInit(void);
 /// Exits AC.
 void acExit(void);
 
+/// Gets the current AC session handle.
+Handle *acGetSessionHandle(void);
+
 /// Waits for the system to connect to the internet.
 Result acWaitInternetConnection(void);
 
@@ -128,3 +131,15 @@ Result ACU_SetRequestEulaVersion(acuConfig* config);
  * @param connectionHandle Handle created with svcCreateEvent to wait on until the connection succeeds or fails.
  */
 Result ACU_ConnectAsync(const acuConfig* config, Handle connectionHandle);
+
+/**
+ * @brief Selects the WiFi configuration slot for further ac:i operations.
+ * @param slot WiFi slot (0, 1 or 2).
+ */
+Result ACI_LoadNetworkSetting(u32 slot);
+
+/**
+ * @brief Fetches the SSID of the previously selected WiFi configuration slot.
+ * @param[out] ssid Pointer to the output buffer of size 32B the SSID will be stored in.
+ */
+Result ACI_GetNetworkWirelessEssidSecuritySsid(void *ssid);

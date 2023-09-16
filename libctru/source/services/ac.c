@@ -6,6 +6,7 @@
 #include <3ds/synchronization.h>
 #include <3ds/services/ac.h>
 #include <3ds/ipc.h>
+#include <string.h>
 
 static Handle acHandle;
 static int acRefCount;
@@ -28,6 +29,11 @@ void acExit(void)
 {
 	if (AtomicDecrement(&acRefCount)) return;
 	svcCloseHandle(acHandle);
+}
+
+Handle *acGetSessionHandle(void)
+{
+	return &acHandle;
 }
 
 Result acWaitInternetConnection(void)
@@ -283,4 +289,37 @@ Result ACU_GetProxyUserName(char *username)
 	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
 
 	return (Result)cmdbuf[1];
+}
+
+Result ACI_LoadNetworkSetting(u32 slot)
+{
+    u32 *cmdbuf = getThreadCommandBuffer();
+
+    cmdbuf[0] = IPC_MakeHeader(0x401,1,0); // 0x04010040
+    cmdbuf[1] = slot;
+
+    Result ret = 0;
+    if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
+
+    return (Result)cmdbuf[1];
+}
+
+Result ACI_GetNetworkWirelessEssidSecuritySsid(void *ssid)
+{
+    u32* cmdbuf = getThreadCommandBuffer();
+    u32* staticbufs = getThreadStaticBuffers();
+
+    cmdbuf[0] = IPC_MakeHeader(0x40F,0,0); // 0x040F0000
+
+    u32 staticbufBackup[2];
+    memcpy(staticbufBackup, staticbufs, 8);
+
+    staticbufs[0] = IPC_Desc_StaticBuffer(0x20, 0); // at most 32 bytes
+    staticbufs[1] = (u32)ssid;
+
+    Result ret = svcSendSyncRequest(acHandle);
+
+    memcpy(staticbufs, staticbufBackup, 8);
+
+    return R_SUCCEEDED(ret) ? (Result)cmdbuf[1] : ret;
 }
