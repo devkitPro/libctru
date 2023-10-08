@@ -117,4 +117,7 @@ static inline void threadOnException(ExceptionHandler handler, void* stack_top, 
 	*(u32*)(tls + 0x40) = (u32)handler;
 	*(u32*)(tls + 0x44) = (u32)stack_top;
 	*(u32*)(tls + 0x48) = (u32)exception_data;
+
+	__dsb();
+	__isb();
 }

@@ -156,6 +156,84 @@ void __SYSCALL(exit)(int rc) {
 	__ctru_exit(rc);
 }
 
+int  __SYSCALL(cond_signal)(_COND_T *cond)
+{
+	CondVar_Signal((CondVar*)cond);
+	return 0;
+}
+
+int  __SYSCALL(cond_broadcast)(_COND_T *cond)
+{
+	CondVar_Broadcast((CondVar*)cond);
+	return 0;
+}
+
+int  __SYSCALL(cond_wait)(_COND_T *cond, _LOCK_T *lock, uint64_t timeout_ns)
+{
+	return CondVar_WaitTimeout((CondVar*)cond, lock, timeout_ns) ? ETIMEDOUT : 0;
+}
+
+int  __SYSCALL(cond_wait_recursive)(_COND_T *cond, _LOCK_RECURSIVE_T *lock, uint64_t timeout_ns)
+{
+	uint32_t thread_tag_backup = 0;
+	if (lock->counter != 1)
+		return EBADF;
+
+	thread_tag_backup = lock->thread_tag;
+	lock->thread_tag = 0;
+	lock->counter = 0;
+
+	int err = CondVar_WaitTimeout((CondVar*)cond, &lock->lock, timeout_ns);
+
+	lock->thread_tag = thread_tag_backup;
+	lock->counter = 1;
+
+	return err ? ETIMEDOUT : 0;
+}
+
+int  __SYSCALL(thread_create)(struct __pthread_t **thread, void* (*func)(void*), void *arg, void *stack_addr, size_t stack_size)
+{
+	if (stack_addr) {
+		return EINVAL;
+	}
+
+	if (!stack_size) {
+		stack_size = 32*1024;
+	}
+
+	Thread t = threadCreate((ThreadFunc)func, arg, stack_size, 0x3F, 0, false);
+	if (t) {
+		*thread = (struct __pthread_t*)t;
+		return 0;
+	}
+
+	return ENOMEM;
+}
+
+void*__SYSCALL(thread_join)(struct __pthread_t *thread)
+{
+	threadJoin((Thread)thread, U64_MAX);
+	void* rc = (void*)threadGetExitCode((Thread)thread);
+	threadFree((Thread)thread);
+	return rc;
+}
+
+int  __SYSCALL(thread_detach)(struct __pthread_t *thread)
+{
+	threadDetach((Thread)thread);
+	return 0;
+}
+
+void __SYSCALL(thread_exit)(void *value)
+{
+	threadExit((int)value);
+}
+
+struct __pthread_t *__SYSCALL(thread_self)(void)
+{
+	return (struct __pthread_t*)threadGetCurrent();
+}
+
 void initThreadVars(struct Thread_tag *thread)
 {
 	ThreadVars* tv = getThreadVars();

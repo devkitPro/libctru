@@ -26,7 +26,6 @@ BEGIN_ASM_FUNC initSystem, weak
 END_ASM_FUNC
 
 BEGIN_ASM_FUNC __ctru_exit, weak
-	bl	__libc_fini_array
 	bl	__appExit
 
 	ldr	r2, =saved_stack
