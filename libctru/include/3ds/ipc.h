@@ -70,7 +70,7 @@ static inline u32 IPC_Desc_CurProcessId(void)
 	return 0x20;
 }
 
-static inline DEPRECATED u32 IPC_Desc_CurProcessHandle(void)
+static inline CTR_DEPRECATED u32 IPC_Desc_CurProcessHandle(void)
 {
 	return IPC_Desc_CurProcessId();
 }

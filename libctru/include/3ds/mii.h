@@ -147,7 +147,7 @@ typedef struct
 	} glasses_details;
 
 	/// Mole details
-	struct 
+	struct
 	{
 		bool enable : 1;
 		u16 scale : 5;
@@ -156,4 +156,4 @@ typedef struct
 	} mole_details;
 
 	u16 author_name[10];    ///< Name of Mii's author (Encoded using UTF16)
-} PACKED MiiData;
+} CTR_PACKED MiiData;

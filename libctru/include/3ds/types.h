@@ -47,16 +47,16 @@ typedef void (*voidfn)(void);
 #define BIT(n) (1U<<(n))
 
 /// Aligns a struct (and other types?) to m, making sure that the size of the struct is a multiple of m.
-#define ALIGN(m)   __attribute__((aligned(m)))
+#define CTR_ALIGN(m)   __attribute__((aligned(m)))
 /// Packs a struct (and other types?) so it won't include padding bytes.
-#define PACKED     __attribute__((packed))
+#define CTR_PACKED     __attribute__((packed))
 
-#ifndef LIBCTRU_NO_DEPRECATION
+#ifndef CTR_NO_DEPRECATION
 /// Flags a function as deprecated.
-#define DEPRECATED __attribute__ ((deprecated))
+#define CTR_DEPRECATED __attribute__ ((deprecated))
 #else
 /// Flags a function as deprecated.
-#define DEPRECATED
+#define CTR_DEPRECATED
 #endif
 
 /// Structure representing CPU registers
@@ -71,7 +71,7 @@ typedef struct {
 /// Structure representing FPU registers
 typedef struct {
 	union {
-		struct PACKED { double d[16]; }; ///< d0-d15.
+		struct CTR_PACKED { double d[16]; }; ///< d0-d15.
 		float  s[32];                    ///< s0-s31.
 	};
 	u32 fpscr;        ///< fpscr.

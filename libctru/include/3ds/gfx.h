@@ -166,7 +166,7 @@ void gfxScreenSwapBuffers(gfxScreen_t scr, bool hasStereo);
  * @param immediate This parameter no longer has any effect and is thus ignored.
  * @deprecated This function has been superseded by \ref gfxScreenSwapBuffers, please use that instead.
  */
-DEPRECATED void gfxConfigScreen(gfxScreen_t scr, bool immediate);
+CTR_DEPRECATED void gfxConfigScreen(gfxScreen_t scr, bool immediate);
 
 /**
  * @brief Updates the configuration of both screens.
