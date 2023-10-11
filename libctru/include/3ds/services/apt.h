@@ -176,7 +176,7 @@ bool aptShouldJumpToHome(void);
 bool aptCheckHomePressRejected(void);
 
 /// \deprecated Alias for \ref aptCheckHomePressRejected.
-static inline LIBCTRU_DEPRECATED bool aptIsHomePressed(void)
+static inline CTR_DEPRECATED bool aptIsHomePressed(void)
 {
 	return aptCheckHomePressRejected();
 }
