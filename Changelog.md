@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 2.3.0
+
+- Fix typo in docs by @DeltaF1 in https://github.com/devkitPro/libctru/pull/525
+- Add GPU_DOT3_RGBA texture combiner function by @oreo639 in https://github.com/devkitPro/libctru/pull/528
+- FSUSER_GetLegacyBannerData: Fix documentation typo by @Tekito-256 in https://github.com/devkitPro/libctru/pull/526
+- Add CTR_ prefix to ALIGN,PACKED,DEPRECATED macros by @glebm in https://github.com/devkitPro/libctru/pull/532
+- Buffer console control sequences by @piepie62 in https://github.com/devkitPro/libctru/pull/522
+- Prevent CPU from postponing threadOnException memory writes
+- Add SSID-related ac:i functions
+  - ACI_LoadNetworkSetting, ACI_GetNetworkWirelessEssidSecuritySsid and acGetSessionHandle.
+- Prevent double call of destructors on exit.
+- Added experimental support for standard threading APIs (pthread, C threads, C++ std::thread)
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
+## New Contributors
+- @DeltaF1 made their first contribution in https://github.com/devkitPro/libctru/pull/525
+- @Tekito-256 made their first contribution in https://github.com/devkitPro/libctru/pull/526
+- @glebm made their first contribution in https://github.com/devkitPro/libctru/pull/532
+
 ## Version 2.2.2
 
 - archive_dev: Ensure path separator for local path
@@ -7,7 +26,7 @@
 
 ## Version 2.2.1
 
-- add _SOCKLEN_T_DECLARED
+- add `_SOCKLEN_T_DECLARED`
 
 ## Version 2.2.0
 
