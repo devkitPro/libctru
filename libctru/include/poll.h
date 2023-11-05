@@ -1,7 +1,5 @@
 #pragma once
 
-#include <3ds/types.h>
-
 #define POLLIN		0x01
 #define POLLPRI		0x02
 #define POLLHUP		0x04 // unknown ???
@@ -9,7 +7,7 @@
 #define POLLOUT		0x10
 #define POLLNVAL	0x20
 
-typedef u32 nfds_t;
+typedef unsigned int nfds_t;
 
 struct pollfd
 {
