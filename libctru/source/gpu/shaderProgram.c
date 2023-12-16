@@ -13,16 +13,8 @@ Result shaderInstanceInit(shaderInstance_s* si, DVLE_s* dvle)
 {
 	if(!si || !dvle)return -1;
 
+	memset(si, 0, sizeof(*si));
 	si->dvle = dvle;
-
-	si->boolUniforms = 0;
-	si->boolUniformMask = 0;
-	si->intUniforms[0] = 0x00000000;
-	si->intUniforms[1] = 0x00000000;
-	si->intUniforms[2] = 0x00000000;
-	si->intUniforms[3] = 0x00000000;
-	si->float24Uniforms = NULL;
-	si->intUniformMask = 0;
 
 	int i;
 	DVLE_constEntry_s* cnst = dvle->constTableData;
