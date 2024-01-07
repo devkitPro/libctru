@@ -148,12 +148,12 @@ typedef enum {
 
 /// Configuration flags for \ref DmaConfig.
 enum {
-	DMACFG_SRC_IS_DEVICE        = BIT(0), ///< DMA source is a device/peripheral. Address will not auto-increment.
-	DMACFG_DST_IS_DEVICE        = BIT(1), ///< DMA destination is a device/peripheral. Address will not auto-increment.
+	DMACFG_DST_IS_DEVICE        = BIT(0), ///< DMA destination is a device/peripheral. Address will not auto-increment.
+	DMACFG_SRC_IS_DEVICE        = BIT(1), ///< DMA source is a device/peripheral. Address will not auto-increment.
 	DMACFG_WAIT_AVAILABLE       = BIT(2), ///< Make \ref svcStartInterProcessDma wait for the channel to be unlocked.
 	DMACFG_KEEP_LOCKED          = BIT(3), ///< Keep the channel locked after the transfer. Required for \ref svcRestartDma.
-	DMACFG_USE_SRC_CONFIG       = BIT(6), ///< Use the provided source device configuration even if the DMA source is not a device.
-	DMACFG_USE_DST_CONFIG       = BIT(7), ///< Use the provided destination device configuration even if the DMA destination is not a device.
+	DMACFG_USE_DST_CONFIG       = BIT(6), ///< Use the provided destination device configuration even if the DMA destination is not a device.
+	DMACFG_USE_SRC_CONFIG       = BIT(7), ///< Use the provided source device configuration even if the DMA source is not a device.
 };
 
 /// Configuration flags for \ref svcRestartDma.
@@ -185,8 +185,8 @@ typedef struct {
 	s8 endianSwapSize;      ///< Endian swap size (can be 0).
 	u8 flags;               ///< DMACFG_* flags.
 	u8 _padding;
+	DmaDeviceConfig dstCfg; ///< Destination device configuration, read if \ref DMACFG_DST_IS_DEVICE and/or \ref DMACFG_USE_DST_CONFIG are set.
 	DmaDeviceConfig srcCfg; ///< Source device configuration, read if \ref DMACFG_SRC_IS_DEVICE and/or \ref DMACFG_USE_SRC_CONFIG are set.
-	DmaDeviceConfig dstCfg; ///< Destination device configuration, read if \ref DMACFG_SRC_IS_DEVICE and/or \ref DMACFG_USE_SRC_CONFIG are set.
 } DmaConfig;
 
 ///@}
