@@ -578,8 +578,8 @@ static inline void dmaConfigInitDefault(DmaConfig *cfg)
 		.endianSwapSize = 0,
 		.flags = DMACFG_WAIT_AVAILABLE,
 		._padding = 0,
-		.srcCfg = {},
 		.dstCfg = {},
+		.srcCfg = {},
 	};
 }
 
