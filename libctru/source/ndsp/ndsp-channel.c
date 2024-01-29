@@ -100,6 +100,11 @@ void ndspChnSetFormat(int id, u16 format)
 	ndspChn[id].format = format;
 }
 
+u16 ndspChnGetFormat(int id)
+{
+	return ndspChn[id].format;
+}
+
 bool ndspChnIsPaused(int id)
 {
 	return ndspChn[id].paused;
