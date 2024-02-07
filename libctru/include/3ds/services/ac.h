@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <3ds/types.h>
+
 /// Wifi security modes.
 typedef enum {
 	AC_OPEN = 0,       ///< Open authentication.
@@ -15,6 +17,16 @@ typedef enum {
 	AC_WPA_AES = 6,    ///< WPA AES authentication.
 	AC_WPA2_AES = 7,   ///< WPA2 AES authentication.
 } acSecurityMode;
+
+/// Wifi access point types (bitfield).
+enum {
+	AC_AP_TYPE_NONE  = 0,          ///< No access point/none allowed.
+	AC_AP_TYPE_SLOT1 = BIT(1),     ///< Slot 1 in System Settings.
+	AC_AP_TYPE_SLOT2 = BIT(2),     ///< Slot 2 in System Settings.
+	AC_AP_TYPE_SLOT3 = BIT(3),     ///< Slot 3 in System Settings.
+
+	AC_AP_TYPE_ALL   = 0x7FFFFFFF, ///< All access point types allowed.
+};
 
 /// Struct to contain the data for connecting to a Wifi network from a stored slot.
 typedef struct {
@@ -34,8 +46,8 @@ Handle *acGetSessionHandle(void);
 Result acWaitInternetConnection(void);
 
 /**
- * @brief Gets the connected Wifi status.
- * @param out Pointer to output the connected Wifi status to. (0 = not connected, 1 = O3DS Internet, 2 = N3DS Internet)
+ * @brief Describes the access point the console is currently connected to with AC_AP_TYPE_* flags.
+ * @param out Pointer to output the combination of AC_AP_TYPE_* flags describing the AP to.
  */
 Result ACU_GetWifiStatus(u32 *out);
 
@@ -115,7 +127,7 @@ Result ACU_SetNetworkArea(acuConfig* config, u8 area);
 /**
  * @brief Sets the slot to use when connecting.
  * @param config Pointer to an acuConfig struct used with ACU_CreateDefaultConfig previously.
- * @param type Allowed slots flag. BIT(0) for slot 1, BIT(1) for slot 2, BIT(2) for slot 3.
+ * @param type Allowed AP types bitmask, a combination of AC_AP_TYPE_* flags.
  */
 Result ACU_SetAllowApType(acuConfig* config, u8 type);
 
