@@ -109,9 +109,10 @@ Result PTMSYSM_GetRtcTime(s64 *outMsY2k);
 Result PTMSYSM_SetRtcTime(s64 msY2k);
 
 /**
- * @brief Returns 1 if it's a New 3DS, otherwise 0.
+ * @brief Checks whether the system is a New 3DS.
+ * @param[out] out Pointer to write the New 3DS flag to.
  */
-Result PTMSYSM_CheckNew3DS(void);
+Result PTMSYSM_CheckNew3DS(bool *out);
 
 /**
  * @brief Configures the New 3DS' CPU clock speed and L2 cache.

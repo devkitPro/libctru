@@ -98,13 +98,14 @@ Result PTMSYSM_Awaken(void)
 	return (Result)cmdbuf[1];
 }
 
-Result PTMSYSM_CheckNew3DS(void)
+Result PTMSYSM_CheckNew3DS(bool *out)
 {
 	Result ret;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x040A,0,0); // 0x040A0000
 
-	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return 0;
+	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
+	*out = (bool)cmdbuf[2]; // if cmdbuf[1] is != 0 then this is uninitialized (this is fine)
 
 	return (Result)cmdbuf[1];
 }
