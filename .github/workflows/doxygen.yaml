@@ -29,6 +29,11 @@ jobs:
                git clone --branch=master --single-branch --depth 1 https://github.com/devkitPro/3ds-examples examples
                cd libctru
                CTRU_VERSION=${{ steps.vars.outputs.tag }} doxygen Doxyfile
+      - name: Publish docs to GH Actions
+        uses: actions/upload-artifact@v2
+        with:
+          path: libctru/docs/*
+          name: docs
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@3.7.1
@@ -38,3 +43,28 @@ jobs:
           FOLDER: libctru/docs/html
           CLEAN: true
           SINGLE_COMMIT: true
+
+  generatedocset:
+      name: Generate Docset
+      runs-on: macos-latest
+      needs: build
+      steps:
+        - name: Pick up artifacts
+          uses: actions/download-artifact@master
+          with:
+            name: docs
+            path: docs
+        - name: Set up docsetutil
+          run: |
+                git clone https://github.com/SwiftDocOrg/DocSetUtil.git
+                cd DocSetUtil
+                make install
+        - name: Build Docset
+          run: |
+                cd docs/html/
+                make XCODE_INSTALL=../../DocSetUtil/Developer
+        - name: Publish docs to GH Actions
+          uses: actions/upload-artifact@v2
+          with:
+            path: docs/html/org.devkitPro.libctru.docset/
+            name: org.devkitpro.libctru.docset
