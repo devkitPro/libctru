@@ -65,7 +65,7 @@ void* linearRealloc(void* mem, size_t size)
 	if (!sLinearPool.Reallocate(node->chunk, size))
 	{
 		size_t minSize = (size < node->chunk.size) ? size : node->chunk.size;
-		void* ret = linearMemAlign(size, node->chunk.alignMask);
+		void* ret = linearMemAlign(size, (node->chunk.alignMask + 1));
 		if (ret)
 		{
 			memcpy(ret, mem, minSize);
