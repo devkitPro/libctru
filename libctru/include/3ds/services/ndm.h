@@ -111,8 +111,9 @@ Result NDMU_ResumeScheduler(void);
 Result NDMU_GetCurrentState(ndmState *state);
 
 /**
- * @brief Returns the daemon state.
- * @param state Pointer to write the daemons state to.
+ * @brief Returns a daemon state.
+ * @param daemon The specified daemon.
+ * @param state Pointer to write the daemon state to.
  */
 Result NDMU_QueryStatus(ndmDaemon daemon, ndmDaemonStatus *status);
 
