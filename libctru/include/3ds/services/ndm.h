@@ -114,7 +114,7 @@ Result NDMU_GetCurrentState(ndmState *state);
  * @brief Returns the daemon state.
  * @param state Pointer to write the daemons state to.
  */
-Result NDMU_QueryStatus(ndmDaemonStatus *status);
+Result NDMU_QueryStatus(ndmDaemon daemon, ndmDaemonStatus *status);
 
 /**
  * @brief Sets the scan interval.
