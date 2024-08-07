@@ -1,3 +1,4 @@
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/svc.h>
 #include <3ds/synchronization.h>
@@ -110,6 +111,22 @@ Result MCUHWC_SetWifiLedState(bool state)
 	cmdbuf[1] = state;
 
 	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result MCUHWC_SetInfoLedPattern(const InfoLedPattern* pattern)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x0A,25,0); // 0xA0640
+	cmdbuf[1] = ((u32)pattern->blinkSpeed << 24) | ((u32)pattern->loopDelay << 16) | ((u32)pattern->smoothing << 8) | pattern->delay;
+	memcpy(&cmdbuf[2], pattern->redPattern, sizeof(pattern->redPattern));
+	memcpy(&cmdbuf[10], pattern->greenPattern, sizeof(pattern->greenPattern));
+	memcpy(&cmdbuf[18], pattern->bluePattern, sizeof(pattern->bluePattern));
+
+	if(R_FAILED(ret = svcSendSyncRequest(mcuHwcHandle))) return ret;
 
 	return (Result)cmdbuf[1];
 }
