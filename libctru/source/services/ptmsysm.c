@@ -105,7 +105,7 @@ Result PTMSYSM_CheckNew3DS(bool *out)
 	cmdbuf[0] = IPC_MakeHeader(0x040A,0,0); // 0x040A0000
 
 	if(R_FAILED(ret = svcSendSyncRequest(ptmSysmHandle)))return ret;
-	*out = (bool)cmdbuf[2]; // if cmdbuf[1] is != 0 then this is uninitialized (this is fine)
+	*out = (bool)(cmdbuf[2] & 1); // if cmdbuf[1] is != 0 then this is uninitialized (this is fine)
 
 	return (Result)cmdbuf[1];
 }

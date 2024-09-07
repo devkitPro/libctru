@@ -376,7 +376,7 @@ Result FSPXI_HasFile(Handle serviceHandle, FSPXI_Archive archive, bool* out, FS_
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if (out) *out = (bool)cmdbuf[2];
+	if (out) *out = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -396,7 +396,7 @@ Result FSPXI_HasDirectory(Handle serviceHandle, FSPXI_Archive archive, bool* out
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if (out) *out = (bool)cmdbuf[2];
+	if (out) *out = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -441,7 +441,7 @@ Result FSPXI_Unknown0x17(Handle serviceHandle, FSPXI_Archive archive, bool* out)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if (out) *out = (bool)cmdbuf[2];
+	if (out) *out = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -523,7 +523,7 @@ Result FSPXI_IsSdmcDetected(Handle serviceHandle, bool* out)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(out) *out = (bool)cmdbuf[2];
+	if(out) *out = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -537,7 +537,7 @@ Result FSPXI_IsSdmcWritable(Handle serviceHandle, bool* out)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(out) *out = (bool)cmdbuf[2];
+	if(out) *out = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -663,7 +663,7 @@ Result FSPXI_CardSlotIsInserted(Handle serviceHandle, bool* inserted)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(inserted) *inserted = (bool)cmdbuf[2];
+	if(inserted) *inserted = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -677,7 +677,7 @@ Result FSPXI_CardSlotPowerOn(Handle serviceHandle, bool* status)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(status) *status = (bool)cmdbuf[2];
+	if(status) *status = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -691,7 +691,7 @@ Result FSPXI_CardSlotPowerOff(Handle serviceHandle, bool* status)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(status) *status = (bool)cmdbuf[2];
+	if(status) *status = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
@@ -705,7 +705,7 @@ Result FSPXI_CardSlotGetCardIFPowerStatus(Handle serviceHandle, bool* status)
 
 	if(R_FAILED(ret = svcSendSyncRequest(serviceHandle))) return ret;
 
-	if(status) *status = (bool)cmdbuf[2];
+	if(status) *status = (bool)(cmdbuf[2] & 1);
 
 	return (Result) cmdbuf[1];
 }
