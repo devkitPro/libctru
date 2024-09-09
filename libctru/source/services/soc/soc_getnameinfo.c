@@ -8,7 +8,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host, socklen_
 	int i,tmp_addrlen;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 saved_threadstorage[4];
-	u8 tmpaddr[0x1c]; // sockaddr size for the kernel is 0x1C (sockaddr_in6?)
+	u8 tmpaddr[ADDR_STORAGE_LEN]; // sockaddr size for the kernel is 0x1C (sockaddr_in6?)
 
 	if((host == NULL || hostlen == 0) && (serv == NULL || servlen == 0))
 	{
@@ -18,7 +18,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host, socklen_
 	if(sa->sa_family == AF_INET)
 		tmp_addrlen = 8;
 	else
-		tmp_addrlen = 0x1c;
+		tmp_addrlen = ADDR_STORAGE_LEN;
 
 	if(salen < tmp_addrlen) {
 		errno = EINVAL;

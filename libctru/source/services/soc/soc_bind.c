@@ -8,7 +8,7 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	int ret = 0;
 	int tmp_addrlen = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 
 	sockfd = soc_get_fd(sockfd);
 	if(sockfd < 0) {
@@ -16,12 +16,12 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 		return -1;
 	}
 
-	memset(tmpaddr, 0, 0x1c);
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
 
 	if(addr->sa_family == AF_INET)
 		tmp_addrlen = 8;
 	else
-		tmp_addrlen = 0x1c;
+		tmp_addrlen = ADDR_STORAGE_LEN;
 
 	if(addrlen < tmp_addrlen) {
 		errno = EINVAL;
