@@ -10,6 +10,7 @@
 #include <3ds/services/soc.h>
 
 #define SYNC_ERROR ENODEV
+#define ADDR_STORAGE_LEN sizeof(struct sockaddr_storage)
 
 extern Handle	SOCU_handle;
 extern Handle	socMemhandle;

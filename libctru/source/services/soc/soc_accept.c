@@ -6,10 +6,10 @@
 int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int ret = 0;
-	int tmp_addrlen = 0x1c;
+	int tmp_addrlen = ADDR_STORAGE_LEN;
 	int fd, dev;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 	u32 saved_threadstorage[2];
 
 	sockfd = soc_get_fd(sockfd);
@@ -27,7 +27,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	fd = __alloc_handle(dev);
 	if(fd < 0) return fd;
 
-	memset(tmpaddr, 0, 0x1c);
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
 
 	cmdbuf[0] = IPC_MakeHeader(0x4,2,2); // 0x40082
 	cmdbuf[1] = (u32)sockfd;

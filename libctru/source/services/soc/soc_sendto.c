@@ -8,15 +8,15 @@ ssize_t socuipc_cmd9(int sockfd, const void *buf, size_t len, int flags, const s
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 tmp_addrlen = 0;
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 
-	memset(tmpaddr, 0, 0x1c);
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
 
 	if(dest_addr) {
 		if(dest_addr->sa_family == AF_INET)
 			tmp_addrlen = 8;
 		else
-			tmp_addrlen = 0x1c;
+			tmp_addrlen = ADDR_STORAGE_LEN;
 
 		if(addrlen < tmp_addrlen) {
 			errno = EINVAL;
@@ -62,15 +62,15 @@ ssize_t socuipc_cmda(int sockfd, const void *buf, size_t len, int flags, const s
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 tmp_addrlen = 0;
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 
-	memset(tmpaddr, 0, 0x1c);
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
 
 	if(dest_addr) {
 		if(dest_addr->sa_family == AF_INET)
 			tmp_addrlen = 8;
 		else
-			tmp_addrlen = 0x1c;
+			tmp_addrlen = ADDR_STORAGE_LEN;
 
 		if(addrlen < tmp_addrlen) {
 			errno = EINVAL;

@@ -8,7 +8,7 @@ int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 saved_threadstorage[2];
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 
 	sockfd = soc_get_fd(sockfd);
 	if(sockfd < 0)	{
@@ -18,14 +18,14 @@ int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 	cmdbuf[0] = IPC_MakeHeader(0x17,2,2); // 0x170082
 	cmdbuf[1] = (u32)sockfd;
-	cmdbuf[2] = 0x1c;
+	cmdbuf[2] = ADDR_STORAGE_LEN;
 	cmdbuf[3] = IPC_Desc_CurProcessId();
 
 	u32 * staticbufs = getThreadStaticBuffers();
 	saved_threadstorage[0] = staticbufs[0];
 	saved_threadstorage[1] = staticbufs[1];
 
-	staticbufs[0] = IPC_Desc_StaticBuffer(0x1c,0);
+	staticbufs[0] = IPC_Desc_StaticBuffer(ADDR_STORAGE_LEN,0);
 	staticbufs[1] = (u32)tmpaddr;
 
 	ret = svcSendSyncRequest(SOCU_handle);

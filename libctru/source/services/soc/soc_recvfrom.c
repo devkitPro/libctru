@@ -8,13 +8,13 @@ ssize_t socuipc_cmd7(int sockfd, void *buf, size_t len, int flags, struct sockad
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 tmp_addrlen = 0;
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 	u32 saved_threadstorage[2];
 
-	memset(tmpaddr, 0, 0x1c);
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
 
 	if(src_addr)
-		tmp_addrlen = 0x1c;
+		tmp_addrlen = ADDR_STORAGE_LEN;
 
 	cmdbuf[0] = IPC_MakeHeader(0x7,4,4); // 0x70104
 	cmdbuf[1] = (u32)sockfd;
@@ -66,13 +66,13 @@ ssize_t socuipc_cmd8(int sockfd, void *buf, size_t len, int flags, struct sockad
 	int ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 tmp_addrlen = 0;
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 	u32 saved_threadstorage[4];
 
 	if(src_addr)
-		tmp_addrlen = 0x1c;
+		tmp_addrlen = ADDR_STORAGE_LEN;
 
-	memset(tmpaddr, 0, 0x1c);
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
 
 	cmdbuf[0] = 0x00080102;
 	cmdbuf[1] = (u32)sockfd;
