@@ -53,9 +53,14 @@ ssize_t socuipc_cmd7(int sockfd, void *buf, size_t len, int flags, struct sockad
 
 	if(src_addr != NULL) {
 		src_addr->sa_family = tmpaddr[1];
-		if(*addrlen > tmpaddr[0])
-			*addrlen = tmpaddr[0];
-		memcpy(src_addr->sa_data, &tmpaddr[2], *addrlen - 2);
+
+		socklen_t user_addrlen = tmpaddr[0];
+		if(src_addr->sa_family == AF_INET)
+			user_addrlen += 8;
+
+		if(*addrlen > user_addrlen)
+			*addrlen = user_addrlen;
+		memcpy(src_addr->sa_data, &tmpaddr[2], *addrlen - sizeof(src_addr->sa_family));
 	}
 
 	return ret;
@@ -113,9 +118,14 @@ ssize_t socuipc_cmd8(int sockfd, void *buf, size_t len, int flags, struct sockad
 
 	if(src_addr != NULL) {
 		src_addr->sa_family = tmpaddr[1];
-		if(*addrlen > tmpaddr[0])
-			*addrlen = tmpaddr[0];
-		memcpy(src_addr->sa_data, &tmpaddr[2], *addrlen - 2);
+
+		socklen_t user_addrlen = tmpaddr[0];
+		if(src_addr->sa_family == AF_INET)
+			user_addrlen += 8;
+
+		if(*addrlen > user_addrlen)
+			*addrlen = user_addrlen;
+		memcpy(src_addr->sa_data, &tmpaddr[2], *addrlen - sizeof(src_addr->sa_family));
 	}
 
 	return ret;
