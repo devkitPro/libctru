@@ -16,6 +16,8 @@ int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 		return -1;
 	}
 
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
+
 	cmdbuf[0] = IPC_MakeHeader(0x18,2,2); // 0x180082
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = ADDR_STORAGE_LEN;
@@ -47,11 +49,15 @@ int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 		return -1;
 	}
 
-	if(*addrlen > tmpaddr[0])
-		*addrlen = tmpaddr[0];
-	memset(addr, 0, sizeof(struct sockaddr));
 	addr->sa_family = tmpaddr[1];
-	memcpy(addr->sa_data, &tmpaddr[2], *addrlen - 2);
+
+	socklen_t user_addrlen = tmpaddr[0];
+	if(addr->sa_family == AF_INET)
+		user_addrlen += 8;
+
+	if(*addrlen > user_addrlen)
+		*addrlen = user_addrlen;
+	memcpy(addr->sa_data, &tmpaddr[2], *addrlen - sizeof(addr->sa_family));
 
 	return ret;
 }

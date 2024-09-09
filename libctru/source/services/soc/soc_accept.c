@@ -61,9 +61,14 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 	if(ret >= 0 && addr != NULL) {
 		addr->sa_family = tmpaddr[1];
-		if(*addrlen > tmpaddr[0])
-			*addrlen = tmpaddr[0];
-		memcpy(addr->sa_data, &tmpaddr[2], *addrlen - 2);
+
+		socklen_t user_addrlen = tmpaddr[0];
+		if(addr->sa_family == AF_INET)
+		    user_addrlen += 8; // Accounting for the 8 bytes of sin_zero padding, which must be written for compatibility.
+
+		if(*addrlen > user_addrlen)
+			*addrlen = user_addrlen;
+		memcpy(addr->sa_data, &tmpaddr[2], *addrlen - sizeof(addr->sa_family));
 	}
 
 	if(ret < 0) {
