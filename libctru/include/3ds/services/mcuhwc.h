@@ -4,15 +4,25 @@
  */
 #pragma once
 
-typedef enum
+typedef enum {
+	LED_NORMAL = 1,         ///< The normal mode of the led
+	LED_SLEEP_MODE,         ///< The led pulses slowly as it does in the sleep mode
+	LED_OFF,                ///< Switch off power led
+	LED_RED,                ///< Red state of the led
+	LED_BLUE,               ///< Blue state of the led
+	LED_BLINK_RED,          ///< Blinking red state of power led and notification led
+} powerLedState;
+
+typedef struct InfoLedPattern
 {
-	LED_NORMAL = 1,	///< The normal mode of the led
-	LED_SLEEP_MODE,	///< The led pulses slowly as it does in the sleep mode
-	LED_OFF, 	///< Switch off power led
-	LED_RED,	///< Red state of the led
-	LED_BLUE,	///< Blue state of the led
-	LED_BLINK_RED,	///< Blinking red state of power led and notification led
-}powerLedState;
+	u8 delay;               ///< Delay between pattern values, 1/16th of a second (1 second = 0x10)
+	u8 smoothing;           ///< Smoothing between pattern values (higher = smoother)
+	u8 loopDelay;           ///< Delay between pattern loops, 1/16th of a second (1 second = 0x10, 0xFF = pattern is played only once)
+	u8 blinkSpeed;          ///< Blink speed, when smoothing == 0x00
+	u8 redPattern[32];      ///< Pattern for red component
+	u8 greenPattern[32];    ///< Pattern for green component
+	u8 bluePattern[32];     ///< Pattern for blue component
+} InfoLedPattern;
 
 /// Initializes mcuHwc.
 Result mcuHwcInit(void);
@@ -65,6 +75,12 @@ Result MCUHWC_GetSoundSliderLevel(u8 *level);
  * @param state State of Wifi LED. (True/False)
  */
 Result MCUHWC_SetWifiLedState(bool state);
+
+/**
+ * @brief Sets the notification LED pattern
+ * @param pattern Pattern for the notification LED.
+ */
+Result MCUHWC_SetInfoLedPattern(const InfoLedPattern* pattern);
 
 /**
  * @brief Sets Power LED state
