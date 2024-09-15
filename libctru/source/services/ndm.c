@@ -165,11 +165,12 @@ Result NDMU_GetCurrentState(ndmState *state)
 	return (Result)cmdbuf[1];
 }
 
-Result NDMU_QueryStatus(ndmDaemonStatus *status)
+Result NDMU_QueryStatus(ndmDaemon daemon, ndmDaemonStatus *status)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
 
-	cmdbuf[0]=IPC_MakeHeader(0xD,1,0); // 0xD0000
+	cmdbuf[0]=IPC_MakeHeader(0xD,1,0); // 0xD0040
+	cmdbuf[1]=daemon;
 
 	Result ret=0;
 	if(R_FAILED(ret=svcSendSyncRequest(ndmuHandle)))return ret;
