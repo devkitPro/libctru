@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 2.4.0
+
+- **Added full support of all QTM services**, with extensive documentation and technical details in `qtm.h` and `qtmc.h`** (breaking change); examples have been updated for this
+- Added MCUHWC_SetInfoLedPattern
+- Added ndspChnGetFormat
+- Fixed PTMSYSM_CheckNew3DS
+- Fixed NDMU_QueryStatus
+- Fixed a few service commands improperly deserializing boolean output
+- Fixed documentation of ACU_GetWifiStatus and ACU_SetAllowApType
+- Fixed shaderInstanceInit to initialize all fields
+- Further improvements to overall system stability and other minor adjustments have been made to enhance the user experience.
+
 ## Version 2.3.0
 
 - Fix typo in docs by @DeltaF1 in https://github.com/devkitPro/libctru/pull/525
