@@ -15,6 +15,7 @@ struct MemChunk
 {
 	u8* addr;
 	u32 size;
+	u32 alignMask;
 };
 
 struct MemBlock
@@ -80,6 +81,7 @@ struct MemPool
 	void CoalesceRight(MemBlock* b);
 
 	bool Allocate(MemChunk& chunk, u32 size, int align);
+	bool Reallocate(MemChunk& chunk, u32 size);
 	void Deallocate(const MemChunk& chunk);
 
 	void Destroy()
