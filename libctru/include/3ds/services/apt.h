@@ -175,6 +175,9 @@ bool aptShouldJumpToHome(void);
 /// Returns true if there is an incoming HOME button press rejected by the policy set by \ref aptSetHomeAllowed (use this to show a "no HOME allowed" icon).
 bool aptCheckHomePressRejected(void);
 
+/// Clear the incoming HOME button press rejected flag.
+void aptClearHomePressRejected(void);
+
 /// \deprecated Alias for \ref aptCheckHomePressRejected.
 static inline CTR_DEPRECATED bool aptIsHomePressed(void)
 {

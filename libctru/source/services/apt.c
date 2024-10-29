@@ -308,6 +308,12 @@ bool aptCheckHomePressRejected(void)
 	return false;
 }
 
+void aptClearHomePressRejected(void)
+{
+	if (aptFlags & FLAG_HOMEREJECTED)
+		aptFlags &= ~FLAG_HOMEREJECTED;
+}
+
 static void aptClearJumpToHome(void)
 {
 	aptHomeButtonState = 0;
