@@ -10,7 +10,7 @@ void errorInit(errorConf* err, errorType type, CFG_Language lang)
 {
 	memset(err, 0, sizeof(*err));
 	err->type = type;
-	err->useLanguage = lang;
+	err->useLanguage = lang + 1;
 	err->upperScreenFlag = ERROR_NORMAL;
 	err->eulaVersion =  0;
 	err->homeButton = true;
