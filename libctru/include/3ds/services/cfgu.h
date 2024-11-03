@@ -20,18 +20,19 @@ typedef enum
 /// Configuration language values.
 typedef enum
 {
-	CFG_LANGUAGE_JP = 0,  ///< Japanese
-	CFG_LANGUAGE_EN = 1,  ///< English
-	CFG_LANGUAGE_FR = 2,  ///< French
-	CFG_LANGUAGE_DE = 3,  ///< German
-	CFG_LANGUAGE_IT = 4,  ///< Italian
-	CFG_LANGUAGE_ES = 5,  ///< Spanish
-	CFG_LANGUAGE_ZH = 6,  ///< Simplified Chinese
-	CFG_LANGUAGE_KO = 7,  ///< Korean
-	CFG_LANGUAGE_NL = 8,  ///< Dutch
-	CFG_LANGUAGE_PT = 9,  ///< Portugese
-	CFG_LANGUAGE_RU = 10, ///< Russian
-	CFG_LANGUAGE_TW = 11, ///< Traditional Chinese
+	CFG_LANGUAGE_DEFAULT = -1, ///< Use system language in errorInit
+	CFG_LANGUAGE_JP,           ///< Japanese
+	CFG_LANGUAGE_EN,           ///< English
+	CFG_LANGUAGE_FR,           ///< French
+	CFG_LANGUAGE_DE,           ///< German
+	CFG_LANGUAGE_IT,           ///< Italian
+	CFG_LANGUAGE_ES,           ///< Spanish
+	CFG_LANGUAGE_ZH,           ///< Simplified Chinese
+	CFG_LANGUAGE_KO,           ///< Korean
+	CFG_LANGUAGE_NL,           ///< Dutch
+	CFG_LANGUAGE_PT,           ///< Portugese
+	CFG_LANGUAGE_RU,           ///< Russian
+	CFG_LANGUAGE_TW,           ///< Traditional Chinese
 } CFG_Language;
 
 // Configuration system model values.
