@@ -6,10 +6,10 @@
 int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int ret = 0;
-	int tmp_addrlen = 0x1c;
+	int tmp_addrlen = ADDR_STORAGE_LEN;
 	int fd, dev;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	u8 tmpaddr[0x1c];
+	u8 tmpaddr[ADDR_STORAGE_LEN];
 	u32 saved_threadstorage[2];
 
 	sockfd = soc_get_fd(sockfd);
@@ -27,7 +27,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	fd = __alloc_handle(dev);
 	if(fd < 0) return fd;
 
-	memset(tmpaddr, 0, 0x1c);
+	memset(tmpaddr, 0, ADDR_STORAGE_LEN);
 
 	cmdbuf[0] = IPC_MakeHeader(0x4,2,2); // 0x40082
 	cmdbuf[1] = (u32)sockfd;
@@ -61,9 +61,14 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
 	if(ret >= 0 && addr != NULL) {
 		addr->sa_family = tmpaddr[1];
-		if(*addrlen > tmpaddr[0])
-			*addrlen = tmpaddr[0];
-		memcpy(addr->sa_data, &tmpaddr[2], *addrlen - 2);
+
+		socklen_t user_addrlen = tmpaddr[0];
+		if(addr->sa_family == AF_INET)
+		    user_addrlen += 8; // Accounting for the 8 bytes of sin_zero padding, which must be written for compatibility.
+
+		if(*addrlen > user_addrlen)
+			*addrlen = user_addrlen;
+		memcpy(addr->sa_data, &tmpaddr[2], *addrlen - sizeof(addr->sa_family));
 	}
 
 	if(ret < 0) {
