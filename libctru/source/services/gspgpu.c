@@ -184,6 +184,12 @@ Result gspInit(void)
 	gspSharedMem = mappableAlloc(0x1000);
 	svcMapMemoryBlock(gspSharedMemHandle, (u32)gspSharedMem, MEMPERM_READWRITE, MEMPERM_DONTCARE);
 
+	// Initialize interrupt queue header
+	s32* sharedGspCmdBuf = (s32*)((u8*)gspSharedMem + 0x800 + gspThreadId*0x200);
+	do {
+		__ldrex(sharedGspCmdBuf);
+	} while (__strex(sharedGspCmdBuf, 0));
+
 	// Start event handling thread
 	gspRunEvents = true;
 	gspLastEvent = -1;
