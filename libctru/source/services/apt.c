@@ -909,6 +909,31 @@ void aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle ha
 	aptSetSleepAllowed(sleep);
 }
 
+void aptLaunchSystemApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle)
+{
+	bool sleep = aptIsSleepAllowed();
+
+	aptSetSleepAllowed(false);
+	aptFlags &= ~FLAG_SPURIOUS; // If we haven't received a spurious wakeup by now, we probably never will (see aptInit)
+	APT_PrepareToStartSystemApplet(appId);
+	aptSetSleepAllowed(sleep);
+
+	aptCallHook(APTHOOK_ONSUSPEND);
+
+	GSPGPU_SaveVramSysArea();
+	GSPGPU_ReleaseRight();
+
+	aptSetSleepAllowed(false);
+	APT_StartSystemApplet(appId, buf, bufsize, handle);
+	aptFlags &= ~FLAG_ACTIVE;
+
+	aptScreenTransfer(appId, true);
+
+	aptWaitForWakeUp(TR_SYSAPPLET);
+	memcpy(buf, aptParameters, bufsize);
+	aptSetSleepAllowed(sleep);
+}
+
 Result APT_GetLockHandle(u16 flags, Handle* lockHandle)
 {
 	u32 cmdbuf[16];

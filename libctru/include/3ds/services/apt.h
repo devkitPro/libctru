@@ -227,6 +227,15 @@ void aptSetMessageCallback(aptMessageCb callback, void* user);
  */
 void aptLaunchLibraryApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
 
+/**
+ * @brief Launches a system applet.
+ * @param appId ID of the applet to launch.
+ * @param buf Input/output buffer that contains launch parameters on entry and result data on exit.
+ * @param bufsize Size of the buffer.
+ * @param handle Handle to pass to the system applet.
+ */
+void aptLaunchSystemApplet(NS_APPID appId, void* buf, size_t bufsize, Handle handle);
+
 /// Clears the chainloader state.
 void aptClearChainloader(void);
 
