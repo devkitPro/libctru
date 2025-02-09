@@ -920,13 +920,14 @@ void aptLaunchSystemApplet(NS_APPID appId, void* buf, size_t bufsize, Handle han
 
 	aptCallHook(APTHOOK_ONSUSPEND);
 
+	GSPGPU_SaveVramSysArea();
+	GSPGPU_ReleaseRight();
+
 	aptSetSleepAllowed(false);
 	APT_StartSystemApplet(appId, buf, bufsize, handle);
 	aptFlags &= ~FLAG_ACTIVE;
 
-	GSPGPU_SaveVramSysArea();
 	aptScreenTransfer(appId, true);
-	GSPGPU_ReleaseRight();
 
 	aptWaitForWakeUp(TR_SYSAPPLET);
 	memcpy(buf, aptParameters, bufsize);
