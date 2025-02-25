@@ -63,6 +63,29 @@ typedef enum
 } GSPGPU_Event;
 
 /**
+ * GSPGPU performance log entry.
+ *
+ * Use the lastDurationUs field when benchmarking single GPU operations, this is usally meant
+ * for 3D library writers.
+ *
+ * Use the difference between two totalDurationUs when using a GPU library (e.g. citro3d), as
+ * there can be multiple GPU operations (e.g. P3D, PPF) per render pass, or per frame, and so on.
+ * Don't use totalDurationUs as-is (rather, take the difference as just described), because it
+ * can overflow.
+ */
+typedef struct
+{
+	u32 lastDurationUs;    ///< Duration of the last corresponding PICA200 operation (time between op is started and IRQ is received).
+	u32 totalDurationUs;   ///< Sum of lastDurationUs for the corresponding PICA200 operation. Can overflow.
+} GSPGPU_PerfLogEntry;
+
+/// GSPGPU performance log
+typedef struct
+{
+	GSPGPU_PerfLogEntry entries[GSPGPU_EVENT_MAX]; ///< Performance log entries (one per operation/"event").
+} GSPGPU_PerfLog;
+
+/**
  * @brief Gets the number of bytes per pixel for the specified format.
  * @param format See \ref GSPGPU_FramebufferFormat.
  * @return Bytes per pixel.
@@ -268,3 +291,39 @@ Result GSPGPU_TriggerCmdReqQueue(void);
  * @param disable False = 3D LED enable, true = 3D LED disable.
  */
 Result GSPGPU_SetLedForceOff(bool disable);
+
+/**
+ * @brief Enables or disables the performance log and clear
+ *        its state to zero.
+ * @param enabled Whether to enable the performance log.
+ * @note  It is assumed that no GPU operation is in progress when calling this function.
+ * @bug   The official sysmodule forgets to clear the "start tick" states to 0, though
+ *        this should not be much of an issue (as per the note above).
+ */
+Result GSPGPU_SetPerfLogMode(bool enabled);
+
+/**
+ * @brief Retrieves the performance log.
+ * @param[out] outPerfLog Pointer to output the performance log to.
+ * @note  Use the difference between two totalDurationUs when using a GPU library (e.g. citro3d), as
+ *        there can be multiple GPU operations (e.g. P3D, PPF) per render pass, or per frame, and so on.
+ *        Don't use totalDurationUs as-is (rather, take the difference as just described), because it
+ *        can overflow.
+ * @note  For a MemoryFill operation that uses both PSC0 and PSC1, take the maximum
+ *        of the two "last duration" entries.
+ * @note  For PDC0/PDC1 (VBlank0/1), the "last duration" entry corresponds to the time between
+ *        the current PDC (VBlank) IRQ and the previous one. The official GSP sysmodule
+ *        assumes both PDC0 and PDC1 IRQ happens at the same rate (this is almost always
+ *        the case, but not always if user changes PDC timings), and sets both entries
+ *        in the PDC0 handler.
+ * @bug   The official sysmodule doesn't handle the PDC0/1 entries correctly after init. On the first
+ *        frame \ref GSPGPU_SetPerfLogMode is enabled, "last duration" will have a nonsensical
+ *        value; and "total duration" stays nonsensical. This isn't much of a problem, except for the
+ *        first frame, because "total duration" is not supposed to be used as-is (you are supposed
+ *        to take the difference of this field between two time points of your choosing, instead).
+ * @bug   Since it is running at approx. 3.25 GiB/s per bank, some small PSC operations might
+ *        complete before the official GSP has time to record the start time.
+ * @bug   The official sysmodule doesn't properly handle data synchronization for the perflog,
+ *        in practice this should be fine, however.
+ */
+Result GSPGPU_GetPerfLog(GSPGPU_PerfLog *outPerfLog);

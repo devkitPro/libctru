@@ -553,6 +553,34 @@ Result GSPGPU_TriggerCmdReqQueue(void)
 	return cmdbuf[1];
 }
 
+Result GSPGPU_SetPerfLogMode(bool enabled)
+{
+    u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x11,1,0); // 0x110040
+	cmdbuf[1] = enabled ? 1 : 0;
+
+	Result ret=0;
+	if (R_FAILED(ret = svcSendSyncRequest(gspGpuHandle))) return ret;
+
+	return cmdbuf[1];
+}
+
+Result GSPGPU_GetPerfLog(GSPGPU_PerfLog *outPerfLog)
+{
+    u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x12,0,0); // 0x120000
+
+	Result ret=0;
+	if (R_FAILED(ret = svcSendSyncRequest(gspGpuHandle))) return ret;
+
+	memcpy(outPerfLog, &cmdbuf[2], sizeof(GSPGPU_PerfLog));
+
+	return cmdbuf[1];
+}
+
+
 Result GSPGPU_RegisterInterruptRelayQueue(Handle eventHandle, u32 flags, Handle* outMemHandle, u8* threadID)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
