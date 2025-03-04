@@ -2,14 +2,18 @@
 Copy of the IR:USER API from ctru-rs
 */
 
-#include "ir_user.h"
-#include "defines.h"
-#include "console.h"
-#include <3ds.h>
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include <malloc.h>
+#include <string.h>
+#include <3ds/types.h>
+#include <3ds/result.h>
+#include <3ds/svc.h>
+#include <3ds/srv.h>
+#include <3ds/allocator/mappable.h>
+#include <3ds/synchronization.h>
+#include <3ds/services/iruser.h>
+#include <3ds/ipc.h>
+#include <3ds/env.h>
 
 // Misc constants
 const size_t SHARED_MEM_INFO_SECTIONS_SIZE = 0x30;
@@ -17,6 +21,7 @@ const size_t SHARED_MEM_RECV_BUFFER_OFFSET = 0x20;
 const size_t PAGE_SIZE = 0x1000;
 const u32 IR_BITRATE = 4;
 const u8 CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID = 0x10;
+const u8 PACKET_INFO_SIZE = 8;
 
 static Handle iruserHandle;
 static Handle iruserSharedMemHandle;
@@ -26,10 +31,9 @@ static int iruserRefCount;
 static u32 iruserRecvBufferSize;
 static u32 iruserRecvPacketCount;
 
-namespace {
-    inline size_t round_up(size_t value, size_t multiple) {
-        return (value / multiple + 1) * multiple;
-    }
+
+static size_t round_up(size_t value, size_t multiple) {
+    return (value / multiple + 1) * multiple;
 }
 
 Result iruserInit(size_t buffer_size, size_t packet_count) {
@@ -140,7 +144,6 @@ Result IRUSER_WaitConnection() {
 Result IRUSER_RequireConnection(u8 device_id) {
     Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
-	ql::Console::log("cmdbuf: %p", cmdbuf);
     
 	cmdbuf[0] = IPC_MakeHeader(0x6, 1, 0); // 0x00060040
 	cmdbuf[1] = device_id;
@@ -350,12 +353,10 @@ Result iruserGetCirclePadProState(circlePadProInputResponse* response) {
     if (R_FAILED(ret)) return ret;
     if (packet->payload_length != 6) return MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_SIZE);
     if (packet->payload[0] != CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID) return MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_ENUM_VALUE);
-    *response = circlePadProInputResponse {
-        .c_stick_x = (u16)(packet->payload[1] | ((packet->payload[2] & 0x0F) << 8)),
-        .c_stick_y = (u16)(((packet->payload[2] & 0xF0) >> 4) | ((packet->payload[3]) << 4)),
-        .status_raw = packet->payload[4],
-        .unknown_field = packet->payload[5],
-    };
+    response->cstick.csPos.dx = (u16)(packet->payload[1] | ((packet->payload[2] & 0x0F) << 8));
+    response->cstick.csPos.dy = (u16)(((packet->payload[2] & 0xF0) >> 4) | ((packet->payload[3]) << 4));
+    response->status_raw = packet->payload[4];
+    response->unknown_field = packet->payload[5];
     free(packet);
     return MAKERESULT(RL_SUCCESS, RS_SUCCESS, RM_COMMON, RD_SUCCESS);
 }
@@ -366,10 +367,9 @@ Result iruserCirclePadProRead(circlePosition *pos) {
     if (R_FAILED(ret)) return ret;
     if (packet->payload_length != 6) return RS_INVALIDSTATE;
     if (packet->payload[0] != CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID) return RS_INVALIDSTATE;
-    *pos = circlePosition {
-        .dx = (s16)(packet->payload[1] | ((packet->payload[2] & 0x0F) << 8)),
-        .dy = (s16)(((packet->payload[2] & 0xF0) >> 4) | ((packet->payload[3]) << 4))
-    };
+    pos->dx = (s16)(packet->payload[1] | ((packet->payload[2] & 0x0F) << 8));
+    pos->dy = (s16)(((packet->payload[2] & 0xF0) >> 4) | ((packet->payload[3]) << 4));
+    
     free(packet);
     return RS_SUCCESS;
 }
@@ -394,10 +394,12 @@ IrUserPacket* iruserGetPackets(Result* res) {
         u32 packet_info_section_size = iruserRecvPacketCount * PACKET_INFO_SIZE;
         u32 header_size = SHARED_MEM_RECV_BUFFER_OFFSET + packet_info_section_size;
         u32 data_buffer_size = iruserRecvBufferSize - packet_info_section_size;
-        auto packet_data = [=](u32 idx) -> u8 {
+        
+        u8 packet_data(u32 idx) {
             u32 data_buffer_offset = offset_to_data_buffer + idx;
             return *(u8*)((u8*)shared_mem + header_size + data_buffer_offset % data_buffer_size);
-        };
+        }
+        
         u32 payload_length, payload_offset;
         if ((packet_data(2) & 0x40 )!= 0) {
             // Big payload
@@ -416,13 +418,12 @@ IrUserPacket* iruserGetPackets(Result* res) {
             *res = RS_INVALIDSTATE;
             return NULL;
         }
-        packets[i] = IrUserPacket {
-            .magic_number = packet_data(0),
-            .destination_network_id = packet_data(1),
-            .payload_length = payload_length,
-            .payload = (u8*)payload_offset,
-            .checksum = packet_data(payload_offset + payload_length),
-        };
+        
+        packets[i].magic_number = packet_data(0);
+        packets[i].destination_network_id = packet_data(1);
+        packets[i].payload_length = payload_length;
+        packets[i].payload = (u8*)payload_offset;
+        packets[i].checksum = packet_data(payload_offset + payload_length);
     }
     return packets;
 }
@@ -435,7 +436,7 @@ Result iruserCPPRequestInputPolling(u8 period_ms) {
     u8 ir_request[3] = {
         1, 
         period_ms, 
-        static_cast<u8>((period_ms + 2) << 2)
+        (u8)((period_ms + 2) << 2)
     };
     return IRUSER_SendIrNop(sizeof(ir_request), ir_request);
 }

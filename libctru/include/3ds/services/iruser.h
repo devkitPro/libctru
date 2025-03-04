@@ -1,17 +1,21 @@
+/**
+ * @file iruser.h
+ * @brief IRUSER service.
+ */
 #pragma once
 
-#include "3ds/services/hid.h"
-#include "3ds/types.h"
+#include <3ds/types.h>
+#include <3ds/services/hid.h>
 
 /// Connection status values for [`IrUserStatusInfo`].
-enum ConnectionStatus {
+typedef enum {
     Disconnected = 0, /// Device is not connected
     Connecting = 1, /// Waiting for device to connect
     Connected = 2, /// Device is connected
-};
+} ConnectionStatus;
 
 /// This struct holds a parsed copy of the ir:USER service status (from shared memory).
-struct IrUserStatusInfo {
+typedef struct {
     /// The result of the last receive operation.
     Result recv_err_result;
     /// The result of the last send operation.
@@ -32,10 +36,10 @@ struct IrUserStatusInfo {
     u8 unknown_field_2;
     /// Unknown field.
     u8 unknown_field_3;
-};
+} IrUserStatusInfo;
 
 /// A packet of data sent/received to/from the IR device.
-struct IrUserPacket {
+typedef struct {
     /// The magic number of the packet. Should always be 0xA5.
     u8 magic_number;
     /// The destination network ID.
@@ -46,10 +50,10 @@ struct IrUserPacket {
     u8* payload;
     /// The checksum of the packet.
     u8 checksum;
-};
+} IrUserPacket;
 
 /// Circle Pad Pro response packet holding the current device input signals and status.
-struct circlePadProInputResponse {
+typedef struct {
     union {
         struct {
             /// The X value of the C-stick.
@@ -74,14 +78,14 @@ struct circlePadProInputResponse {
     };
     /// Unknown field.
     u8 unknown_field;
-};
+} circlePadProInputResponse;
 
 /**
  * @brief Initializes IRUSER.
- * Allocates memory to use as shared_memory based on recv_buffer_size and send_buffer_size and sets it as read only.
+ * Allocates memory to use as shared_memory based on buffer_size and sets it as read only.
  * 
  */
-Result iruserInit(size_t recv_buffer_size, size_t recv_packet_count, size_t send_buffer_size, size_t send_packet_count);
+Result iruserInit(size_t buffer_size, size_t packet_count);
 
 /// Shuts down IRUSER. Frees shared memory.
 void iruserExit();
