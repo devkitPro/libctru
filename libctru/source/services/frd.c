@@ -162,7 +162,7 @@ Result FRD_GetMyPresence(MyPresence *presence)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetMyScreenName(FriendScreenName *name)
+Result FRD_GetMyScreenName(MiiScreenName *name)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -171,7 +171,7 @@ Result FRD_GetMyScreenName(FriendScreenName *name)
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
 
-	memcpy(name, &cmdbuf[2], sizeof(FriendScreenName));
+	memcpy(name, &cmdbuf[2], sizeof(MiiScreenName));
 
 	return (Result)cmdbuf[1];
 }
@@ -342,7 +342,7 @@ Result FRD_GetFriendPresence(FriendPresence *friendPresences, const FriendKey *f
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetFriendScreenName(FriendScreenName *screenNames, u32 screenNamesLen, u8 *characterSets, u32 characterSetsLen, const FriendKey *friendKeyList, u32 count, bool maskNonAscii, bool profanityFlag)
+Result FRD_GetMiiScreenName(MiiScreenName *screenNames, u32 screenNamesLen, u8 *characterSets, u32 characterSetsLen, const FriendKey *friendKeyList, u32 count, bool maskNonAscii, bool profanityFlag)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -362,7 +362,7 @@ Result FRD_GetFriendScreenName(FriendScreenName *screenNames, u32 screenNamesLen
 	cmdbuf[7] = (u32)friendKeyList;
 
 	// output
-	staticbufs[0] = IPC_Desc_StaticBuffer(count * sizeof(FriendScreenName), 0);
+	staticbufs[0] = IPC_Desc_StaticBuffer(count * sizeof(MiiScreenName), 0);
 	staticbufs[1] = (u32)screenNames;
 
 	ret = svcSendSyncRequest(frdHandle);
@@ -1121,7 +1121,7 @@ Result FRDA_AddFriendOnline(Handle event, u32 principalId)
 	return (Result)cmdbuf[1];
 }
 
-Result FRDA_AddFriendOffline(FriendKey *friendKey, FriendMii *mii, FriendProfile *friendProfile, FriendScreenName *screenName, bool profanityFlag, u8 characterSet)
+Result FRDA_AddFriendOffline(FriendKey *friendKey, FriendMii *mii, FriendProfile *friendProfile, MiiScreenName *screenName, bool profanityFlag, u8 characterSet)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -1129,7 +1129,7 @@ Result FRDA_AddFriendOffline(FriendKey *friendKey, FriendMii *mii, FriendProfile
 	memcpy(&cmdbuf[1], friendKey, sizeof(FriendKey));
 	memcpy(&cmdbuf[5], mii, sizeof(FriendMii));
 	memcpy(&cmdbuf[29], friendProfile, sizeof(FriendProfile));
-	memcpy(&cmdbuf[47], screenName, sizeof(FriendScreenName));
+	memcpy(&cmdbuf[47], screenName, sizeof(MiiScreenName));
 	cmdbuf[53] = (u32)profanityFlag;
 	cmdbuf[54] = (u32)characterSet;
 
@@ -1138,13 +1138,13 @@ Result FRDA_AddFriendOffline(FriendKey *friendKey, FriendMii *mii, FriendProfile
 	return (Result)cmdbuf[1];
 }
 
-Result FRDA_UpdateFriendScreenName(FriendKey *friendKey, FriendScreenName *screenName, u8 characterSet)
+Result FRDA_UpdateMiiScreenName(FriendKey *friendKey, MiiScreenName *screenName, u8 characterSet)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x408,11,0); // 0x40802C0
 	memcpy(&cmdbuf[1], friendKey, sizeof(FriendKey));
-	memcpy(&cmdbuf[5], screenName, sizeof(FriendScreenName));
+	memcpy(&cmdbuf[5], screenName, sizeof(MiiScreenName));
 	cmdbuf[11] = (u32)characterSet;
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
@@ -1191,13 +1191,13 @@ Result FRDA_UpdatePreference(bool isPublicMode, bool isShowGameMode, bool isShow
 	return (Result)cmdbuf[1];
 }
 
-Result FRDA_UpdateMii(FriendMii *mii, FriendScreenName *screenName, bool profanityFlag, u8 characterSet)
+Result FRDA_UpdateMii(FriendMii *mii, MiiScreenName *screenName, bool profanityFlag, u8 characterSet)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0x40C,32,0); // 0x40C0800
 	memcpy(&cmdbuf[1], mii, sizeof(FriendMii));
-	memcpy(&cmdbuf[25], screenName, sizeof(FriendScreenName));
+	memcpy(&cmdbuf[25], screenName, sizeof(MiiScreenName));
 	cmdbuf[31] = (u32)profanityFlag;
 	cmdbuf[32] = (u32)characterSet;
 

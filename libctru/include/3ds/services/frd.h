@@ -5,7 +5,6 @@
 #pragma once
 #include <3ds/mii.h>
 
-#define FRIEND_SCREEN_NAME_LEN           10+1  ///< 10-character NULL-terminated UTF-16 screen name
 #define FRIEND_COMMENT_LEN               16+1  ///< 16-character NULL-terminated UTF-16 comment
 #define FRIEND_GAME_MODE_DESCRIPTION_LEN 127+1 ///< 127-character NULL-terminated UTF-16 game mode description
 
@@ -15,11 +14,14 @@
 
 #define FRIEND_LIST_SIZE                 100   ///< 100 (maximum number of friends)
 
-typedef u16 FriendScreenName[FRIEND_SCREEN_NAME_LEN];
+#define NFS_TYPESTR_LEN                  2+1   ///< 2-character NULL-terminated ASCII NFS (Nintendo Friend Server) type string
+
 typedef u16 FriendComment[FRIEND_COMMENT_LEN];
 typedef u16 FriendGameModeDescription[FRIEND_GAME_MODE_DESCRIPTION_LEN];
 
 typedef u16 ScrambledFriendCode[6];
+
+typedef char NfsTypeStr[NFS_TYPESTR_LEN];
 
 #pragma pack(push, 1)
 
@@ -115,7 +117,7 @@ typedef struct
 	u8 relationship; ///< The type of the relationship with this friend.
 	u8 pad[7];
 	FriendProfile friendProfile; ///< Friend profile data of this friend.
-	FriendScreenName screenName; ///< The screen name of this friend.
+	MiiScreenName screenName; ///< The screen name of this friend.
 	u8 characterSet; ///< The character set used for the text parts of the data of this friend.
 	u8 pad2;
 	FriendMii mii; ///< The Mii of this friend.
@@ -161,7 +163,7 @@ typedef struct
 	bool profanityFlag;
 	u8 characterSet;
 	u8 wrappedMii[0x70];
-	FriendScreenName screenName;
+	MiiScreenName screenName;
 	u8 reserved[0x10F];
 } ApproachContext;
 
@@ -194,7 +196,7 @@ typedef struct
 	FriendKey friendKey; ///< Friend key of this friend.
 	FriendProfile friendProfile; ///< Friend profile of this friend.
 	FriendMii mii; ///< Mii data of this friend.
-	FriendScreenName screenName; ///< UTF-16 screen name of this friend.
+	MiiScreenName screenName; ///< UTF-16 screen name of this friend.
 	u8 reserved[0x12A];
 } DecryptedApproachContext;
 
@@ -367,7 +369,7 @@ Result FRD_GetMyPresence(MyPresence *presence);
  * @param name Pointer to write the current user's screen name to.
  * @param max_size Max size of the screen name.
  */
-Result FRD_GetMyScreenName(FriendScreenName *name);
+Result FRD_GetMyScreenName(MiiScreenName *name);
 
 /**
  * @brief Gets the current user's Mii data.
@@ -441,7 +443,7 @@ Result FRD_GetFriendPresence(FriendPresence *friendPresences, const FriendKey *f
  * @param maskNonAscii Whether or not to replace all non-ASCII characters with question marks ('?') if the given character set doesn't match that of the corresponding friend's Mii data.
  * @param profanityFlag Setting this to true replaces the screen names with all question marks ('?') if profanityFlag is also set in the corresponding friend's Mii data.
  */
-Result FRD_GetFriendScreenName(FriendScreenName *screenNames, u32 screenNamesLen, u8 *characterSets, u32 characterSetsLen, const FriendKey *friendKeyList, u32 count, bool maskNonAscii, bool profanityFlag);
+Result FRD_GetMiiScreenName(MiiScreenName *screenNames, u32 screenNamesLen, u8 *characterSets, u32 characterSetsLen, const FriendKey *friendKeyList, u32 count, bool maskNonAscii, bool profanityFlag);
 
 /**
  * @brief Gets the current user's friends' Mii data.
@@ -750,7 +752,7 @@ Result FRDA_AddFriendOnline(Handle event, u32 principalId);
  * @param profanityFlag Setting this to true will cause calls that return the screen name to replace it with question marks ('?') when profanityFlag is true in those calls.
  * @param characterSet The character set to use for text data of the friend.
  */
-Result FRDA_AddFriendOffline(FriendKey *friendKey, FriendMii *mii, FriendProfile *friendProfile, FriendScreenName *screenName, bool profanityFlag, u8 characterSet);
+Result FRDA_AddFriendOffline(FriendKey *friendKey, FriendMii *mii, FriendProfile *friendProfile, MiiScreenName *screenName, bool profanityFlag, u8 characterSet);
 
 /**
  * @brief Updates a friend's display name.
@@ -758,7 +760,7 @@ Result FRDA_AddFriendOffline(FriendKey *friendKey, FriendMii *mii, FriendProfile
  * @param screenName Pointer to the new screen name to use.
  * @param characterSet The character set of the new screen name.
  */
-Result FRDA_UpdateFriendScreenName(FriendKey *friendKey, FriendScreenName *screenName, u8 characterSet);
+Result FRDA_UpdateMiiScreenName(FriendKey *friendKey, MiiScreenName *screenName, u8 characterSet);
 
 /**
  * @brief Remove a friend.
@@ -788,7 +790,7 @@ Result FRDA_UpdatePreference(bool isPublicMode, bool isShowGameMode, bool isShow
  * @param profanityFlag Setting this to true will cause calls that return the screen name to replace it with question marks ('?') when profanityFlag is true in those calls.
  * @param characterSet The character set to use for the screen name.
  */
-Result FRDA_UpdateMii(FriendMii *mii, FriendScreenName *screenName, bool profanityFlag, u8 characterSet);
+Result FRDA_UpdateMii(FriendMii *mii, MiiScreenName *screenName, bool profanityFlag, u8 characterSet);
 
 /**
  * @brief Updates the current user's favorite game.

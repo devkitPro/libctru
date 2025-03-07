@@ -6,6 +6,10 @@
  */
 #pragma once
 
+#define MII_NAME_LEN           10+1  ///< 10-character NULL-terminated UTF-16 mii name
+
+typedef u16 MiiScreenName[MII_NAME_LEN];
+
 #include <3ds/types.h>
 
 /// Shared Base Mii struct
