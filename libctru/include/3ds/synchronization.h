@@ -183,6 +183,14 @@ Result syncArbitrateAddressWithTimeout(s32* addr, ArbitrationType type, s32 valu
 void LightLock_Init(LightLock* lock);
 
 /**
+ * @brief Attempts to lock a light lock, failing if it exceeeds a timeout.
+ * @param lock Pointer to the lock.
+ * @param timeout_ns Timeout in nanoseconds.
+ * @return Zero on success, non-zero on failure.
+ */
+int LightLock_LockTimeout(LightLock* lock, s64 timeout_ns);
+
+/**
  * @brief Locks a light lock.
  * @param lock Pointer to the lock.
  */
@@ -206,6 +214,14 @@ void LightLock_Unlock(LightLock* lock);
  * @param lock Pointer to the lock.
  */
 void RecursiveLock_Init(RecursiveLock* lock);
+
+/**
+ * @brief Attempts to lock a recursive lock, failing if it exceeeds a timeout.
+ * @param lock Pointer to the lock.
+ * @param timeout_ns Timeout in nanoseconds.
+ * @return Zero on success, non-zero on failure.
+ */
+int RecursiveLock_LockTimeout(RecursiveLock* lock, s64 timeout_ns);
 
 /**
  * @brief Locks a recursive lock.
@@ -326,6 +342,15 @@ int LightEvent_WaitTimeout(LightEvent* event, s64 timeout_ns);
  * @param max_count Maximum count of the semaphore.
  */
 void LightSemaphore_Init(LightSemaphore* semaphore, s16 initial_count, s16 max_count);
+
+/**
+ * @brief Attempts to acquire a light semaphore, with a timeout.
+ * @param semaphore Pointer to the semaphore.
+ * @param count Acquire count
+ * @param timeout_ns Timeout in nanoseconds
+ * @return Zero on success, non-zero on failure
+ */
+int LightSemaphore_AcquireTimeout(LightSemaphore* semaphore, s32 count, s64 timeout_ns);
 
 /**
  * @brief Acquires a light semaphore.
