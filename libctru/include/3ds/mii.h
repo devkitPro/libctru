@@ -16,19 +16,19 @@ typedef struct
 	/// Mii options
 	struct
 	{
-		u8 allow_copying : 1;   ///< True if copying is allowed
-		u8 is_private_name : 1; ///< Private name?
+		bool allow_copying : 1;   ///< True if copying is allowed
+		bool is_private_name : 1; ///< Private name?
 		u8 region_lock : 2;       ///< Region lock (0=no lock, 1=JPN, 2=USA, 3=EUR)
 		u8 char_set : 2;          ///< Character set (0=JPN+USA+EUR, 1=CHN, 2=KOR, 3=TWN)
 		u8 _pad : 2;
-	} CTR_PACKED mii_options;
+	} mii_options;
 
 	/// Mii position in Mii selector or Mii maker
 	struct
 	{
 		u8 page_index : 4;   ///< Page index of Mii
 		u8 slot_index : 4;   ///< Slot offset of Mii on its Page
-	} CTR_PACKED mii_pos;
+	} mii_pos;
 
 	/// Console Identity
 	struct
@@ -36,7 +36,7 @@ typedef struct
 		u8 unknown0 : 4;        ///< Mabye padding (always seems to be 0)?
 		u8 origin_console : 3;  ///< Console that the Mii was created on (1=WII, 2=DSI, 3=3DS)
 		u8 _pad : 1;
-	} CTR_PACKED console_identity;
+	} console_identity;
 
 	u64 system_id;   ///< Identifies the system that the Mii was created on (Determines pants)
 	u32 mii_id;      ///< ID of Mii
