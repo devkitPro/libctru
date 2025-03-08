@@ -187,22 +187,6 @@ Result ACU_SetRequestEulaVersion(acuConfig* config)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_GetProxyPassword(char *password)
-{
-	Result ret=0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-	u32 *staticbufs = getThreadStaticBuffers();
-
-	cmdbuf[0] = IPC_MakeHeader(0x3B,0,0); // 0x3B0000
-
-	staticbufs[0] = IPC_Desc_StaticBuffer(0x20, 0);
-	staticbufs[1] = (u32)password;
-
-	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
-
-	return (Result)cmdbuf[1];
-}
-
 Result ACU_GetSecurityMode(acSecurityMode *mode)
 {
 	Result ret=0;
@@ -261,7 +245,23 @@ Result ACU_GetProxyEnable(bool *enable)
 	return (Result)cmdbuf[1];
 }
 
-Result ACU_GetProxyPort(u32 *out)
+Result ACU_GetProxyHost(char *host)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
+
+	cmdbuf[0] = IPC_MakeHeader(0x39,0,0); // 0x390000
+
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x100, 0);
+	staticbufs[1] = (u32)host;
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle))) return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACU_GetProxyPort(u16 *out)
 {
 	Result ret=0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -270,7 +270,7 @@ Result ACU_GetProxyPort(u32 *out)
 
 	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
 
-	*out = cmdbuf[2];
+	*out = (u16)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -285,6 +285,22 @@ Result ACU_GetProxyUserName(char *username)
 
 	staticbufs[0] = IPC_Desc_StaticBuffer(0x20, 0);
 	staticbufs[1] = (u32)username;
+
+	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACU_GetProxyPassword(char *password)
+{
+	Result ret=0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	u32 *staticbufs = getThreadStaticBuffers();
+
+	cmdbuf[0] = IPC_MakeHeader(0x3B,0,0); // 0x3B0000
+
+	staticbufs[0] = IPC_Desc_StaticBuffer(0x20, 0);
+	staticbufs[1] = (u32)password;
 
 	if(R_FAILED(ret = svcSendSyncRequest(acHandle)))return ret;
 
