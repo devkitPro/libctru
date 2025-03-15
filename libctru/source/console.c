@@ -1,4 +1,4 @@
--..-.#include <stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/iosupport.h>
 #include <3ds/gfx.h>
