@@ -921,6 +921,7 @@ void aptLaunchSystemApplet(NS_APPID appId, void* buf, size_t bufsize, Handle han
 	aptCallHook(APTHOOK_ONSUSPEND);
 
 	GSPGPU_SaveVramSysArea();
+	aptDspSleep();
 	GSPGPU_ReleaseRight();
 
 	aptSetSleepAllowed(false);
