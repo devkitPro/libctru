@@ -53,6 +53,14 @@ static struct addrinfo * buffer2addrinfo(addrinfo_3ds_t * entry)
 
 		memcpy(ai->ai_canonname, entry->ai_canonname, ai_canonname_len);
 		memcpy(ai->ai_addr, &entry->ai_addr, ai->ai_addrlen);
+
+		// the sizes of hos-native sock_addr_in and the one we expose from libc are not the same
+		// because the libc one has a `sin_zero` member for better compatibility with linux
+		// it is located at the tail of the structure and will be zero-initilized due to use of `calloc` above
+		// so it is fine that we did not `memcpy` anything into it above
+		if(ai->ai_family == AF_INET)
+			ai->ai_addrlen = sizeof(struct sockaddr_in);
+
 		ai->ai_addr->sa_family = ntohs(ai->ai_addr->sa_family) & 0xFF; // Clear sa_len to match the API
 	}
 	return ai;
