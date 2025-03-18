@@ -83,7 +83,7 @@ Result ACU_GetProxyEnable(bool *enable);
 
 /**
  * @brief Gets the connected network's proxy host.
- * @param host Pointer to output the proxy host to.
+ * @param host Pointer to output the proxy host to. (The size must be at least 0x100-bytes)
  */
 Result ACU_GetProxyHost(char *host);
 
