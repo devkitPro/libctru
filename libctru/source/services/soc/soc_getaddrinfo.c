@@ -52,7 +52,14 @@ static struct addrinfo * buffer2addrinfo(addrinfo_3ds_t * entry)
 		ai->ai_addrlen  = entry->ai_addrlen;
 
 		memcpy(ai->ai_canonname, entry->ai_canonname, ai_canonname_len);
+
+		// make sure we account for sin_zero, which the hos-native sockaddr_in doesn't have
+		memset(ai->ai_addr, 0, sizeof(struct sockaddr_storage));
 		memcpy(ai->ai_addr, &entry->ai_addr, ai->ai_addrlen);
+
+		if(ai->ai_family == AF_INET)
+			ai->ai_addrlen += 8;
+
 		ai->ai_addr->sa_family = ntohs(ai->ai_addr->sa_family) & 0xFF; // Clear sa_len to match the API
 	}
 	return ai;
