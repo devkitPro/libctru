@@ -87,6 +87,19 @@ Result PTMSYSM_GetWakeReason(PtmSleepConfig *outSleepConfig);
 /// Cancels the "half-awake" state and fully wakes up the 3DS after some delay.
 Result PTMSYSM_Awaken(void);
 
+/// Clear the "step history".
+Result PTMSYSM_ClearStepHistory(void);
+
+/**
+ * @brief Sets the system's step count history.
+ * @param hours Number of hours to set the step count history for.
+ * @param stepValue Pointer to read the step count history from. (The buffer size must be at least `hours` in length)
+ */
+Result PTMSYSM_SetStepHistory(u32 hours, u16 *stepValue);
+
+/// Clear the "play history".
+Result PTMSYSM_ClearPlayHistory(void);
+
 /**
  * @brief Sets the user time by updating the user time offset.
  * @param msY2k The number of milliseconds since 01/01/2000.

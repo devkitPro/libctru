@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/svc.h>
@@ -81,6 +82,33 @@ Result PTMU_GetPedometerState(u8 *out)
 	if(R_FAILED(ret = svcSendSyncRequest(ptmuHandle)))return ret;
 
 	*out = (u8)cmdbuf[2] & 0xFF;
+
+	return (Result)cmdbuf[1];
+}
+
+Result PTMU_GetStepHistory(u32 hours, u16 *stepValue)
+{
+	Result ret=0;
+
+	time_t raw;
+	time(&raw);
+	double msTime = difftime(raw, 0x386D4380); // 01.01.2000 00:00:00 UTC
+	msTime = msTime * 1000.0f;
+
+	s64 msiTime = (s64)msTime;
+	u32 msiTimeLo, msiTimeHi;
+	msiTimeLo = (u32)(msiTime & 0xFFFFFFFF);  // Low 32 Bit
+	msiTimeHi = (u32)((msiTime >> 32) & 0xFFFFFFFF); // High 32 Bit
+
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0xB, 3, 2); // 0x00B00C2
+	cmdbuf[1] = hours;
+	cmdbuf[2] = msiTimeLo;
+	cmdbuf[3] = msiTimeHi;
+	cmdbuf[4] = IPC_Desc_Buffer(hours, IPC_BUFFER_W);
+	cmdbuf[5] = (u32)stepValue;
+
+	if(R_FAILED(ret = svcSendSyncRequest(ptmuHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
