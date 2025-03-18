@@ -82,10 +82,16 @@ Result ACU_GetSSIDLength(u32 *out);
 Result ACU_GetProxyEnable(bool *enable);
 
 /**
+ * @brief Gets the connected network's proxy host.
+ * @param host Pointer to output the proxy host to. (The size must be at least 0x100-bytes)
+ */
+Result ACU_GetProxyHost(char *host);
+
+/**
  * @brief Gets the connected network's proxy port.
  * @param out Pointer to output the proxy port to.
  */
-Result ACU_GetProxyPort(u32 *out);
+Result ACU_GetProxyPort(u16 *out);
 
 /**
  * @brief Gets the connected network's proxy username.
