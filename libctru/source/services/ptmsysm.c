@@ -162,7 +162,7 @@ Result PTMSYSM_ClearStepHistory(void)
 	return (Result)cmdbuf[1];
 }
 
-Result PTMSYSM_SetStepHistory(u32 hours, u16 *stepValue)
+Result PTMSYSM_SetStepHistory(u32 hours, const u16 *stepValue)
 {
 	Result ret;
 

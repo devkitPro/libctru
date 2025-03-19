@@ -95,7 +95,7 @@ Result PTMSYSM_ClearStepHistory(void);
  * @param hours Number of hours to set the step count history for.
  * @param stepValue Pointer to read the step count history from. (The buffer size must be at least `hours` in length)
  */
-Result PTMSYSM_SetStepHistory(u32 hours, u16 *stepValue);
+Result PTMSYSM_SetStepHistory(u32 hours, const u16 *stepValue);
 
 /// Clear the "play history".
 Result PTMSYSM_ClearPlayHistory(void);
