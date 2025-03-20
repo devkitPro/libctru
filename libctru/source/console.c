@@ -892,12 +892,6 @@ void consolePrintChar(int c) {
 		if(currentConsole->PrintChar(currentConsole, c))
 			return;
 
-	if(currentConsole->cursorX  >= currentConsole->windowWidth) {
-		currentConsole->cursorX  = 0;
-
-		newRow();
-	}
-
 	switch(c) {
 		/*
 		The only special characters we will handle are tab (\t), carriage return (\r), line feed (\n)
@@ -933,6 +927,11 @@ void consolePrintChar(int c) {
 			gfxFlushBuffers();
 			break;
 		default:
+			if(currentConsole->cursorX  >= currentConsole->windowWidth) {
+				currentConsole->cursorX  = 0;
+
+				newRow();
+			}
 			consoleDrawChar(c);
 			++currentConsole->cursorX ;
 			break;
