@@ -500,8 +500,8 @@ static bool ndspFindAndLoadComponent(void)
 	rsrc = envGetHandle("hb:ndsp");
 	if (rsrc) do
 	{
-		extern u32 fake_heap_end;
-		u32 mapAddr = (fake_heap_end+0xFFF) &~ 0xFFF;
+		extern char* fake_heap_end;
+		u32 mapAddr = ((u32)fake_heap_end+0xFFF) &~ 0xFFF;
 		rc = svcMapMemoryBlock(rsrc, mapAddr, MEMPERM_READWRITE, MEMPERM_READWRITE);
 		if (R_FAILED(rc)) break;
 

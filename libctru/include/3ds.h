@@ -35,6 +35,7 @@ extern "C" {
 #include <3ds/allocator/vram.h>
 
 #include <3ds/services/ac.h>
+#include <3ds/services/act.h>
 #include <3ds/services/am.h>
 #include <3ds/services/ampxi.h>
 #include <3ds/services/apt.h>

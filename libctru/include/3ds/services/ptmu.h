@@ -41,6 +41,13 @@ Result PTMU_GetBatteryChargeState(u8 *out);
 Result PTMU_GetPedometerState(u8 *out);
 
 /**
+ * @brief Gets the system's step count history.
+ * @param hours Number of hours to get the step count history for.
+ * @param stepValue Pointer to output the step count history to. (The buffer size must be at least `hours` in length)
+ */
+Result PTMU_GetStepHistory(u32 hours, u16 *stepValue);
+
+/**
  * @brief Gets the pedometer's total step count.
  * @param steps Pointer to write the total step count to.
  */
