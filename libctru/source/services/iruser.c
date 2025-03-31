@@ -9,11 +9,9 @@ Copy of the IR:USER API from ctru-rs
 #include <3ds/result.h>
 #include <3ds/svc.h>
 #include <3ds/srv.h>
-#include <3ds/allocator/mappable.h>
 #include <3ds/synchronization.h>
 #include <3ds/services/iruser.h>
 #include <3ds/ipc.h>
-#include <3ds/env.h>
 
 // Misc constants
 const size_t SHARED_MEM_INFO_SECTIONS_SIZE = 0x30;
@@ -31,20 +29,15 @@ static int iruserRefCount;
 static u32 iruserRecvBufferSize;
 static u32 iruserRecvPacketCount;
 
-
-static size_t round_up(size_t value, size_t multiple) {
-    return (value / multiple + 1) * multiple;
-}
-
-Result iruserInit(size_t buffer_size, size_t packet_count) {
+Result iruserInit(u32 *sharedmem_addr, u32 sharedmem_size, size_t buffer_size, size_t packet_count) {
     if(AtomicPostIncrement(&iruserRefCount)) return 0;
     Result ret = srvGetServiceHandle(&iruserHandle, "ir:USER");
     if (R_FAILED(ret)) goto cleanup0;
     
     // Calculate the shared memory size.
     // Shared memory length must be a multiple of the page size.
-    iruserSharedMemSize = round_up(SHARED_MEM_INFO_SECTIONS_SIZE + buffer_size + buffer_size, PAGE_SIZE);
-    iruserSharedMem = (u32*)memalign(iruserSharedMemSize, PAGE_SIZE);
+    iruserSharedMemSize = sharedmem_size;
+    iruserSharedMem = sharedmem_addr;
     
     ret = svcCreateMemoryBlock(&iruserSharedMemHandle, (u32)iruserSharedMem, iruserSharedMemSize, MEMPERM_READ, MEMPERM_READWRITE);
     if (R_FAILED(ret)) goto cleanup1;
@@ -55,11 +48,12 @@ Result iruserInit(size_t buffer_size, size_t packet_count) {
     iruserRecvBufferSize = buffer_size;
     iruserRecvPacketCount = packet_count;
     
+    return ret;
+    
     cleanup2:
     IRUSER_FinalizeIrNop();
     
     cleanup1:
-    free(iruserSharedMem);
     svcCloseHandle(iruserSharedMemHandle);
     
     cleanup0:
@@ -81,7 +75,7 @@ void iruserExit(void) {
 
 Result IRUSER_InitializeIrNop(size_t recv_buffer_size, size_t recv_packet_count, size_t send_buffer_size, size_t send_packet_count, u32 bitrate) {
     Result ret = 0;
-	u32 *cmdbuf = getThreadCommandBuffer();
+    u32 *cmdbuf = getThreadCommandBuffer();
     
 	cmdbuf[0] = IPC_MakeHeader(0x1, 6, 2); // 0x00010182
 	cmdbuf[1] = iruserSharedMemSize;
@@ -378,7 +372,7 @@ Result iruserCirclePadProRead(circlePosition *pos) {
 IrUserPacket* iruserGetPackets(Result* res) {
     void* shared_mem = iruserSharedMem;
 
-    // Find where the packets are, and how many
+    // Find where the p1ackets are, and how many
     u32 start_index = *(u32*)((u8*)shared_mem + 0x10);
     u32 valid_packet_count = *(u32*)((u8*)shared_mem + 0x18);
     
@@ -438,7 +432,7 @@ Result iruserCPPRequestInputPolling(u8 period_ms) {
         period_ms, 
         (u8)((period_ms + 2) << 2)
     };
-    return IRUSER_SendIrNop(sizeof(ir_request), ir_request);
+    return IRUSER_SendIrNop(3, ir_request);
 }
 
 Handle iruserGetServHandle() {

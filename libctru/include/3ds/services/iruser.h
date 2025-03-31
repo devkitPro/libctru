@@ -85,7 +85,7 @@ typedef struct {
  * Allocates memory to use as shared_memory based on buffer_size and sets it as read only.
  * 
  */
-Result iruserInit(size_t buffer_size, size_t packet_count);
+Result iruserInit(u32 *sharedmem_addr, u32 sharedmem_size, size_t buffer_size, size_t packet_count);
 
 /// Shuts down IRUSER. Frees shared memory.
 void iruserExit();
