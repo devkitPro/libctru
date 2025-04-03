@@ -96,6 +96,39 @@ typedef struct {
 	u8 cmd1b_inval;
 } MVDSTD_InitStruct;
 
+typedef struct
+{
+	u8 enable;			//Whether use this calculation method.
+	u8 flag;			//Flag for calculation.
+	u8 double_size;		//If set, size calculation result is doubled.
+	u8 level;			//H.264 (AVC) level.
+} MVDSTD_WithLevel;
+
+typedef struct
+{
+	u8 enable;			//Whether use this calculation method.
+	u8 ref_frames;		//Number of reference frames.
+} MVDSTD_WithNumOfRefFrames;
+
+/// H.264 buffer calculation configuration.
+/// See here for detailed explanations : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize.
+typedef struct {
+	u8 unused_0x00;								//Unused.
+	MVDSTD_WithLevel level;						//Calc buffer size with H.264 level.
+	MVDSTD_WithNumOfRefFrames ref_frames_a;		//Calc buffer size with num of reference frames and resolution.
+	MVDSTD_WithNumOfRefFrames ref_frames_b;		//Calc buffer size with num of reference frames and resolution.
+	u8 unused_0x09[3];							//Unused.
+	u32 unk_0x0c;								//Unknown.
+	u32 unk_0x10;								//Unknown.
+	u32 unk_0x14;								//Unknown.
+	u32 unk_0x18;								//Unknown.
+	u32 unk_0x1c;								//Unknown.
+	u32 unk_0x20;								//Unknown.
+	u32 unk_0x24;								//Unknown.
+	u32 width;									//Video width.
+	u32 height;									//Video height.
+} MVDSTD_CalculateWorkBufSizeConfig;
+
 /**
  * @brief Initializes MVDSTD.
  * @param mode Mode to initialize MVDSTD to.
@@ -108,6 +141,13 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 
 /// Shuts down MVDSTD.
 void mvdstdExit(void);
+
+/**
+ * @brief Calculate working buffer size for H.264 decoding.
+ * @param config Calculation config, see here for detailed explanations : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize.
+ * @param size_out Calculated buffer size in bytes.
+ */
+Result mvdstdCalculateBufferSize(MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out);
 
 /**
  * @brief Generates a default MVDSTD configuration.
