@@ -20,6 +20,29 @@
 /// Default input size for mvdstdInit(). This is what the New3DS Internet Browser uses, from the MVDSTD:CalculateWorkBufSize output.
 #define MVD_DEFAULT_WORKBUF_SIZE 0x9006C8
 
+#define MVD_CALC_WITH_LEVEL_FLAG_NONE				(u8)(0x00)	//Nothing.
+#define MVD_CALC_WITH_LEVEL_FLAG_ENABLE_CALC		(u8)(0x01)	//Enable calculation with level.
+#define MVD_CALC_WITH_LEVEL_FLAG_ENABLE_EXTRA_OP	(u8)(0x02)	//Enable extra op after base calculation (see : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize).
+#define MVD_CALC_WITH_LEVEL_FLAG_UNK				(u8)(0x04)	//Unknown.
+
+#define MVD_H264_LEVEL_1_0		(u8)(0x00)	//H.264 level 1.0.
+#define MVD_H264_LEVEL_1_0B		(u8)(0x01)	//H.264 level 1.0b.
+#define MVD_H264_LEVEL_1_1		(u8)(0x02)	//H.264 level 1.1.
+#define MVD_H264_LEVEL_1_2		(u8)(0x03)	//H.264 level 1.2.
+#define MVD_H264_LEVEL_1_3		(u8)(0x04)	//H.264 level 1.3.
+#define MVD_H264_LEVEL_2_0		(u8)(0x05)	//H.264 level 2.0.
+#define MVD_H264_LEVEL_2_1		(u8)(0x06)	//H.264 level 2.1.
+#define MVD_H264_LEVEL_2_2		(u8)(0x07)	//H.264 level 2.2.
+#define MVD_H264_LEVEL_3_0		(u8)(0x08)	//H.264 level 3.0.
+#define MVD_H264_LEVEL_3_1		(u8)(0x09)	//H.264 level 3.1.
+#define MVD_H264_LEVEL_3_2		(u8)(0x0A)	//H.264 level 3.2.
+#define MVD_H264_LEVEL_4_0		(u8)(0x0B)	//H.264 level 4.0.
+#define MVD_H264_LEVEL_4_1		(u8)(0x0C)	//H.264 level 4.1.
+#define MVD_H264_LEVEL_4_2		(u8)(0x0D)	//H.264 level 4.2.
+#define MVD_H264_LEVEL_5_0		(u8)(0x0E)	//H.264 level 5.0.
+#define MVD_H264_LEVEL_5_1		(u8)(0x0F)	//H.264 level 5.1.
+#define MVD_H264_LEVEL_5_2		(u8)(0x10)	//H.264 level 5.2.
+
 /// Processing mode.
 typedef enum {
 	MVDMODE_COLORFORMATCONV, ///< Converting color formats.
@@ -99,9 +122,9 @@ typedef struct {
 typedef struct
 {
 	u8 enable;			//Whether use this calculation method.
-	u8 flag;			//Flag for calculation.
+	u8 flag;			//Flag for calculation (MVD_CALC_WITH_LEVEL_FLAG_XXXXXX).
 	u8 double_size;		//If set, size calculation result is doubled.
-	u8 level;			//H.264 (AVC) level.
+	u8 level;			//H.264 (AVC) level (MVD_H264_LEVEL_XXXXXX).
 } MVDSTD_WithLevel;
 
 typedef struct
