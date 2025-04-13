@@ -16,6 +16,11 @@ typedef enum {
     CNSTATUS_Unknown = 4 // /// Unknown status value
 } IRUSER_ConnectionStatus;
 
+typedef enum {
+    CNRole_1 = 1,
+    CNRole_2 = 2,
+} IRUSER_ConnectionRole;
+
 /// This struct holds a parsed copy of the ir:USER service status (from shared memory).
 typedef struct {
     /// The result of the last receive operation.
@@ -210,7 +215,7 @@ Result IRUSER_GetConnectionStatus(IRUSER_ConnectionStatus* status);
 Result IRUSER_GetTryingToConnectStatus();
 Result IRUSER_GetReceiveSizeFreeAndUsed();
 Result IRUSER_GetSendSizeFreeAndUsed();
-Result IRUSER_GetConnectionRole();
+Result IRUSER_GetConnectionRole(IRUSER_ConnectionRole* role);
 
 /**
  * @brief Initializes the IR session

@@ -295,8 +295,17 @@ Result IRUSER_GetSendSizeFreeAndUsed() {
     return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
 }
 
-Result IRUSER_GetConnectionRole() {
-    return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
+Result IRUSER_GetConnectionRole(IRUSER_ConnectionRole* role) {
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+   
+	cmdbuf[0] = IPC_MakeHeader(0x17, 0, 0); // 0x00170000
+   
+	if(R_FAILED(ret = svcSendSyncRequest(iruserHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+	*role = (IRUSER_ConnectionRole)cmdbuf[2];
+   
+	return ret;
 }
 
 Result IRUSER_InitializeIrNopShared(size_t recv_buffer_size, size_t recv_packet_count, size_t send_buffer_size, size_t send_packet_count, u32 bitrate) {
