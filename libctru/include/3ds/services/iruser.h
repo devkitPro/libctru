@@ -142,8 +142,12 @@ Result IRUSER_ClearReceiveBuffer();
 /// Clears send buffer
 Result IRUSER_ClearSendBuffer();
 
-/// Unknown.
-Result IRUSER_WaitConnection();
+/**
+ * @brief Attempts to connect to device with given id and timeout.
+ * @param device_id ID of the device to connect to.
+ * @param timeout Timeout in milliseconds.
+ */
+Result IRUSER_WaitConnection(u8 target_id, u64 timeout);
 
 /**
  * @brief Attempts to connect to device with given id.

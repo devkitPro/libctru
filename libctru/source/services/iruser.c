@@ -129,10 +129,19 @@ Result IRUSER_ClearSendBuffer() {
 	return ret;
 };
 
-Result IRUSER_WaitConnection() {
-    // 3 params
-    // what could they be
-    return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
+Result IRUSER_WaitConnection(u8 target_id, u64 timeout) {
+    Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+    
+	cmdbuf[0] = IPC_MakeHeader(0x6, 3, 0); // 0x000600C0
+	cmdbuf[1] = target_id;
+	cmdbuf[2] = timeout & 0xFFFFFFFF;
+	cmdbuf[3] = (timeout >> 32) & 0xFFFFFFFF;
+    
+	if(R_FAILED(ret = svcSendSyncRequest(iruserHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+    
+	return ret;
 }
 
 Result IRUSER_RequireConnection(u8 device_id) {
