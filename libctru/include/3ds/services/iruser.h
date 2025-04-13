@@ -9,11 +9,11 @@
 
 /// Connection status values for [`IRUSER_StatusInfo`].
 typedef enum {
-    Disconnected = 0, /// Device is not connected
-    Connecting = 1, /// Waiting for device to connect
-    Connected = 2, /// Device is connected
-    Disconnecting = 3, /// Device is disconnecting
-    Unknown = 4 // /// Unknown status value
+    CNSTATUS_Disconnected = 0, /// Device is not connected
+    CNSTATUS_Connecting = 1, /// Waiting for device to connect
+    CNSTATUS_Connected = 2, /// Device is connected
+    CNSTATUS_Disconnecting = 3, /// Device is disconnecting
+    CNSTATUS_Unknown = 4 // /// Unknown status value
 } IRUSER_ConnectionStatus;
 
 /// This struct holds a parsed copy of the ir:USER service status (from shared memory).
@@ -206,7 +206,7 @@ Result IRUSER_ReceiveIrNopLarge();
 
 Result IRUSER_GetLatestReceiveErrorResult();
 Result IRUSER_GetLatestSendErrorResult();
-Result IRUSER_GetConnectionStatus();
+Result IRUSER_GetConnectionStatus(IRUSER_ConnectionStatus* status);
 Result IRUSER_GetTryingToConnectStatus();
 Result IRUSER_GetReceiveSizeFreeAndUsed();
 Result IRUSER_GetSendSizeFreeAndUsed();

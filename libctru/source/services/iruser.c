@@ -270,8 +270,17 @@ Result IRUSER_GetLatestSendErrorResult() {
     return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
 }
 
-Result IRUSER_GetConnectionStatus() {
-    return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
+Result IRUSER_GetConnectionStatus(IRUSER_ConnectionStatus* status) {
+   	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+   
+	cmdbuf[0] = IPC_MakeHeader(0x13, 0, 0); // 0x00130000
+   
+	if(R_FAILED(ret = svcSendSyncRequest(iruserHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+	*status = (IRUSER_ConnectionStatus)cmdbuf[2];
+   
+	return ret;
 }
 
 Result IRUSER_GetTryingToConnectStatus() {
