@@ -12,7 +12,8 @@ typedef enum {
     Disconnected = 0, /// Device is not connected
     Connecting = 1, /// Waiting for device to connect
     Connected = 2, /// Device is connected
-    Disconnecting = 4 /// Device is disconnecting
+    Disconnecting = 3, /// Device is disconnecting
+    Unknown = 4 // /// Unknown status value
 } IRUSER_ConnectionStatus;
 
 /// This struct holds a parsed copy of the ir:USER service status (from shared memory).
