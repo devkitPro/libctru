@@ -7,13 +7,13 @@
 #include <3ds/types.h>
 #include <3ds/services/hid.h>
 
-/// Connection status values for [`IrUserStatusInfo`].
+/// Connection status values for [`IRUSER_StatusInfo`].
 typedef enum {
     Disconnected = 0, /// Device is not connected
     Connecting = 1, /// Waiting for device to connect
     Connected = 2, /// Device is connected
     Disconnecting = 4 /// Device is disconnecting
-} ConnectionStatus;
+} IRUSER_ConnectionStatus;
 
 /// This struct holds a parsed copy of the ir:USER service status (from shared memory).
 typedef struct {
@@ -22,22 +22,22 @@ typedef struct {
     /// The result of the last send operation.
     Result send_err_result;
     /// The current connection status.
-    ConnectionStatus connection_status;
+    IRUSER_ConnectionStatus connection_status;
     /// The status of the connection attempt.
     u8 trying_to_connect_status;
     /// The role of the device in the connection (value meaning is unknown).
     u8 connection_role;
     /// The machine ID of the device.
     u8 machine_id;
-    /// Unknown field.
-    u8 unknown_field_1;
+    /// The machine ID of the target device.
+    u8 target_machine_id;
     /// The network ID of the connection.
     u8 network_id;
     /// Unknown field.
     u8 unknown_field_2;
     /// Unknown field.
     u8 unknown_field_3;
-} IrUserStatusInfo;
+} IRUSER_StatusInfo;
 
 /// A packet of data sent/received to/from the IR device.
 typedef struct {
@@ -51,7 +51,7 @@ typedef struct {
     u8* payload;
     /// The checksum of the packet.
     u8 checksum;
-} IrUserPacket;
+} IRUSER_Packet;
 
 /// Circle Pad Pro response packet holding the current device input signals and status.
 typedef struct {
@@ -95,7 +95,7 @@ void iruserExit();
 Handle iruserGetServHandle();
 
 
-IrUserStatusInfo iruserGetStatusInfo();
+IRUSER_StatusInfo iruserGetStatusInfo();
 
 /** 
  * @brief Circle Pad Pro specific request.
@@ -120,7 +120,7 @@ Result iruserGetCirclePadProState(circlePadProInputResponse* response);
 Result iruserCirclePadProCStickRead(circlePosition* pos);
 
 
-IrUserPacket* iruserGetPackets(Result* res);
+IRUSER_Packet* iruserGetPackets(Result* res);
 
 /**
  * @brief Initializes the IR session

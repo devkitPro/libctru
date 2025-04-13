@@ -248,6 +248,7 @@ Result IRUSER_SendIrNopLarge(u32 size, u8* inbufptr) {
 Result IRUSER_ReceiveIrNop() {
     return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
 }
+
 Result IRUSER_ReceiveIrNopLarge() {
     return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
 }
@@ -332,9 +333,9 @@ void iruserProcessSharedMemory(void(*process_fn)(u8*)) {
 }
 
 /// Read and parse the ir:USER service status data from shared memory.
-IrUserStatusInfo iruserGetStatusInfo() {
+IRUSER_StatusInfo iruserGetStatusInfo() {
     void* shared_mem = iruserSharedMem;
-    IrUserStatusInfo status_info;
+    IRUSER_StatusInfo status_info;
     // copy over data
     memcpy(&status_info, shared_mem, sizeof(status_info));
     
@@ -343,7 +344,7 @@ IrUserStatusInfo iruserGetStatusInfo() {
 
 Result iruserGetCirclePadProState(circlePadProInputResponse* response) {
     Result ret;
-    IrUserPacket* packet = iruserGetPackets(&ret);
+    IRUSER_Packet* packet = iruserGetPackets(&ret);
     if (R_FAILED(ret)) return ret;
     if (packet->payload_length != 6) return MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_SIZE);
     if (packet->payload[0] != CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID) return MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_ENUM_VALUE);
@@ -357,7 +358,7 @@ Result iruserGetCirclePadProState(circlePadProInputResponse* response) {
 
 Result iruserCirclePadProRead(circlePosition *pos) {
     Result ret;
-    IrUserPacket* packet = iruserGetPackets(&ret);
+    IRUSER_Packet* packet = iruserGetPackets(&ret);
     if (R_FAILED(ret)) return ret;
     if (packet->payload_length != 6) return RS_INVALIDSTATE;
     if (packet->payload[0] != CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID) return RS_INVALIDSTATE;
@@ -369,14 +370,14 @@ Result iruserCirclePadProRead(circlePosition *pos) {
 }
 
 /// Read and parse the current packets received from the IR device.
-IrUserPacket* iruserGetPackets(Result* res) {
+IRUSER_Packet* iruserGetPackets(Result* res) {
     void* shared_mem = iruserSharedMem;
 
     // Find where the p1ackets are, and how many
     u32 start_index = *(u32*)((u8*)shared_mem + 0x10);
     u32 valid_packet_count = *(u32*)((u8*)shared_mem + 0x18);
     
-    IrUserPacket* packets = (IrUserPacket*)malloc(valid_packet_count * sizeof(IrUserPacket));
+    IRUSER_Packet* packets = (IRUSER_Packet*)malloc(valid_packet_count * sizeof(IRUSER_Packet));
 
     // Parse the packets
     for (size_t i = 0; i < valid_packet_count; i++) {
