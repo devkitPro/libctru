@@ -16,6 +16,14 @@ typedef enum {
     CNSTATUS_Unknown = 4 // /// Unknown status value
 } IRUSER_ConnectionStatus;
 
+/// Connection status values for [`IRUSER_StatusInfo`].
+typedef enum {
+    Unk_1 = 1,
+    Unk_2 = 2,
+    Unk_3 = 3,
+    Unk_4 = 4 
+} IRUSER_TryingToConnectStatus;
+
 typedef enum {
     CNRole_1 = 1,
     CNRole_2 = 2,
@@ -212,7 +220,7 @@ Result IRUSER_ReceiveIrNopLarge();
 Result IRUSER_GetLatestReceiveErrorResult();
 Result IRUSER_GetLatestSendErrorResult();
 Result IRUSER_GetConnectionStatus(IRUSER_ConnectionStatus* status);
-Result IRUSER_GetTryingToConnectStatus();
+Result IRUSER_GetTryingToConnectStatus(IRUSER_TryingToConnectStatus* status);
 Result IRUSER_GetReceiveSizeFreeAndUsed();
 Result IRUSER_GetSendSizeFreeAndUsed();
 Result IRUSER_GetConnectionRole(IRUSER_ConnectionRole* role);

@@ -283,8 +283,17 @@ Result IRUSER_GetConnectionStatus(IRUSER_ConnectionStatus* status) {
 	return ret;
 }
 
-Result IRUSER_GetTryingToConnectStatus() {
-    return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
+Result IRUSER_GetTryingToConnectStatus(IRUSER_TryingToConnectStatus* status) {
+    Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+   
+	cmdbuf[0] = IPC_MakeHeader(0x14, 0, 0); // 0x00140000
+   
+	if(R_FAILED(ret = svcSendSyncRequest(iruserHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+	*status = cmdbuf[2] & 0xFF; // value is a u8
+   
+	return ret;
 }
 
 Result IRUSER_GetReceiveSizeFreeAndUsed() {
