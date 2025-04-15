@@ -53,6 +53,11 @@ typedef struct {
     u8 unknown_field_3;
 } IRUSER_StatusInfo;
 
+typedef struct {
+    u32 offset;
+    u32 length;
+} IRUSER_PacketInfo;
+
 /// A packet of data sent/received to/from the IR device.
 typedef struct {
     /// The magic number of the packet. Should always be 0xA5.
@@ -134,7 +139,7 @@ Result iruserGetCirclePadProState(circlePadProInputResponse* response);
 Result iruserCirclePadProCStickRead(circlePosition* pos);
 
 
-IRUSER_Packet* iruserGetPackets(Result* res);
+IRUSER_Packet* iruserGetPackets();
 
 /**
  * @brief Initializes the IR session

@@ -28,6 +28,9 @@ static u32 iruserSharedMemSize;
 static int iruserRefCount;
 static u32 iruserRecvBufferSize;
 static u32 iruserRecvPacketCount;
+static IRUSER_PacketInfo* iruserRecvPacketInfoBuffer;
+static u8* iruserRecvPacketDataBuffer;
+static u32 iruserRecvPacketDataBufferSize;
 
 Result iruserInit(u32 *sharedmem_addr, u32 sharedmem_size, size_t buffer_size, size_t packet_count) {
     if(AtomicPostIncrement(&iruserRefCount)) return 0;
@@ -47,6 +50,9 @@ Result iruserInit(u32 *sharedmem_addr, u32 sharedmem_size, size_t buffer_size, s
 
     iruserRecvBufferSize = buffer_size;
     iruserRecvPacketCount = packet_count;
+    iruserRecvPacketInfoBuffer = (IRUSER_PacketInfo*)((u8*)iruserSharedMem + SHARED_MEM_RECV_BUFFER_OFFSET);
+    iruserRecvPacketDataBuffer = (u8*)iruserRecvPacketInfoBuffer + iruserRecvPacketCount * PACKET_INFO_SIZE;
+    iruserRecvPacketDataBufferSize = (u32)((u8*)iruserSharedMem - iruserRecvPacketDataBuffer);
 
     return ret;
 
@@ -379,82 +385,85 @@ IRUSER_StatusInfo iruserGetStatusInfo() {
 }
 
 Result iruserGetCirclePadProState(circlePadProInputResponse* response) {
-    Result ret;
-    IRUSER_Packet* packet = iruserGetPackets(&ret);
+    Result ret = 0;
+    IRUSER_Packet* packet = iruserGetPackets();
     if (R_FAILED(ret)) return ret;
-    if (packet->payload_length != 6) return MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_SIZE);
-    if (packet->payload[0] != CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID) return MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_ENUM_VALUE);
+    if (!packet->payload) return ret;
+    if (packet->payload_length != 6) return /*MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_SIZE)*/-1;
+    if (packet->payload[0] != CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID) return /*MAKERESULT(RL_TEMPORARY, RS_INVALIDSTATE, RM_IR, RD_INVALID_ENUM_VALUE)*/-2;
     response->cstick.csPos.dx = (u16)(packet->payload[1] | ((packet->payload[2] & 0x0F) << 8));
     response->cstick.csPos.dy = (u16)(((packet->payload[2] & 0xF0) >> 4) | ((packet->payload[3]) << 4));
     response->status_raw = packet->payload[4];
     response->unknown_field = packet->payload[5];
+    free(packet->payload);
     free(packet);
-    return MAKERESULT(RL_SUCCESS, RS_SUCCESS, RM_COMMON, RD_SUCCESS);
+    return 0;
 }
 
 Result iruserCirclePadProRead(circlePosition *pos) {
-    Result ret;
-    IRUSER_Packet* packet = iruserGetPackets(&ret);
+    Result ret = 0;
+    IRUSER_Packet* packet = iruserGetPackets();
     if (R_FAILED(ret)) return ret;
     if (packet->payload_length != 6) return RS_INVALIDSTATE;
     if (packet->payload[0] != CIRCLE_PAD_PRO_INPUT_RESPONSE_PACKET_ID) return RS_INVALIDSTATE;
     pos->dx = (s16)(packet->payload[1] | ((packet->payload[2] & 0x0F) << 8));
     pos->dy = (s16)(((packet->payload[2] & 0xF0) >> 4) | ((packet->payload[3]) << 4));
 
+    free(packet->payload);
     free(packet);
-    return RS_SUCCESS;
+    return 0;
 }
 
+// since data buffer is a ring buffer, this helper macro makes it easier to access the data
+#ifndef IRUSER_PACKET_DATA
+#define IRUSER_PACKET_DATA(i) (iruserRecvPacketDataBuffer + (inf.offset + i) % iruserRecvPacketDataBufferSize)
+
+static bool iruserParsePacket(size_t index, IRUSER_Packet* packet) {
+    if (packet == NULL) return false;
+    IRUSER_PacketInfo inf = iruserRecvPacketInfoBuffer[index % iruserRecvPacketCount];
+    packet->magic_number = *IRUSER_PACKET_DATA(0);
+    packet->destination_network_id = *IRUSER_PACKET_DATA(1);
+    bool large = *IRUSER_PACKET_DATA(2) & 0x40;
+    u32 payload_offset = 0;
+    if (large) {
+        packet->payload_length = (*IRUSER_PACKET_DATA(2) << 8) + *IRUSER_PACKET_DATA(3);
+        packet->payload = malloc(packet->payload_length);
+        payload_offset = 4;
+    } else {
+        packet->payload_length = *IRUSER_PACKET_DATA(2);
+        packet->payload = malloc(packet->payload_length);
+        payload_offset = 3;
+    }
+    for (size_t i = 0; i < packet->payload_length; i++) {
+        packet->payload[i] = *IRUSER_PACKET_DATA(i + payload_offset);
+    }
+    packet->checksum = *IRUSER_PACKET_DATA(packet->payload_length + payload_offset);
+    return true;
+}
+
+#endif
+
+#undef IRUSER_PACKET_DATA
+
 /// Read and parse the current packets received from the IR device.
-IRUSER_Packet* iruserGetPackets(Result* res) {
+IRUSER_Packet* iruserGetPackets() {
     void* shared_mem = iruserSharedMem;
 
-    // Find where the p1ackets are, and how many
+    // Find where the packets are, and how many
     u32 start_index = *(u32*)((u8*)shared_mem + 0x10);
     u32 valid_packet_count = *(u32*)((u8*)shared_mem + 0x18);
+    
+    if (valid_packet_count == 0) {return NULL;}
 
     IRUSER_Packet* packets = (IRUSER_Packet*)malloc(valid_packet_count * sizeof(IRUSER_Packet));
 
+    int failed = 0; // number of bad packets
     // Parse the packets
     for (size_t i = 0; i < valid_packet_count; i++) {
-        u32 packet_index = (i + start_index) % iruserRecvPacketCount;
-        u32 packet_info_offset = SHARED_MEM_RECV_BUFFER_OFFSET + (packet_index * PACKET_INFO_SIZE);
-        u8* packet_info = (u8*)shared_mem + packet_info_offset;
-        u32 offset_to_data_buffer = *(u32*)packet_info;
-        u32 data_length = *(u32*)(packet_info + 4);
-        u32 packet_info_section_size = iruserRecvPacketCount * PACKET_INFO_SIZE;
-        u32 header_size = SHARED_MEM_RECV_BUFFER_OFFSET + packet_info_section_size;
-        u32 data_buffer_size = iruserRecvBufferSize - packet_info_section_size;
-
-        u8 packet_data(u32 idx) {
-            u32 data_buffer_offset = offset_to_data_buffer + idx;
-            return *(u8*)((u8*)shared_mem + header_size + data_buffer_offset % data_buffer_size);
+        // bad packet
+        if (!iruserParsePacket((i + start_index) % iruserRecvPacketCount, &packets[i - failed])) {
+            failed++; // retry with next packet
         }
-
-        u32 payload_length, payload_offset;
-        if ((packet_data(2) & 0x40 )!= 0) {
-            // Big payload
-            payload_length = ((packet_data(2) & 0x3F) << 8) + packet_data(3);
-            payload_offset = 4;
-        } else {
-            // Small payload
-            payload_length = packet_data(2) & 0x3F;
-            payload_offset = 3;
-        }
-        if (data_length != payload_offset + payload_length + 1) {
-            *res = RS_INVALIDSTATE;
-            return NULL;
-        }
-        if (packet_data(0) != 0xA5) {
-            *res = RS_INVALIDSTATE;
-            return NULL;
-        }
-
-        packets[i].magic_number = packet_data(0);
-        packets[i].destination_network_id = packet_data(1);
-        packets[i].payload_length = payload_length;
-        packets[i].payload = (u8*)payload_offset;
-        packets[i].checksum = packet_data(payload_offset + payload_length);
     }
     return packets;
 }
