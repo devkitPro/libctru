@@ -126,8 +126,6 @@ void iruserExit(void) {
 	iruserSharedMemHandle = 0;
 }
 
-
-
 Result IRUSER_InitializeIrNop(size_t recv_buffer_size, size_t recv_packet_count, size_t send_buffer_size, size_t send_packet_count, u32 bitrate) {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
@@ -317,12 +315,30 @@ Result IRUSER_ReceiveIrNopLarge() {
     return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
 }
 
-Result IRUSER_GetLatestReceiveErrorResult() {
-    return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
+Result IRUSER_GetLatestReceiveErrorResult(u32* result) {
+    Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+   
+	cmdbuf[0] = IPC_MakeHeader(0x11, 0, 0); // 0x00110000
+   
+	if(R_FAILED(ret = svcSendSyncRequest(iruserHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+	*result = (IRUSER_ConnectionStatus)cmdbuf[2];
+   
+	return ret;
 }
 
-Result IRUSER_GetLatestSendErrorResult() {
-    return MAKERESULT(RL_INFO, RS_NOTSUPPORTED, RM_IR, RD_NOT_IMPLEMENTED);
+Result IRUSER_GetLatestSendErrorResult(u32* result) {
+    Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+   
+	cmdbuf[0] = IPC_MakeHeader(0x12, 0, 0); // 0x00120000
+   
+	if(R_FAILED(ret = svcSendSyncRequest(iruserHandle)))return ret;
+	ret = (Result)cmdbuf[1];
+	*result = (IRUSER_ConnectionStatus)cmdbuf[2];
+   
+	return ret;
 }
 
 Result IRUSER_GetConnectionStatus(IRUSER_ConnectionStatus* status) {
