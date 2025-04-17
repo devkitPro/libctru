@@ -54,6 +54,13 @@ typedef struct {
 } IRUSER_StatusInfo;
 
 typedef struct {
+    u32 start_index;
+    u32 end_index;
+    u32 valid_packet_count;
+    u32 unknown_field;
+} IRUSER_BufferInfo;
+
+typedef struct {
     u32 offset;
     u32 length;
 } IRUSER_PacketInfo;
@@ -86,14 +93,14 @@ typedef struct {
     union {
         u8 status_raw;
         struct {
+            /// The battery level of the Circle Pad Pro.
+            u8 battery_level : 5;
             /// Whether the ZL button is pressed.
             bool zl_pressed : 1;
             /// Whether the ZR button is pressed.
             bool zr_pressed : 1;
             /// Whether the R button is pressed.
             bool r_pressed : 1;
-            /// The battery level of the Circle Pad Pro.
-            u8 battery_level : 5;
         } status;
     };
     /// Unknown field.
@@ -130,7 +137,7 @@ void iruserProcessSharedMemory(void(*process_fn)(u8*));
  * @brief Gets circle pad pro inputs state
  * @param response Pointer to write data to
  */
-Result iruserGetCirclePadProState(circlePadProInputResponse* response);
+Result iruserGetCirclePadProState(IRUSER_Packet* packet, circlePadProInputResponse* response);
 
 /**
  * @brief Reads c-stick position from circle pad pro
@@ -138,8 +145,12 @@ Result iruserGetCirclePadProState(circlePadProInputResponse* response);
  */
 Result iruserCirclePadProCStickRead(circlePosition* pos);
 
-
-IRUSER_Packet* iruserGetPackets();
+/**
+ * @brief Returns the packets received from the IR device.
+ * @param [out] numpackets Number of valid packets that were received
+ * @return Pointer to the packets received. The caller is responsible for freeing the memory (both the packet and its payload data).
+ */
+IRUSER_Packet* iruserGetPackets(u32* numpackets);
 
 /**
  * @brief Initializes the IR session
