@@ -460,7 +460,7 @@ static void consoleColorStateShift(void)
 			break;
 		case ESC_BUILDING_FORMAT_FG_RGB:
 		case ESC_BUILDING_FORMAT_BG_RGB:
-			if (escapeSeq.argIdx < 3)
+			if (escapeSeq.argIdx < 2)
 				escapeSeq.argIdx++;
 			else
 				consoleHandleColorEsc(0); // Nothing passed here because three RGB items
