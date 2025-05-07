@@ -366,17 +366,17 @@ static void consoleHandleColorEsc(int code)
 			}
 		break;
 		case ESC_BUILDING_FORMAT_FG:
-			if (escapeSeq.color.args[0] == 5)
+			if (code == 5)
 				escapeSeq.state = ESC_BUILDING_FORMAT_FG_NONRGB;
-			else if (escapeSeq.color.args[0] == 2)
+			else if (code == 2)
 				escapeSeq.state = ESC_BUILDING_FORMAT_FG_RGB;
 			else
 				escapeSeq.state = ESC_BUILDING_FORMAT_UNKNOWN;
 			break;
 		case ESC_BUILDING_FORMAT_BG:
-			if (escapeSeq.color.args[0] == 5)
+			if (code == 5)
 				escapeSeq.state = ESC_BUILDING_FORMAT_BG_NONRGB;
-			else if (escapeSeq.color.args[0] == 2)
+			else if (code == 2)
 				escapeSeq.state = ESC_BUILDING_FORMAT_BG_RGB;
 			else
 				escapeSeq.state = ESC_BUILDING_FORMAT_UNKNOWN;
@@ -448,6 +448,7 @@ static void consoleColorStateShift(void)
 			if (escapeSeq.hasArg[1])
 				consoleHandleColorEsc(escapeSeq.color.args[1]);
 			escapeSeq.argIdx = 0;
+			escapeSeq.rawBuf[0] = escapeSeq.rawBuf[1] = 0;
 			escapeSeq.hasArg[0] = escapeSeq.hasArg[1] = false;
 			break;
 		case ESC_BUILDING_FORMAT_BG:
@@ -456,11 +457,12 @@ static void consoleColorStateShift(void)
 		case ESC_BUILDING_FORMAT_BG_NONRGB:
 			consoleHandleColorEsc(escapeSeq.color.args[0]);
 			escapeSeq.argIdx = 0;
+			escapeSeq.rawBuf[0] = escapeSeq.rawBuf[1] = 0;
 			escapeSeq.hasArg[0] = escapeSeq.hasArg[1] = false;
 			break;
 		case ESC_BUILDING_FORMAT_FG_RGB:
 		case ESC_BUILDING_FORMAT_BG_RGB:
-			if (escapeSeq.argIdx < 3)
+			if (escapeSeq.argIdx < 2)
 				escapeSeq.argIdx++;
 			else
 				consoleHandleColorEsc(0); // Nothing passed here because three RGB items
@@ -538,7 +540,7 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 						escapeSeq.rawBuf[escapeSeq.argIdx] = escapeSeq.rawBuf[escapeSeq.argIdx] * 10 + (chr - '0');
 						break;
 					case ';':
-						if (escapeSeq.argIdx < 2)
+						if (escapeSeq.argIdx < 1)
 							escapeSeq.argIdx++;
 						else
 							consoleColorStateShift();
@@ -836,7 +838,13 @@ void consoleDrawChar(int c) {
 	}
 
 	if (!(currentConsole->flags & CONSOLE_BG_CUSTOM)) {
-		bg = colorTable[bg];
+		if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
+			bg = colorTable[bg + 8];
+		} else if (currentConsole->flags & CONSOLE_COLOR_FAINT) {
+			bg = colorTable[bg + 16];
+		} else {
+			bg = colorTable[bg];
+		}
 	}
 
 	if (currentConsole->flags & CONSOLE_COLOR_REVERSE) {
