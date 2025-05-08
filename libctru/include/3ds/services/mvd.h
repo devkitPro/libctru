@@ -124,7 +124,7 @@ typedef struct
 	u8 enable;			//Whether use this calculation method.
 	u8 flag;			//Flag for calculation (MVD_CALC_WITH_LEVEL_FLAG_XXXXXX).
 	u8 double_size;		//If set, size calculation result is doubled.
-	u8 level;			//H.264 (AVC) level (MVD_H264_LEVEL_XXXXXX).
+	u8 level;			//H.264 (AVC) level (MVD_H264_LEVEL_1_0 ~ MVD_H264_LEVEL_5_2).
 } MVDSTD_WithLevel;
 
 typedef struct

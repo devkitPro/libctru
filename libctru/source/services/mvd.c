@@ -332,7 +332,7 @@ Result mvdstdCalculateBufferSize(MVDSTD_CalculateWorkBufSizeConfig* config, u32*
 	bool must_close_handle = false;
 	Result ret = 0;
 
-	if(!config || !size_out)
+	if(!config || !size_out || config->level.level > 0x10)
 		return -1;
 
 	//If we don't have mvdstd handle, get it.
@@ -343,11 +343,6 @@ Result mvdstdCalculateBufferSize(MVDSTD_CalculateWorkBufSizeConfig* config, u32*
 
 		must_close_handle = true;
 	}
-
-	//Attempting to use more than 0x10 for H.264 level will likely cause out-of-bound access. 
-	//https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize
-	if(config->level.level > 0x10)
-		config->level.level = 0x10;
 
 	ret = MVDSTD_CalculateWorkBufSize(config, size_out);
 
