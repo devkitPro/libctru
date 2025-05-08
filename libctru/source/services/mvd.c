@@ -14,7 +14,9 @@
 #include <3ds/services/mvd.h>
 #include <3ds/ipc.h>
 
-Handle mvdstdHandle;
+#define CALC_BUF_SIZE_SAFETY_MARGIN			(u16)(4096)
+
+Handle mvdstdHandle = 0;
 static int mvdstdRefCount;
 static MVDSTD_Mode mvdstd_mode;
 static MVDSTD_InputFormat mvdstd_input_type;
@@ -46,6 +48,20 @@ static Result MVDSTD_Shutdown(void)
 
 	Result ret=0;
 	if((ret = svcSendSyncRequest(mvdstdHandle)))return ret;
+
+	return cmdbuf[1];
+}
+
+static Result MVDSTD_CalculateWorkBufSize(const MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out)
+{
+	Result ret=0;
+	u32* cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x3,12,0); // 0x30300
+	memcpy(&cmdbuf[1], config, sizeof(MVDSTD_OutputBuffersEntryList));
+
+	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
+	if(size_out) *size_out = cmdbuf[2];
 
 	return cmdbuf[1];
 }
@@ -219,7 +235,9 @@ Result mvdstdInit(MVDSTD_Mode mode, MVDSTD_InputFormat input_type, MVDSTD_Output
 {
 	Result ret=0, ret2=0;
 
-	mvdstd_workbufsize = size;
+	//It seems there is some buffer overflow (some hundreds bytes according to test)
+	//when maximum number of reference frames are used : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize
+	mvdstd_workbufsize = (size + CALC_BUF_SIZE_SAFETY_MARGIN);
 	mvdstd_mode = mode;
 	mvdstd_input_type = input_type;
 	mvdstd_output_type = output_type;
@@ -304,8 +322,38 @@ void mvdstdExit(void)
 	MVDSTD_Shutdown();
 
 	svcCloseHandle(mvdstdHandle);
+	mvdstdHandle = 0;
 
 	linearFree(mvdstd_workbuf);
+}
+
+Result mvdstdCalculateBufferSize(const MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out)
+{
+	bool must_close_handle = false;
+	Result ret = 0;
+
+	if(!config || !size_out || config->level.level > 0x10)
+		return -1;
+
+	//If we don't have mvdstd handle, get it.
+	if(mvdstdHandle == 0)
+	{
+		if(R_FAILED(ret=srvGetServiceHandle(&mvdstdHandle, "mvd:STD")))
+			return ret;
+
+		must_close_handle = true;
+	}
+
+	ret = MVDSTD_CalculateWorkBufSize(config, size_out);
+
+	//Release handle if we must do so.
+	if(must_close_handle)
+	{
+		svcCloseHandle(mvdstdHandle);
+		mvdstdHandle = 0;
+	}
+
+	return ret;
 }
 
 void mvdstdGenerateDefaultConfig(MVDSTD_Config*config, u32 input_width, u32 input_height, u32 output_width, u32 output_height, u32 *vaddr_colorconv_indata, u32 *vaddr_outdata0, u32 *vaddr_outdata1)
