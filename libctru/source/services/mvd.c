@@ -52,7 +52,7 @@ static Result MVDSTD_Shutdown(void)
 	return cmdbuf[1];
 }
 
-static Result MVDSTD_CalculateWorkBufSize(MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out)
+static Result MVDSTD_CalculateWorkBufSize(const MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out)
 {
 	Result ret=0;
 	u32* cmdbuf = getThreadCommandBuffer();
@@ -327,7 +327,7 @@ void mvdstdExit(void)
 	linearFree(mvdstd_workbuf);
 }
 
-Result mvdstdCalculateBufferSize(MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out)
+Result mvdstdCalculateBufferSize(const MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out)
 {
 	bool must_close_handle = false;
 	Result ret = 0;

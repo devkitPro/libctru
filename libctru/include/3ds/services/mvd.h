@@ -170,7 +170,7 @@ void mvdstdExit(void);
  * @param config Calculation config, see here for detailed explanations : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize.
  * @param size_out Calculated buffer size in bytes.
  */
-Result mvdstdCalculateBufferSize(MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out);
+Result mvdstdCalculateBufferSize(const MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out);
 
 /**
  * @brief Generates a default MVDSTD configuration.
