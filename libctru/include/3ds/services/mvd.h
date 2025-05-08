@@ -167,7 +167,7 @@ void mvdstdExit(void);
 
 /**
  * @brief Calculate working buffer size for H.264 decoding.
- * @param config Calculation config, see here for detailed explanations : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize.
+ * @param config Calculation config, config->level.level must NOT exceed MVD_H264_LEVEL_5_2. See here for more explanations : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize.
  * @param size_out Calculated buffer size in bytes.
  */
 Result mvdstdCalculateBufferSize(const MVDSTD_CalculateWorkBufSizeConfig* config, u32* size_out);
