@@ -1218,7 +1218,7 @@ Result ACTA_SetIsMiiUpdated(u8 accountSlot, bool isDirty)
 	return (Result)cmdbuf[1];
 }
 
-Result ACTA_ReserveTransfer(u8 accountSlot, DeviceInfo *newDevice, char *operator, u32 operatorSize, Handle completionEvent)
+Result ACTA_ReserveTransfer(u8 accountSlot, DeviceInfo *newDevice, char *operatorData, u32 operatorSize, Handle completionEvent)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -1230,7 +1230,7 @@ Result ACTA_ReserveTransfer(u8 accountSlot, DeviceInfo *newDevice, char *operato
 	cmdbuf[8] = IPC_Desc_SharedHandles(1);
 	cmdbuf[9] = completionEvent;
 	cmdbuf[10] = IPC_Desc_Buffer(operatorSize, IPC_BUFFER_R);
-	cmdbuf[11] = (u32)operator;
+	cmdbuf[11] = (u32)operatorData;
 
 	if (R_FAILED(ret = svcSendSyncRequest(actHandle))) return ret;
 
