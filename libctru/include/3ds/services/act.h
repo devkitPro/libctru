@@ -917,11 +917,11 @@ Result ACTA_SetIsMiiUpdated(u8 accountSlot, bool isDirty);
  * @brief Initializes a server account transfer of a specific account to another device.
  * @param accountSlot The account slot number of the account to transfer the server account of.
  * @param newDevice Pointer to device info of the target device.
- * @param operator Pointer to operator data for the transfer.
+ * @param operatorData Pointer to operator data for the transfer.
  * @param operatorSize Size of the operator data buffer (max: 0x100)
  * @param completionEvent The event handle to signal once the request has finished.
  */
-Result ACTA_ReserveTransfer(u8 accountSlot, DeviceInfo *newDevice, char *operator, u32 operatorSize, Handle completionEvent);
+Result ACTA_ReserveTransfer(u8 accountSlot, DeviceInfo *newDevice, char *operatorData, u32 operatorSize, Handle completionEvent);
 
 /**
  * @brief Finalizes a server account transfer of a specifc account to another device.
