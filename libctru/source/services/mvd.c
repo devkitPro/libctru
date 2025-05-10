@@ -58,7 +58,7 @@ static Result MVDSTD_CalculateWorkBufSize(const MVDSTD_CalculateWorkBufSizeConfi
 	u32* cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x3,12,0); // 0x30300
-	memcpy(&cmdbuf[1], config, sizeof(MVDSTD_OutputBuffersEntryList));
+	memcpy(&cmdbuf[1], config, sizeof(MVDSTD_CalculateWorkBufSizeConfig));
 
 	if(R_FAILED(ret=svcSendSyncRequest(mvdstdHandle)))return ret;
 	if(size_out) *size_out = cmdbuf[2];

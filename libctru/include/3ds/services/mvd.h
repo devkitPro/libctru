@@ -22,7 +22,7 @@
 
 #define MVD_CALC_WITH_LEVEL_FLAG_NONE				0x00	//Nothing.
 #define MVD_CALC_WITH_LEVEL_FLAG_ENABLE_CALC		0x01	//Enable calculation with level.
-#define MVD_CALC_WITH_LEVEL_FLAG_ENABLE_EXTRA_OP	0x02	//Enable extra op after base calculation (see : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize.
+#define MVD_CALC_WITH_LEVEL_FLAG_ENABLE_EXTRA_OP	0x02	//Enable extra op after base calculation (see : https://www.3dbrew.org/wiki/MVDSTD:CalculateWorkBufSize).
 #define MVD_CALC_WITH_LEVEL_FLAG_UNK				0x04	//Unknown.
 
 #define MVD_H264_LEVEL_1_0		0x00	//H.264 level 1.0.
