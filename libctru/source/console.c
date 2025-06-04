@@ -437,12 +437,15 @@ static void consoleHandleColorEsc(int code)
 	escapeSeq.argIdx = 0;
 }
 
+
 static void consoleColorStateShift(void)
 {
 	switch (escapeSeq.state)
 	{
 		case ESC_BUILDING_UNKNOWN:
 			escapeSeq.state = ESC_BUILDING_FORMAT_UNKNOWN;
+			if (!escapeSeq.hasArg[0])
+				consoleHandleColorEsc(0);
 			if (escapeSeq.hasArg[0])
 				consoleHandleColorEsc(escapeSeq.color.args[0]);
 			if (escapeSeq.hasArg[1])
