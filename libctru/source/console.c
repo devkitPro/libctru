@@ -363,6 +363,18 @@ static void consoleHandleColorEsc(int code)
 					escapeSeq.color.flags &= ~CONSOLE_BG_CUSTOM;
 					escapeSeq.color.fg = 0;
 					break;
+				case 90 ... 97: // bright foreground
+					escapeSeq.color.flags &= ~CONSOLE_COLOR_FAINT;
+					escapeSeq.color.flags |= CONSOLE_COLOR_FG_BRIGHT;
+					escapeSeq.color.flags &= ~CONSOLE_BG_CUSTOM;
+					escapeSeq.color.fg = code - 90;
+					break;
+				case 100 ... 107: // bright background
+					escapeSeq.color.flags &= ~CONSOLE_COLOR_FAINT;
+					escapeSeq.color.flags |= CONSOLE_COLOR_BG_BRIGHT;
+					escapeSeq.color.flags &= ~CONSOLE_BG_CUSTOM;
+					escapeSeq.color.bg = code - 100;
+					break;
 			}
 		break;
 		case ESC_BUILDING_FORMAT_FG:
@@ -831,23 +843,17 @@ void consoleDrawChar(int c) {
 	u16 bg = currentConsole->bg;
 
 	if (!(currentConsole->flags & CONSOLE_FG_CUSTOM)) {
-		if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
-			fg = colorTable[fg + 8];
+		if (currentConsole->flags & (CONSOLE_COLOR_BOLD | CONSOLE_COLOR_FG_BRIGHT)) {
+			fg += 8;
 		} else if (currentConsole->flags & CONSOLE_COLOR_FAINT) {
-			fg = colorTable[fg + 16];
-		} else {
-			fg = colorTable[fg];
+			fg += 16;
 		}
+		fg = colorTable[fg];
 	}
 
 	if (!(currentConsole->flags & CONSOLE_BG_CUSTOM)) {
-		if (currentConsole->flags & CONSOLE_COLOR_BOLD) {
-			bg = colorTable[bg + 8];
-		} else if (currentConsole->flags & CONSOLE_COLOR_FAINT) {
-			bg = colorTable[bg + 16];
-		} else {
-			bg = colorTable[bg];
-		}
+		if (currentConsole->flags & CONSOLE_COLOR_BG_BRIGHT) bg +=8;
+		bg = colorTable[bg];
 	}
 
 	if (currentConsole->flags & CONSOLE_COLOR_REVERSE) {
