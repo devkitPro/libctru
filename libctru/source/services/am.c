@@ -581,13 +581,13 @@ Result AM_GetPersonalizedTicketInfos(u32 *outNum, AM_TicketInfo *outInfos, u32 c
 	return (Result)cmdbuf[1];
 }
 
-Result AM_DeleteAllImportTitleContexts(FS_MediaType mediaType, AM_PendingTitleFlags flags)
+Result AM_DeleteAllImportTitleContexts(FS_MediaType mediaType, u32 flags)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x22, 2, 0); // 0x00220080
 	cmdbuf[1] = (u32)mediaType;
-	cmdbuf[2] = (u32)flags;
+	cmdbuf[2] = flags;
 
 	Result res = svcSendSyncRequest(amHandle);
 
@@ -595,14 +595,14 @@ Result AM_DeleteAllImportTitleContexts(FS_MediaType mediaType, AM_PendingTitleFl
 	return (Result)cmdbuf[1];
 }
 
-Result AM_GetNumImportTitleContexts(u32 *outNum, FS_MediaType mediaType, AM_PendingTitleFlags flags)
+Result AM_GetNumImportTitleContexts(u32 *outNum, FS_MediaType mediaType, u32 flags)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x23,2,0); // 0x00230080
 	cmdbuf[1] = (u32)mediaType;
-	cmdbuf[2] = (u32)flags;
+	cmdbuf[2] = flags;
 
 	if(R_FAILED(ret = svcSendSyncRequest(amHandle))) return ret;
 
@@ -611,7 +611,7 @@ Result AM_GetNumImportTitleContexts(u32 *outNum, FS_MediaType mediaType, AM_Pend
 	return (Result)cmdbuf[1];
 }
 
-Result AM_GetImportTitleContextList(u32 *outNum, u32 count, FS_MediaType mediaType, AM_PendingTitleFlags flags, u64 *titleIds)
+Result AM_GetImportTitleContextList(u32 *outNum, u32 count, FS_MediaType mediaType, u32 flags, u64 *titleIds)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -619,7 +619,7 @@ Result AM_GetImportTitleContextList(u32 *outNum, u32 count, FS_MediaType mediaTy
 	cmdbuf[0] = IPC_MakeHeader(0x24,3,2); // 0x002400C2
 	cmdbuf[1] = count;
 	cmdbuf[2] = (u32)mediaType;
-	cmdbuf[3] = (u32)flags;
+	cmdbuf[3] = flags;
 	cmdbuf[4] = IPC_Desc_Buffer(count*sizeof(u64),IPC_BUFFER_W);
 	cmdbuf[5] = (u32)titleIds;
 

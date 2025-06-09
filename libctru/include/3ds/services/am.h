@@ -36,7 +36,7 @@ typedef enum
 /// Contains information about the limits section of a ticket.
 typedef struct
 {
-	AM_TicketLimitFlag flags : 8; ///< Enabled ticket limit types.
+	u8 flags;        ///< Enabled ticket limit types. @ref AM_TicketLimitFlag
 	u8 maxPlaycount; ///< The maximum play count when the ticket has a play count limit.
 	u8 reserved[14];
 } AM_TicketLimitInfo;
@@ -68,11 +68,11 @@ typedef enum
 // Contains basic information about a pending title.
 typedef struct
 {
-	u64 titleId;                      ///< The title's title ID.
-	u16 version;                      ///< The title's title version.
-	AM_TitleInstallStatus status : 8; ///< The title's installation status. @ref AM_TitleInstallStatus
-	u32 titleType;                    ///< The title's title type from the TMD.
-	u64 titleSize;                    ///< The amount of storage space (in bytes) the title takes up.
+	u64 titleId;   ///< The title's title ID.
+	u16 version;   ///< The title's title version.
+	u8 status;     ///< The title's installation status. @ref AM_TitleInstallStatus
+	u32 titleType; ///< The title's title type from the TMD.
+	u64 titleSize; ///< The amount of storage space (in bytes) the title takes up.
 } AM_PendingTitleInfo;
 
 // Contains basic information about a pending title.
@@ -81,11 +81,11 @@ typedef AM_PendingTitleInfo AM_PendingTitleEntry;
 // Contains information about a title's active content import.
 typedef struct
 {
-	u32 contentId;                      ///< Content ID (from the TMD) of this content.
-	u16 contentIndex;                   ///< Content index (from the TMD) of this content.
-	AM_ContentInstallStatus status : 8; ///< Installation status of this content. @ref AM_ContentInstallStatus
-	u64 size;                           ///< Total size of this content.
-	u64 currentInstallOffset;           ///< Current installation offset for this content.
+	u32 contentId;            ///< Content ID (from the TMD) of this content.
+	u16 contentIndex;         ///< Content index (from the TMD) of this content.
+	u8 status;                ///< Installation status of this content. @ref AM_ContentInstallStatus
+	u64 size;                 ///< Total size of this content.
+	u64 currentInstallOffset; ///< Current installation offset for this content.
 } AM_ImportContentContext;
 
 /// Pending title flags.
@@ -136,12 +136,12 @@ typedef enum
 /// Contains information about a title's content.
 typedef struct
 {
-	u16 index;                     ///< Content index from the TMD.
-	AM_ContentTypeFlags type : 16; ///< Content flags from the TMD. @ref AM_ContentTypeFlags
-	u32 contentId;                 ///< Content ID from the TMD.
-	u64 size;                      ///< Size of the content in the title.
-	AM_ContentInfoFlags flags : 8; ///< @ref AM_ContentInfoFlags
-	u8 padding[7];                 ///< Padding
+	u16 index;     ///< Content index from the TMD.
+	u16 type;      ///< Content flags from the TMD. @ref AM_ContentTypeFlags
+	u32 contentId; ///< Content ID from the TMD.
+	u64 size;      ///< Size of the content in the title.
+	u8 flags;      ///< @ref AM_ContentInfoFlags
+	u8 padding[7]; ///< Padding
 } AM_ContentInfo;
 
 /// Contains internal information about a title's storage location.
@@ -411,7 +411,7 @@ Result AM_GetPersonalizedTicketInfos(u32 *outNum, AM_TicketInfo *outInfos, u32 c
  * @param mediaType The media type to delete the pending titles from.
  * @param flags The criteria based on which the pending titles should be deleted. @ref AM_PendingTitleFlags
  */
-Result AM_DeleteAllImportTitleContexts(FS_MediaType mediaType, AM_PendingTitleFlags flags);
+Result AM_DeleteAllImportTitleContexts(FS_MediaType mediaType, u32 flags);
 
 /**
  * @brief Gets the number of pending titles matching specific criteria.
@@ -419,7 +419,7 @@ Result AM_DeleteAllImportTitleContexts(FS_MediaType mediaType, AM_PendingTitleFl
  * @param mediaType The media type to count the titles from.
  * @param flags The criteria based on which the pending titles should be counted. @ref AM_PendingTitleFlags
  */
-Result AM_GetNumImportTitleContexts(u32 *outNum, FS_MediaType mediaType, AM_PendingTitleFlags flags);
+Result AM_GetNumImportTitleContexts(u32 *outNum, FS_MediaType mediaType, u32 flags);
 
 /**
  * @brief Gets a list of title IDs for pending titles matching specific criteria.
@@ -428,7 +428,7 @@ Result AM_GetNumImportTitleContexts(u32 *outNum, FS_MediaType mediaType, AM_Pend
  * @param flags The criteria based on which the title IDs should be retrieved. @ref AM_PendingTitleFlags
  * @param[out] titleIds Pointer to output the title IDs to.
  */
-Result AM_GetImportTitleContextList(u32 *outNum, u32 count, FS_MediaType mediaType, AM_PendingTitleFlags flags, u64 *titleIds);
+Result AM_GetImportTitleContextList(u32 *outNum, u32 count, FS_MediaType mediaType, u32 flags, u64 *titleIds);
 
 /**
  * @brief Checks whether or not the user has the right to use a given content of a title.
