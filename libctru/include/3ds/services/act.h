@@ -150,14 +150,6 @@ typedef struct
 
 #pragma pack(push, 1)
 
-/// Mii CFLStoreData (CTR Face Library Store Data) structure
-typedef struct
-{
-	MiiData miiData;
-	u8 pad[2];
-	u16 crc16;
-} CFLStoreData;
-
 /// Birth date structure
 typedef struct
 {
