@@ -170,3 +170,11 @@ typedef struct
 
 	u16 author_name[10];    ///< Name of Mii's author (Encoded using UTF16)
 } CTR_PACKED MiiData;
+
+/// Mii CFLStoreData (CTR Face Library Store Data) structure
+typedef struct
+{
+	MiiData miiData; ///< Common shared Mii data structure.
+	u8 pad[2]; ///< Padding (usually left as zeros)
+	u16 crc16; ///< CRC16 over the previous 0x5E of data
+} CFLStoreData;
