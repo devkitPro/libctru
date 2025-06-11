@@ -285,7 +285,7 @@ Result FRD_GetMyPassword(char *password, u32 bufsize)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 size)
+Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 count)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -296,9 +296,9 @@ Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 
 
 	cmdbuf[0] = IPC_MakeHeader(0x11,2,0); // 0x110080
 	cmdbuf[1] = offset;
-	cmdbuf[2] = size;
+	cmdbuf[2] = count;
 
-	staticbufs[0] = IPC_Desc_StaticBuffer(size, 0);
+	staticbufs[0] = IPC_Desc_StaticBuffer(count * sizeof(FriendKey), 0);
 	staticbufs[1] = (u32)friendKeyList;
 
 	ret = svcSendSyncRequest(frdHandle);

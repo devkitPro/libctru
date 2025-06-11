@@ -92,22 +92,14 @@ typedef struct
 	u8 pad;
 } FriendPresence;
 
-/// Friend Mii data
-typedef struct
-{
-	bool profanityFlag; ///< Whether or not the Mii contains profanity.
-	u8 characterSet; ///< The character set for text data.
-	bool dirtyFlag; ///< Whether or not the Mii is marked as "dirty" (needs to be uploaded to the server).
-	u8 pad;
-	MiiData mii; ///< The actual Mii data.
-} FriendMii;
-
 /// Friend playing game structure
 typedef struct
 {
 	GameKey game; ///< Game key of the game.
 	FriendGameModeDescription gameModeDescription;
 } FriendPlayingGame;
+
+typedef CFLStoreData FriendMii;
 
 /// Friend info structure
 typedef struct
@@ -420,9 +412,9 @@ Result FRD_GetMyPassword(char *password, u32 bufsize);
  * @param friendKeyList Pointer to write the friend key list to.
  * @param num Stores the number of friend keys obtained.
  * @param offset The index of the friend key to start with.
- * @param size Size of the friend key list. (FRIEND_LIST_SIZE)
+ * @param count Number of friend keys to retrieve. Max: FRIEND_LIST_SIZE
  */
-Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 size);
+Result FRD_GetFriendKeyList(FriendKey *friendKeyList, u32 *num, u32 offset, u32 count);
 
 /**
  * @brief Gets friend presence data for the current user's friends.
