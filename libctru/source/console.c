@@ -60,8 +60,8 @@ PrintConsole defaultConsole =
 	0,0,	//prevcursorX prevcursorY
 	40,		//console width
 	30,		//console height
-	0,		//window x
-	0,		//window y
+	1,		//window x
+	1,		//window y
 	40,		//window width
 	30,		//window height
 	3,		//tab size
@@ -205,9 +205,8 @@ static inline void consolePosition(int x, int y) {
 	if(y > currentConsole->windowHeight)
 		y = currentConsole->windowHeight;
 
-	// 1-based adjustment
-	currentConsole->cursorX = x - 1;
-	currentConsole->cursorY = y - 1;
+	currentConsole->cursorX = x;
+	currentConsole->cursorY = y;
 }
 
 #define _ANSI_MAXARGS 16
@@ -872,12 +871,12 @@ void consolePrintChar(int c) {
 		case 8:
 			currentConsole->cursorX--;
 
-			if(currentConsole->cursorX < 0) {
-				if(currentConsole->cursorY > 0) {
+			if(currentConsole->cursorX < 1) {
+				if(currentConsole->cursorY > 1) {
 					currentConsole->cursorX = currentConsole->windowX - 1;
 					currentConsole->cursorY--;
 				} else {
-					currentConsole->cursorX = 0;
+					currentConsole->cursorX = 1;
 				}
 			}
 
@@ -890,12 +889,12 @@ void consolePrintChar(int c) {
 		case 10:
 			newRow();
 		case 13:
-			currentConsole->cursorX  = 0;
+			currentConsole->cursorX  = 1;
 			gfxFlushBuffers();
 			break;
 		default:
-			if(currentConsole->cursorX  >= currentConsole->windowWidth) {
-				currentConsole->cursorX  = 0;
+			if(currentConsole->cursorX  > currentConsole->windowWidth) {
+				currentConsole->cursorX  = 1;
 
 				newRow();
 			}
