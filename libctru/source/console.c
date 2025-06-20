@@ -107,8 +107,8 @@ static void consoleCls(int mode) {
 			colTemp = currentConsole->cursorX ;
 			rowTemp = currentConsole->cursorY ;
 
-			currentConsole->cursorY  = 0;
-			currentConsole->cursorX  = 0;
+			currentConsole->cursorY  = 1;
+			currentConsole->cursorX  = 1;
 
 			while (i++ < (rowTemp * currentConsole->windowWidth + colTemp))
 				consolePrintChar(' ');
@@ -119,14 +119,14 @@ static void consoleCls(int mode) {
 		}
 		case 2:
 		{
-			currentConsole->cursorY  = 0;
-			currentConsole->cursorX  = 0;
+			currentConsole->cursorY  = 1;
+			currentConsole->cursorX  = 1;
 
 			while(i++ < currentConsole->windowHeight * currentConsole->windowWidth)
 				consolePrintChar(' ');
 
-			currentConsole->cursorY  = 0;
-			currentConsole->cursorX  = 0;
+			currentConsole->cursorY  = 1;
+			currentConsole->cursorX  = 1;
 			break;
 		}
 	}
@@ -143,9 +143,9 @@ static void consoleClearLine(int mode) {
 	{
 		case 0:
 		{
-			colTemp = currentConsole->cursorX ;
+			colTemp = currentConsole->cursorX;
 
-			while(i++ < (currentConsole->windowWidth - colTemp)) {
+			while(i++ < (currentConsole->windowWidth - colTemp + 1)) {
 				consolePrintChar(' ');
 			}
 
@@ -157,9 +157,9 @@ static void consoleClearLine(int mode) {
 		{
 			colTemp = currentConsole->cursorX ;
 
-			currentConsole->cursorX  = 0;
+			currentConsole->cursorX  = 1;
 
-			while(i++ < ((currentConsole->windowWidth - colTemp)-2)) {
+			while(i++ < (currentConsole->windowWidth - colTemp - 1)) {
 				consolePrintChar(' ');
 			}
 
@@ -171,9 +171,9 @@ static void consoleClearLine(int mode) {
 		{
 			colTemp = currentConsole->cursorX ;
 
-			currentConsole->cursorX  = 0;
+			currentConsole->cursorX  = 1;
 
-			while(i++ < currentConsole->windowWidth) {
+			while(i++ <= currentConsole->windowWidth - 1) {
 				consolePrintChar(' ');
 			}
 
@@ -531,7 +531,7 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 				if (!escapeSeq.hasArg && !escapeSeq.argIdx)
 					escapeSeq.args[0] = 1;
 				currentConsole->cursorY  =  currentConsole->cursorY + escapeSeq.args[0];
-				if (currentConsole->cursorY >= currentConsole->windowHeight)
+				if (currentConsole->cursorY > currentConsole->windowHeight)
 					currentConsole->cursorY = currentConsole->windowHeight;
 				escapeSeq.state = ESC_NONE;
 				break;
@@ -762,17 +762,17 @@ static void newRow() {
 	currentConsole->cursorY ++;
 
 
-	if(currentConsole->cursorY  >= currentConsole->windowHeight)  {
-		currentConsole->cursorY --;
-		u16 *dst = &currentConsole->frameBuffer[(currentConsole->windowX * 8 * 240) + (239 - (currentConsole->windowY * 8))];
+	if(currentConsole->cursorY  > currentConsole->windowHeight)  {
+		currentConsole->cursorY = currentConsole->windowHeight;
+		u16 *dst = &currentConsole->frameBuffer[((currentConsole->windowX - 1 ) * 8 * 240) + (239 - ((currentConsole->windowY) * 8))];
 		u16 *src = dst - 8;
 
 		int i,j;
 
-		for (i=0; i<currentConsole->windowWidth*8; i++) {
+		for (i=0; i<(currentConsole->windowWidth - 1)*8; i++) {
 			u32 *from = (u32*)((int)src & ~3);
 			u32 *to = (u32*)((int)dst & ~3);
-			for (j=0;j<(((currentConsole->windowHeight-1)*8)/2);j++) *(to--) = *(from--);
+			for (j=0;j<(((currentConsole->windowHeight-2)*8)/2);j++) *(to--) = *(from--);
 			dst += 240;
 			src += 240;
 		}
@@ -829,8 +829,8 @@ void consoleDrawChar(int c) {
 
 	int i;
 
-	int x = (currentConsole->cursorX + currentConsole->windowX) * 8;
-	int y = ((currentConsole->cursorY + currentConsole->windowY) *8 );
+	int x = (currentConsole->cursorX - 1 + currentConsole->windowX - 1 ) * 8;
+	int y = ((currentConsole->cursorY - 1 + currentConsole->windowY - 1 ) *8 );
 
 	u16 *screen = &currentConsole->frameBuffer[(x * 240) + (239 - (y + 7))];
 
@@ -873,7 +873,7 @@ void consolePrintChar(int c) {
 
 			if(currentConsole->cursorX < 1) {
 				if(currentConsole->cursorY > 1) {
-					currentConsole->cursorX = currentConsole->windowX - 1;
+					currentConsole->cursorX = currentConsole->windowX;
 					currentConsole->cursorY--;
 				} else {
 					currentConsole->cursorX = 1;
@@ -916,12 +916,15 @@ void consoleSetWindow(PrintConsole* console, int x, int y, int width, int height
 
 	if(!console) console = currentConsole;
 
+	if (x < 1) x = 1;
+	if (y < 1) y = 1;
+
 	console->windowWidth = width;
 	console->windowHeight = height;
 	console->windowX = x;
 	console->windowY = y;
 
-	console->cursorX = 0;
-	console->cursorY = 0;
+	console->cursorX = 1;
+	console->cursorY = 1;
 
 }
