@@ -117,7 +117,7 @@ typedef struct PrintConsole
 #define CONSOLE_COLOR_FG_BRIGHT (1<<11) ///< Bright foreground color
 #define CONSOLE_COLOR_BG_BRIGHT (1<<12) ///< Bright background color
 
-/// Console debug devices supported by libnds.
+/// Console debug devices supported by libctru.
 typedef enum {
 	debugDevice_NULL,    ///< Swallows prints to stderr
 	debugDevice_SVC,     ///< Outputs stderr debug statements using svcOutputDebugString, which can then be captured by interactive debuggers
