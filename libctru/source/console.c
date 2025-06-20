@@ -337,7 +337,7 @@ static void consoleSetColorState(int code)
 		break;
 	case 49: // reset background color
 		escapeSeq.color.flags &= ~CONSOLE_BG_CUSTOM;
-		escapeSeq.color.fg = 0;
+		escapeSeq.color.bg = 0;
 		break;
 	case 90 ... 97: // bright foreground
 		escapeSeq.color.flags &= ~CONSOLE_COLOR_FAINT;
