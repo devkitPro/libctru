@@ -155,7 +155,7 @@ static void consoleClearLine(int mode) {
 
 			currentConsole->cursorX  = 1;
 
-			for(i=0; i < colTemp; i++) {
+			for(i=0; i < colTemp - 1; i++) {
 				consolePrintChar(' ');
 			}
 
@@ -348,6 +348,10 @@ static void consoleSetColorState(int code)
 
 static void consoleHandleColorEsc(int argCount)
 {
+	escapeSeq.color.bg = currentConsole->bg;
+	escapeSeq.color.fg = currentConsole->fg;
+	escapeSeq.color.flags = currentConsole->flags;
+
 	for (int arg = 0; arg < argCount; arg++)
 	{
 		int code = escapeSeq.args[arg];
@@ -434,14 +438,13 @@ static void consoleHandleColorEsc(int argCount)
 		}
 	}
 	escapeSeq.argIdx = 0;
-}
 
-static void consoleColorApply(void)
-{
 	currentConsole->bg = escapeSeq.color.bg;
 	currentConsole->fg = escapeSeq.color.fg;
 	currentConsole->flags = escapeSeq.color.flags;
+
 }
+
 
 //---------------------------------------------------------------------------------
 ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
@@ -595,7 +598,6 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 				if (escapeSeq.argIdx == 0 && !escapeSeq.hasArg) escapeSeq.args[escapeSeq.argIdx++] = 0;
 				if (escapeSeq.hasArg) escapeSeq.argIdx++;
 				consoleHandleColorEsc(escapeSeq.argIdx);
-				consoleColorApply();
 				escapeSeq.state = ESC_NONE;
 				break;
 			default:
