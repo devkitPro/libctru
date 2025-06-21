@@ -556,14 +556,7 @@ ssize_t con_write(struct _reent *r,void *fd,const char *ptr, size_t len) {
 			//---------------------------------------
 			case 'H':
 			case 'f':
-				if (escapeSeq.argIdx == 0 && !escapeSeq.hasArg)
-				{
-					escapeSeq.args[0] = 1;
-					escapeSeq.args[1] = 1;
-				}
-				if (escapeSeq.argIdx == 1 && !escapeSeq.hasArg)
-					escapeSeq.args[1] = 1;
-				consolePosition(escapeSeq.args[0], escapeSeq.args[1]);
+				consolePosition(escapeSeq.args[1], escapeSeq.args[0]);
 				escapeSeq.state = ESC_NONE;
 				break;
 			//---------------------------------------
