@@ -861,7 +861,7 @@ void consolePrintChar(int c) {
 
 			if(currentConsole->cursorX < 1) {
 				if(currentConsole->cursorY > 1) {
-					currentConsole->cursorX = currentConsole->windowX;
+					currentConsole->cursorX = currentConsole->windowWidth;
 					currentConsole->cursorY--;
 				} else {
 					currentConsole->cursorX = 1;
