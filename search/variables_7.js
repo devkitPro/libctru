@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['g_5foffset_0',['g_offset',['../structY2RU__ColorCoefficients.html#ade58f6b22c93eb3df6f0436325110458',1,'Y2RU_ColorCoefficients']]],
+  ['g_5fu_1',['g_U',['../structY2RU__ColorCoefficients.html#ab7116832143368479046f3a3a4c1d685',1,'Y2RU_ColorCoefficients']]],
+  ['g_5fv_2',['g_V',['../structY2RU__ColorCoefficients.html#a84c73ab84c1c6f1c38659cc69422ddca',1,'Y2RU_ColorCoefficients']]],
+  ['game_3',['game',['../structFriendPlayingGame.html#a084091bb348b43aabad7052c656d1fc8',1,'FriendPlayingGame']]],
+  ['gamemodedescription_4',['gameModeDescription',['../structMyPresence.html#a10a18724fd045bba0b1aae9930270533',1,'MyPresence']]],
+  ['gateway_5',['gateway',['../structSOCU__RoutingTableEntry.html#a06b849a41be07f5b32759e4138d09cca',1,'SOCU_RoutingTableEntry']]],
+  ['geometryshader_6',['geometryShader',['../structshaderProgram__s.html#a80f25550817af2c8163bc95430542f1f',1,'shaderProgram_s']]],
+  ['geoshaderinputpermutation_7',['geoShaderInputPermutation',['../structshaderProgram__s.html#ac4aa1a5958c171927907932c9ddb8c3a',1,'shaderProgram_s']]],
+  ['geoshaderinputstride_8',['geoShaderInputStride',['../structshaderProgram__s.html#ac51cab306bae4a050faa060dbd59ac09',1,'shaderProgram_s']]],
+  ['gfx_9',['gfx',['../structConsoleFont.html#a6e08b67a31abcebc4e7c9895c5870c3f',1,'ConsoleFont']]],
+  ['glasses_5fdetails_10',['glasses_details',['../structMiiData.html#a0404e316f4119f6220d110d9251bfec5',1,'MiiData']]],
+  ['glyphindex_11',['glyphIndex',['../structtag__CMAP__s.html#a38bd5733e74fd86d186d3ab4b7c19dc5',1,'tag_CMAP_s']]],
+  ['glyphwidth_12',['glyphWidth',['../structcharWidthInfo__s.html#aec28a270c5501a4ab8db07103132b636',1,'charWidthInfo_s']]],
+  ['gpucmdbuf_13',['gpuCmdBuf',['../gpu_8h.html#ad10795df374a3030584c5bf3cae77f06',1,'gpu.h']]],
+  ['gpucmdbufoffset_14',['gpuCmdBufOffset',['../gpu_8h.html#a40a7042f18d0ea0c57e7308bd5c6e5e7',1,'gpu.h']]],
+  ['gpucmdbufsize_15',['gpuCmdBufSize',['../gpu_8h.html#a7861728f2d0f9f8017dbe8012d460f49',1,'gpu.h']]],
+  ['greenpattern_16',['greenPattern',['../structInfoLedPattern.html#ab47dd417407b2084d9ea9b8c95ddffe6',1,'InfoLedPattern']]],
+  ['gshfixedvtxnum_17',['gshFixedVtxNum',['../structDVLE__s.html#a565739c888fc201b77d66973be06105c',1,'DVLE_s']]],
+  ['gshfixedvtxstart_18',['gshFixedVtxStart',['../structDVLE__s.html#a5f55a6b075729760d173c66c9f915a69',1,'DVLE_s']]],
+  ['gshmode_19',['gshMode',['../structDVLE__s.html#a38e6e929cc6f014f6fd24f56ff868db3',1,'DVLE_s']]],
+  ['gshvariablevtxnum_20',['gshVariableVtxNum',['../structDVLE__s.html#ad428ca730018d56fafecaa6855910b69',1,'DVLE_s']]],
+  ['guest_5fmii_5findex_21',['guest_mii_index',['../structMiiSelectorReturn.html#ae33689c2871ba9a26ad9df9d2714bc21',1,'MiiSelectorReturn']]],
+  ['guest_5fmii_5fname_22',['guest_mii_name',['../structMiiSelectorReturn.html#ac93a228ed21de887f4baf0bf53becee9',1,'MiiSelectorReturn']]],
+  ['guest_5fmii_5fwas_5fselected_23',['guest_mii_was_selected',['../structMiiSelectorReturn.html#a5835cb97c73227d48a9addb7087d6638',1,'MiiSelectorReturn']]],
+  ['gvloadmode_24',['gvLoadMode',['../structQtmStatusCfgData.html#a3c678b0e46ac81881f48dd20f4754ccf',1,'QtmStatusCfgData']]]
+];

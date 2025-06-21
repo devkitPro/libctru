@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['bossdeletensdata_0',['bossDeleteNsData',['../boss_8h.html#aad540935924ca6ed4e9014ccb2f0bc0b',1,'boss.h']]],
+  ['bossdeletetask_1',['bossDeleteTask',['../boss_8h.html#a9d9ec5b11a976033da50bc98e85d9715',1,'boss.h']]],
+  ['bossexit_2',['bossExit',['../boss_8h.html#a7d39838a77aa70d0c49655bea527688f',1,'boss.h']]],
+  ['bossgetnsdataheaderinfo_3',['bossGetNsDataHeaderInfo',['../boss_8h.html#aba33abae121b5753b3cffa9bb9d13b0e',1,'boss.h']]],
+  ['bossgetsessionhandle_4',['bossGetSessionHandle',['../boss_8h.html#af062df1ed184ae92c0fea54e56a01a9b',1,'boss.h']]],
+  ['bossgettaskproperty0_5',['bossGetTaskProperty0',['../boss_8h.html#a09dd791d42c55a259516107aa072cb9b',1,'boss.h']]],
+  ['bossgettaskstate_6',['bossGetTaskState',['../boss_8h.html#a0f6498cd076b685455b7ce71b499e80c',1,'boss.h']]],
+  ['bossinit_7',['bossInit',['../boss_8h.html#a51a7ee69864f16c5b10a11e20ebadbc1',1,'boss.h']]],
+  ['bossreadnsdata_8',['bossReadNsData',['../boss_8h.html#a5b3fbe675e9798b0e575c5eedcb6d788',1,'boss.h']]],
+  ['bossregistertask_9',['bossRegisterTask',['../boss_8h.html#adda61987644ad6ba87f4cf69090dfcdb',1,'boss.h']]],
+  ['bossreinit_10',['bossReinit',['../boss_8h.html#ad0bc14e4abeafad9edc307dc7a2c0be0',1,'boss.h']]],
+  ['bosssendcontextconfig_11',['bossSendContextConfig',['../boss_8h.html#a251f950dae769145729b0a8699c30dc3',1,'boss.h']]],
+  ['bosssendproperty_12',['bossSendProperty',['../boss_8h.html#ac9021bd11848da0af58dff1fc4c75ad4',1,'boss.h']]],
+  ['bosssetstorageinfo_13',['bossSetStorageInfo',['../boss_8h.html#a96574119e6fa095aec99f6bac0fadfea',1,'boss.h']]],
+  ['bosssetupcontextdefault_14',['bossSetupContextDefault',['../boss_8h.html#a18a7541eb4ff0ba8340bfe8177c22671',1,'boss.h']]],
+  ['bossstartbgimmediate_15',['bossStartBgImmediate',['../boss_8h.html#affcdefc8c0ea7c04af3429ee4bb062e3',1,'boss.h']]],
+  ['bossstarttaskimmediate_16',['bossStartTaskImmediate',['../boss_8h.html#a92fba4c5efe92a052c1f2feed3086cda',1,'boss.h']]],
+  ['bossunregisterstorage_17',['bossUnregisterStorage',['../boss_8h.html#a6d8c516ed9331ee157e2583443bb960a',1,'boss.h']]]
+];

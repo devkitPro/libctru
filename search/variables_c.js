@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['language_0',['language',['../structProfile.html#adb1e5629a0a9d2cd38385aaf7ff29b7e',1,'Profile::language'],['../structSwkbdDictWord.html#aaa1ff887f1d888595340ad2fa60a1d09',1,'SwkbdDictWord::language']]],
+  ['languagecode_1',['languagecode',['../structEulaInfo.html#a354dc6c285e956d7afd3fbae7f0d6791',1,'EulaInfo::languageCode'],['../structEulaEntry.html#a61aed482c689abf906ded723e04fb872',1,'EulaEntry::languageCode']]],
+  ['languagenameoffset_2',['languageNameOffset',['../structEulaEntry.html#a38cf29dbe4d941fa663f561b18e77f95',1,'EulaEntry']]],
+  ['lastdurationus_3',['lastDurationUs',['../structGSPGPU__PerfLogEntry.html#ac6ba9855717dc65416c064112fb2b0cd',1,'GSPGPU_PerfLogEntry']]],
+  ['lastentry_4',['lastEntry',['../structgxCmdQueue__s.html#a8bf3daf45d08546c0162d754ab66ad96',1,'gxCmdQueue_s']]],
+  ['lastonlinetimestamp_5',['lastOnlineTimestamp',['../structFriendProfile.html#ab1a6ff5d15888ce084a99e64a997942e',1,'FriendProfile']]],
+  ['lastresult_6',['lastResult',['../structNIM__TitleProgress.html#ab3a428ec2477ee4bd75ab781f5b654d1',1,'NIM_TitleProgress']]],
+  ['left_7',['left',['../structcharWidthInfo__s.html#a7c05ffca23db8b34c4acea4b4e5fc8e0',1,'charWidthInfo_s']]],
+  ['lenscorrection_8',['lensCorrection',['../structCAMU__PackageParameterCameraSelect.html#af3de38877056496facb20c3eaf5eaadd',1,'CAMU_PackageParameterCameraSelect']]],
+  ['linefeed_9',['lineFeed',['../structFINF__s.html#a61c7d30b360074723a75335ebc1de1d7',1,'FINF_s']]],
+  ['local_10',['local',['../structSOCU__UDPTableEntry.html#ab06e381a05a80b2907f62ad72208e1fa',1,'SOCU_UDPTableEntry::local'],['../structSOCU__TCPTableEntry.html#a77ef4f04db3d5705452ce8dd32ed9d70',1,'SOCU_TCPTableEntry::local']]],
+  ['local_5fcaps_11',['local_caps',['../structExHeader__AccessControlInfo.html#a44195b3bef441a827d56fda1c8baa0f1',1,'ExHeader_AccessControlInfo']]],
+  ['lock_12',['lock',['../structLightEvent.html#aa903d9a20aebc10972fac85def48f1ac',1,'LightEvent']]],
+  ['loopdelay_13',['loopDelay',['../structInfoLedPattern.html#a78f415cacf93273b538d273b19492422',1,'InfoLedPattern']]],
+  ['looping_14',['looping',['../structtag__ndspWaveBuf.html#a3c7ea7f11f9e714c385befa490f5079b',1,'tag_ndspWaveBuf']]],
+  ['lr_15',['lr',['../structCpuRegisters.html#af39510a91f0cb45bf16fa21644d14245',1,'CpuRegisters']]]
+];
