@@ -872,7 +872,7 @@ void consolePrintChar(int c) {
 			break;
 
 		case 9:
-			currentConsole->cursorX  += currentConsole->tabSize - ((currentConsole->cursorX)%(currentConsole->tabSize));
+			for(int i=0; i<currentConsole->tabSize; i++) consolePrintChar(' ');
 			break;
 		case 10:
 			newRow();
