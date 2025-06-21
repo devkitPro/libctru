@@ -136,51 +136,44 @@ static void consoleCls(int mode) {
 static void consoleClearLine(int mode) {
 //---------------------------------------------------------------------------------
 
-	int i = 0;
-	int colTemp;
+	int i, colTemp;
 
 	switch (mode)
 	{
 		case 0:
-		{
 			colTemp = currentConsole->cursorX;
 
-			while(i++ < (currentConsole->windowWidth - colTemp + 1)) {
+			for (i=0; i < currentConsole->windowWidth - colTemp + 1; i++) {
 				consolePrintChar(' ');
 			}
 
 			currentConsole->cursorX  = colTemp;
 
 			break;
-		}
 		case 1:
-		{
 			colTemp = currentConsole->cursorX ;
 
 			currentConsole->cursorX  = 1;
 
-			while(i++ < (currentConsole->windowWidth - colTemp - 1)) {
+			for(i=0; i < colTemp; i++) {
 				consolePrintChar(' ');
 			}
 
 			currentConsole->cursorX  = colTemp;
 
 			break;
-		}
 		case 2:
-		{
 			colTemp = currentConsole->cursorX ;
 
 			currentConsole->cursorX  = 1;
 
-			while(i++ <= currentConsole->windowWidth - 1) {
+			for(i=0; i < currentConsole->windowWidth; i++) {
 				consolePrintChar(' ');
 			}
 
 			currentConsole->cursorX  = colTemp;
 
 			break;
-		}
 	}
 	gfxFlushBuffers();
 }
