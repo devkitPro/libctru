@@ -430,7 +430,7 @@ static void consoleHandleColorEsc(int argCount)
 			if(escapeSeq.colorArgCount == 3)
 			{
 				escapeSeq.color.bg = RGB8_to_565(escapeSeq.colorArgs[0], escapeSeq.colorArgs[1], escapeSeq.colorArgs[2]);
-				escapeSeq.color.flags |= CONSOLE_FG_CUSTOM;
+				escapeSeq.color.flags |= CONSOLE_BG_CUSTOM;
 				escapeSeq.state = ESC_BUILDING_UNKNOWN;
 			}
 		default:
