@@ -95,7 +95,7 @@ static void consoleCls(int mode) {
 			colTemp = currentConsole->cursorX ;
 			rowTemp = currentConsole->cursorY ;
 
-			while(i++ < ((currentConsole->windowHeight * currentConsole->windowWidth) - (rowTemp * currentConsole->consoleWidth + colTemp)))
+			while(i++ < ((currentConsole->windowHeight * currentConsole->windowWidth) - (rowTemp * currentConsole->windowWidth + colTemp)))
 				consolePrintChar(' ');
 
 			currentConsole->cursorX  = colTemp;
