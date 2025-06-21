@@ -840,6 +840,8 @@ void consoleDrawChar(int c) {
 //---------------------------------------------------------------------------------
 void consolePrintChar(int c) {
 //---------------------------------------------------------------------------------
+	int tabspaces;
+
 	if (c==0) return;
 
 	if(currentConsole->PrintChar)
@@ -872,7 +874,8 @@ void consolePrintChar(int c) {
 			break;
 
 		case 9:
-			for(int i=0; i<currentConsole->tabSize; i++) consolePrintChar(' ');
+			tabspaces = currentConsole->tabSize - ((currentConsole->cursorX - 1) % currentConsole->tabSize);
+			for(int i=0; i<tabspaces; i++) consolePrintChar(' ');
 			break;
 		case 10:
 			newRow();
