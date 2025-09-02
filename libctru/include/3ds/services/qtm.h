@@ -3,18 +3,20 @@
  * @brief QTM services.
  *
  * QTM is responsible for the following:
- *      - tracking and predicting the position of the user's eyes. This is done by using the inner
- *        camera sampling at 320x240px at 30 FPS, and by using the gyroscope to predict the position
- *        of the eyes between two camera samples (effectively doubling the tracking rate).
- *        The API reporting eye tracking data is actually *console-agnostic*. This concept is most
+ *      - tracking and predicting the position of the user's head and eye position (head tracking).
+ *        This is done by using the inner camera sampling at 320x240px at 30 FPS, and by using
+ *        the gyroscope to predict the position of the eyes between two camera samples (effectively
+ *        doubling the tracking rate).
+ *        The API reporting head tracking data is actually *console-agnostic*. This concept is most
  *        likely covered by patent US9098112B2
- *      - automatically managing the IR LED emitter used for eye tracking in low-light conditions
+ *      - automatically managing the IR LED emitter used for head tracking in low-light conditions
  *      - managing the state of the parallax barrier by controlling the positions of the barrier's
  *        mask (opaque/transparent state by repeating pattern of 12 units, plus polarity). This is
  *        done via a TI TCA6416A I2C->Parallel expander (highlighted in yellow in this teardown photo:
  *        https://guide-images.cdn.ifixit.com/igi/IKlW6WTZKKmapYkt.full, with the expected 12 traces
- *        being clearly visible near the ribbon cable slot)
- *      - updating the barrier position according to eye tracking data relative to an optimal setting
+ *        being clearly visible near the ribbon cable slot); the parallax barrier polarity and pattern
+ *        is dithered by software approximately every frame.
+ *      - updating the barrier position according to head tracking data relative to an optimal setting
  *        stored in calibration data: this is what Nintendo calls "Super Stable 3D" (SS3D); not done
  *        when in 2D mode
  *
@@ -52,7 +54,7 @@
  * to blacklist or console being N2DSXL), `qtm:u` users should check Result return values, and `qtm:s`
  * users can call \ref QTMS_SetQtmStatus to check the actual availability status.
  *
- * Considering that the eye tracking data reporting API is hardware-agnostic, it is advisable to
+ * Considering that the head tracking data reporting API is hardware-agnostic, it is advisable to
  * hardcode neither camera aspect ratio (even if it is 4/3 on real hardware) and resolution nor
  * field-of-view angle.
  *
@@ -138,7 +140,7 @@ typedef enum QtmEyeSide {
 	QTM_EYE_NUM,            ///< Number of eyes.
 } QtmEyeSide;
 
-/// QTM raw eye tracking data
+/// QTM raw head tracking data
 typedef struct QtmRawTrackingData {
 	/**
 	 * @brief Eye position detected or predicted, equals (confidenceLevel > 0).
@@ -146,10 +148,10 @@ typedef struct QtmRawTrackingData {
 	 *        If the console isn't moving either, then QTM will assume the user's eyes are progressively
 	 *        moving back to face the screen.
 	 */
-	bool eyesTracked;       ///< Eye position detected or predicted, equals (confidenceLevel > 0).
+	bool headTracked;       ///< Eye position detected or predicted, equals (confidenceLevel > 0).
 	u8 _padding[3];         ///< Padding.
-	u32 singletonQtmPtr;    ///< Pointer to eye-tracking singleton pointer, in QTM's .bss, located in N3DS extra memory.
-	float confidenceLevel;  ///< Eye tracking confidence level (0 to 1).
+	u32 singletonQtmPtr;    ///< Pointer to head-tracking singleton pointer, in QTM's .bss, located in N3DS extra memory.
+	float confidenceLevel;  ///< Head tracking confidence level (0 to 1).
 
 	/**
 	 * @brief Raw predicted or detected eye coordinates. Each eye is represented as one point.
@@ -166,16 +168,16 @@ typedef struct QtmRawTrackingData {
 	s64   samplingTick;     ///< Time point the current measurements were made.
 } QtmRawTrackingData;
 
-/// QTM processed eye tracking data, suitable for 3D programming
+/// QTM processed head tracking data, suitable for 3D programming
 typedef struct QtmTrackingData {
-	bool eyesTracked;       ///< Eye position detected or tracked with some confidence, equals (confidenceLevel > 0). Even if false, QTM may make a guess
+	bool headTracked;       ///< Eye position detected or tracked with some confidence, equals (confidenceLevel > 0). Even if false, QTM may make a guess
 	bool faceDetected;      ///< Whether or not the entirety of the user's face has been detected with good confidence.
 	bool eyesDetected;      ///< Whether or not the user's eyes have actually been detected with full confidence.
 	u8 _unused;             ///< Unused.
 	bool clamped;           ///< Whether or not the normalized eye coordinates have been clamped after accounting for lens distortion.
 	u8 _padding[3];         ///< Padding.
 
-	float confidenceLevel;  ///< Eye tracking confidence level (0 to 1).
+	float confidenceLevel;  ///< Head tracking confidence level (0 to 1).
 
 	/**
 	 * @brief Normalized eye coordinates, for each eye, after accounting for lens distortion, centered around camera.
@@ -204,7 +206,7 @@ typedef struct QtmTrackingData {
 /// QTM service name enum, excluding `qtm:c`
 typedef enum QtmServiceName {
 	/**
-	 * @brief `qtm:u`: has eye-tracking commands and IR LED control commands, but for some
+	 * @brief `qtm:u`: has head-tracking commands and IR LED control commands, but for some
 	 *        reason cannot fetch ambiant lux data from the camera's luminosity sensor.
 	 */
 	QTM_SERVICE_USER            = 0,
@@ -256,7 +258,7 @@ bool qtmIsInitialized(void);
 Handle *qtmGetSessionHandle(void);
 
 /**
- * @brief  Gets the current raw eye tracking data, with an optional prediction made for predictionTimePointOrZero = t+dt,
+ * @brief  Gets the current raw head tracking data, with an optional prediction made for predictionTimePointOrZero = t+dt,
  *         or for the current time point (QTM makes predictions based on gyro data since inner camera runs at 30 FPS).
  *
  * @param[out] outData Where to write the raw tracking data to. Cleared to all-zero on failure (instead of being left uninitialized).
@@ -269,7 +271,7 @@ Handle *qtmGetSessionHandle(void);
 Result QTMU_GetRawTrackingDataEx(QtmRawTrackingData *outData, s64 predictionTimePointOrZero);
 
 /**
- * @brief  Gets the current raw eye tracking data.
+ * @brief  Gets the current raw head tracking data.
  *
  * @param[out] outData Where to write the raw tracking data to. Cleared to all-zero on failure (instead of being left uninitialized).
  * @return `0xC8A18008` if camera is in use by user, or `0xC8A183EF` if QTM is unavailable (in particular, QTM is always
@@ -282,7 +284,7 @@ static inline Result QTMU_GetRawTrackingData(QtmRawTrackingData *outData)
 }
 
 /**
- * @brief  Gets the current normalized eye tracking data, made suitable for 3D programming with an optional prediction made
+ * @brief  Gets the current normalized head tracking data, made suitable for 3D programming with an optional prediction made
  *         for predictionTimePointOrZero = t+dt, or for the current time point (QTM makes predictions based on gyro data since
  *         inner camera runs at 30 FPS).
  *
@@ -296,7 +298,7 @@ static inline Result QTMU_GetRawTrackingData(QtmRawTrackingData *outData)
 Result QTMU_GetTrackingDataEx(QtmTrackingData *outData, s64 predictionTimePointOrZero);
 
 /**
- * @brief  Gets the current normalized eye tracking data, made suitable for 3D programming.
+ * @brief  Gets the current normalized head tracking data, made suitable for 3D programming.
  *
  * @param[out] outData Where to write the raw tracking data to. Cleared to all-zero on failure (instead of being left uninitialized).
  * @return `0xC8A18008` if camera is in use by user, or `0xC8A183EF` if QTM is unavailable (in particular, QTM is always
@@ -309,45 +311,45 @@ static inline Result QTMU_GetTrackingData(QtmTrackingData *outData)
 }
 
 /**
- * @brief Computes an approximation of the horizontal angular field of view of the camera based on eye tracking data.
+ * @brief Computes an approximation of the horizontal angular field of view of the camera based on head tracking data.
  *
- * @param data Eye tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
+ * @param data Head tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
  * @return Horizontal angular field of view in radians. Corresponds to 64.9 degrees on real hardware.
  */
 float qtmComputeFovX(const QtmTrackingData *data);
 
 /**
- * @brief Computes an approximation of the vertical angular field of view of the camera based on eye tracking data.
+ * @brief Computes an approximation of the vertical angular field of view of the camera based on head tracking data.
  *
- * @param data Eye tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
+ * @param data Head tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
  * @return Vertical angular field of view in radians. Corresponds to 51.0 degrees on real hardware.
  */
 float qtmComputeFovY(const QtmTrackingData *data);
 
 /**
- * @brief Computes a rough approximation of the inverse of the aspect ration of the camera based on eye tracking data.
+ * @brief Computes a rough approximation of the inverse of the aspect ration of the camera based on head tracking data.
  *
- * @param data Eye tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
+ * @param data Head tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
  * @return Rough approximation of the inverse of the aspect ratio of the camera. Aspect ratio is exactly 0.75 on real hardware.
  */
 float qtmComputeInverseAspectRatio(const QtmTrackingData *data);
 
 /**
- * @brief  Computes the user's head tilt angle, that is, the angle between the line through both eyes and the camera's
+ * @brief  Computes the user's head tilt angle, that is, the angle between the line through both head and the camera's
  *         horizontal axis in camera space.
  *
- * @param data Eye tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
+ * @param data Head tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
  * @return Horizontal head angle relative to camera, in radians.
  */
 float qtmComputeHeadTiltAngle(const QtmTrackingData *data);
 
 /**
  * @brief  Estimates the distance between the user's eyes and the camera, based on
- *         eye tracking data. This may be a little bit inaccurate, as this assumes
+ *         head tracking data. This may be a little bit inaccurate, as this assumes
  *         interocular distance of 62mm (like all 3DS software does), and that both
  *         eyes are at the same distance from the screen.
  *
- * @param data Eye tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
+ * @param data Head tracking data, obtained from \ref QTMU_GetTrackingData or \ref QTMU_GetTrackingDataEx.
  * @return Eye-to-camera distance in millimeters.
  */
 float qtmEstimateEyeToCameraDistance(const QtmTrackingData *data);
