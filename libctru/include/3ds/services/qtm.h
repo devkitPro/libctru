@@ -15,7 +15,7 @@
  *        done via a TI TCA6416A I2C->Parallel expander (highlighted in yellow in this teardown photo:
  *        https://guide-images.cdn.ifixit.com/igi/IKlW6WTZKKmapYkt.full, with the expected 12 traces
  *        being clearly visible near the ribbon cable slot); the parallax barrier polarity and pattern
- *        is dithered by software approximately every frame.
+ *        is dithered by software approximately every 10ms (corresponding to one gyro sample).
  *      - updating the barrier position according to head tracking data relative to an optimal setting
  *        stored in calibration data: this is what Nintendo calls "Super Stable 3D" (SS3D); not done
  *        when in 2D mode

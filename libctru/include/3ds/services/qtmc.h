@@ -52,8 +52,8 @@ Result QTMC_StopHardwareCheck(void);
  *         QTM's expander management thread repeatedly writes (on every loop iteration) the current mask pattern
  *         plus polarity bit, whether it is normally set or overridden by `qtm:c`, then on the following set,
  *         negates both (it writes pattern ^ 0x1FFF). This is done at all times, even it 2D mode. This software-
- *         controlled dithering seems to at every sampling interval, about 60 times per second (I couldn't
- *         formally verify this timing).
+ *         controlled dithering seems to at every sampling interval, about 100 times per second (when it receives
+ *         a new gyro sample).
  *
  *         The register being written to are regId 0x02 and 0x03 (output ports).
  *         TI TCA6416A I2C->Parallel expander is located on bus I2C1 (PA 0x10161000) device ID 0x40.
