@@ -555,7 +555,13 @@ Result QTMSP_IsExpanderInUse(bool *outActive);
 /**
  * @brief  Called by GSP's LCD driver during top LCD power-on to signal to QTM that it needs to
  *         switch the parallax barrier state to a 2D state (all-transparent mask). Causes QTM's
- *         expander thread to exit, relinquishing its `i2c::QTM` session with it.
+ *         expander thread to exit, relinquishing its `i2c::QTM` session with it...
+ * @bug    ... except that it never does, because QTM only checks the flag this function set
+ *         when handling the "shell open" (0x213) notification, which incidentally would also
+ *         cause GSP to turn LCD and backlights all back on. This doesn't matter anyway: manually
+ *         calling the GSPLCD function that turns both backlights and LCD off will always cause the
+ *         GSPLCD thread to hang as a result on N3DS and N3DSXL (non-manually is fine, both GSP and
+ *         QTM listen to the same notifications in that regard).
  * @return Always 0 (success).
  */
 Result QTMSP_NotifyTopLcdPowerOff(void);
