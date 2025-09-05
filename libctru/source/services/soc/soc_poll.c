@@ -27,11 +27,19 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 	memcpy(tmp_fds, fds, sizeof(struct pollfd) * nfds);
 
 	for(i = 0; i < nfds; ++i) {
-		tmp_fds[i].fd = soc_get_fd(fds[i].fd);
-		if(tmp_fds[i].fd < 0) {
-			errno = -tmp_fds[i].fd;
-			free(tmp_fds);
-			return -1;
+		if (fds[i].fd >= 0) {
+			tmp_fds[i].fd = soc_get_fd(fds[i].fd);
+			if(tmp_fds[i].fd < 0) {
+				errno = -tmp_fds[i].fd;
+				free(tmp_fds);
+				return -1;
+			}
+		}
+		// negative fds are ignored, however 3ds poll only
+		// ignores fd's that are -1.
+		// this forces negative fds to -1 so they are ignored without error.
+		else {
+			tmp_fds[i].fd = -1;
 		}
 		tmp_fds[i].revents = 0;
 	}
