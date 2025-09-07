@@ -221,7 +221,7 @@ static inline void swkbdSetValidation(SwkbdState* swkbd, SwkbdValidInput validIn
  * @brief Configures what characters will the two bottom keys in a numpad produce.
  * @param swkbd Pointer to swkbd state.
  * @param left Unicode codepoint produced by the leftmost key in the bottom row (0 hides the key).
- * @param left Unicode codepoint produced by the rightmost key in the bottom row (0 hides the key).
+ * @param right Unicode codepoint produced by the rightmost key in the bottom row (0 hides the key).
  */
 static inline void swkbdSetNumpadKeys(SwkbdState* swkbd, int left, int right)
 {
