@@ -3,6 +3,7 @@ extern "C"
 	#include <3ds/types.h>
 	#include <3ds/allocator/linear.h>
 	#include <3ds/util/rbtree.h>
+	#include <string.h> // for memcpy
 }
 
 #include "mem_pool.h"
@@ -58,8 +59,22 @@ void* linearAlloc(size_t size)
 
 void* linearRealloc(void* mem, size_t size)
 {
-	// TODO
-	return NULL;
+	auto node = getNode(mem);
+	if (!node) return nullptr;
+
+	if (!sLinearPool.Reallocate(node->chunk, size))
+	{
+		size_t minSize = (size < node->chunk.size) ? size : node->chunk.size;
+		void* ret = linearMemAlign(size, (node->chunk.alignMask + 1));
+		if (ret)
+		{
+			memcpy(ret, mem, minSize);
+			linearFree(mem);
+			return ret;
+		}
+		return nullptr;
+	}
+	return mem;
 }
 
 size_t linearGetSize(void* mem)
