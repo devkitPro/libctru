@@ -459,6 +459,82 @@ void ndspUseComponent(const void* binary, u32 size, u16 progMask, u16 dataMask)
 	componentFree = false;
 }
 
+// decompression code stolen from ctrtool
+bool blz_decompress(u8* compressed, u32 compressedsize, u8* decompressed, u32 decompressedsize)
+{
+	u8* footer = compressed + compressedsize - 8;
+	u32 buffertopandbottom = (footer[0]<<0) | (footer[1]<<8) | (footer[2]<<16) | (footer[3]<<24);
+	u32 i, j;
+	u32 out = decompressedsize;
+	u32 index = compressedsize - ((buffertopandbottom>>24)&0xFF);
+	u32 segmentoffset;
+	u32 segmentsize;
+	u8 control;
+	u32 stopindex = compressedsize - (buffertopandbottom&0xFFFFFF);
+
+	memset(decompressed, 0, decompressedsize);
+	memcpy(decompressed, compressed, compressedsize);
+
+	
+	while(index > stopindex)
+	{
+		control = compressed[--index];
+		for(i=0; i<8; i++)
+		{
+			if (index <= stopindex)
+				break;
+			if (index <= 0)
+				break;
+			if (out <= 0)
+				break;
+			if (control & 0x80)
+			{
+				if (index < 2)
+				{
+					// fprintf(stderr, "Error, compression out of bounds\n");
+					goto clean;
+				}
+				index -= 2;
+				segmentoffset = compressed[index] | (compressed[index+1]<<8);
+				segmentsize = ((segmentoffset >> 12)&15)+3;
+				segmentoffset &= 0x0FFF;
+				segmentoffset += 2;
+				if (out < segmentsize)
+				{
+					// fprintf(stderr, "Error, compression out of bounds\n");
+					goto clean;
+				}
+				for(j=0; j<segmentsize; j++)
+				{
+					u8 data;
+					if (out+segmentoffset >= decompressedsize)
+					{
+						// fprintf(stderr, "Error, compression out of bounds\n");
+						goto clean;
+					}
+					data  = decompressed[out+segmentoffset];
+					decompressed[--out] = data;
+				}
+			}
+			else
+			{
+				if (out < 1)
+				{
+					// fprintf(stderr, "Error, compression out of bounds\n");
+					goto clean;
+				}
+				decompressed[--out] = compressed[--index];
+			}
+			control <<= 1;
+		}
+	}
+	return true;
+	
+	clean:
+	return false;
+}
+
+
 static bool ndspFindAndLoadComponent(void)
 {
 	Result rc;
@@ -516,6 +592,76 @@ static bool ndspFindAndLoadComponent(void)
 		componentFree = true;
 		return true;
 	} while (0);
+	
+	// Try loading the DSP component from home menu
+	do
+	{
+		static const u64 tidhigh = 0x0004003000000000;
+		static const u32 tidlow_home[6] = {
+			0x0000f202, // usa
+			0x00008202, // jpn
+			0x00009802, // eur
+			0x0000A102, // chn
+			0x0000A902, // kor
+			0x0000B102, // twn
+		};
+		for (int i = 0; i < 6; i++) {
+			u64 tid = tidhigh | tidlow_home[i];
+			u32 archPathRaw[] = {tid & 0xFFFFFFFF, (tid >> 32) & 0xFFFFFFFF, 0, 0x00000000};
+			FS_Path archPath = {PATH_BINARY, 0x10, (u8*)archPathRaw};
+			static const u32 filePathRaw[] = {0x00000000, 0x00000000, 0x00000002, 0x646F632E, 0x00000065};
+			FS_Path filePath = {PATH_BINARY, 0x14, (u8*)filePathRaw};
+			rc = FSUSER_OpenFileDirectly(&rsrc, (FS_ArchiveID)0x2345678a, archPath, filePath, FS_OPEN_READ, 0);
+			if (R_FAILED(rc)) continue;
+			break;
+		}
+		u64 fileSize = 0;
+		u32 bytesRead = 0;
+		rc = FSFILE_GetSize(rsrc, &fileSize);
+		if (R_FAILED(rc)) { FSFILE_Close(rsrc); break; }
+		u8* fileBuffer = malloc(fileSize);
+		if (!fileBuffer) { FSFILE_Close(rsrc); break; }
+		rc = FSFILE_Read(rsrc, &bytesRead, 0x0, fileBuffer, fileSize);
+		FSFILE_Close(rsrc);
+		if (R_FAILED(rc)) { free(fileBuffer); break; }
+		
+		
+		// get the decompress size
+		u32 decompressedSize = bytesRead + *(u32*)(fileBuffer + bytesRead - 4);
+		
+		u8* data = malloc(decompressedSize);
+		if (!data) { free(fileBuffer); break; }
+		
+		bool success = blz_decompress(fileBuffer, bytesRead, data, decompressedSize);
+		free(fileBuffer);
+		if (!success) { free(data); break; }
+		
+		const char* magic = "DSP1";
+		u8* search_buf = data;
+		u8* dsp_found = NULL;
+		while (decompressedSize - ((int)(search_buf - data)) > 0 && (search_buf = memchr(search_buf, *(u8*)magic, decompressedSize - ((int)(search_buf - data))))) {
+			if (memcmp(search_buf, magic, 4) == 0) {
+				dsp_found = search_buf;
+				break;
+			}
+			search_buf++;
+		}
+		if (!dsp_found) { free(data); break; }
+		
+		u32 dsp_size = *(u32*)(dsp_found + 4);
+		dsp_found -= 0x100;
+		
+		u8* dsp_loc = malloc(dsp_size);
+		if (!dsp_loc) { free(data); break; }
+		
+		memcpy(dsp_loc, dsp_found, dsp_size);
+		free(data);
+		
+		componentBin = dsp_loc;
+		componentSize = dsp_size;
+		componentFree = true;
+		return true;
+	} while(0);
 
 	return false;
 }
