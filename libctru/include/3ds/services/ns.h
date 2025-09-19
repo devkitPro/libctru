@@ -37,8 +37,9 @@ Result NS_LaunchApplicationFIRM(u64 titleid, u32 flags);
  * @brief Reboots to a title.
  * @param mediatype Mediatype of the title.
  * @param titleid ID of the title to launch.
+ * @param appmemtype The memory type a title should be launched under.
  */
-Result NS_RebootToTitle(u8 mediatype, u64 titleid);
+Result NS_RebootToTitle(u8 mediatype, u64 titleid, u8 appmemtype);
 
 /**
  * @brief Terminates the process with the specified titleid.
