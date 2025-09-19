@@ -83,7 +83,7 @@ Result NS_LaunchApplicationFIRM(u64 titleid, u32 flags)
 	return (Result)cmdbuf[1];
 }
 
-Result NS_RebootToTitle(u8 mediatype, u64 titleid)
+Result NS_RebootToTitle(u8 mediatype, u64 titleid, u8 appmemtype)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -94,7 +94,7 @@ Result NS_RebootToTitle(u8 mediatype, u64 titleid)
 	cmdbuf[3] = (titleid >> 32) & 0xffffffff;
 	cmdbuf[4] = mediatype;
 	cmdbuf[5] = 0x0; // reserved
-	cmdbuf[6] = 0x0;
+	cmdbuf[6] = appmemtype;
 
 	if(R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
 
