@@ -35,7 +35,8 @@ typedef struct {
 	u8 modulo[0x100];
 	u8 exponent[0x100];
 	u32 rsa_bitsize;//The signature byte size is rsa_bitsize>>3.
-	u32 unk;//Normally zero?
+	u8 is_full_exponent; // 1 if big endian full exponent, 0 if small 4 byte little endian exponent
+	u8 padding[3];
 } psRSAContext;
 
 /// Initializes PS.
