@@ -42,10 +42,10 @@ typedef enum
 
 /// DVLP data.
 typedef struct{
-	u32 codeSize;     ///< Code size.
-	u32* codeData;    ///< Code data.
-	u32 opdescSize;   ///< Operand description size.
-	u32* opcdescData; ///< Operand description data.
+	u32 codeSize;        ///< Code size.
+	const u32* codeData; ///< Code data.
+	u32 opdescSize;      ///< Operand description size.
+	u32* opcdescData;    ///< Operand description data.
 }DVLP_s;
 
 /// DVLE constant entry data.
@@ -107,7 +107,7 @@ typedef struct{
  * @param shbinSize Shader binary size.
  * @return The parsed shader binary.
  */
-DVLB_s* DVLB_ParseFile(u32* shbinData, u32 shbinSize);
+DVLB_s* DVLB_ParseFile(const u32* shbinData, u32 shbinSize);
 
 /**
  * @brief Frees shader binary data.
