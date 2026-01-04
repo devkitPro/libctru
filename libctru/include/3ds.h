@@ -60,6 +60,7 @@ extern "C" {
 #include <3ds/services/nim.h>
 #include <3ds/services/nwmext.h>
 #include <3ds/services/ir.h>
+#include <3ds/services/iruser.h>
 #include <3ds/services/ns.h>
 #include <3ds/services/pmapp.h>
 #include <3ds/services/pmdbg.h>
