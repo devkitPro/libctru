@@ -23,7 +23,6 @@ void* linearMemAlign(size_t size, size_t alignment);
 
 /**
  * @brief Reallocates a buffer.
- * Note: Not implemented yet.
  * @param mem Buffer to reallocate.
  * @param size Size of the buffer to allocate.
  * @return The reallocated buffer.
