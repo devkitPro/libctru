@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <3ds/types.h>
 #include <3ds/result.h>
 #include <3ds/svc.h>
@@ -9,6 +10,8 @@
 
 static Handle cfguHandle;
 static int cfguRefCount;
+
+#define MIN(x,y) ((x) > (y) ? (y) : (x))
 
 Result cfguInit(void)
 {
@@ -103,7 +106,7 @@ Result CFGU_GetModelNintendo2DS(u8* value)
 	return (Result)cmdbuf[1];
 }
 
-Result CFGU_GetCountryCodeString(u16 code, u16* string)
+Result CFGU_GetCountryCodeString(u16 code, char* string)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
@@ -113,18 +116,19 @@ Result CFGU_GetCountryCodeString(u16 code, u16* string)
 
 	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
-	*string = (u16)cmdbuf[2] & 0xFFFF;
+	memcpy(string, &cmdbuf[2], 2);
 
 	return (Result)cmdbuf[1];
 }
 
-Result CFGU_GetCountryCodeID(u16 string, u16* code)
+Result CFGU_GetCountryCodeID(const char* string, u16* code)
 {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0xA,1,0); // 0xA0040
-	cmdbuf[1] = (u32)string;
+	cmdbuf[1] = 0;
+	memcpy(&cmdbuf[1], string, MIN(strnlen(string, 2), 2));
 
 	if(R_FAILED(ret = svcSendSyncRequest(cfguHandle)))return ret;
 
@@ -244,6 +248,11 @@ Result CFG_UpdateConfigSavegame(void)
 Result CFGU_GetSystemLanguage(u8* language)
 {
 	return CFGU_GetConfigInfoBlk2(1, 0xA0002, language);
+}
+
+Result CFGU_GetSystemCountryInfo(CFG_CountryInfo* country)
+{
+        return CFGU_GetConfigInfoBlk2(4, 0xB0000, country);
 }
 
 Result CFGI_RestoreLocalFriendCodeSeed(void)
