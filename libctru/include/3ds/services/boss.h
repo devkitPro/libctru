@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <3ds/types.h>
+
 /// BOSS context.
 typedef struct
 {
@@ -95,6 +97,15 @@ Result bossUnregisterStorage(void);
  */
 Result bossRegisterTask(const char *taskID, u8 unk0, u8 unk1);
 
+/// Loads the task id list
+Result bossGetTaskIdList(void);
+
+/**
+ * @brief Loads the Step ID list
+ * @param task_id The task id for which to load the step id list
+ */
+Result bossGetStepIdList(const char* task_id);
+
 /**
  * @brief Send a property.
  * @param PropertyID PropertyID
@@ -102,6 +113,94 @@ Result bossRegisterTask(const char *taskID, u8 unk0, u8 unk1);
  * @param size Buffer size.
  */
 Result bossSendProperty(u16 PropertyID, const void* buf, u32 size);
+
+/**
+ * @brief Receives a property
+ * @param property_id The property id to receive
+ * @param buffer The read buffer
+ * @param size The size of the read buffer
+ */
+Result bossReceiveProperty(u16 property_id, void* buffer, u32 size);
+
+/**
+ * @brief Get the interval of a task, in seconds
+ * @param task_id The task id
+ * @param interval The output interval
+ */
+Result bossGetTaskInterval(const char* task_id, u32* interval);
+
+/**
+ * @brief Gets the count of the given task
+ * @param task_id The task id
+ * @param count The count returned
+ */
+Result bossGetTaskCount(const char* task_id, u32* count);
+
+/**
+ * @brief Get the service status of given task
+ * @param task_id The task id
+ * @param service_status The service status returned
+ */
+Result bossGetTaskServiceStatus(const char* task_id, u8* service_status);
+
+/**
+ * @brief Starts a boss task
+ * @param task_id The task id
+ */
+Result bossStartTask(const char* task_id);
+
+/**
+ * @brief Starts a task soon after running this command.
+ * @param taskID BOSS taskID.
+ */
+Result bossStartTaskImmediate(const char *taskID);
+
+/**
+ * @brief Deletes a task by using CancelTask and UnregisterTask internally.
+ * @param taskID BOSS taskID.
+ * @param unk Unknown, usually zero?
+ */
+Result bossDeleteTask(const char *taskID, u32 unk);
+
+/**
+ * @brief Returns task state.
+ * @param taskID BOSS taskID.
+ * @param inval Unknown, normally 0?
+ * @param status Output status, see bossTaskStatus.
+ * @param out1 Output field.
+ * @param out2 Output field.
+ */
+Result bossGetTaskState(const char *taskID, s8 inval, u8 *status, u32 *out1, u8 *out2);
+
+/**
+ * @brief Gets the communication error code (http status code) of a given task id
+ * @param task_id The task id
+ * @param err_code The error code (http status code) returned
+ * @param count The count returned
+ * @param current_step The current step returned
+ */
+Result bossGetTaskCommErrorCode(const char* task_id, u32* err_code, u32* count, u8* current_step);
+
+/**
+ * @brief Load status of a given task and step
+ * @param task_id The task id
+ * @param step_id The step id
+ */
+Result bossGetTaskStatus(const char* task_id, u8 step_id);
+
+/**
+ * @brief Loads the error for a given task and step
+ * @param task_id The task id
+ * @param step_id The step id
+ */
+Result bossGetTaskError(const char* task_id, u8 step_id);
+
+/**
+ * @brief Loads the info for a given task and step
+ * @param task_id The task id
+ * @param step_id The step id
+ */
+Result bossGetTaskInfo(const char* task_id, u8 step_id);
 
 /**
  * @brief Deletes the content file for the specified NsDataId.
@@ -130,33 +229,22 @@ Result bossGetNsDataHeaderInfo(u32 NsDataId, u8 type, void* buffer, u32 size);
 Result bossReadNsData(u32 NsDataId, u64 offset, void* buffer, u32 size, u32 *transfer_total, u32 *unk_out);
 
 /**
- * @brief Starts a task soon after running this command.
- * @param taskID BOSS taskID.
- */
-Result bossStartTaskImmediate(const char *taskID);
-
-/**
  * @brief Similar to bossStartTaskImmediate?
  * @param taskID BOSS taskID.
  */
 Result bossStartBgImmediate(const char *taskID);
 
 /**
- * @brief Deletes a task by using CancelTask and UnregisterTask internally.
- * @param taskID BOSS taskID.
- * @param unk Unknown, usually zero?
+ * @brief Gets the priority of a given task
+ * @param task_id The task id
+ * @param priority The priority returned
  */
-Result bossDeleteTask(const char *taskID, u32 unk);
+Result bossGetTaskPriority(const char* task_id, u8* priority);
 
 /**
- * @brief Returns task state.
- * @param taskID BOSS taskID.
- * @param inval Unknown, normally 0?
- * @param status Output status, see bossTaskStatus.
- * @param out1 Output field.
- * @param out2 Output field.
+ * @brief Loads the list of application ids registered with boss
  */
-Result bossGetTaskState(const char *taskID, s8 inval, u8 *status, u32 *out1, u8 *out2);
+Result bossGetAppIdList(void);
 
 /**
  * @brief This loads the current state of PropertyID 0x0 for the specified task.
@@ -177,4 +265,3 @@ void bossSetupContextDefault(bossContext *ctx, u32 seconds_interval, const char 
  * @param bossContext BOSS context.
  */
 Result bossSendContextConfig(bossContext *ctx);
-
