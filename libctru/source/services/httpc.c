@@ -580,6 +580,19 @@ Result httpcSetClientCertContext(httpcContext *context, u32 ClientCert_contextha
 	return cmdbuf[1];
 }
 
+Result httpcGetSSLResult(httpcContext *context, Result *ssl_res)
+{
+	u32* cmdbuf=getThreadCommandBuffer();
+
+	cmdbuf[0]=IPC_MakeHeader(0x2A,1,0); // 0x2A0040
+	cmdbuf[1]=context->httphandle;
+	
+	Result ret=0;
+	if(R_FAILED(ret=svcSendSyncRequest(context->servhandle)))return ret;
+	*ssl_res = cmdbuf[2];
+	return cmdbuf[1];
+}
+
 Result httpcSetSSLOpt(httpcContext *context, u32 options)
 {
 	u32* cmdbuf=getThreadCommandBuffer();
