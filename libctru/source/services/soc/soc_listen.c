@@ -19,7 +19,7 @@ int listen(int sockfd, int max_connections)
 	cmdbuf[2] = (u32)max_connections;
 	cmdbuf[3] = IPC_Desc_CurProcessId();
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;

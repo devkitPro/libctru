@@ -39,7 +39,7 @@ ssize_t socuipc_cmd9(int sockfd, const void *buf, size_t len, int flags, const s
 	cmdbuf[9] = IPC_Desc_Buffer(len,IPC_BUFFER_R);
 	cmdbuf[10] = (u32)buf;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;
@@ -93,7 +93,7 @@ ssize_t socuipc_cmda(int sockfd, const void *buf, size_t len, int flags, const s
 	cmdbuf[9] = IPC_Desc_StaticBuffer(tmp_addrlen,1);
 	cmdbuf[10] = (u32)tmpaddr;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;

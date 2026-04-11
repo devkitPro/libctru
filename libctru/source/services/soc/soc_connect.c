@@ -39,7 +39,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 	cmdbuf[5] = IPC_Desc_StaticBuffer(tmp_addrlen,0);
 	cmdbuf[6] = (u32)tmpaddr;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;

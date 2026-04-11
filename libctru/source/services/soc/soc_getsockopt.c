@@ -29,7 +29,7 @@ int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optl
 	staticbufs[0] = IPC_Desc_StaticBuffer(*optlen,0);
 	staticbufs[1] = (u32)optval;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 
 	staticbufs[0] = saved_threadstorage[0];
 	staticbufs[1] = saved_threadstorage[1];

@@ -18,7 +18,7 @@ int sockatmark(int sockfd)
 	cmdbuf[1] = (u32)sockfd;
 	cmdbuf[2] = IPC_Desc_CurProcessId();
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return -1;

@@ -5,11 +5,15 @@
  * After initializing this service you will be able to use system calls from netdb.h, sys/socket.h etc.
  */
 #pragma once
+#include <3ds/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 
 /// The config level to be used with @ref SOCU_GetNetworkOpt
 #define SOL_CONFIG 0xfffe
+
+/// Default number of SOC sessions to initialize, for backwards compatibility
+#define SOC_DEFAULT_NUM_SESSIONS 1
 
 /// Options to be used with @ref SOCU_GetNetworkOpt
 typedef enum
@@ -101,8 +105,18 @@ typedef struct
  * @param context_addr Address of a page-aligned (0x1000) buffer to be used.
  * @param context_size Size of the buffer, a multiple of 0x1000.
  * @note The specified context buffer can no longer be accessed by the process which called this function, since the userland permissions for this block are set to no-access.
+ * @note The SOC service can only be used in a single thread when using this function to initialize SOC services. In order to enable usage across multiple threads, use @ref socInitMulti, otherwise threads will block when using socket functions concurrently.
  */
 Result socInit(u32 *context_addr, u32 context_size);
+
+/**
+ * @brief Initializes the SOC service for use across multiple threads.
+ * @param context_addr Address of a page-aligned (0x1000) buffer to be used.
+ * @param context_size Size of the buffer, a multiple of 0x1000.
+ * @param num_sessions The number of sessions to initialize. This value determines how many socket functions can be run concurrently. Setting it to 1 means only one thread can safely use socket functions.
+ * @note The specified context buffer can no longer be accessed by the process which called this function, since the userland permissions for this block are set to no-access.
+ */
+Result socInitMulti(u32 *context_addr, u32 context_size, u32 num_sessions);
 
 /**
  * @brief Closes the soc service.
