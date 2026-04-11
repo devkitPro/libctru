@@ -1,28 +1,11 @@
 /**
  * @file mcuhwc.h
- * @brief mcuHwc service.
+ * @brief MCU Hardware Control service.
  */
 #pragma once
 
-typedef enum {
-	LED_NORMAL = 1,         ///< The normal mode of the led
-	LED_SLEEP_MODE,         ///< The led pulses slowly as it does in the sleep mode
-	LED_OFF,                ///< Switch off power led
-	LED_RED,                ///< Red state of the led
-	LED_BLUE,               ///< Blue state of the led
-	LED_BLINK_RED,          ///< Blinking red state of power led and notification led
-} powerLedState;
-
-typedef struct InfoLedPattern
-{
-	u8 delay;               ///< Delay between pattern values, 1/16th of a second (1 second = 0x10)
-	u8 smoothing;           ///< Smoothing between pattern values (higher = smoother)
-	u8 loopDelay;           ///< Delay between pattern loops, 1/16th of a second (1 second = 0x10, 0xFF = pattern is played only once)
-	u8 blinkSpeed;          ///< Blink speed, when smoothing == 0x00
-	u8 redPattern[32];      ///< Pattern for red component
-	u8 greenPattern[32];    ///< Pattern for green component
-	u8 bluePattern[32];     ///< Pattern for blue component
-} InfoLedPattern;
+#include <3ds/types.h>
+#include <3ds/services/mcu_common.h>
 
 /// Initializes mcuHwc.
 Result mcuHwcInit(void);
@@ -34,7 +17,7 @@ void mcuHwcExit(void);
  * @brief Gets the current mcuHwc session handle.
  * @return A pointer to the current mcuHwc session handle.
  */
-Handle* mcuHwcGetSessionHandle(void);
+Handle *mcuHwcGetSessionHandle(void);
 
 /**
  * @brief Reads data from an i2c device3 register
@@ -53,55 +36,92 @@ Result MCUHWC_ReadRegister(u8 reg, void *data, u32 size);
 Result MCUHWC_WriteRegister(u8 reg, const void *data, u32 size);
 
 /**
- * @brief Gets the battery voltage
+ * @brief Reads the info registers of the MCU.
+ * @param data Pointer to write the info to.
+ * @param size Size of the info. To read info data at a given offset, at least (offset + wanted data size) bytes must be read.
+ */
+Result MCUHWC_ReadInfoRegister(void *data, u8 size);
+
+/**
+ * @brief Gets the battery voltage in 20 mV increments.
  * @param voltage Pointer to write the battery voltage to.
  */
 Result MCUHWC_GetBatteryVoltage(u8 *voltage);
 
 /**
- * @brief Gets the battery level
+ * @brief Gets the battery level as a percentage.
  * @param level Pointer to write the current battery level to.
  */
 Result MCUHWC_GetBatteryLevel(u8 *level);
 
 /**
- * @brief Gets the sound slider level
- * @param level Pointer to write the slider level to.
+ * @brief Sets the Power LED state.
+ * @param state powerLedState State of power LED.
  */
-Result MCUHWC_GetSoundSliderLevel(u8 *level);
+Result MCUHWC_SetPowerLedState(MCU_PowerLedState state);
 
 /**
- * @brief Sets Wifi LED state
+ * @brief Sets the WiFi LED state.
  * @param state State of Wifi LED. (True/False)
  */
 Result MCUHWC_SetWifiLedState(bool state);
 
 /**
- * @brief Sets the notification LED pattern
- * @param pattern Pattern for the notification LED.
+ * @brief Sets the Camera LED state.
+ * @param state State of Camera LED. (True/False)
  */
-Result MCUHWC_SetInfoLedPattern(const InfoLedPattern* pattern);
+Result MCUHWC_SetCameraLedState(bool state);
 
 /**
- * @brief Sets Power LED state
- * @param state powerLedState State of power LED.
+ * @brief Sets the 3D LED state.
+ * @param state State of 3D LED. (True/False)
  */
-Result MCUHWC_SetPowerLedState(powerLedState state);
+Result MCUHWC_Set3dLedState(bool state);
 
 /**
- * @brief Gets 3d slider level
- * @param level Pointer to write 3D slider level to.
+ * @brief Sets the info (notification) LED pattern.
+ * @param pattern Pattern for the info LED.
  */
-Result MCUHWC_Get3dSliderLevel(u8 *level);
+Result MCUHWC_SetInfoLedPattern(const MCU_InfoLedPattern *pattern);
 
 /**
- * @brief Gets the major MCU firmware version
+ * @brief Gets the volume slider level.
+ * @param level Pointer to write the slider level to.
+ */
+Result MCUHWC_GetVolumeSliderLevel(u8 *level);
+
+/**
+ * @brief Sets the flicker (VCOM) value for the top screen.
+ * @param flicker The new value to use. Default value: 0x5C
+ */
+Result MCUHWC_SetTopLcdFlicker(u8 flicker);
+
+/**
+ * @brief Sets the flicker (VCOM) value for the bottom screen.
+ * @param flicker The new value to use. Default value: 0x5F
+ */
+Result MCUHWC_SetBottomLcdFlicker(u8 flicker);
+
+/**
+ * @brief Gets the battery temperature using a sensor on the console's PCB.
+ * @param out_value Pointer to output the temperature (in degrees Celsius) to.
+ */
+Result MCUHWC_GetBatteryPcbTemperature(s8 *out_value);
+
+/**
+ * @brief Reads the current RTC time.
+ * @param out_time Pointer to output the RTC time to.
+ */
+Result MCUHWC_GetRtcTime(MCU_RtcTime *out_time);
+
+/**
+ * @brief Gets the major MCU firmware version.
  * @param out Pointer to write the major firmware version to.
  */
 Result MCUHWC_GetFwVerHigh(u8 *out);
 
 /**
- * @brief Gets the minor MCU firmware version
+ * @brief Gets the minor MCU firmware version.
  * @param out Pointer to write the minor firmware version to.
  */
 Result MCUHWC_GetFwVerLow(u8 *out);
