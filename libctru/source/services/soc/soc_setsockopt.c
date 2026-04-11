@@ -23,7 +23,7 @@ int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t
 	cmdbuf[7] = IPC_Desc_StaticBuffer(optlen,9);
 	cmdbuf[8] = (u32)optval;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;

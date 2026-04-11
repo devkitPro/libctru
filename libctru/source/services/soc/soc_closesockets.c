@@ -9,7 +9,7 @@ int SOCU_CloseSockets(void)
 	cmdbuf[0] = IPC_MakeHeader(0x21,0,2); // 0x210002;
 	cmdbuf[1] = IPC_Desc_CurProcessId();
 
-	int ret = svcSendSyncRequest(SOCU_handle);
+	int ret = socSendSyncRequest();
 	if(R_FAILED(ret))return ret;
 	return cmdbuf[1];
 }

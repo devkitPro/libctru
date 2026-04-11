@@ -48,7 +48,7 @@ int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host, socklen_
 	staticbufs[2] = IPC_Desc_StaticBuffer(servlen,0);
 	staticbufs[3] = (u32)serv;
 
-	Result ret = svcSendSyncRequest(SOCU_handle);
+	Result ret = socSendSyncRequest();
 
 	// Restore the thread storage values
 	for(i = 0 ; i < 4 ; ++i)
