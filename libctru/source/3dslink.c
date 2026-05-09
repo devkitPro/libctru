@@ -46,3 +46,10 @@ int link3dsConnectToHost(bool redirStdout, bool redirStderr)
 
 	return sock;
 }
+
+void link3dsDisconnectFromHost()
+{
+	close(sock);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+}

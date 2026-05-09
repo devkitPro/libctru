@@ -16,10 +16,12 @@ extern struct in_addr __3dslink_host;
 
 /**
  * @brief Connects to the 3dslink host, setting up an output stream.
- * @param[in] redirStdout Whether to redirect stdout to nxlink output.
- * @param[in] redirStderr Whether to redirect stderr to nxlink output.
+ * @param[in] redirStdout Whether to redirect stdout to 3dslink output.
+ * @param[in] redirStderr Whether to redirect stderr to 3dslink output.
  * @return Socket fd on success, negative number on failure.
- * @note The socket should be closed with close() during application cleanup.
+ * @note SOC must be initialized (\ref socInit or \ref socInitMulti) before calling this function.
+ * @note The connection should be closed with link3dsDisconnectFromHost() during application cleanup.
+ * @note Do not call \ref socExit until link3dsDisconnectFromHost() has been called.
  */
 int link3dsConnectToHost(bool redirStdout, bool redirStderr);
 
@@ -32,3 +34,9 @@ static inline int link3dsStdio(void) {
 static inline int link3dsStdioForDebug(void) {
     return link3dsConnectToHost(false, true);
 }
+
+/**
+  * @brief Disconnects from the 3dslink host.
+  * @note Do not call \ref socExit until this has been called.
+  */
+void link3dsDisconnectFromHost();
