@@ -29,12 +29,12 @@ Handle *mcuHidGetSessionHandle(void)
 	return &mcuHidHandle;
 }
 
-Result MCUHID_SetSensorConfiguration(MCU_SensorConfig config)
+Result MCUHID_SetAccelerometerEnabled(bool enable)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 	
 	cmdbuf[0] = IPC_MakeHeader(0x0001, 1, 0); // 0x00010040
-	cmdbuf[1] = config;
+	cmdbuf[1] = !!enable;
 	
 	Result res = svcSendSyncRequest(mcuHidHandle);
 	if (R_FAILED(res)) return res;

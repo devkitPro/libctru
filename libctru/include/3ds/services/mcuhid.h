@@ -20,10 +20,10 @@ void mcuHidExit(void);
 Handle *mcuHidGetSessionHandle(void);
 
 /**
-  * @brief Sets the enabled sensors (pedometer, accelerometer) configuration.
-  * @param config The configuration to use.
+  * @brief Enables or disables the accelerometer.
+  * @param enable Whether or not to enable the accelerometer.
   */
-Result MCUHID_SetSensorConfiguration(MCU_SensorConfig config);
+Result MCUHID_SetAccelerometerEnabled(bool enable);
 
 /**
   * @brief Returns whether or not the accelerometer is enabled.
