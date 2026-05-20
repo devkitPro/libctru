@@ -94,13 +94,13 @@ Result MCUGPU_Set3dLedState(bool state);
 Result MCUGPU_Get3dLedState(bool *out_state);
 
 /**
- * @brief Gets the event handle for MCUGPU related events.
- * @param out_event Pointer to output the event handle to.
+ * @brief Gets the interrupt event handle for GPU interrupts.
+ * @param out_event Pointer to output the interrupt event handle to.
  */
-Result MCUGPU_GetEventHandle(Handle *out_event);
+Result MCUGPU_GetInterruptEventHandle(Handle *out_event);
 
 /**
-  * @brief Gets the GPU events that have recently been received by the MCU.
-  * @param out_events Pointer to output the received events to.
+  * @brief Reads the recently received GPU interrupts.
+  * @param out_irqs Pointer to output the received interrupts to.
   */
-Result MCUGPU_GetReceivedEvents(u32 *out_events);
+Result MCUGPU_GetReceivedInterrupts(u32 *out_irqs);

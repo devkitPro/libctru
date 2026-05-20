@@ -229,16 +229,16 @@ Result MCURTC_ReadPedometerStepData(MCU_PedometerStepData *out_data);
 Result MCURTC_ClearStepData();
 
 /**
- * @brief Gets the event handle for power related events.
- * @param out_event Pointer to output the event handle to.
+ * @brief Gets the interrupt event handle for power-related interrupts.
+ * @param out_event Pointer to output the interrupt event handle to.
  */
-Result MCURTC_GetEventHandle(Handle *out_handle);
+Result MCURTC_GetInterruptEventHandle(Handle *out_handle);
 
 /**
-  * @brief Gets the power events that have recently been received by the MCU.
-  * @param out_events Pointer to output the received events to.
+  * @brief Reads the recently received power-related interrupts.
+  * @param out_irqs Pointer to output the received interrupts to.
   */
-Result MCURTC_GetReceivedEvents(u32 *out_events);
+Result MCURTC_GetReceivedInterrupts(u32 *out_irqs);
 
 /**
   * @brief Checks whether or not RTC time was lost. (This can happen due to the battery being removed, for example)

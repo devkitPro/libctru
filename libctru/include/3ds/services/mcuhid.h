@@ -87,16 +87,16 @@ Result MCUHID_SetAccelerometerInternalFilterEnabled(bool enabled);
 Result MCUHID_GetAccelerometerInternalFilterEnabled(bool *out_enabled);
 
 /**
- * @brief Gets the event handle for MCUHID related events.
- * @param out_event Pointer to output the event handle to.
+ * @brief Gets the interrupt event handle for HID interrupts.
+ * @param out_event Pointer to output the interrupt event handle to.
  */
-Result MCUHID_GetEventHandle(Handle *out_handle);
+Result MCUHID_GetInterruptEventHandle(Handle *out_handle);
 
 /**
-  * @brief Gets the HID events that have recently been received by the MCU.
-  * @param out_events Pointer to output the received events to.
+  * @brief Reads the recently received HID interrupts.
+  * @param out_irqs Pointer to output the received interrupts to.
   */
-Result MCUHID_GetReceivedEvents(u32 *out_events);
+Result MCUHID_GetReceivedInterrupts(u32 *out_irqs);
 
 /**
  * @brief Gets the volume slider level.
