@@ -265,9 +265,9 @@ typedef struct MCU_PedometerStepData
 
 typedef enum MCU_AccelerometerScale
 {
-	ACC_SCALE_2G = 0x0, ///< -2G to 2G
-	ACC_SCALE_4G = 0x1, ///< -4G to 4G
-	ACC_SCALE_8G = 0x3, ///< -8G to 8G
+	ACC_SCALE_2G = 0x0, ///< -2 g to 2 g
+	ACC_SCALE_4G = 0x1, ///< -4 g to 4 g
+	ACC_SCALE_8G = 0x3, ///< -8 g to 8 g
 } MCU_AccelerometerScale;
 
 typedef struct MCU_LgyLcdSettings
