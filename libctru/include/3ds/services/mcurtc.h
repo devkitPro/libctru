@@ -28,8 +28,9 @@ Result MCURTC_SetRtcTime(const MCU_RtcTime *time);
 /**
   * @brief Gets the RTC time.
   * @param out_time Pointer to output the RTC time to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTime(MCU_RtcTime *out_time);
+Result MCURTC_GetRtcTime(MCU_RtcTime *out_time, s64 *out_tick);
 
 /**
   * @brief Sets the seconds part of the RTC time.
@@ -40,8 +41,9 @@ Result MCURTC_SetRtcTimeSeconds(u8 value);
 /**
   * @brief Gets the seconds part of the RTC time.
   * @param out_value Pointer to output the value to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTimeSeconds(u8 *out_value);
+Result MCURTC_GetRtcTimeSeconds(u8 *out_value, s64 *out_tick);
 
 /**
   * @brief Sets the minute part of the RTC time.
@@ -52,8 +54,9 @@ Result MCURTC_SetRtcTimeMinute(u8 value);
 /**
   * @brief Gets the minute part of the RTC time.
   * @param out_value Pointer to output the value to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTimeMinute(u8 *out_value);
+Result MCURTC_GetRtcTimeMinute(u8 *out_value, s64 *out_tick);
 
 /**
   * @brief Sets the hour part of the RTC time.
@@ -64,8 +67,9 @@ Result MCURTC_SetRtcTimeHour(u8 value);
 /**
   * @brief Gets the hour part of the RTC time.
   * @param out_value Pointer to output the value to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTimeHour(u8 *out_value);
+Result MCURTC_GetRtcTimeHour(u8 *out_value, s64 *out_tick);
 
 /**
   * @brief Sets the weekday part of the RTC time.
@@ -76,8 +80,9 @@ Result MCURTC_SetRtcTimeWeekday(u8 value);
 /**
   * @brief Gets the weekday part of the RTC time.
   * @param out_value Pointer to output the value to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTimeWeekday(u8 *out_value);
+Result MCURTC_GetRtcTimeWeekday(u8 *out_value, s64 *out_tick);
 
 /**
   * @brief Sets the day part of the RTC time.
@@ -88,8 +93,9 @@ Result MCURTC_SetRtcTimeDay(u8 value);
 /**
   * @brief Gets the day part of the RTC time.
   * @param out_value Pointer to output the value to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTimeDay(u8 *out_value);
+Result MCURTC_GetRtcTimeDay(u8 *out_value, s64 *out_tick);
 
 /**
   * @brief Sets the month part of the RTC time.
@@ -100,8 +106,9 @@ Result MCURTC_SetRtcTimeMonth(u8 value);
 /**
   * @brief Gets the month part of the RTC time.
   * @param out_value Pointer to output the value to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTimeMonth(u8 *out_value);
+Result MCURTC_GetRtcTimeMonth(u8 *out_value, s64 *out_tick);
 
 /**
   * @brief Sets the year since 2000 part of the RTC time.
@@ -112,8 +119,9 @@ Result MCURTC_SetRtcTimeYear(u8 value);
 /**
   * @brief Gets the year since 2000 part of the RTC time.
   * @param out_value Pointer to output the value to.
+  * @param out_tick Pointer to output the system ticks at the time of reading the RTC to.
   */
-Result MCURTC_GetRtcTimeYear(u8 *out_value);
+Result MCURTC_GetRtcTimeYear(u8 *out_value, s64 *out_tick);
 
 /**
   * @brief Sets the correction part of the RTC time.

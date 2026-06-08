@@ -41,7 +41,7 @@ Result MCURTC_SetRtcTime(const MCU_RtcTime *time)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTime(MCU_RtcTime *out_time)
+Result MCURTC_GetRtcTime(MCU_RtcTime *out_time, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -51,6 +51,7 @@ Result MCURTC_GetRtcTime(MCU_RtcTime *out_time)
 	if (R_FAILED(res)) return res;
 
 	memcpy(out_time, &cmdbuf[2], sizeof(MCU_RtcTime));
+	*out_tick = *((s64 *)&cmdbuf[4]);
 
 	return (Result)cmdbuf[1];
 }
@@ -67,7 +68,7 @@ Result MCURTC_SetRtcTimeSeconds(u8 value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTimeSeconds(u8 *out_value)
+Result MCURTC_GetRtcTimeSeconds(u8 *out_value, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -77,6 +78,7 @@ Result MCURTC_GetRtcTimeSeconds(u8 *out_value)
 	if (R_FAILED(res)) return res;
 
 	*out_value = cmdbuf[2] & 0xFF;
+	*out_tick = *((s64 *)&cmdbuf[3]);
 
 	return (Result)cmdbuf[1];
 }
@@ -93,7 +95,7 @@ Result MCURTC_SetRtcTimeMinute(u8 value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTimeMinute(u8 *out_value)
+Result MCURTC_GetRtcTimeMinute(u8 *out_value, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -103,6 +105,7 @@ Result MCURTC_GetRtcTimeMinute(u8 *out_value)
 	if (R_FAILED(res)) return res;
 
 	*out_value = cmdbuf[2] & 0xFF;
+	*out_tick = *((s64 *)&cmdbuf[3]);
 
 	return (Result)cmdbuf[1];
 }
@@ -119,7 +122,7 @@ Result MCURTC_SetRtcTimeHour(u8 value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTimeHour(u8 *out_value)
+Result MCURTC_GetRtcTimeHour(u8 *out_value, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -129,6 +132,7 @@ Result MCURTC_GetRtcTimeHour(u8 *out_value)
 	if (R_FAILED(res)) return res;
 
 	*out_value = cmdbuf[2] & 0xFF;
+	*out_tick = *((s64 *)&cmdbuf[3]);
 
 	return (Result)cmdbuf[1];
 }
@@ -145,7 +149,7 @@ Result MCURTC_SetRtcTimeWeekday(u8 value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTimeWeekday(u8 *out_value)
+Result MCURTC_GetRtcTimeWeekday(u8 *out_value, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -155,6 +159,7 @@ Result MCURTC_GetRtcTimeWeekday(u8 *out_value)
 	if (R_FAILED(res)) return res;
 
 	*out_value = cmdbuf[2] & 0xFF;
+	*out_tick = *((s64 *)&cmdbuf[3]);
 
 	return (Result)cmdbuf[1];
 }
@@ -171,7 +176,7 @@ Result MCURTC_SetRtcTimeDay(u8 value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTimeDay(u8 *out_value)
+Result MCURTC_GetRtcTimeDay(u8 *out_value, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -181,6 +186,7 @@ Result MCURTC_GetRtcTimeDay(u8 *out_value)
 	if (R_FAILED(res)) return res;
 
 	*out_value = cmdbuf[2] & 0xFF;
+	*out_tick = *((s64 *)&cmdbuf[3]);
 
 	return (Result)cmdbuf[1];
 }
@@ -197,7 +203,7 @@ Result MCURTC_SetRtcTimeMonth(u8 value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTimeMonth(u8 *out_value)
+Result MCURTC_GetRtcTimeMonth(u8 *out_value, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -207,6 +213,7 @@ Result MCURTC_GetRtcTimeMonth(u8 *out_value)
 	if (R_FAILED(res)) return res;
 
 	*out_value = cmdbuf[2] & 0xFF;
+	*out_tick = *((s64 *)&cmdbuf[3]);
 
 	return (Result)cmdbuf[1];
 }
@@ -223,7 +230,7 @@ Result MCURTC_SetRtcTimeYear(u8 value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetRtcTimeYear(u8 *out_value)
+Result MCURTC_GetRtcTimeYear(u8 *out_value, s64 *out_tick)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -233,6 +240,7 @@ Result MCURTC_GetRtcTimeYear(u8 *out_value)
 	if (R_FAILED(res)) return res;
 
 	*out_value = cmdbuf[2] & 0xFF;
+	*out_tick = *((s64 *)&cmdbuf[3]);
 
 	return (Result)cmdbuf[1];
 }
