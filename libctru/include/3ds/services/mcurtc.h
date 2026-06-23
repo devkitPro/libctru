@@ -358,16 +358,16 @@ Result MCURTC_GetForceShutdownDelay(u8 *out_value);
 Result MCURTC_ReadInfoRegister(void *data, u8 size);
 
 /**
-  * @brief Writes to the battery-backed RAM storage area of the MCU.
-  * @param offset Offset to write to. Writing beyond 0xC0 is not allowed.
-  * @param size Amount of bytes to write, starting at the given offset.
+  * @brief Writes to part of the battery-backed RAM storage area of the MCU.
+  * @param offset Offset to write to. The offset is relative to the PTM area (0x8) (see @ref MCU_PlayTimeStorageArea). Writing to an offset less than 0x8 is not allowed.
+  * @param size Amount of bytes to write, starting at the given offset. Writing past offset 0xC8 (relative offset 0xC0) is not allowed.
   */
 Result MCURTC_WriteStorageArea(u8 offset, void *buf, u8 size);
 
 /**
-  * @brief Reads from the battery-backed RAM storage area of the MCU.
-  * @param offset Offset to read from. Reading beyond 0xC0 is not allowed.
-  * @param size Amount of bytes to read, starting at the given offset.
+  * @brief Reads from part of the battery-backed RAM storage area of the MCU.
+  * @param offset Offset to read from. The offset is relative to the PTM area (0x8) (see @ref MCU_PlayTimeStorageArea). Reading from an offset less than 0x8 is not allowed.
+  * @param size Amount of bytes to read, starting at the given offset. Reading past 0xC8 (relative offset 0xC0) is not allowed.
   */
 Result MCURTC_ReadStorageArea(u8 offset, void *buf, u8 size);
 

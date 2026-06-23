@@ -270,13 +270,6 @@ typedef enum MCU_AccelerometerScale
 	ACC_SCALE_8G = 0x3, ///< -8 g to 8 g
 } MCU_AccelerometerScale;
 
-typedef struct MCU_LgyLcdSettings
-{
-	u8 enableAblPowersave : 1; ///< Whether or not ABL (adaptive backlight) power save is enabled.
-	u8 luminanceLevel : 3;     ///< The brightness level (1-5).
-	u8 _unused : 4;
-} MCU_LgyLcdSettings;
-
 static inline u8 mcuTicksFromMs(u32 ms)
 {
     // 512Hz
@@ -285,3 +278,38 @@ static inline u8 mcuTicksFromMs(u32 ms)
     res = res > 255 ? 255 : res; // res can't exceed 255
     return (u8)res;
 }
+
+/// Section of MCU storage area used by PTM.
+typedef struct MCU_PlayTimeStorageArea
+{
+	u8 lgy_playtime_data[0xA8]; ///< Play time data for DS(i) mode (TWL_FIRM) and GBA Virtual Console (AGB_FIRM) titles.
+	u8 tmp_playtime_event[12];  ///< Backup playtime event periodically stored by PTM.
+	u8 unused1[12];
+} MCU_PlayTimeStorageArea;
+
+typedef enum MCU_FirmFlags
+{
+	MCU_FIRMFLAG_WIRELESS_DISABLED      = BIT(0), ///< WiFi is disabled.
+	MCU_FIRMFLAG_SOFTWARE_CLOSED        = BIT(1), ///< The power button was pressed to close a DS(i) mode (TWL_FIRM) application. The presence of this flag causes the HOME Menu to show the "Software Closed." screen.
+	MCU_FIRMFLAG_POWEROFF_INITIATED     = BIT(2), ///< Poweroff was initiated.
+	MCU_FIRMFLAG_LGY_NATIVE_RESOLUTION  = BIT(3), ///< The current DS(i) mode (TWL_FIRM) application should use the native resolution instead of the default scaling.
+	MCU_FIRMFLAG_LEGACY_JUMP_PROHIBITED = BIT(4) ///< The running DS(i) mode (TWL_FIRM) application is forbidden from launching other titles.
+} MCU_FirmFlags;
+
+typedef struct MCU_LcdSettings
+{
+	u8 abl_enabled     : 1; ///< Whether or not the adaptive power saving backlight mode should be enabled.
+	u8 luminance_level : 3; ///< Screen brightness level (1-5, inclusive).
+	u8 _unused         : 4;
+} CTR_PACKED MCU_LcdSettings;
+
+typedef struct MCU_StorageArea
+{
+	u8 firm_flags; ///< See @ref MCU_FirmFlags.
+	MCU_LcdSettings lcd_settings; ///< LCD brightness and power saving settings.
+	u16 local_friend_code_counter; ///< Local friend code counter. Used to generate local friend codes.
+	u16 uuid_clock_sequence; ///< Clock sequence used to generate UUIDs in ACT.
+	u8 unused0[2];
+	MCU_PlayTimeStorageArea playtime_area; ///< Area of MCU storage area used by PTM.
+} MCU_StorageArea;
+
