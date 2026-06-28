@@ -765,7 +765,7 @@ Result MCURTC_ReadInfoRegister(void *data, u8 size)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_WriteStorageArea(u8 offset, void *buf, u8 size)
+Result MCURTC_WriteStorageArea(u8 offset, const void *buf, u8 size)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 

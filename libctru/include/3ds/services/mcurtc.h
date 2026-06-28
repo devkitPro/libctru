@@ -362,7 +362,7 @@ Result MCURTC_ReadInfoRegister(void *data, u8 size);
   * @param offset Offset to write to. The offset is relative to the PTM area (0x8) (see @ref MCU_PlayTimeStorageArea). Writing to an offset less than 0x8 is not allowed.
   * @param size Amount of bytes to write, starting at the given offset. Writing past offset 0xC8 (relative offset 0xC0) is not allowed.
   */
-Result MCURTC_WriteStorageArea(u8 offset, void *buf, u8 size);
+Result MCURTC_WriteStorageArea(u8 offset, const void *buf, u8 size);
 
 /**
   * @brief Reads from part of the battery-backed RAM storage area of the MCU.
