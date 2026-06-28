@@ -1101,7 +1101,7 @@ Result MCURTC_GetSoftwareClosedFlag(bool *out_value)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_SetLgyLcdSettings(MCU_LgyLcdSettings settings)
+Result MCURTC_SetLgyLcdSettings(MCU_LcdSettings settings)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -1113,7 +1113,7 @@ Result MCURTC_SetLgyLcdSettings(MCU_LgyLcdSettings settings)
 	return (Result)cmdbuf[1];
 }
 
-Result MCURTC_GetLgyLcdSettings(MCU_LgyLcdSettings *out_settings)
+Result MCURTC_GetLgyLcdSettings(MCU_LcdSettings *out_settings)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -1122,7 +1122,7 @@ Result MCURTC_GetLgyLcdSettings(MCU_LgyLcdSettings *out_settings)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_settings = *((MCU_LgyLcdSettings *)&cmdbuf[2]);
+	*out_settings = *((MCU_LcdSettings *)&cmdbuf[2]);
 
 	return (Result)cmdbuf[1];
 }

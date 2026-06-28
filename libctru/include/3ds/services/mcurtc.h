@@ -519,13 +519,13 @@ Result MCURTC_GetSoftwareClosedFlag(bool *out_value);
   * @brief Sets LCD settings for legacy titles.
   * @param settings The settings data to set.
   */
-Result MCURTC_SetLgyLcdSettings(MCU_LgyLcdSettings settings);
+Result MCURTC_SetLgyLcdSettings(MCU_LcdSettings settings);
 
 /**
   * @brief Gets the LCD settings for legacy titles.
   * @param out_config Pointer to output the settings data to.
   */
-Result MCURTC_GetLgyLcdConfig(MCU_LgyLcdSettings *out_settings);
+Result MCURTC_GetLgyLcdConfig(MCU_LcdSettings *out_settings);
 
 /**
   * @brief Sets the MCU flag that indicates whether or the legacy title should play in native resolution.
