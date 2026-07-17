@@ -108,7 +108,7 @@ typedef enum MCU_RegisterId
 	MCUREG_RTC_TIME_DAY                 = 0x34, ///< RTC day of the month.
 	MCUREG_RTC_TIME_MONTH               = 0x35, ///< RTC month.
 	MCUREG_RTC_TIME_YEAR                = 0x36, ///< RTC year.
-	MCUREG_RTC_TIME_CORRECTION          = 0x37, ///< RTC subsecond (RSUBC) correction value.
+	MCUREG_RTC_TIME_CORRECTION          = 0x37, ///< RTC correction value (SUBCUD).
 
 	MCUREG_RTC_ALARM_MINUTE             = 0x38, ///< RTC alarm minute.
 	MCUREG_RTC_ALARM_HOUR               = 0x39, ///< RTC alarm hour.
