@@ -81,7 +81,15 @@ extern "C" {
 #include <3ds/services/srvpm.h>
 #include <3ds/services/loader.h>
 #include <3ds/services/y2r.h>
+#include <3ds/services/mcucam.h>
+#include <3ds/services/mcugpu.h>
+#include <3ds/services/mcuhid.h>
+#include <3ds/services/mcurtc.h>
+#include <3ds/services/mcusnd.h>
+#include <3ds/services/mcunwm.h>
 #include <3ds/services/mcuhwc.h>
+#include <3ds/services/mcupls.h>
+#include <3ds/services/mcucdc.h>
 #include <3ds/services/cdcchk.h>
 
 #include <3ds/gpu/gx.h>
