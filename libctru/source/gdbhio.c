@@ -189,7 +189,7 @@ static int _gdbHioExportFileMode(mode_t mode)
 	if (mode & S_IWOTH) gdbMode |= GDBHIO_S_IWOTH;
 	if (mode & S_IXOTH) gdbMode |= GDBHIO_S_IXOTH;
 
-	return mode;
+	return gdbMode;
 }
 
 
