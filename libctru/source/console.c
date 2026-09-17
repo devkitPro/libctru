@@ -334,7 +334,7 @@ static void consoleSetColorState(int code)
 	case 90 ... 97: // bright foreground
 		escapeSeq.color.flags &= ~CONSOLE_COLOR_FAINT;
 		escapeSeq.color.flags |= CONSOLE_COLOR_FG_BRIGHT;
-		escapeSeq.color.flags &= ~CONSOLE_BG_CUSTOM;
+		escapeSeq.color.flags &= ~CONSOLE_FG_CUSTOM;
 		escapeSeq.color.fg = code - 90;
 		break;
 	case 100 ... 107: // bright background
