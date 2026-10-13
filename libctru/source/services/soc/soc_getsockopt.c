@@ -6,6 +6,7 @@
 int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen)
 {
 	int ret = 0;
+	int fd = sockfd;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 saved_threadstorage[2];
 
@@ -49,6 +50,18 @@ int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optl
 	}
 
 	*optlen = cmdbuf[3];
+
+	// For SO_ERROR the service returns the result code of an earlier operation on the socket, in its own
+	// codes: EINPROGRESS after a non-blocking connect() even once it has completed, EAGAIN after a recv()
+	// that found nothing, ENOTCONN once a refused connection was polled. None of those is an error of the
+	// socket itself, so report whether its connection failed instead.
+	if(level == SOL_SOCKET && optname == SO_ERROR && *optlen >= sizeof(int)) {
+		int *error = (int*)optval;
+		if(*error < 0)
+			*error = -_net_convert_error(*error);
+		if(*error == EINPROGRESS || *error == EALREADY || *error == ENOTCONN || *error == EAGAIN)
+			*error = soc_connection_error(fd);
+	}
 
 	return ret;
 }
