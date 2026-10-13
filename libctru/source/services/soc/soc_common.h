@@ -28,6 +28,8 @@ soc_get_fd(int fd)
 
 s32 _net_convert_error(s32 sock_retval);
 
+int soc_connection_error(int sockfd);
+
 ssize_t soc_recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen);
 
 ssize_t soc_sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen);

@@ -100,3 +100,16 @@ s32 _net_convert_error(s32 sock_retval)
 		return NET_UNKNOWN_ERROR_OFFSET + sock_retval;
 	return -_net_error_code_map[-sock_retval];
 }
+
+// The service reports a failed connection only as readable: receiving then fails, with ENOTCONN when the
+// connection was refused. Returns the reason, or 0 while the connection is up or still being made.
+int soc_connection_error(int sockfd)
+{
+	char byte;
+	int error = 0;
+	int saved_errno = errno;
+	if(recv(sockfd, &byte, 1, MSG_PEEK | MSG_DONTWAIT) < 0 && errno != EAGAIN)
+		error = errno == ENOTCONN ? ECONNREFUSED : errno;
+	errno = saved_errno;
+	return error;
+}
