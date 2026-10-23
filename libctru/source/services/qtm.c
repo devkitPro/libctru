@@ -126,13 +126,43 @@ float qtmComputeHeadTiltAngle(const QtmTrackingData *data)
 
 float qtmEstimateEyeToCameraDistance(const QtmTrackingData *data)
 {
-	float fovX = qtmComputeFovX(data);
-	float pxDistNorm = hypotf(
+	/*
+		              X_L ●────────── IOD = 62 mm ──────────● X_R
+		                   \                               /
+		                    \                             /
+		                     \                           /
+		                      \                         /
+		                       x_l                   x_r
+		────────────────────────●─────────────────────●────────────────────────  plane at depth Z
+		                         \                   /                           (world coordinates live here)
+		                          \                 /
+		                           \               /
+		                            \             /
+		                             \           /
+		                              \         /
+		                               \       /
+		                                \     /
+		                                 \   /
+		                                  \ /
+		                                   ◆ camera
+
+		The triangles are similar, thus:
+			Δx = x_r - x_l = (X_R - X_L) / Z
+			Δy = y_r - y_l = (Y_R - Y_L) / Z
+		Thus:
+			hypot(Δx, Δy) = sqrt(ΔX² + ΔY²) / Z = IOD / Z
+		Therefore:
+			Z = IOD / hypot(Δx, Δy)
+
+		Note: QTM's world Y is 0.75x too small (QTM applies the 4:3 aspect ratio twice, bug?), so we undo it here.
+	*/
+
+	float h = hypotf(
 		data->eyeWorldCoordinates[QTM_EYE_RIGHT][0] - data->eyeWorldCoordinates[QTM_EYE_LEFT][0],
-		data->eyeWorldCoordinates[QTM_EYE_RIGHT][1] - data->eyeWorldCoordinates[QTM_EYE_LEFT][1]
+		(data->eyeWorldCoordinates[QTM_EYE_RIGHT][1] - data->eyeWorldCoordinates[QTM_EYE_LEFT][1]) / 0.75f
 	);
 
-	return 31.0f / tanf(0.5f * (pxDistNorm * fovX));
+	return 62.0f / h;
 }
 
 Result QTMU_EnableManualIrLedControl(void)
