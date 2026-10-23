@@ -4,8 +4,9 @@
 #include <3ds/os.h>
 #include <3ds/result.h>
 
-#define HEAP_SPLIT_SIZE_CAP  (24 << 20) // 24MB
-#define LINEAR_HEAP_SIZE_CAP (32 << 20) // 32MB
+#define HEAP_SPLIT_SIZE_CAP  (24 << 20) // 24MiB
+#define LINEAR_HEAP_SIZE_CAP (32 << 20) // 32MiB
+#define HEAP_AREA_SIZE       (OS_HEAP_AREA_END - OS_HEAP_AREA_BEGIN) // 96 MiB
 
 extern char* fake_heap_start;
 extern char* fake_heap_end;
@@ -38,7 +39,10 @@ void __attribute__((weak)) __system_allocateHeaps(void) {
 	if (__ctru_heap_size + __ctru_linear_heap_size > remaining)
 		svcBreak(USERBREAK_PANIC);
 
-	if (__ctru_heap_size == 0 && __ctru_linear_heap_size == 0) {
+	bool auto_app_sz    = __ctru_heap_size == 0;
+	bool auto_linear_sz = __ctru_linear_heap_size == 0;
+
+	if (auto_app_sz && auto_linear_sz) {
 		// Split available memory equally between linear and application heaps (with rounding in favor of the latter)
 		__ctru_linear_heap_size = (remaining / 2) & ~0xFFF;
 		__ctru_heap_size = remaining - __ctru_linear_heap_size;
@@ -54,10 +58,17 @@ void __attribute__((weak)) __system_allocateHeaps(void) {
 				__ctru_heap_size = remaining - __ctru_linear_heap_size;
 			}
 		}
-	} else if (__ctru_heap_size == 0) {
+	} else if (auto_app_sz) {
 		__ctru_heap_size = remaining - __ctru_linear_heap_size;
-	} else if (__ctru_linear_heap_size == 0) {
+	} else if (auto_linear_sz) {
 		__ctru_linear_heap_size = remaining - __ctru_heap_size;
+	}
+
+	if (__ctru_heap_size > HEAP_AREA_SIZE) {
+		if (auto_linear_sz) {
+			__ctru_linear_heap_size += __ctru_heap_size - HEAP_AREA_SIZE;
+		}
+		__ctru_heap_size = HEAP_AREA_SIZE;
 	}
 
 	// Allocate the application heap
