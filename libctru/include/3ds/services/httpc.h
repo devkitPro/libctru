@@ -208,6 +208,12 @@ Result httpcSetClientCertDefault(httpcContext *context, SSLC_DefaultClientCert c
 Result httpcSetClientCertContext(httpcContext *context, u32 ClientCert_contexthandle);
 
 /**
+ * @brief Gets the last SSL result.
+ * @param context Context to fetch the result from.
+ */
+Result httpcGetSSLResult(httpcContext *context, Result *ssl_res);
+
+/**
  * @brief Sets SSL options for the context.
  * The HTTPC SSL option bits are the same as those defined in sslc.h
  * @param context Context to set flags on.
@@ -298,4 +304,3 @@ Result httpcDownloadData(httpcContext *context, u8* buffer, u32 size, u32 *downl
  * @param option HTTPC_KeepAlive option.
  */
 Result httpcSetKeepAlive(httpcContext *context, HTTPC_KeepAlive option);
-
