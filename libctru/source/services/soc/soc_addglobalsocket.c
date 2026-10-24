@@ -15,7 +15,7 @@ int SOCU_AddGlobalSocket(int sockfd)
 	cmdbuf[0] = IPC_MakeHeader(0x23,1,0); // 0x230040
 	cmdbuf[1] = (u32)sockfd;
 
-	int ret = svcSendSyncRequest(SOCU_handle);
+	int ret = socSendSyncRequest();
 	if(R_FAILED(ret))return ret;
 	return cmdbuf[1];
 }

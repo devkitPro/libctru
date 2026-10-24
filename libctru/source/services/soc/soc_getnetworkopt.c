@@ -22,7 +22,7 @@ int SOCU_GetNetworkOpt(int level, NetworkOpt optname, void * optval, socklen_t *
 	staticbufs[0] = IPC_Desc_StaticBuffer(*optlen, 0);
 	staticbufs[1] = (u32)optval;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 
 	// Restore the thread storage values
 	for(i = 0 ; i < 2 ; ++i)

@@ -99,7 +99,7 @@ static int getaddrinfo_detail(const char *node, const char *service, const struc
 	staticbufs[0] = IPC_Desc_StaticBuffer(sizeof(addrinfo_3ds_t) * info_count, 0);
 	staticbufs[1] = (u32)info;
 
-	int ret = svcSendSyncRequest(SOCU_handle);
+	int ret = socSendSyncRequest();
 
 	// Restore the thread storage values
 	for(i = 0 ; i < 2 ; ++i)

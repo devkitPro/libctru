@@ -8,7 +8,7 @@ int SOCU_ShutdownSockets(void)
 
 	cmdbuf[0] = IPC_MakeHeader(0x19,0,0); // 0x190000
 
-	int ret = svcSendSyncRequest(SOCU_handle);
+	int ret = socSendSyncRequest();
 	if(R_FAILED(ret))return ret;
 	return cmdbuf[1];
 }

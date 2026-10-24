@@ -19,7 +19,7 @@ int shutdown(int sockfd, int shutdown_type)
 	cmdbuf[2] = (u32)shutdown_type;
 	cmdbuf[3] = IPC_Desc_CurProcessId();
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;

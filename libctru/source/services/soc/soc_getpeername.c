@@ -30,7 +30,7 @@ int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 	staticbufs[0] = IPC_Desc_StaticBuffer(ADDR_STORAGE_LEN,0);
 	staticbufs[1] = (u32)tmpaddr;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 
 	staticbufs[0] = saved_threadstorage[0];
 	staticbufs[1] = saved_threadstorage[1];
