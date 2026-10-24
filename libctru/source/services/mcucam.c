@@ -29,25 +29,25 @@ Handle *mcuCamGetSessionHandle(void)
 Result MCUCAM_SetCameraLedState(bool on)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x0001, 1, 0); // 0x00010040
-	cmdbuf[1] = !!on;
-	
+	cmdbuf[1] = on;
+
 	Result res = svcSendSyncRequest(mcuCamHandle);
 	if (R_FAILED(res)) return res;
-	
+
 	return (Result)cmdbuf[1];
 }
 
 Result MCUCAM_GetCameraLedState(bool *out_on)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x0002, 0, 0); // 0x00020000
-	
+
 	Result res = svcSendSyncRequest(mcuCamHandle);
 	if (R_FAILED(res)) return res;
-	
-	*out_on = !!cmdbuf[2];
+
+	*out_on = (bool)cmdbuf[2];
 	return (Result)cmdbuf[1];
 }

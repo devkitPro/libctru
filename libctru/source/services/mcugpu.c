@@ -38,8 +38,8 @@ Result MCUGPU_GetBacklightPower(bool *out_top_on, bool *out_bot_on)
 
 	if (R_FAILED(res)) return res;
 
-	*out_top_on = !!cmdbuf[2];
-	*out_bot_on = !!cmdbuf[3];
+	*out_top_on = (bool)cmdbuf[2];
+	*out_bot_on = (bool)cmdbuf[3];
 	return (Result)cmdbuf[1];
 }
 
@@ -48,8 +48,8 @@ Result MCUGPU_SetBacklightPower(bool top_on, bool bot_on)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0002, 2, 0); // 0x00020080
-	cmdbuf[1] = !!top_on;
-	cmdbuf[2] = !!bot_on;
+	cmdbuf[1] = top_on;
+	cmdbuf[2] = bot_on;
 
 	Result res = svcSendSyncRequest(mcuGpuHandle);
 
@@ -67,7 +67,7 @@ Result MCUGPU_GetLcdPower(bool *out_on)
 
 	if (R_FAILED(res)) return res;
 
-	*out_on = !!cmdbuf[2];
+	*out_on = (bool)cmdbuf[2];
 	return (Result)cmdbuf[1];
 }
 
@@ -76,7 +76,7 @@ Result MCUGPU_SetLcdPower(bool on)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0004, 1, 0); // 0x00040040
-	cmdbuf[1] = !!on;
+	cmdbuf[1] = on;
 
 	Result res = svcSendSyncRequest(mcuGpuHandle);
 
@@ -184,7 +184,7 @@ Result MCUGPU_Get3dLedState(bool *out_state)
 	Result res = svcSendSyncRequest(mcuGpuHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_state = !!cmdbuf[2];
+	*out_state = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }

@@ -63,12 +63,12 @@ Result MCUHWC_WriteRegister(u8 reg, const void *data, u32 size)
 Result MCUHWC_ReadInfoRegister(void *data, u8 size)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x0003, 1, 2); // 0x00030042
 	cmdbuf[1] = (u32)size;
 	cmdbuf[2] = IPC_Desc_Buffer(size, IPC_BUFFER_W);
 	cmdbuf[3] = (u32)data;
-	
+
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
 	return (Result)cmdbuf[1];
@@ -119,7 +119,7 @@ Result MCUHWC_SetWifiLedState(bool state)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0007, 1, 0); // 0x00070040
-	cmdbuf[1] = !!state;
+	cmdbuf[1] = state;
 
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
@@ -131,7 +131,7 @@ Result MCUHWC_SetCameraLedState(bool state)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0008, 1, 0); // 0x00080040
-	cmdbuf[1] = !!state;
+	cmdbuf[1] = state;
 
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
@@ -143,7 +143,7 @@ Result MCUHWC_Set3dLedState(bool state)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0009, 1, 0); // 0x00090040
-	cmdbuf[1] = !!state;
+	cmdbuf[1] = state;
 
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
@@ -179,10 +179,10 @@ Result MCUHWC_GetVolumeSliderLevel(u8 *level)
 Result MCUHWC_SetTopLcdFlicker(u8 flicker)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x000C, 1, 0); // 0x000C0040
 	cmdbuf[1] = (u32)flicker;
-	
+
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
 	return (Result)cmdbuf[1];
@@ -191,10 +191,10 @@ Result MCUHWC_SetTopLcdFlicker(u8 flicker)
 Result MCUHWC_SetBottomLcdFlicker(u8 flicker)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x000D, 1, 0); // 0x000D0040
 	cmdbuf[1] = (u32)flicker;
-	
+
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
 	return (Result)cmdbuf[1];
@@ -203,28 +203,28 @@ Result MCUHWC_SetBottomLcdFlicker(u8 flicker)
 Result MCUHWC_GetBatteryPcbTemperature(s8 *out_value)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x000E, 0, 0); // 0x000E0000
-	
+
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
-	
+
 	*out_value = (s8)(cmdbuf[2] & 0xFF);
-	
+
 	return (Result)cmdbuf[1];
 }
 
 Result MCUHWC_GetRtcTime(MCU_RtcTime *out_time)
 {
 	u32 *cmdbuf = getThreadCommandBuffer();
-	
+
 	cmdbuf[0] = IPC_MakeHeader(0x000F, 0, 0); // 0x000F0000
-	
+
 	Result res = svcSendSyncRequest(mcuHwcHandle);
 	if (R_FAILED(res)) return res;
-	
+
 	memcpy(out_time, &cmdbuf[2], sizeof(MCU_RtcTime));
-	
+
 	return (Result)cmdbuf[1];
 }
 

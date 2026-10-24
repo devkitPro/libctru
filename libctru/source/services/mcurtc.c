@@ -432,7 +432,7 @@ Result MCURTC_SetPedometerEnabled(bool enabled)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x001F, 1, 0); // 0x001F0040
-	cmdbuf[1] = !!enabled;
+	cmdbuf[1] = enabled;
 
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
@@ -448,7 +448,7 @@ Result MCURTC_GetPedometerEnabled(bool *out_enabled)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_enabled = !!cmdbuf[2];
+	*out_enabled = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -528,7 +528,7 @@ Result MCURTC_CheckRtcTimeLost(bool *out_lost)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_lost = !!cmdbuf[2];
+	*out_lost = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -553,7 +553,7 @@ Result MCURTC_CheckWatchdogResetOccurred(bool *out_occurred)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_occurred = !!cmdbuf[2];
+	*out_occurred = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -581,7 +581,7 @@ Result MCURTC_GetShellState(bool *out_open)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_open = !!cmdbuf[2];
+	*out_open = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -595,7 +595,7 @@ Result MCURTC_GetAdapterState(bool *out_connected)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_connected = !!cmdbuf[2];
+	*out_connected = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -609,7 +609,7 @@ Result MCURTC_GetChargingState(bool *out_connected)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_connected = !!cmdbuf[2];
+	*out_connected = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -828,7 +828,7 @@ Result MCURTC_GetInfoLedCycleStatus(bool *out_new_cycle_started)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_new_cycle_started = !!cmdbuf[2];
+	*out_new_cycle_started = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -1054,7 +1054,7 @@ Result MCURTC_SetMcuFirmUpdatedFlag(bool value)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x004F, 1, 0); // 0x004F0040
-	cmdbuf[1] = !!value;
+	cmdbuf[1] = value;
 
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
@@ -1070,7 +1070,7 @@ Result MCURTC_GetMcuFirmUpdatedFlag(bool *out_value)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_value = !!cmdbuf[2];
+	*out_value = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -1080,7 +1080,7 @@ Result MCURTC_SetSoftwareClosedFlag(bool value)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0051, 1, 0); // 0x00510040
-	cmdbuf[1] = !!value;
+	cmdbuf[1] = value;
 
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
@@ -1096,7 +1096,7 @@ Result MCURTC_GetSoftwareClosedFlag(bool *out_value)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_value = !!cmdbuf[2];
+	*out_value = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -1132,7 +1132,7 @@ Result MCURTC_SetLgyNativeResolutionFlag(bool value)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0055, 1, 0); // 0x00550040
-	cmdbuf[1] = !!value;
+	cmdbuf[1] = value;
 
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
@@ -1148,7 +1148,7 @@ Result MCURTC_GetLgyNativeResolutionFlag(bool *out_value)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_value = !!cmdbuf[2];
+	*out_value = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -1184,7 +1184,7 @@ Result MCURTC_SetLegacyJumpProhibitedFlag(bool value)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0059, 1, 0); // 0x00590040
-	cmdbuf[1] = !!value;
+	cmdbuf[1] = value;
 
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
@@ -1200,7 +1200,7 @@ Result MCURTC_GetLegacyJumpProhibitedFlag(bool *out_value)
 	Result res = svcSendSyncRequest(mcuRtcHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_value = !!cmdbuf[2];
+	*out_value = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }

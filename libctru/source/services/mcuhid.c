@@ -34,7 +34,7 @@ Result MCUHID_SetAccelerometerEnabled(bool enable)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x0001, 1, 0); // 0x00010040
-	cmdbuf[1] = !!enable;
+	cmdbuf[1] = enable;
 
 	Result res = svcSendSyncRequest(mcuHidHandle);
 	if (R_FAILED(res)) return res;
@@ -49,7 +49,7 @@ Result MCUHID_GetAccelerometerEnabled(bool *out_enabled)
 	Result res = svcSendSyncRequest(mcuHidHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_enabled = !!cmdbuf[2];
+	*out_enabled = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -152,7 +152,7 @@ Result MCUHID_SetAccelerometerInternalFilterEnabled(bool enabled)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x000A, 1, 0); // 0x000A0040
-	cmdbuf[1] = !!enabled;
+	cmdbuf[1] = enabled;
 
 	Result res = svcSendSyncRequest(mcuHidHandle);
 	if (R_FAILED(res)) return res;
@@ -168,7 +168,7 @@ Result MCUHID_GetAccelerometerInternalFilterEnabled(bool *out_enabled)
 	Result res = svcSendSyncRequest(mcuHidHandle);
 	if (R_FAILED(res)) return res;
 
-	*out_enabled = !!cmdbuf[2];
+	*out_enabled = (bool)cmdbuf[2];
 
 	return (Result)cmdbuf[1];
 }
@@ -218,7 +218,7 @@ Result MCUHID_SetAccelerometerIrqEnabled(bool enable)
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x000F, 1, 0); // 0x000F0040
-	cmdbuf[1] = !!enable;
+	cmdbuf[1] = enable;
 
 	Result res = svcSendSyncRequest(mcuHidHandle);
 	if (R_FAILED(res)) return res;
