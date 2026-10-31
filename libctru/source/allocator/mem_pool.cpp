@@ -67,6 +67,7 @@ bool MemPool::Allocate(MemChunk& chunk, u32 size, int align)
 		// Found space!
 		chunk.addr = addr;
 		chunk.size = size;
+		chunk.alignMask = alignMask;
 
 		// Resize the block
 		if (!begWaste)
@@ -91,6 +92,90 @@ bool MemPool::Allocate(MemChunk& chunk, u32 size, int align)
 		return true;
 	}
 
+	return false;
+}
+
+bool MemPool::Reallocate(MemChunk& chunk, u32 size)
+{
+	u8* cAddr = chunk.addr;
+	u32 cSize = chunk.size;
+
+	u32 newSize = (size + chunk.alignMask) &~ chunk.alignMask;
+
+	if (newSize == cSize)
+		return true;
+
+	if (newSize > cSize)
+	{
+		// Try finding the adjacent memory in the linear pool.
+		MemBlock* b;
+		bool memFound = false;
+		for (b = first; b; b = b->next)
+		{
+			auto addr = b->base;
+			if ((cAddr + cSize) == addr)
+			{
+				memFound = true;
+				break;
+			}
+		}
+
+		// Check if adjacent memory is already occupied, or if it isn't large enough.
+		if (!memFound || newSize > cSize + b->size)
+			return false;
+
+		{
+			u32 memAdded = newSize - cSize;
+			b->base += memAdded;
+			b->size -= memAdded;
+			if (!b->size)
+				DelBlock(b);
+
+			chunk.size = newSize;
+		}
+
+		return true;
+	}
+
+	if (newSize < cSize)
+	{
+		u8* memFreeBase = cAddr + newSize;
+		u32 memFreeSize = cSize - newSize;
+
+		bool done = false;
+		for (auto b = first; !done && b; b = b->next)
+		{
+			auto addr = b->base;
+			if (addr > cAddr)
+			{
+				if ((cAddr + cSize) == addr)
+				{
+					// Merge the memory to be freed to the left of the block.
+					b->base = memFreeBase;
+					b->size += memFreeSize;
+				} else
+				{
+					// We need to insert a new block.
+					auto c = MemBlock::Create(memFreeBase, memFreeSize);
+					if (c) InsertBefore(b, c);
+					else   return false;
+				}
+				done = true;
+			}
+		}
+
+		if (!done)
+		{
+			// Either the list is empty or the "memFreeBase" address is past the end
+			// address of the last block -- let's add a new block at the end
+			auto b = MemBlock::Create(memFreeBase, memFreeSize);
+			if (b) AddBlock(b);
+			else   return false;
+		}
+
+		chunk.size = newSize;
+		return true;
+	}
 	return false;
 }
 
