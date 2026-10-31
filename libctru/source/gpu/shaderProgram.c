@@ -6,7 +6,7 @@
 #include <3ds/gpu/shaderProgram.h>
 
 static void GPU_SetShaderOutmap(const u32 outmapData[8]);
-static void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
+static void GPU_SendShaderCode(GPU_SHADER_TYPE type, const u32* data, u16 offset, u16 length);
 static void GPU_SendOperandDescriptors(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length);
 
 Result shaderInstanceInit(shaderInstance_s* si, DVLE_s* dvle)
@@ -348,7 +348,7 @@ void GPU_SetShaderOutmap(const u32 outmapData[8])
 	GPUCMD_AddIncrementalWrites(GPUREG_SH_OUTMAP_TOTAL, outmapData, 8);
 }
 
-void GPU_SendShaderCode(GPU_SHADER_TYPE type, u32* data, u16 offset, u16 length)
+void GPU_SendShaderCode(GPU_SHADER_TYPE type, const u32* data, u16 offset, u16 length)
 {
 	if(!data)return;
 

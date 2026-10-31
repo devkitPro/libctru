@@ -9,7 +9,7 @@
 #include <3ds/gpu/shbin.h>
 
 //please don't feed this an invalid SHBIN
-DVLB_s* DVLB_ParseFile(u32* shbinData, u32 shbinSize)
+DVLB_s* DVLB_ParseFile(const u32* shbinData, u32 shbinSize)
 {
 	if(!shbinData)return NULL;
 	DVLB_s* ret=malloc(sizeof(DVLB_s));
@@ -21,7 +21,7 @@ DVLB_s* DVLB_ParseFile(u32* shbinData, u32 shbinSize)
 	if(!ret->DVLE)goto clean1;
 
 	//parse DVLP
-	u32* dvlpData=&shbinData[2+ret->numDVLE];
+	const u32* dvlpData=&shbinData[2+ret->numDVLE];
 	ret->DVLP.codeSize=dvlpData[3];
 	ret->DVLP.codeData=&dvlpData[dvlpData[2]/4];
 	ret->DVLP.opdescSize=dvlpData[5];
@@ -33,7 +33,7 @@ DVLB_s* DVLB_ParseFile(u32* shbinData, u32 shbinSize)
 	for(i=0;i<ret->numDVLE;i++)
 	{
 		DVLE_s* dvle=&ret->DVLE[i];
-		u32* dvleData=&shbinData[shbinData[2+i]/4];
+		const u32* dvleData=&shbinData[shbinData[2+i]/4];
 
 		dvle->dvlp=&ret->DVLP;
 
