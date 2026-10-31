@@ -1,7 +1,7 @@
 #pragma once
 
-#include <errno.h>
 #include <string.h>
+#include <sys/errno.h>
 #include <sys/iosupport.h>
 #include <sys/socket.h>
 #include <3ds/types.h>
@@ -12,8 +12,7 @@
 #define SYNC_ERROR ENODEV
 #define ADDR_STORAGE_LEN sizeof(struct sockaddr_storage)
 
-extern Handle	SOCU_handle;
-extern Handle	socMemhandle;
+Result socSendSyncRequest();
 
 static inline int
 soc_get_fd(int fd)

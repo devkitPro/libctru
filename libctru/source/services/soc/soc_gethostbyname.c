@@ -29,7 +29,7 @@ struct hostent* gethostbyname(const char *name)
 	staticbufs[0] = IPC_Desc_StaticBuffer(sizeof(outbuf),0);
 	staticbufs[1] = (u32)outbuf;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 
 	staticbufs[0] = saved_threadstorage[0];
 	staticbufs[1] = saved_threadstorage[1];

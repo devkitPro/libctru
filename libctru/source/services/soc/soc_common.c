@@ -1,9 +1,7 @@
-#include "soc_common.h"
-#include <errno.h>
 #include <sys/iosupport.h>
+#include <errno.h>
+#include "soc_common.h"
 
-Handle	SOCU_handle = 0;
-Handle	socMemhandle = 0;
 int h_errno = 0;
 
 //This is based on the array from libogc network_wii.c.

@@ -44,7 +44,7 @@ int socket(int domain, int type, int protocol)
 	handle->device = dev;
 	handle->fileStruct = ((void *)handle) + sizeof(__handle);
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0)
 	{
 		__release_handle(fd);

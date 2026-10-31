@@ -70,7 +70,7 @@ int fcntl(int sockfd, int cmd, ...)
 	cmdbuf[3] = (u32)arg;
 	cmdbuf[4] = IPC_Desc_CurProcessId();
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return ret;

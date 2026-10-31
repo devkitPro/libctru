@@ -9,7 +9,7 @@ long gethostid(void)
 
 	cmdbuf[0] = IPC_MakeHeader(0x16,0,0); // 0x160000
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		errno = SYNC_ERROR;
 		return -1;

@@ -28,7 +28,7 @@ struct hostent* gethostbyaddr(const void *addr, socklen_t len, int type)
 	cmdbuf[0x100>>2] = (sizeof(outbuf) << 14) | 2;
 	cmdbuf[0x104>>2] = (u32)outbuf;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 	if(ret != 0) {
 		h_errno = NO_RECOVERY;
 		return NULL;

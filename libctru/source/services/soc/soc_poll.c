@@ -58,7 +58,7 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 	staticbufs[0] = IPC_Desc_StaticBuffer(size,0);
 	staticbufs[1] = (u32)tmp_fds;
 
-	ret = svcSendSyncRequest(SOCU_handle);
+	ret = socSendSyncRequest();
 
 	staticbufs[0] = saved_threadstorage[0];
 	staticbufs[1] = saved_threadstorage[1];
