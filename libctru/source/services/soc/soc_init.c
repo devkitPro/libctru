@@ -137,6 +137,29 @@ Result socExit(void)
 	return ret;
 }
 
+Result socPInit(void)
+{
+	Result ret = 0;
+
+	if(SOCP_handle != 0)
+		return 0;//Already initialized.
+
+	ret = srvGetServiceHandle(&SOCP_handle, "soc:P");
+	if(ret != 0)
+		return ret;
+
+	return 0;
+}
+
+void SocPExit(void)
+{
+	if(SOCP_handle == 0)
+		return;//Not initialized.
+
+	svcCloseHandle(SOCP_handle);
+	SOCP_handle = 0;
+}
+
 static int
 soc_close(struct _reent *r,
           void           *fd)

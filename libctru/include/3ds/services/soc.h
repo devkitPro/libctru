@@ -291,6 +291,17 @@ Result socInit(u32 *context_addr, u32 context_size);
  */
 Result socExit(void);
 
+/**
+ * @brief Initializes the SOCP service.
+ * @return 0 on success.
+ */
+Result socPInit(void);
+
+/**
+ * @brief Exits the SOCP service.
+ */
+void SocPExit(void);
+
 // This is supposed to be in unistd.h but newlib only puts it for cygwin, waiting for newlib patch from dkA.
 /**
  * @brief Gets the system's host ID.
