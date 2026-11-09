@@ -40,6 +40,15 @@ typedef enum
 	NETOPT_DHCP_LEASE_TIME            = 0xC001, ///< The DHCP lease time remaining, in seconds.
 } NetworkOpt;
 
+typedef struct
+{
+	u8             size;
+	u8             sa_family;
+	in_port_t      port;
+	struct in_addr ip;
+	u8             pad_0x08[20];
+} SOCU_SockAddr;
+
 /// One entry of the ARP table retrieved by using @ref SOCU_GetNetworkOpt and @ref NETOPT_ARP_TABLE.
 typedef struct
 {
@@ -76,8 +85,8 @@ typedef struct
 /// One entry of the UDP sockets table retrieved by using @ref SOCU_GetNetworkOpt and @ref NETOPT_UDP_TABLE.
 typedef struct
 {
-	struct sockaddr_storage local;  ///< Local address information.
-	struct sockaddr_storage remote; ///< Remote address information.
+	SOCU_SockAddr local;  ///< Local address information.
+	SOCU_SockAddr remote; ///< Remote address information.
 } SOCU_UDPTableEntry;
 
 ///@name TCP states
@@ -95,9 +104,9 @@ typedef struct
 /// One entry of the TCP sockets table retrieved by using @ref SOCU_GetNetworkOpt and @ref NETOPT_TCP_TABLE.
 typedef struct
 {
-	u32 state;                      ///< @see TCP states defines.
-	struct sockaddr_storage local;  ///< Local address information.
-	struct sockaddr_storage remote; ///< Remote address information.
+	u32 state;            ///< @see TCP states defines.
+	SOCU_SockAddr local;  ///< Local address information.
+	SOCU_SockAddr remote; ///< Remote address information.
 } SOCU_TCPTableEntry;
 
 /// One entry of the DNS servers table retrieved by using @ref SOCU_GetNetworkOpt and @ref NETOPT_DNS_TABLE.
