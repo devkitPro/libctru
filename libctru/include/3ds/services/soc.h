@@ -318,13 +318,13 @@ int SOCU_CloseSockets(void);
 
 /**
  * @brief Retrieves information from the network configuration. Similar to getsockopt().
- * @param level   Only value allowed seems to be @ref SOL_CONFIG.
+ * @param level   Only value allowed is @ref SOL_CONFIG.
  * @param optname The option to be retrieved.
  * @param optval  Will contain the output of the command.
  * @param optlen  Size of the optval buffer, will be updated to hold the size of the output.
  * @return 0 if successful. -1 if failed, and errno will be set accordingly. Can also return a system error code.
  */
-int SOCU_GetNetworkOpt(int level, NetworkOpt optname, void * optval, socklen_t * optlen);
+int SOCU_GetNetworkOpt(int level, NetworkOpt optname, void *optval, socklen_t *optlen);
 
 /**
  * @brief Gets the system's IP address, netmask, and subnet broadcast.
@@ -338,3 +338,13 @@ int SOCU_GetIPInfo(struct in_addr *ip, struct in_addr *netmask, struct in_addr *
  * @return Result.
  */
 int SOCU_AddGlobalSocket(int sockfd);
+
+/**
+ * @brief Sets information to the network configuration. Similar to setsockopt().
+ * @param level   Only value allowed is @ref SOL_CONFIG.
+ * @param optname The option to be set.
+ * @param optval  Value to set.
+ * @param optlen  Size of the optval buffer.
+ * @return 0 if successful. -1 if failed, and errno will be set accordingly. Can also return a system error code.
+ */
+int SOCP_SetNetworkOpt(int level, NetworkOpt optname, void *optval, socklen_t optlen);
