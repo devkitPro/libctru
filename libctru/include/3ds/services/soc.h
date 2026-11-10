@@ -18,7 +18,7 @@ typedef enum
 	NETOPT_STACK_RX_ALLOW_CB_ADDR     = 0x1001, ///< Internal function address used to check if RX is allowed (void*) [get].
 	NETOPT_STACK_TX_ALLOW_CB_ADDR     = 0x1002, ///< Internal function address used to check if TX is allowed (void*) [get].
 	NETOPT_STACK_DHCP_ERROR           = 0x1003, ///< DHCP error state (@see DHCP code) [get/set].
-	NETOPT_STACK_MAC_ADDRESS          = 0x1004, ///< The mac address of the interface (u32 [6]) [get].
+	NETOPT_STACK_MAC_ADDRESS          = 0x1004, ///< The MAC address of the interface (u32 [6]) [get].
 	NETOPT_STACK_IS_READY             = 0x1005, ///< Whether stack is ready to be used (u32) [get].
 	NETOPT_STACK_STATISTICS           = 0x1006, ///< Stack statistics (@see SOCU_StackStatistics) [get/set].
 	NETOPT_STACK_IS_RX_TX_DISALLOW    = 0x1007, ///< Whether stack is disallowed to RX/TX (u32) [get/set].
@@ -26,7 +26,7 @@ typedef enum
 	//ARP layer.
 	NETOPT_ARP_TABLE                  = 0x3002, ///< The ARP table (@see SOCU_ARPTableEntry) [get].
 	NETOPT_ARP_CLEAR_ALL              = 0x3003, ///< Remove all entries from the ARP table (no args) [set].
-	NETOPT_ARP_ADD                    = 0x3004, ///< Add entry to the ARP table (@see SOCU_ARPTableEntry (only ip and mac field are used)) [set].
+	NETOPT_ARP_ADD                    = 0x3004, ///< Add entry to the ARP table (@see SOCU_ARPTableEntry (only ip and mac fields are used)) [set].
 	NETOPT_ARP_REMOVE                 = 0x3005, ///< Remove entry from the ARP table (@see SOCU_ARPTableEntry (only ip field is used)) [set].
 
 	//IP layer.
@@ -36,8 +36,8 @@ typedef enum
 	NETOPT_IP_MTU                     = 0x4004, ///< The value of the IP MTU (s32) [get/set].
 	NETOPT_IP_ROUTING_CAPACITY        = 0x4005, ///< Maximum number of routing table entries (u32) [get].
 	NETOPT_IP_ROUTING_TABLE           = 0x4006, ///< The routing table (@see SOCU_RoutingTableEntry) [get].
-	NETOPT_IP_ROUTING_ADD             = 0x4007, ///< Add entry to the routing table (@see SOCU_RoutingTableEntry (only dest_ip, netmask and gateway are field used)) [set].
-	NETOPT_IP_ROUTING_REMOVE          = 0x4008, ///< Remove entry from the routing table (@see SOCU_RoutingTableEntry (only dest_ip, netmask and gateway are field used)) [set].
+	NETOPT_IP_ROUTING_ADD             = 0x4007, ///< Add entry to the routing table (@see SOCU_RoutingTableEntry (only dest_ip, netmask and gateway fields are used)) [set].
+	NETOPT_IP_ROUTING_REMOVE          = 0x4008, ///< Remove entry from the routing table (@see SOCU_RoutingTableEntry (only dest_ip, netmask and gateway fields are used)) [set].
 	NETOPT_IP_MY_ADDRESS              = 0x400A, ///< My IPv4 address (struct in_addr) [set].
 	NETOPT_IP_GATEWAY_ADDRESS         = 0x400B, ///< Gateway IPv4 address (struct in_addr) [set].
 	NETOPT_IP_SUBNET_MASK             = 0x400C, ///< Subnet mask in current network (struct in_addr) [set].
@@ -124,7 +124,7 @@ typedef struct
 {
 	u32 state;         ///< @see ARP states defines.
 	struct in_addr ip; ///< The IPv4 address associated to the entry.
-	u8 mac[6];         ///< The MAC address of associated to the entry.
+	u8 mac[6];         ///< The MAC address associated to the entry.
 	u8 padding[2];
 } SOCU_ARPTableEntry;
 
