@@ -13,6 +13,7 @@
 #define ADDR_STORAGE_LEN sizeof(struct sockaddr_storage)
 
 extern Handle	SOCU_handle;
+extern Handle	SOCP_handle;
 extern Handle	socMemhandle;
 
 static inline int

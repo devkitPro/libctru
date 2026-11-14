@@ -3,6 +3,7 @@
 #include <sys/iosupport.h>
 
 Handle	SOCU_handle = 0;
+Handle	SOCP_handle = 0;
 Handle	socMemhandle = 0;
 int h_errno = 0;
 
