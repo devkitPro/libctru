@@ -249,7 +249,7 @@ static void _gdbHioImportStructStat(struct stat *out, const struct gdbhio_stat *
 	out->st_ctime = _gdbHioImportScalar32(in->gst_ctime);
 }
 
-struct gdbhio_timeval {
+struct CTR_PACKED CTR_ALIGN(4) gdbhio_timeval {
 	gdbhio_time_t tv_sec;  /* second */
 	u64   tv_usec; /* microsecond */
 };
